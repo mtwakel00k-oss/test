@@ -1,5 +1,4 @@
 import { getTenantConfigRSC } from "@/lib/tenant"
-import Script from "next/script"
 import { notFound } from "next/navigation"
 
 export async function generateMetadata({ params }: { params: Promise<{ restaurant_slug: string }> }) {
@@ -41,7 +40,7 @@ export default async function RestaurantLayout({
   return (
     <>
       {bootstrapScript && (
-        <Script id="tenant-config" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: bootstrapScript }} />
+        <script id="tenant-config" dangerouslySetInnerHTML={{ __html: bootstrapScript }} />
       )}
       {children}
     </>
