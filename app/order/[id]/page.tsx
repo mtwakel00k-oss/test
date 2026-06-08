@@ -48,28 +48,33 @@ export default function OrderPage() {
   const { t } = useTranslation()
   const router = useRouter()
   const { id } = useParams<{ id: string }>()
-  const hasConfig = useMemo(() => {
-    if (typeof window === 'undefined') return false
+  const configSlug = useMemo(() => {
+    if (typeof window === 'undefined') return ''
     const el = document.getElementById("tenant-config")
-    return !!(el?.textContent || (window as unknown as Record<string, unknown>).__TENANT_CONFIG__)
+    try { if (el?.textContent) return JSON.parse(el.textContent).slug || '' } catch {}
+    try { return ((window as unknown as Record<string, unknown>).__TENANT_CONFIG__ as { slug?: string })?.slug || '' } catch {}
+    return ''
   }, [])
 
   useEffect(() => {
-    const el = document.getElementById("tenant-config")
-    if (el?.textContent) return
-    const config = (window as unknown as Record<string, unknown>).__TENANT_CONFIG__
-    if (config) return
-    fetch("/api/auth/login").then(r => r.json()).then(d => {
-      if (d.slug) router.replace(`/${d.slug}/order/${id}`)
-      else router.replace("/login")
-    }).catch(() => router.replace("/login"))
-  }, [router, id])
+    if (!configSlug || !id) return
+    const slugFromPath = () => {
+      const parts = window.location.pathname.split('/').filter(Boolean)
+      if (parts.length >= 2 && !['admin','menu','pos','kitchen','order','login'].includes(parts[0]) && !parts[0].includes('.'))
+        return parts[0]
+      return ''
+    }
+    const s = slugFromPath() || configSlug
+    if (s && !window.location.pathname.startsWith(`/${s}/`)) {
+      router.replace(`/${s}/order/${id}`)
+    }
+  }, [configSlug, id, router])
   const [order, setOrder] = useState<Order | null>(null)
   const [items, setItems] = useState<OrderItem[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   useEffect(() => {
-    if (!id || !hasConfig) return
+    if (!id) return
     let cancelled = false
     ;(async () => {
       try {
@@ -90,17 +95,17 @@ export default function OrderPage() {
       }
     })()
     return () => { cancelled = true }
-  }, [id, hasConfig, t])
+  }, [id, t])
 
   useEffect(() => {
-    if (!id || !hasConfig) return
+    if (!id) return
     const sub = supabase().channel(`order:${id}`)
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${id}` },
         (payload: { new: Order }) => { setOrder(payload.new as Order); logger.info("Status updated", payload.new) }
       )
       .subscribe()
     return () => { supabase().removeChannel(sub) }
-  }, [id, hasConfig])
+  }, [id])
 
   if (loading) return <OrderSkeleton />
 
