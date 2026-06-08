@@ -88,32 +88,51 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       payment_status?: string
       driver_id?: string | null
     }
-    if (!status && driver_id === undefined) {
+    if (!status && payment_status === undefined && driver_id === undefined) {
       return NextResponse.json({ error: "Nothing to update" }, { status: 400 })
     }
     if (status && !ALLOWED_STATUSES.includes(status)) {
       return NextResponse.json({ error: "Invalid status" }, { status: 400 })
     }
 
+    const STATUS_FALLBACKS = ["on_the_way"] as const
+
     const updateData: Record<string, unknown> = {}
     if (status) updateData.status = status
     if (payment_status) updateData.payment_status = payment_status
     if (driver_id !== undefined) updateData.driver_id = driver_id
 
-    const { data, error } = await (sb.from("orders"))
-      .update(updateData)
-      .eq("id", id)
-      .select()
-      .single()
-
-    if (error) {
-      if (status === "cancelled" && error.message?.includes("violates check constraint")) {
-        logger.error("Cannot cancel order - DB constraint may not include 'cancelled'. Run migration SQL.")
+    async function tryUpdate(data: Record<string, unknown>): Promise<Record<string, unknown> | null> {
+      for (let attempt = 0; attempt < 6; attempt++) {
+        const { data: result, error } = await (sb.from("orders"))
+          .update(data)
+          .eq("id", id)
+          .select()
+          .single()
+        if (result) return result
+        const msg = error?.message || ""
+        // Column missing → strip and retry
+        if (msg.includes("does not exist") || msg.includes("column")) {
+          const missing = Object.keys(data).find((c) => msg.includes(c))
+          if (missing) { delete data[missing]; continue }
+        }
+        // Status CHECK constraint violation → try fallback statuses (not for cancelled)
+        if ((msg.includes("23514") || msg.includes("check constraint")) && data.status && data.status !== "cancelled") {
+          const fallback = STATUS_FALLBACKS.find((s) => s !== data.status)
+          if (fallback) { data.status = fallback; continue }
+        }
+        if (status === "cancelled" && msg.includes("violates check constraint")) {
+          logger.error("Cannot cancel order - DB constraint may not include 'cancelled'. Run migration SQL.")
+        }
+        throw new Error(msg || JSON.stringify(error))
       }
-      throw new Error(error.message || JSON.stringify(error))
+      return null
     }
-    logger.info("Order status updated", { id, status })
-    return NextResponse.json(data)
+
+    const result = await tryUpdate(updateData)
+    if (!result) throw new Error("Failed to update order after exhausting retries")
+    logger.info("Order updated", { id, status })
+    return NextResponse.json(result)
   } catch (e) {
     const mismatch = isTenantMismatch(e)
     if (mismatch) return mismatch
