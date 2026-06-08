@@ -350,7 +350,7 @@ export default function POSPage() {
         ? `\nالعنوان: ${order.deliveryAddress}`
         : ""
     const slug = (typeof window !== "undefined"
-      ? (window as unknown as { __TENANT_CONFIG__?: { slug?: string } }).__TENANT_CONFIG__?.slug
+      ? (JSON.parse(document.getElementById("tenant-config")?.textContent || "{}")).slug || ""
       : "") ?? ""
     const driverLink = `\nرابطك: ${typeof window !== "undefined" ? window.location.origin : ""}/${slug}/driver/${d.token}`
     const message = encodeURIComponent(

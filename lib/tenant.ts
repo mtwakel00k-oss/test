@@ -114,13 +114,19 @@ let _browserMasterClient: SupabaseClient | null = null
 let _browserTenantClient: SupabaseClient | null = null
 let _browserTenantKey = ""
 
+function readTenantConfigFromDOM(): { url: string; key: string; slug?: string } | null {
+  if (typeof window === "undefined") return null
+  const el = document.getElementById("tenant-config")
+  if (!el?.textContent) return null
+  try { return JSON.parse(el.textContent) } catch { return null }
+}
+
 export function browserSupabase(): SupabaseClient {
   if (typeof window === "undefined") {
     return createClient(MASTER_URL, MASTER_KEY || FALLBACK_KEY!)
   }
 
-  const injected = (window as unknown as Record<string, unknown>).__TENANT_CONFIG__ as
-    { url: string; key: string; slug?: string } | undefined
+  const injected = readTenantConfigFromDOM()
   if (injected?.url && injected?.key && !injected.key.startsWith("sb_secret_")) {
     const cacheKey = `${injected.url}:${injected.key}`
     if (!_browserTenantClient || _browserTenantKey !== cacheKey) {
@@ -211,9 +217,7 @@ export function fetchApi(path: string, init?: RequestInit): Promise<Response> {
 
   let slug = getSlugFromClientURL()
   if (!slug) {
-    const injected = (window as unknown as Record<string, unknown>).__TENANT_CONFIG__ as
-      { slug?: string } | undefined
-    slug = injected?.slug || ""
+    slug = readTenantConfigFromDOM()?.slug || ""
   }
   if (!slug || path.startsWith("/api/auth/")) return fetch(path, init)
 

@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
-import { useSlug } from "@/lib/use-slug";
+import { useSlug, readTenantConfig } from "@/lib/use-slug";
 import { logger } from "@/lib/logger";
 import { getAvailableSizes } from "@/lib/types";
 import type { OrderType } from "@/lib/types";
@@ -17,9 +17,7 @@ import { CheckoutModal } from "./checkout-modal";
 
 function getPlan(): string {
   if (typeof window === "undefined") return "starter"
-  const cfg = (window as unknown as Record<string, unknown>).__TENANT_CONFIG__ as
-    { plan_type?: string } | undefined
-  return cfg?.plan_type || "starter"
+  return readTenantConfig()?.plan_type || "starter"
 }
 
 export function FoodDeliveryApp() {

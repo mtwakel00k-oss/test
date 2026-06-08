@@ -22,7 +22,7 @@ export default async function RestaurantLayout({
   const tenant = await getTenantConfigRSC(restaurant_slug)
   if (!tenant) notFound()
 
-  let bootstrapScript = ""
+  let configStr = ""
   try {
     const config = {
       url: tenant.supabase_url,
@@ -34,13 +34,13 @@ export default async function RestaurantLayout({
       logo_url: tenant.logo_url ?? null,
       plan_type: tenant.plan_type ?? "starter",
     }
-    bootstrapScript = `window.__TENANT_CONFIG__=${JSON.stringify(config)}`
+    configStr = JSON.stringify(config)
   } catch {}
 
   return (
     <>
-      {bootstrapScript && (
-        <script id="tenant-config" dangerouslySetInnerHTML={{ __html: bootstrapScript }} />
+      {configStr && (
+        <script id="tenant-config" type="application/json" dangerouslySetInnerHTML={{ __html: configStr }} />
       )}
       {children}
     </>

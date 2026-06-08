@@ -8,14 +8,19 @@ interface TenantConfig {
   slug: string
   name: string
   logo_url: string | null
+  plan_type?: string
 }
 
 function getConfig(): TenantConfig | null {
   if (typeof window === "undefined") return null
-  return (window as unknown as Record<string, unknown>).__TENANT_CONFIG__ as TenantConfig | null ?? null
+  const el = document.getElementById("tenant-config")
+  if (!el?.textContent) return null
+  try { return JSON.parse(el.textContent) as TenantConfig } catch { return null }
 }
 
-/** Read the tenant slug from __TENANT_CONFIG__. Returns empty string if not set. */
+export { getConfig as readTenantConfig }
+
+/** Read the tenant slug from JSON script tag. Returns empty string if not set. */
 export function useSlug(): string {
   return useMemo(() => {
     return getConfig()?.slug || ""

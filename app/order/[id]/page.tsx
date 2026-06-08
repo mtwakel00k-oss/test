@@ -48,16 +48,21 @@ export default function OrderPage() {
   const { t } = useTranslation()
   const router = useRouter()
   const { id } = useParams<{ id: string }>()
-  const hasConfig = useMemo(() => !!(typeof window !== 'undefined' && (window as unknown as Record<string, unknown>).__TENANT_CONFIG__), [])
+  const hasConfig = useMemo(() => {
+    if (typeof window === 'undefined') return false
+    const el = document.getElementById("tenant-config")
+    return !!(el?.textContent || (window as unknown as Record<string, unknown>).__TENANT_CONFIG__)
+  }, [])
 
   useEffect(() => {
+    const el = document.getElementById("tenant-config")
+    if (el?.textContent) return
     const config = (window as unknown as Record<string, unknown>).__TENANT_CONFIG__
-    if (!config) {
-      fetch("/api/auth/login").then(r => r.json()).then(d => {
-        if (d.slug) router.replace(`/${d.slug}/order/${id}`)
-        else router.replace("/login")
-      }).catch(() => router.replace("/login"))
-    }
+    if (config) return
+    fetch("/api/auth/login").then(r => r.json()).then(d => {
+      if (d.slug) router.replace(`/${d.slug}/order/${id}`)
+      else router.replace("/login")
+    }).catch(() => router.replace("/login"))
   }, [router, id])
   const [order, setOrder] = useState<Order | null>(null)
   const [items, setItems] = useState<OrderItem[]>([])
