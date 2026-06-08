@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
+import { useSlug } from "@/lib/use-slug";
 import { logger } from "@/lib/logger";
 import { getAvailableSizes } from "@/lib/types";
 import type { OrderType } from "@/lib/types";
@@ -23,6 +24,7 @@ function getPlan(): string {
 
 export function FoodDeliveryApp() {
   const router = useRouter();
+  const slug = useSlug();
   const { products } = useProducts();
   const { items, addItem, updateQuantity, removeProduct, itemCount, clear, total } = useCart();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -135,7 +137,7 @@ export function FoodDeliveryApp() {
           items={items}
           total={total}
           onClose={() => setCheckoutOpen(false)}
-          onSuccess={(orderId) => { setCheckoutOpen(false); const slug = (window as unknown as Record<string, unknown>).__TENANT_CONFIG__ as { slug?: string } | undefined; router.push(`/${slug?.slug || ''}/order/${orderId}`) }}
+          onSuccess={(orderId) => { setCheckoutOpen(false); router.push(`/${slug}/order/${orderId}`) }}
           onClear={clear}
           initialOrderType={orderType}
           initialDeliveryPhone={deliveryPhone}
