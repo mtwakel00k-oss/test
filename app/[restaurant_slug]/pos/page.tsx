@@ -134,6 +134,7 @@ export default function POSPage() {
   const [savingItems, setSavingItems] = useState(false)
   const [drivers, setDrivers] = useState<Driver[]>([])
   const [assigningDriver, setAssigningDriver] = useState(false)
+  const [pendingDriverId, setPendingDriverId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchApi("/api/tenant/drivers")
@@ -664,48 +665,66 @@ export default function POSPage() {
                   {selectedOrder.orderType === "delivery" && (
                     <div className="border-t border-border/50 pt-3 space-y-2">
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">السائق</p>
-                      <select
-                        value={selectedOrder.driverId ?? ""}
-                        onChange={async (e) => {
-                          const driver = drivers.find(d => d.id === e.target.value) ?? null
-                          await assignDriver(selectedOrder.id, driver)
-                        }}
-                        disabled={assigningDriver || drivers.length === 0}
-                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <option value="">
-                          {drivers.length === 0 ? "لا يوجد سائقون — أضف من الإعدادات" : "اختر سائقاً..."}
-                        </option>
-                        {drivers
-                          .filter(d => d.is_active)
-                          .map(driver => {
-                            const isBusy = orders.some(
-                              o => o.driverId === driver.id && o.status === "out_for_delivery" && o.id !== selectedOrder.id
+                      {selectedOrder.driverId ? (
+                        <div className="space-y-2">
+                          {(() => {
+                            const assignedDriver = drivers.find(d => d.id === selectedOrder.driverId)
+                            if (!assignedDriver) return (
+                              <p className="text-sm text-muted-foreground py-2">—</p>
                             )
                             return (
-                              <option key={driver.id} value={driver.id} disabled={isBusy}>
-                                {driver.name} {isBusy ? "🔴 مشغول" : "🟢 متاح"}
-                              </option>
+                              <>
+                                <div className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2">
+                                  <span className="text-sm font-medium text-foreground">{assignedDriver.name}</span>
+                                  <span className="text-xs text-muted-foreground">{assignedDriver.phone}</span>
+                                </div>
+                                <div className="flex gap-2">
+                                  <a href={`tel:${assignedDriver.phone.replace(/[^0-9]/g, "")}`}
+                                    className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-green-600 text-white py-2.5 text-sm font-semibold hover:bg-green-700 transition-colors">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                    </svg>
+                                    اتصال
+                                  </a>
+                                  <button onClick={async () => { await assignDriver(selectedOrder.id, null); setPendingDriverId(null) }}
+                                    disabled={assigningDriver}
+                                    className="flex-1 rounded-lg border border-destructive/30 text-destructive py-2.5 text-sm font-medium hover:bg-destructive/5 transition-colors disabled:opacity-50">
+                                    إلغاء
+                                  </button>
+                                </div>
+                              </>
                             )
-                          })
-                        }
-                      </select>
-
-                      {selectedOrder.driverId && (() => {
-                        const assignedDriver = drivers.find(d => d.id === selectedOrder.driverId)
-                        if (!assignedDriver) return null
-                        const waLink = `https://wa.me/${assignedDriver.phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
-                          `طلب توصيل جديد #${selectedOrder.orderNumber}\nالعميل: ${selectedOrder.serverName}\nهاتف: ${selectedOrder.customerPhone}\nالعنوان: ${selectedOrder.deliveryAddress || "بدون عنوان"}`
-                        )}`
-                        return (
-                          <a href={waLink} target="_blank" rel="noopener noreferrer"
-                            className="flex items-center justify-center gap-2 w-full rounded-xl bg-green-600 text-white py-2.5 text-sm font-semibold hover:bg-green-700 transition-colors"
-                          >
-                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                            أرسل للدلفري مان
-                          </a>
-                        )
-                      })()}
+                          })()}
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <select value={pendingDriverId ?? ""} onChange={e => setPendingDriverId(e.target.value || null)}
+                            disabled={assigningDriver || drivers.length === 0}
+                            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed">
+                            <option value="">{drivers.length === 0 ? "لا يوجد سائقون — أضف من الإعدادات" : "اختر سائقاً..."}</option>
+                            {drivers.filter(d => d.is_active).map(driver => {
+                              const isBusy = orders.some(o => o.driverId === driver.id && o.status === "out_for_delivery")
+                              return (
+                                <option key={driver.id} value={driver.id} disabled={isBusy}>
+                                  {driver.name} {isBusy ? "🔴 مشغول" : "🟢 متاح"}
+                                </option>
+                              )
+                            })}
+                          </select>
+                          {pendingDriverId && (
+                            <div className="flex gap-2">
+                              <button onClick={async () => { const d = drivers.find(x => x.id === pendingDriverId); if (d) { await assignDriver(selectedOrder.id, d); setPendingDriverId(null) } }}
+                                className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-primary text-primary-foreground py-2.5 text-sm font-semibold hover:brightness-110 transition-all">
+                                تأكيد السائق
+                              </button>
+                              <button onClick={() => setPendingDriverId(null)}
+                                className="rounded-lg border border-border px-4 py-2.5 text-sm text-muted-foreground hover:bg-secondary transition-colors">
+                                إلغاء
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                   {selectedOrder.status !== "completed" && selectedOrder.status !== "cancelled" && (
