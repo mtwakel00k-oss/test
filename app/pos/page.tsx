@@ -192,12 +192,6 @@ export default function POSPage() {
     if (!hasConfig) return
     fetchApi("/api/products").then(r => r.json()).then((data: MenuProduct[]) => {
       if (Array.isArray(data)) {
-        const withImages = data.filter((p: MenuProduct) => p.image_url)
-        if (withImages.length > 0) {
-          withImages.forEach((p: MenuProduct) => console.log("[POS Image]", p.id, p.name, p.image_url))
-        } else {
-          console.log("[POS Image] No products have image_url in API response")
-        }
         setProducts(data.filter((p: MenuProduct) => p.is_available !== false))
       }
     })

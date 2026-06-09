@@ -104,6 +104,11 @@ ALTER TABLE tenants ADD COLUMN IF NOT EXISTS supabase_service_key TEXT;
 `
 
 export async function GET(req: NextRequest) {
+  const session = parseSession(req.headers.get("cookie") || "")
+  if (session.role !== "admin" && session.role !== "owner") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const results: { step: string; status: string; detail?: string }[] = []

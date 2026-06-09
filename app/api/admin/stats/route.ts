@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
     const since = new Date(Date.now() - days * 86400000).toISOString()
 
     const { data: rawOrders } = await sb.from("orders").select("*").gte("created_at", since).limit(200).returns<OrderRow[]>()
-    const completedOrders = (rawOrders || []).filter((o) => o.status === "out_for_delivery")
+    const completedOrders = (rawOrders || []).filter((o) => o.status === "out_for_delivery" || o.status === "completed")
 
     const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0)
     const revenue = completedOrders.reduce((s, o) => s + Number(o.total || 0), 0)

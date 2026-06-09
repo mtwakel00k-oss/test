@@ -3,6 +3,13 @@ import { createClient } from "@supabase/supabase-js"
 import { parseSession } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 
+function generatePassword(): string {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+  let pwd = ""
+  for (let i = 0; i < 12; i++) pwd += chars.charAt(Math.floor(Math.random() * chars.length))
+  return pwd + "A1"
+}
+
 const MASTER_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 
@@ -58,9 +65,9 @@ export async function POST(req: NextRequest) {
     }
 
     const USERS = [
-      { username: "admin", role: "admin", password: "Admin123" },
-      { username: "cashier", role: "cashier", password: "Cashier123" },
-      { username: "chef", role: "chef", password: "Chef1234" },
+      { username: "admin",   role: "admin",   password: generatePassword() },
+      { username: "cashier", role: "cashier", password: generatePassword() },
+      { username: "chef",    role: "chef",    password: generatePassword() },
     ]
 
     const domain = `${slug}.app`
@@ -114,7 +121,6 @@ export async function POST(req: NextRequest) {
       tenant,
       users: userResults,
       adminEmail: `admin@${domain}`,
-      adminPassword: "Admin123",
     })
   } catch (e) {
     logger.error("Unexpected error creating tenant", e)

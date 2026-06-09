@@ -1,14 +1,18 @@
-import { describe, it, expect, beforeEach } from "vitest"
+import { describe, it, expect, beforeEach, afterEach } from "vitest"
 
-// Mock window.__TENANT_CONFIG__
 const mockConfig = { url: "", key: "", slug: "burger-house", name: "", logo_url: null }
 
-Object.defineProperty(globalThis, "window", {
-  value: {
-    __TENANT_CONFIG__: mockConfig,
-  },
-  writable: true,
-})
+function setConfig(config: typeof mockConfig | null) {
+  const existing = document.getElementById("tenant-config")
+  if (existing) existing.remove()
+  if (config) {
+    const el = document.createElement("script")
+    el.id = "tenant-config"
+    el.type = "application/json"
+    el.textContent = JSON.stringify(config)
+    document.body.appendChild(el)
+  }
+}
 
 async function importModule() {
   return await import("@/lib/use-slug")
@@ -16,18 +20,22 @@ async function importModule() {
 
 describe("useSlug()", () => {
   beforeEach(() => {
-    window.__TENANT_CONFIG__ = { ...mockConfig }
+    setConfig(mockConfig)
+  })
+
+  afterEach(() => {
+    document.getElementById("tenant-config")?.remove()
   })
 
   it("returns path unchanged when no config", async () => {
-    window.__TENANT_CONFIG__ = undefined as unknown as typeof mockConfig
+    setConfig(null)
     const { slugPath } = await importModule()
     expect(slugPath("/admin")).toBe("/admin")
     expect(slugPath("login")).toBe("login")
   })
 
-  it("reads slug from __TENANT_CONFIG__", async () => {
-    window.__TENANT_CONFIG__ = { ...mockConfig, slug: "my-restaurant" }
+  it("reads slug from tenant-config script tag", async () => {
+    setConfig({ ...mockConfig, slug: "my-restaurant" })
     const { slugPath } = await importModule()
     expect(slugPath("/pos")).toBe("/my-restaurant/pos")
   })

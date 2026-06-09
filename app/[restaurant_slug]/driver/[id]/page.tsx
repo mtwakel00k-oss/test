@@ -25,7 +25,7 @@ interface DriverData {
 
 export default function DriverPage() {
   const params = useParams()
-  const token = params?.driverToken as string
+  const token = params?.id as string
 
   const [data, setData] = useState<DriverData | null>(null)
   const [loading, setLoading] = useState(true)

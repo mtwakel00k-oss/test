@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     if (!rl.allowed) return rateLimitResponse(rl.resetAt)
 
     const { username, password, slug: reqSlug } = await req.json()
-    console.log("[login] POST received", { username, slug: reqSlug, hasPassword: !!password })
+    logger.info("[login] POST received", { username, slug: reqSlug, hasPassword: !!password })
 
     if (!username || !password) return NextResponse.json({ error: "Missing credentials" }, { status: 400 })
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return NextResponse.json({ error: "Server config error" }, { status: 500 })
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
       res.cookies.set("session", JSON.stringify({ email, role: "owner", slug: "" }), {
         httpOnly: true, secure: SECURE, sameSite: "lax", maxAge: 60 * 60 * 24 * 7, path: "/",
       })
-      console.log("[login] Owner login successful:", { email })
+      logger.info("[login] Owner login successful:", { email })
       return res
     }
 
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
 
     // ── Determine tenant ────────────────────────────────────────
     if (tenantSlug) {
-      console.log("[login] Looking up tenant by slug:", tenantSlug)
+      logger.info("[login] Looking up tenant by slug:", tenantSlug)
       const { data: tenant, error: tenantError } = await masterSb
         .from("tenants")
         .select("id, slug, name, supabase_url, supabase_anon_key")
@@ -83,20 +83,20 @@ export async function POST(req: NextRequest) {
         .single()
 
       if (tenantError || !tenant) {
-        console.log("[login] Tenant not found by slug:", tenantSlug)
+        logger.info("[login] Tenant not found by slug:", tenantSlug)
         return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
       }
       tenantId = tenant.id
-      console.log("[login] Found tenant by slug:", { id: tenantId, slug: tenant.slug })
+      logger.info("[login] Found tenant by slug:", { id: tenantId, slug: tenant.slug })
     } else {
       // No slug provided — try to find tenant from email address
       if (!username.includes("@")) {
-        console.log("[login] No slug and username is not an email — cannot resolve tenant")
+        logger.info("[login] No slug and username is not an email — cannot resolve tenant")
         return NextResponse.json({ error: "Provide a restaurant slug or use your email" }, { status: 400 })
       }
 
       const email = username.toLowerCase().trim()
-      console.log("[login] No slug provided; looking up tenant by email:", email)
+      logger.info("[login] No slug provided; looking up tenant by email:", email)
 
       await masterSb
         .from("restaurant_users")
@@ -111,12 +111,12 @@ export async function POST(req: NextRequest) {
         const foundUser = authUsers.users.find(u => u.email === email)
         if (foundUser) {
           resolvedUserId = foundUser.id
-          console.log("[login] Found auth user by email:", { id: resolvedUserId })
+          logger.info("[login] Found auth user by email:", { id: resolvedUserId })
         }
       }
 
       if (!resolvedUserId) {
-        console.log("[login] No auth user found with email:", email)
+        logger.info("[login] No auth user found with email:", email)
         return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
       }
 
@@ -127,12 +127,12 @@ export async function POST(req: NextRequest) {
         .maybeSingle()
 
       if (!membership) {
-        console.log("[login] User not linked to any tenant:", resolvedUserId)
+        logger.info("[login] User not linked to any tenant:", resolvedUserId)
         return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
       }
 
       tenantId = membership.restaurant_id
-      console.log("[login] Found tenant ID from membership:", tenantId)
+      logger.info("[login] Found tenant ID from membership:", tenantId)
 
       // Now get the slug
       const { data: tenant } = await masterSb
@@ -142,11 +142,11 @@ export async function POST(req: NextRequest) {
         .single()
 
       if (!tenant) {
-        console.log("[login] Tenant not found by ID:", tenantId)
+        logger.info("[login] Tenant not found by ID:", tenantId)
         return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
       }
       tenantSlug = tenant.slug
-      console.log("[login] Resolved tenant slug:", tenantSlug)
+      logger.info("[login] Resolved tenant slug:", tenantSlug)
     }
 
     const pwdError = validatePassword(password)
@@ -158,23 +158,23 @@ export async function POST(req: NextRequest) {
       ? username.toLowerCase().trim()
       : `${username}@${normalizedSlug}.app`
 
-    console.log("[login] Attempting signInWithPassword:", { email })
+    logger.info("[login] Attempting signInWithPassword:", { email })
 
     const res = NextResponse.json({ ok: true, slug: tenantSlug })
     const supabase = createClientForRouteHandlerWithResponse(req, res)
     const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
     if (authError) {
-      console.log("[login] signInWithPassword failed:", authError.message)
+      logger.info("[login] signInWithPassword failed:", authError.message)
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
 
     const userId = data.user?.id
     if (!userId) {
-      console.log("[login] No user ID after successful signIn")
+      logger.info("[login] No user ID after successful signIn")
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
 
-    console.log("[login] signInWithPassword succeeded:", { userId, email: data.user?.email })
+    logger.info("[login] signInWithPassword succeeded:", { userId, email: data.user?.email })
 
     // Verify user is linked to this tenant
     const { data: membership } = await masterSb
@@ -185,11 +185,11 @@ export async function POST(req: NextRequest) {
       .maybeSingle()
 
     if (!membership || !VALID_ROLES.includes(membership.role)) {
-      console.log("[login] Membership verification failed:", { userId, tenantId })
+      logger.info("[login] Membership verification failed:", { userId, tenantId })
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
 
-    console.log("[login] Membership verified:", { role: membership.role })
+    logger.info("[login] Membership verified:", { role: membership.role })
 
     // ── Set session cookie ─────────────────────────────────────
     res.cookies.set("session", JSON.stringify({
@@ -204,10 +204,10 @@ export async function POST(req: NextRequest) {
       path: "/",
     })
 
-    console.log("[login] Login successful, cookies set")
+    logger.info("[login] Login successful, cookies set")
     return res
   } catch (e) {
-    console.log("[login] Unexpected error:", e)
+    logger.info("[login] Unexpected error:", e)
     logger.error("Login error", e)
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { parseSession } from "@/lib/tenant"
 
 const USERS = [
   { username: "admin",   role: "admin" },
@@ -24,6 +25,11 @@ const DEV_PASSWORDS: Record<string, Record<string, string>> = (() => {
 
 export async function POST(req: NextRequest) {
   try {
+    const session = parseSession(req.headers.get("cookie") || "")
+    if (session.role !== "admin" && session.role !== "owner") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const body = await req.json().catch(() => ({}))
     const slug: string = body?.slug
     if (!slug) {
