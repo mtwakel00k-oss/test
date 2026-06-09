@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { logger } from "@/lib/logger"
 
-const TELEGRAM_TOKEN = "TOKEN_REMOVED"
-const TELEGRAM_CHAT = "1816086542"
+const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN || ""
+const TELEGRAM_CHAT = process.env.TELEGRAM_CHAT_ID || "1816086542"
 
 export async function POST(req: NextRequest) {
   try {
