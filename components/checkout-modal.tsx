@@ -271,6 +271,12 @@ export function CheckoutModal({
                 <MapPin className="w-4 h-4" />
                 <span>معلومات التوصيل</span>
               </div>
+              <textarea
+                value={form.deliveryAddress}
+                onChange={e => setForm(f => ({ ...f, deliveryAddress: e.target.value }))}
+                className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 resize-none"
+                placeholder="أدخل عنوان التوصيل (مثال: حي السلام، شارع 01، رقم 15)"
+                disabled={submitting} rows={2} />
               <input type="tel" value={form.phone}
                 onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
                 onKeyDown={e => e.key === "Enter" && !submitting && handleSubmit()}
@@ -280,7 +286,7 @@ export function CheckoutModal({
               <button
                 type="button"
                 onClick={getLocation}
-                disabled={geoStatus === "loading" || geoStatus === "success"}
+                disabled={geoStatus === "loading"}
                 className={`w-full flex items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-medium transition-colors ${
                   geoStatus === "success"
                     ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300"
@@ -299,7 +305,7 @@ export function CheckoutModal({
                 {geoStatus === "idle" && "📍 حدد موقعي تلقائياً"}
                 {geoStatus === "loading" && "جاري تحديد الموقع..."}
                 {geoStatus === "success" && "✓ تم تحديد الموقع"}
-                {geoStatus === "error" && "فشل تحديد الموقع، اضغط لإعادة المحاولة"}
+                {geoStatus === "error" && "فشل تحديد الموقع — اكتب العنوان يدوياً"}
               </button>
             </div>
           )}
