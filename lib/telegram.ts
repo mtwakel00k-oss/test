@@ -3,7 +3,7 @@ import { logger } from "@/lib/logger"
 
 const MASTER_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN
+const FALLBACK_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN
 
 export interface TelegramOrderItem {
   product_name: string
@@ -27,15 +27,11 @@ export interface TelegramOrderData {
 export async function sendTelegramMessage(
   chatId: string | number,
   text: string,
+  botToken: string,
 ): Promise<boolean> {
-  if (!BOT_TOKEN) {
-    logger.warn("TELEGRAM_BOT_TOKEN not set — skipping Telegram")
-    return false
-  }
-
   try {
     const res = await fetch(
-      `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
+      `https://api.telegram.org/bot${botToken}/sendMessage`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -136,8 +132,23 @@ export async function sendOrderToDriver(
       return false
     }
 
+    // Look up the restaurant's own bot token (isolated per restaurant)
+    const { data: tenant } = await masterSb
+      .from("tenants")
+      .select("telegram_bot_token")
+      .eq("id", restaurantId)
+      .maybeSingle()
+
+    const t = tenant as { telegram_bot_token?: string } | null
+    const botToken = t?.telegram_bot_token || FALLBACK_BOT_TOKEN
+
+    if (!botToken) {
+      logger.warn("sendOrderToDriver: no Telegram bot token for restaurant", { restaurantId })
+      return false
+    }
+
     const message = formatOrderMessage(orderData)
-    return await sendTelegramMessage(driver.telegram_chat_id, message)
+    return await sendTelegramMessage(driver.telegram_chat_id, message, botToken)
   } catch (e) {
     logger.error("sendOrderToDriver failed", e)
     return false

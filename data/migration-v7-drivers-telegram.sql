@@ -17,7 +17,10 @@ CREATE TABLE IF NOT EXISTS drivers (
 
 CREATE INDEX IF NOT EXISTS idx_drivers_restaurant_id ON drivers(restaurant_id);
 
--- 2) RLS — users can only access drivers of restaurants they belong to
+-- 2) Per-restaurant Telegram bot token (each restaurant gets its own bot)
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS telegram_bot_token TEXT;
+
+-- 3) RLS — users can only access drivers of restaurants they belong to
 ALTER TABLE drivers ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "drivers_select_own_restaurant" ON drivers
