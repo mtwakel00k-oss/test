@@ -3,6 +3,7 @@ import { supabaseForRequest, isTenantMismatch } from "@/lib/tenant"
 import { createClientForRouteHandler } from "@/lib/supabase-server"
 import { logger } from "@/lib/logger"
 import { DB_STATUS_TO_POS } from "@/lib/constants"
+import { notifyDriverAssigned } from "@/lib/whatsapp"
 
 const ALLOWED_STATUSES = ["pending", "preparing", "ready", "out_for_delivery", "completed", "cancelled"]
 
@@ -15,6 +16,16 @@ function getRole(req: NextRequest): string | null {
     } catch {}
   }
   return null
+}
+
+function extractSlugFromReferer(req: NextRequest): string {
+  const ref = req.headers.get("referer") || ""
+  const m = ref.match(/\/([^/]+)\/(?:admin|menu|pos|kitchen|order|login)\b/)
+  if (m) {
+    const known = new Set(["admin", "menu", "pos", "kitchen", "order", "login"])
+    return known.has(m[1]) ? "" : m[1]
+  }
+  return ""
 }
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -132,6 +143,24 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const result = await tryUpdate(updateData)
     if (!result) throw new Error("Failed to update order after exhausting retries")
     logger.info("Order updated", { id, status })
+
+    if (driver_id && typeof driver_id === "string") {
+      const sessionCookie = req.cookies.get("session")
+      let slug = ""
+      if (sessionCookie) {
+        try { slug = JSON.parse(sessionCookie.value).slug ?? "" } catch { /* ignore */ }
+      }
+      if (!slug) slug = extractSlugFromReferer(req)
+      const origin = req.headers.get("origin") || ""
+      if (slug && origin) {
+        const r = result as Record<string, unknown>
+        const orderNum = typeof r.order_number === "string" || typeof r.order_number === "number" ? r.order_number : ""
+        const orderTotal = typeof r.total === "number" ? r.total : 0
+        notifyDriverAssigned(slug, driver_id, orderNum, orderTotal, origin)
+          .catch((e) => logger.error("Driver WhatsApp notification failed", e))
+      }
+    }
+
     return NextResponse.json(result)
   } catch (e) {
     const mismatch = isTenantMismatch(e)
