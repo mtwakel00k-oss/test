@@ -271,42 +271,48 @@ export function CheckoutModal({
                 <MapPin className="w-4 h-4" />
                 <span>معلومات التوصيل</span>
               </div>
-              <textarea
-                value={form.deliveryAddress}
-                onChange={e => setForm(f => ({ ...f, deliveryAddress: e.target.value }))}
-                className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 resize-none"
-                placeholder="أدخل عنوان التوصيل (مثال: حي السلام، شارع 01، رقم 15)"
-                disabled={submitting} rows={2} />
               <input type="tel" value={form.phone}
                 onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
                 onKeyDown={e => e.key === "Enter" && !submitting && handleSubmit()}
                 className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
                 placeholder="رقم الهاتف (مثال: 0555123456)" disabled={submitting} />
               {errors.phone && <p className="text-xs text-destructive mt-1">{errors.phone}</p>}
-              <button
-                type="button"
-                onClick={getLocation}
-                disabled={geoStatus === "loading"}
-                className={`w-full flex items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-medium transition-colors ${
-                  geoStatus === "success"
-                    ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300"
-                    : geoStatus === "error"
-                      ? "border-destructive/30 bg-destructive/5 text-destructive"
-                      : "border-border bg-muted/30 text-muted-foreground hover:bg-muted/50"
-                }`}
-              >
-                {geoStatus === "loading" ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : geoStatus === "success" ? (
-                  <CheckCircle2 className="w-4 h-4" />
-                ) : (
+              {geoStatus === "idle" && (
+                <button type="button" onClick={getLocation}
+                  className="w-full flex items-center justify-center gap-2 rounded-lg border border-border bg-muted/30 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted/50 transition-colors">
                   <MapPin className="w-4 h-4" />
-                )}
-                {geoStatus === "idle" && "📍 حدد موقعي تلقائياً"}
-                {geoStatus === "loading" && "جاري تحديد الموقع..."}
-                {geoStatus === "success" && "✓ تم تحديد الموقع"}
-                {geoStatus === "error" && "فشل تحديد الموقع — اكتب العنوان يدوياً"}
-              </button>
+                  📍 حدد موقعي تلقائياً
+                </button>
+              )}
+              {geoStatus === "loading" && (
+                <div className="flex items-center justify-center gap-2 rounded-lg border border-border bg-muted/30 py-2.5 text-sm text-muted-foreground">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  جاري تحديد الموقع...
+                </div>
+              )}
+              {geoStatus === "success" && form.deliveryAddress && (
+                <div className="space-y-2">
+                  <div className="rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-3">
+                    <p className="text-xs text-emerald-700 dark:text-emerald-300 font-medium mb-1">📍 موقعك الحالي:</p>
+                    <p className="text-sm text-foreground">{form.deliveryAddress}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => setGeoStatus("idle")}
+                      className="flex-1 rounded-lg border border-border py-2 text-xs font-medium text-muted-foreground hover:bg-secondary transition-colors">
+                      إعادة التحديد
+                    </button>
+                    <div className="flex-1 rounded-lg border border-emerald-300 bg-emerald-50 dark:bg-emerald-900/20 py-2 text-xs font-medium text-emerald-700 dark:text-emerald-300 text-center">
+                      ✓ هذا موقعي
+                    </div>
+                  </div>
+                </div>
+              )}
+              {geoStatus === "error" && (
+                <button type="button" onClick={getLocation}
+                  className="w-full flex items-center justify-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors">
+                  فشل التحديد، اضغط لإعادة المحاولة
+                </button>
+              )}
             </div>
           )}
 
