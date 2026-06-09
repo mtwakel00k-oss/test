@@ -35,48 +35,45 @@ export function MealCard({
   const [imgFailed, setImgFailed] = useState(false)
   const showImg = !!product.image_url && !imgFailed
 
-  const pastelBgs = ["bg-pink-50", "bg-orange-50", "bg-green-50", "bg-yellow-50"]
-  const pastelBg = pastelBgs[product.id % 4]
-
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100/80 hover:shadow-md transition-all duration-300 group">
-      <div className={`relative aspect-[4/3] overflow-hidden ${pastelBg}`}>
+    <div className="bg-card rounded-2xl overflow-hidden border border-border/50 hover:border-primary/30 transition-all duration-300 group">
+      <div className="relative aspect-square overflow-hidden bg-secondary">
         {showImg ? (
-          <Image
-            src={product.image_url!}
-            alt={product.name}
-            width={400} height={300}
+          <Image src={product.image_url!} alt={product.name}
+            width={400} height={400}
             className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            onError={() => setImgFailed(true)}
-          />
+            onError={() => setImgFailed(true)} />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-5xl">🍔</span>
+            <span className="text-6xl">🍔</span>
           </div>
         )}
+        <div className="absolute inset-0 bg-gradient-to-t from-card/80 via-transparent to-transparent" />
         {product.est_speciale && (
-          <div className="absolute top-2 start-2 bg-green-500 px-2 py-0.5 rounded-full">
-            <span className="text-[10px] font-bold text-white">{t("menu.featured")}</span>
+          <div className="absolute top-2 start-2 flex items-center gap-1 bg-primary/90 backdrop-blur-sm px-2 py-1 rounded-full">
+            <span className="text-xs font-semibold text-primary-foreground">{t("menu.featured")}</span>
           </div>
         )}
-        <div className="absolute bottom-2 end-2 bg-green-500/90 backdrop-blur-sm px-1.5 py-0.5 rounded-full">
-          <span className="text-[9px] font-black text-white">10%OFF</span>
-        </div>
       </div>
 
       <div className="p-3">
-        <h3 className="font-black text-slate-800 text-sm leading-tight line-clamp-1 mb-0.5">
+        <h3 className="font-semibold text-foreground text-sm leading-tight line-clamp-1">
           {product.name}
         </h3>
+        {product.description && (
+          <p className="text-muted-foreground text-xs mt-1 line-clamp-2 leading-relaxed">
+            {product.description}
+          </p>
+        )}
 
         {showSauce && (
-          <div className="flex gap-1 mb-1.5">
+          <div className="mt-2 flex gap-1">
             {SAUCES.map(s => (
               <button key={s.id} onClick={() => onSauceChange(s.id)}
-                className={`rounded-full px-2 py-0.5 text-[10px] font-semibold border transition-all ${
+                className={`rounded px-2 py-0.5 text-xs font-medium ${
                   sauceId === s.id
-                    ? "bg-green-500 text-white border-green-500"
-                    : "bg-white text-slate-400 border-slate-200 hover:border-green-300"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-muted-foreground hover:bg-secondary/80"
                 }`}>
                 {s.label}
               </button>
@@ -85,13 +82,13 @@ export function MealCard({
         )}
 
         {avSizes.length > 0 && (
-          <div className="flex gap-1 mb-2">
+          <div className="mt-2 flex items-center gap-1">
             {avSizes.map(s => (
               <button key={s} onClick={() => onSizeChange(s)}
-                className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border transition-all ${
+                className={`rounded-md px-3 py-1 text-xs font-medium ${
                   size === s
-                    ? "bg-green-500 text-white border-green-500"
-                    : "bg-white text-slate-400 border-slate-200 hover:border-green-300"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-muted-foreground hover:bg-secondary/80"
                 }`}>
                 {s}
               </button>
@@ -99,36 +96,35 @@ export function MealCard({
           </div>
         )}
 
-        <div className="flex items-center justify-between mt-1">
-          <span className="text-sm font-black text-slate-800">
-            {(getPrice(product, size, sauceId) || 0).toLocaleString(lang === "fr" ? "fr-FR" : "en-US")}
-            <span className="text-xs font-semibold text-slate-400 ms-0.5">{lang === "ar" ? "د.ج" : "DA"}</span>
+        <div className="flex items-center justify-between mt-3">
+          <span className="text-primary font-bold text-lg">
+            {(getPrice(product, size, sauceId) || 0).toLocaleString(lang === "fr" ? "fr-FR" : "en-US")} {lang === "ar" ? "د.ج" : "DA"}
           </span>
 
           {quantity === 0 ? (
             <button
               onClick={onAdd}
               aria-label={t("menu.add")}
-              className="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center hover:bg-slate-700 active:scale-95 transition-all shadow-sm"
+              className="flex items-center justify-center w-9 h-9 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 active:scale-95 transition-all duration-200 shadow-lg shadow-primary/30"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-              </svg>
+              <Plus className="w-5 h-5" />
             </button>
           ) : (
-            <div className="flex items-center gap-1.5 bg-slate-50 rounded-full px-1.5 py-1 border border-slate-100">
+            <div className="flex items-center gap-2 bg-secondary rounded-xl p-1">
               <button
                 onClick={() => onUpdateQuantity(-1)}
-                className="w-6 h-6 flex items-center justify-center rounded-full bg-white shadow-sm hover:bg-slate-50 transition-colors"
+                className="w-7 h-7 flex items-center justify-center rounded-lg bg-background hover:bg-muted transition-colors"
               >
-                <Minus className="w-3 h-3 text-slate-600" />
+                <Minus className="w-4 h-4 text-foreground" />
               </button>
-              <span className="w-4 text-center font-black text-green-600 text-xs">{quantity}</span>
+              <span className="w-5 text-center font-bold text-primary text-sm">
+                {quantity}
+              </span>
               <button
                 onClick={() => onUpdateQuantity(1)}
-                className="w-6 h-6 flex items-center justify-center rounded-full bg-green-500 text-white hover:bg-green-600 transition-colors shadow-sm"
+                className="w-7 h-7 flex items-center justify-center rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
               >
-                <Plus className="w-3 h-3" />
+                <Plus className="w-4 h-4" />
               </button>
             </div>
           )}

@@ -1,13 +1,11 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { useSlug, readTenantConfig } from "@/lib/use-slug";
 import { logger } from "@/lib/logger";
-import { getAvailableSizes } from "@/lib/types";
-import type { OrderType } from "@/lib/types";
-import { useProducts } from "@/lib/use-products";
+import type { MenuProduct } from "@/lib/types";
+import { fetchApi } from "@/lib/tenant";
 import { useCart } from "@/context/CartContext";
 import { AppHeader } from "./app-header";
 import { CategoryFilter } from "./category-filter";
@@ -15,83 +13,37 @@ import { MealCard } from "./meal-card";
 import { OrderBar } from "./order-bar";
 import { CheckoutModal } from "./checkout-modal";
 
-function getPlan(): string {
-  if (typeof window === "undefined") return "starter"
-  return readTenantConfig()?.plan_type || "starter"
-}
-
 export function FoodDeliveryApp() {
   const router = useRouter();
-  const slug = useSlug();
-  const { products } = useProducts();
-  const { items, addItem, updateQuantity, removeProduct, itemCount, clear, total } = useCart();
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [products, setProducts] = useState<MenuProduct[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sizes, setSizes] = useState<Record<number, string>>({});
   const [sauces, setSauces] = useState<Record<number, number | null>>({});
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const { items, addItem, updateQuantity, itemCount, clear, total } = useCart();
 
-  const [orderType, setOrderType] = useState<OrderType>("dine_in");
-  const [deliveryPhone, setDeliveryPhone] = useState("");
-  const [geoStatus, setGeoStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
-
-  const planType = getPlan();
-
-  const getLocation = useCallback(() => {
-    if (!navigator.geolocation) {
-      setGeoStatus("error")
-      return
-    }
-    setGeoStatus("loading")
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude })
-        setGeoStatus("success")
-      },
-      () => {
-        setGeoStatus("error")
-      },
-      { enableHighAccuracy: true, timeout: 10000 },
-    )
-  }, [])
-
-  const productIds = useMemo(() => new Set(products.map((p) => p.id)), [products])
-  const categories = useMemo(() => [...new Set(products.map((p) => p.category).filter(Boolean))] as string[], [products])
-  /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
   useEffect(() => {
-    setSizes((prev) => {
-      const next = { ...prev }
-      for (const id of Object.keys(next).map(Number)) {
-        if (!productIds.has(id)) delete next[id]
-      }
-      for (const p of products) {
-        if (!next[p.id]) {
-          const avSizes = p.prices ? Object.keys(p.prices).filter((s) => {
-            const sp = p.prices[s];
-            return sp.sauce_tomate != null || sp.creme_fraiche != null || sp.standard != null;
-          }) : [];
-          next[p.id] = avSizes[0] || "L";
-        }
-      }
-      return next
-    })
-    setSauces((prev) => {
-      const next = { ...prev }
-      for (const id of Object.keys(next).map(Number)) {
-        if (!productIds.has(id)) delete next[id]
-      }
-      for (const p of products) {
-        if (!(p.id in next)) {
-          next[p.id] = p.has_white_sauce ? 1 : null
-        }
-      }
-      return next
-    })
-    items.forEach((i) => {
-      if (!productIds.has(i.product.id)) removeProduct(i.product.id)
-    })
-  }, [productIds])
-  /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
+    fetchApi("/api/products").then(r => r.json()).then(data => {
+      if (!Array.isArray(data)) return
+      const available = data.filter((p: { is_available?: boolean }) => p.is_available !== false) as MenuProduct[]
+      setProducts(available);
+      const cats = [...new Set(available.map(p => p.category).filter(Boolean))] as string[];
+      setCategories(cats);
+      const initSauces: Record<number, number | null> = {};
+      available.forEach(p => { initSauces[p.id] = p.has_white_sauce ? 1 : null });
+      setSauces(initSauces);
+      const initSizes: Record<number, string> = {};
+      available.forEach(p => {
+        const avSizes = p.prices ? Object.keys(p.prices).filter(s => {
+          const sp = p.prices[s];
+          return sp.sauce_tomate != null || sp.creme_fraiche != null || sp.standard != null;
+        }) : [];
+        initSizes[p.id] = avSizes[0] || "L";
+      });
+      setSizes(initSizes);
+    });
+  }, []);
 
   const filtered = selectedCategory === "All"
     ? products
@@ -103,42 +55,25 @@ export function FoodDeliveryApp() {
   }, {} as Record<string, number>);
 
   return (
-    <div
-      className="min-h-screen pb-32"
-      style={{ background: "linear-gradient(160deg, #e8f5e0 0%, #f0fdf4 30%, #ffffff 70%)" }}
-    >
+    <div className="min-h-screen bg-background pb-24">
       <AppHeader cartItemCount={itemCount} onCart={() => setCheckoutOpen(true)} />
 
-      <main className="px-4 pt-3">
-        <div className="mb-3">
-          <h2 className="text-lg font-black text-slate-800">القائمة</h2>
-          <p className="text-xs text-slate-400">{filtered.length} وجبة متاحة</p>
-        </div>
-
-        <CategoryFilter
-          categories={categories}
-          selectedCategory={selectedCategory}
-          onSelectCategory={setSelectedCategory}
-        />
-
+      <main className="px-4 pt-4">
+        <CategoryFilter categories={categories} selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
         <div className="grid grid-cols-2 gap-3 mt-4">
           {filtered.map(p => {
-            const pSizes = getAvailableSizes(p)
-            const pSize = sizes[p.id] || pSizes[0] || "UNIQUE"
-            const k = `${p.id}_${pSize}_${sauces[p.id] ?? null}`
+            const k = `${p.id}_${sizes[p.id] || "L"}_${sauces[p.id] ?? null}`;
             return (
-              <MealCard
-                key={p.id}
-                product={p}
-                size={pSize}
+              <MealCard key={p.id} product={p}
+                size={sizes[p.id] || "L"}
                 sauceId={sauces[p.id] ?? null}
                 quantity={cartQuantities[k] || 0}
                 onSizeChange={(s) => setSizes(prev => ({ ...prev, [p.id]: s }))}
                 onSauceChange={(s) => setSauces(prev => ({ ...prev, [p.id]: s }))}
-                onAdd={() => { addItem(p, pSize, sauces[p.id] ?? null); logger.info("Added", { name: p.name }) }}
-                onUpdateQuantity={(d) => { updateQuantity(p.id, pSize, sauces[p.id] ?? null, d) }}
+                onAdd={() => { addItem(p, sizes[p.id] || "L", sauces[p.id] ?? null); logger.info("Added", { name: p.name }); }}
+                onUpdateQuantity={(d) => { updateQuantity(p.id, sizes[p.id] || "L", sauces[p.id] ?? null, d); }}
               />
-            )
+            );
           })}
         </div>
       </main>
@@ -150,11 +85,8 @@ export function FoodDeliveryApp() {
           items={items}
           total={total}
           onClose={() => setCheckoutOpen(false)}
-          onSuccess={(orderId) => { setCheckoutOpen(false); router.push(`/${slug}/order/${orderId}`) }}
+          onSuccess={(orderId) => { setCheckoutOpen(false); router.push(`/order/${orderId}`) }}
           onClear={clear}
-          initialOrderType={orderType}
-          initialDeliveryPhone={deliveryPhone}
-          initialCoords={coords}
         />
       )}
     </div>

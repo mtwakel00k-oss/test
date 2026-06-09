@@ -16,17 +16,17 @@ export function CategoryFilter({
   const { t } = useTranslation();
   const all = ["All", ...categories];
   return (
-    <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4">
+    <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4">
       {all.map((cat) => {
         const isSelected = cat === selectedCategory;
         return (
           <button
             key={cat}
             onClick={() => onSelectCategory(cat)}
-            className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 border ${
+            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 ${
               isSelected
-                ? "bg-green-500 text-white border-green-500 shadow-sm"
-                : "bg-white text-slate-500 border-slate-200 hover:border-green-300 hover:text-green-600"
+                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
+                : "bg-secondary text-foreground hover:bg-secondary/80"
             }`}
           >
             {cat === "All" ? t("menu.all") : cat}
