@@ -5,21 +5,19 @@ import { use } from "react"
 import Link from "next/link"
 import { supabase, fetchApi } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
-import { ORDER_STATUSES } from "@/lib/constants"
 import type { Order, OrderItem } from "@/lib/types"
 import { OrderStatusTracker } from "@/components/order-status-tracker"
 import { OrderDetails } from "@/components/order-details"
 import RatingWidget from "@/components/RatingWidget"
 import { useSlug } from "@/lib/use-slug"
-import { FakeMapBackground } from "@/components/fake-map-background"
 
 function OrderSkeleton() {
   return (
-    <div className="min-h-screen bg-[#1C1C1E]">
-      <div className="h-48 bg-[#2C2C2E] animate-pulse" />
+    <div className="min-h-screen bg-background">
       <main className="w-full max-w-md mx-auto px-4 py-6 space-y-5 animate-pulse">
-        <div className="h-32 bg-[#2C2C2E] rounded-2xl" />
-        <div className="h-40 bg-[#2C2C2E] rounded-2xl" />
+        <div className="h-6 bg-secondary rounded-lg w-1/2 mx-auto" />
+        <div className="h-32 bg-secondary rounded-2xl" />
+        <div className="h-40 bg-secondary rounded-2xl" />
       </main>
     </div>
   )
@@ -58,11 +56,11 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
   if (loading) return <OrderSkeleton />
   if (!order) {
     return (
-      <div className="min-h-screen bg-[#1C1C1E] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="text-center">
           <div className="text-6xl mb-4">🍔</div>
-          <h1 className="text-xl font-bold text-white mb-2">الطلب غير موجود</h1>
-          <Link href={`/${slug}/menu`} className="inline-flex rounded-2xl bg-[#BFFF00] text-black px-6 py-2.5 text-sm font-bold hover:opacity-90 transition-all">
+          <h1 className="text-xl font-bold text-foreground mb-2">الطلب غير موجود</h1>
+          <Link href={`/${slug}/menu`} className="inline-flex rounded-lg bg-primary text-primary-foreground px-6 py-2.5 text-sm font-semibold hover:bg-primary/90 transition-colors">
             العودة إلى القائمة
           </Link>
         </div>
@@ -70,70 +68,77 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
     )
   }
 
-  const stage = ORDER_STATUSES.indexOf(order.status as typeof ORDER_STATUSES[number]) + 1
-  const isReady = stage >= 3
+  const getStage = (status: string, orderType: string): number => {
+    if (orderType === "delivery") {
+      const deliveryStages = ["pending", "preparing", "ready", "out_for_delivery", "completed"]
+      const idx = deliveryStages.indexOf(status)
+      return idx >= 0 ? idx + 1 : 1
+    }
+    const baseStages = ["pending", "preparing", "ready", "completed"]
+    const idx = baseStages.indexOf(status)
+    return idx >= 0 ? idx + 1 : 1
+  }
+  const stage = getStage(order.status, order.order_type ?? "dine_in")
+  const isReady = order.status === "ready"
+    || order.status === "out_for_delivery"
+    || order.status === "completed"
 
   return (
-    <div className="min-h-screen bg-[#1C1C1E] flex flex-col">
-
-      {/* ── MAP AREA ── */}
-      <div className="relative flex-shrink-0">
-        <FakeMapBackground orderId={id} status={order.status} />
-
-        {/* Info overlay — bottom of map */}
-        <div className="absolute bottom-0 inset-x-0 px-4 pb-4 flex items-end justify-between">
-          {/* Order info */}
-          <div>
-            <p className="text-white/60 text-xs font-medium">
-              {new Date(order.created_at).toLocaleDateString("ar-DZ", {
-                year: "numeric", month: "long", day: "numeric"
-              })}
-            </p>
-            <h1 className="text-white text-lg font-black leading-tight">
-              طلب #{order.order_number ?? "—"}
-            </h1>
-            <p className="text-white/60 text-xs">
-              {order.customer_name}
-              {order.table_number ? ` · طاولة ${order.table_number}` : ""}
-            </p>
-          </div>
-
-          {/* Total */}
-          <div className="text-right">
-            <p className="text-white/40 text-[10px] font-medium">المجموع</p>
-            <p className="text-[#BFFF00] text-xl font-black">{order.total}</p>
-            <p className="text-white/40 text-xs">د.ج</p>
-          </div>
+    <div className="min-h-screen bg-background">
+      <main className="w-full max-w-md mx-auto px-4 py-6 space-y-5">
+        <div className="text-center pb-2">
+          <h1 className="text-xl font-bold text-foreground">طلب #{order.order_number ?? ""}</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {order.customer_name}{order.table_number ? ` \u00b7 طاولة ${order.table_number}` : ""}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            المجموع: <span className="font-semibold text-primary">{order.total} د.ج</span>
+          </p>
         </div>
-      </div>
 
-      {/* ── DARK PANEL ── */}
-      <div className="flex-1 bg-[#1C1C1E] px-4 pt-5 pb-10 space-y-4">
+        {order.status === "out_for_delivery" && (
+          <div className="rounded-2xl bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-950/40 dark:to-purple-900/30 border border-purple-200 dark:border-purple-800 px-5 py-4 flex items-center gap-4 animate-pulse-once">
+            <span className="text-4xl animate-bounce">🛵</span>
+            <div>
+              <p className="text-base font-bold text-purple-800 dark:text-purple-300">في الطريق</p>
+              <p className="text-sm text-purple-600 dark:text-purple-400">طلبك في الطريق إليك الآن 🛵</p>
+            </div>
+          </div>
+        )}
 
-        {/* Status tracker */}
-        <OrderStatusTracker currentStage={stage} />
-
-        {/* Order details */}
+        <OrderStatusTracker
+          currentStage={stage}
+          orderType={(order.order_type as "dine_in" | "takeaway" | "delivery") ?? "dine_in"}
+        />
         <OrderDetails items={items} />
 
-        {/* Rating */}
-        {isReady && (
-          <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
-            <div className="px-4 py-3 border-b border-white/10">
-              <h2 className="text-sm font-bold text-white">قيم وجباتك</h2>
-              <p className="text-xs text-white/40 mt-0.5">شاركنا رأيك ليساعدنا على التحسن</p>
+        {order.order_type === "delivery" && order.delivery_address && (
+          <div className="rounded-xl border border-border/60 bg-card px-4 py-3 flex items-start gap-3">
+            <span className="text-xl">📍</span>
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground mb-0.5">عنوان التوصيل</p>
+              <p className="text-sm text-foreground">{order.delivery_address}</p>
             </div>
-            <div className="divide-y divide-white/10">
+          </div>
+        )}
+
+        {isReady && (
+          <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
+            <div className="bg-gradient-to-r from-primary/5 to-transparent px-4 py-3 border-b border-border/40">
+              <h2 className="text-sm font-semibold text-foreground">قيم وجباتك</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">شاركنا رأيك ليساعدنا على التحسن</p>
+            </div>
+            <div className="divide-y divide-border/40">
               {items.map(i => (
                 <div key={i.id} className="px-4 py-3 space-y-2">
-                  <p className="text-sm font-medium text-white">{i.product_name}</p>
+                  <p className="text-sm font-medium text-foreground">{i.product_name}</p>
                   {!ratedProducts.includes(Number(i.product_id)) ? (
                     <RatingWidget
                       productId={i.product_id}
                       onRated={() => setRatedProducts(prev => [...prev, Number(i.product_id)])}
                     />
                   ) : (
-                    <p className="text-xs text-emerald-400">✓ تم التقييم</p>
+                    <p className="text-xs text-emerald-500">✓ تم التقييم</p>
                   )}
                 </div>
               ))}
@@ -141,25 +146,16 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
           </div>
         )}
 
-        {/* Cancel notice */}
-        <p className="text-center text-xs text-red-400/70">
+        <p className="text-center text-xs text-red-400 pb-4">
           في حالة رغبة إلغاء الطلب، يرجى التوجّه إلى الكاشير
         </p>
 
-        {/* Back to menu */}
-        <div className="text-center pt-2">
-          <Link
-            href={`/${slug}/menu`}
-            className="inline-flex items-center gap-2 rounded-full border border-white/20 text-white/70 px-8 py-3 text-sm font-semibold hover:bg-white/5 transition-colors"
-          >
+        <div className="text-center">
+          <Link href={`/${slug}/menu`} className="inline-flex rounded-lg bg-primary text-primary-foreground px-6 py-2.5 text-sm font-semibold hover:bg-primary/90 transition-colors">
             العودة إلى القائمة
           </Link>
         </div>
-
-        <p className="text-center text-xs text-white/20">
-          تحتاج مساعدة؟ تواصل مع الكاشير
-        </p>
-      </div>
+      </main>
     </div>
   )
 }
