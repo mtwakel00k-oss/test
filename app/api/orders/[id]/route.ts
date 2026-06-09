@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabaseForRequest, isTenantMismatch } from "@/lib/tenant"
+import { supabaseForRequest, isTenantMismatch, getTenantConfig } from "@/lib/tenant"
 import { createClientForRouteHandler } from "@/lib/supabase-server"
 import { logger } from "@/lib/logger"
 import { DB_STATUS_TO_POS } from "@/lib/constants"
-import { notifyDriverAssigned } from "@/lib/whatsapp"
+import { sendOrderToDriver, type TelegramOrderData } from "@/lib/telegram"
 
 const ALLOWED_STATUSES = ["pending", "preparing", "ready", "out_for_delivery", "completed", "cancelled"]
 
@@ -151,13 +151,38 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         try { slug = JSON.parse(sessionCookie.value).slug ?? "" } catch { /* ignore */ }
       }
       if (!slug) slug = extractSlugFromReferer(req)
-      const origin = req.headers.get("origin") || ""
-      if (slug && origin) {
-        const r = result as Record<string, unknown>
-        const orderNum = typeof r.order_number === "string" || typeof r.order_number === "number" ? r.order_number : ""
-        const orderTotal = typeof r.total === "number" ? r.total : 0
-        notifyDriverAssigned(slug, driver_id, orderNum, orderTotal, origin)
-          .catch((e) => logger.error("Driver WhatsApp notification failed", e))
+      if (slug) {
+        const config = await getTenantConfig(slug)
+        if (config) {
+          const r = result as Record<string, unknown>
+          ;(async () => {
+            const { data: items, error: itemsErr } = await sb.from("order_items")
+              .select("product_name, size, quantity, unit_price")
+              .eq("order_id", id)
+            if (itemsErr) {
+              logger.error("Failed to fetch order items for Telegram", itemsErr)
+              return
+            }
+            const orderData: TelegramOrderData = {
+              id,
+              order_number: (r.order_number as number) ?? null,
+              customer_name: (r.customer_name as string) ?? "",
+              customer_phone: (r.customer_phone as string) ?? null,
+              delivery_address: (r.delivery_address as string) ?? null,
+              delivery_lat: (r.delivery_lat as number) ?? null,
+              delivery_lng: (r.delivery_lng as number) ?? null,
+              total: (r.total as number) ?? 0,
+              items: (items ?? []).map((i: { product_name: string; size: string; quantity: number; unit_price: number }) => ({
+                product_name: i.product_name,
+                size: i.size,
+                quantity: i.quantity,
+                unit_price: i.unit_price,
+              })),
+            }
+            sendOrderToDriver(config.id, driver_id, orderData)
+              .catch((e: unknown) => logger.error("Driver Telegram notification failed", e))
+          })()
+        }
       }
     }
 
