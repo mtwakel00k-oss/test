@@ -1,30 +1,35 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { LogOut, ChefHat, Receipt, Plus, LayoutDashboard } from "lucide-react"
+import { useEffect, useState, useRef } from "react"
+import { LogOut, Receipt, Plus, User, ChevronDown } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { resetTenantClient } from "@/lib/tenant"
 import { useSlug } from "@/lib/use-slug"
 import { useTranslation } from "@/lib/use-translation"
+import { cn } from "@/lib/utils"
 
 interface POSHeaderProps {
   totalOrders: number
   activeOrders: number
   todayRevenue: number
   onNewOrder?: () => void
-  cashierName?: string
+  userName?: string
+  userRole?: string
 }
 
-export function POSHeader({ totalOrders, activeOrders, todayRevenue, onNewOrder, cashierName }: POSHeaderProps) {
+export function POSHeader({ totalOrders, activeOrders, todayRevenue, onNewOrder, userName, userRole }: POSHeaderProps) {
   const router = useRouter()
   const slug = useSlug()
   const { t, lang } = useTranslation()
   const [currentTime, setCurrentTime] = useState("")
   const [currentDate, setCurrentDate] = useState("")
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   const logout = async () => {
+    setMenuOpen(false)
     resetTenantClient()
     await fetch("/api/auth/logout", { method: "POST" })
     router.push(`/${slug}/login`)
@@ -39,6 +44,14 @@ export function POSHeader({ totalOrders, activeOrders, todayRevenue, onNewOrder,
     updateTime()
     const interval = setInterval(updateTime, 1000)
     return () => clearInterval(interval)
+  }, [])
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
   const cur = lang === "ar" ? "د.ج" : "DA"
@@ -88,12 +101,6 @@ export function POSHeader({ totalOrders, activeOrders, todayRevenue, onNewOrder,
             </button>
           )}
 
-          {cashierName && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted hidden md:flex">
-              <span className="text-xs text-muted-foreground">{cashierName}</span>
-            </div>
-          )}
-
           <div className="w-px h-5 bg-border mx-0.5 hidden sm:block" />
 
           <div className="hidden sm:block text-left">
@@ -104,19 +111,30 @@ export function POSHeader({ totalOrders, activeOrders, todayRevenue, onNewOrder,
           <ThemeToggle />
           <LanguageSwitcher />
 
-          <div className="flex items-center gap-1">
-            <a href={`/${slug}/kitchen`} target="_blank" title={t("pos.kitchen")}
-              className="flex items-center justify-center w-8 h-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all">
-              <ChefHat className="h-3.5 w-3.5" />
-            </a>
-            <a href={`/${slug}/admin`} title={t("pos.admin")}
-              className="flex items-center justify-center w-8 h-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all">
-              <LayoutDashboard className="h-3.5 w-3.5" />
-            </a>
-            <button onClick={logout} title={t("login.logOut")}
-              className="flex items-center justify-center w-8 h-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-all">
-              <LogOut className="h-3.5 w-3.5" />
+          <div className="relative" ref={menuRef}>
+            <button onClick={() => setMenuOpen(!menuOpen)}
+              className="flex items-center gap-1.5 h-8 px-2 rounded-lg border border-border hover:bg-muted transition-colors">
+              <User className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="text-xs font-medium text-foreground max-w-[80px] truncate">{userName || t("pos.user")}</span>
+              <ChevronDown className="w-3 h-3 text-muted-foreground" />
             </button>
+
+            {menuOpen && (
+              <div className={cn(
+                "absolute top-full mt-1 w-48 rounded-xl border border-border bg-card shadow-lg overflow-hidden",
+                lang === "ar" ? "left-0" : "right-0"
+              )}>
+                <div className="px-3 py-2.5 border-b border-border/50">
+                  <p className="text-xs font-semibold text-foreground">{userName || t("pos.user")}</p>
+                  {userRole && <p className="text-[10px] text-muted-foreground mt-0.5">{userRole}</p>}
+                </div>
+                <button onClick={logout}
+                  className="flex items-center gap-2 w-full px-3 py-2.5 text-xs text-destructive hover:bg-destructive/5 transition-colors">
+                  <LogOut className="w-3.5 h-3.5" />
+                  {t("login.logOut")}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

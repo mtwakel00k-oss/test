@@ -34,6 +34,14 @@ export default function AdminPage() {
   const router = useRouter()
   const slug = useSlug()
 
+  useEffect(() => {
+    fetchApi("/api/me").then(r => r.ok ? r.json() : null).then(data => {
+      if (!data || (data.role !== "admin" && data.role !== "owner")) {
+        router.push(`/${slug}/login`)
+      }
+    }).catch(() => router.push(`/${slug}/login`))
+  }, [router, slug])
+
   const PERIOD_LABELS: Record<Period, string> = {
     "7d": t("admin.week"), "30d": t("admin.month"), "6m": t("admin.sixMonths"), "12m": t("admin.year"),
   }

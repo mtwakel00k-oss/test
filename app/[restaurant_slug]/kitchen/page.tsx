@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback, useMemo } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { ExternalLink, Volume2, VolumeX } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { fetchApi } from "@/lib/tenant"
@@ -52,7 +53,17 @@ const TERMINAL_STATUSES = ["completed", "delivered", "cancelled"]
 
 export default function KitchenPage() {
   const slug = useSlug()
+  const router = useRouter()
   const { t, lang } = useTranslation()
+
+  useEffect(() => {
+    fetchApi("/api/me").then(r => r.ok ? r.json() : null).then(data => {
+      if (!data || (data.role !== "admin" && data.role !== "owner" && data.role !== "chef")) {
+        router.push(`/${slug}/login`)
+      }
+    }).catch(() => router.push(`/${slug}/login`))
+  }, [router, slug])
+
   const [orders, setOrders] = useState<KitchenOrder[]>([])
   const [currentTime, setCurrentTime] = useState("")
   const [currentDate, setCurrentDate] = useState("")

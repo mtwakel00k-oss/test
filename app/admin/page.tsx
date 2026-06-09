@@ -30,6 +30,13 @@ interface ReviewItem {
 export default function AdminDashboard() {
   const { t, lang, dir } = useTranslation()
   const router = useRouter()
+
+  useEffect(() => {
+    fetch("/api/me").then(r => r.ok ? r.json() : null).then(data => {
+      if (!data || data.role !== "owner") router.push("/login")
+    }).catch(() => router.push("/login"))
+  }, [router])
+
   const [totalRevenue, setTotalRevenue] = useState(0)
   const [prevRevenue, setPrevRevenue] = useState(0)
   const [activeOrders, setActiveOrders] = useState(0)

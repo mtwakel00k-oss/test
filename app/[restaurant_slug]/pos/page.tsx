@@ -1,7 +1,9 @@
 "use client"
 
 import { useEffect, useState, useCallback, useRef, useMemo } from "react"
+import { useRouter } from "next/navigation"
 import { fetchApi } from "@/lib/tenant"
+import { useSlug } from "@/lib/use-slug"
 import { useRealtime } from "@/lib/use-realtime"
 import { useProducts } from "@/lib/use-products"
 import { logger } from "@/lib/logger"
@@ -111,6 +113,8 @@ function addCancelledId(id: string | number) {
 }
 
 export default function POSPage() {
+  const router = useRouter()
+  const slug = useSlug()
   const { t, lang } = useTranslation()
   const cur = lang === "ar" ? "د.ج" : "DA"
   const [orders, setOrders] = useState<PosOrder[]>([])
@@ -148,10 +152,14 @@ export default function POSPage() {
     fetchApi("/api/me")
       .then(r => r.ok ? r.json() : null)
       .then(data => {
-        if (data && !data.error) setCashier(data)
+        if (!data || data.error) { router.push(`/${slug}/login`); return }
+        if (data.role !== "admin" && data.role !== "owner" && data.role !== "cashier") {
+          router.push(`/${slug}/login`); return
+        }
+        setCashier(data)
       })
-      .catch(() => {})
-  }, [])
+      .catch(() => router.push(`/${slug}/login`))
+  }, [router, slug])
 
   useEffect(() => {
     const unlock = () => { initAudio(); document.removeEventListener("pointerdown", unlock) }
@@ -461,7 +469,7 @@ export default function POSPage() {
     <div className="min-h-screen bg-background">
       <POSHeader totalOrders={orders.length} activeOrders={activeOrders.length} todayRevenue={todayRevenue}
         onNewOrder={() => { setShowNewOrder(true); setSelectedOrder(null); setNewOrderError("") }}
-        cashierName={cashier?.email?.split("@")[0]} />
+        userName={cashier?.email?.split("@")[0]} userRole={cashier?.role} />
       <OrderTabs activeTab={activeTab} onTabChange={setActiveTab} counts={counts} />
       {activeTab === "active" && <OrderFilters activeFilter={statusFilter} onFilterChange={setStatusFilter} counts={counts} />}
 
