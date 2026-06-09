@@ -32,9 +32,8 @@ interface Session {
   role?: string
 }
 
-const PUBLIC_PREFIXES = ["/login", "/_next", "/favicon.ico", "/api/auth"]
+const PUBLIC_PREFIXES = ["/login", "/_next", "/favicon.ico", "/api/auth", "/order"]
 const PROTECTED_ROUTES = new Set(["admin", "pos", "kitchen"])
-const ORDER_ROUTE = "/order"
 
 function parseSession(cookie?: string): Session | null {
   if (!cookie) return null
@@ -85,7 +84,7 @@ export async function proxy(request: NextRequest) {
     const urlSlug = firstSegment
     const page = parts[1]
 
-    if (page === "menu" || page === "login") {
+    if (page === "menu" || page === "login" || page === "order") {
       return securedNext()
     }
 
@@ -105,7 +104,7 @@ export async function proxy(request: NextRequest) {
     return securedNext()
   }
 
-  if (PROTECTED_ROUTES.has(firstSegment) || pathname.startsWith(ORDER_ROUTE)) {
+  if (PROTECTED_ROUTES.has(firstSegment)) {
     if (!session) {
       return NextResponse.redirect(loginUrl(request, pathname))
     }
