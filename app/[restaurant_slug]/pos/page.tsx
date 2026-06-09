@@ -341,28 +341,21 @@ export default function POSPage() {
     setAssigningDriver(false)
   }, [])
 
-  const buildWhatsAppUrl = useCallback((order: PosOrder, d: Driver): string => {
-    const phone = d.phone.replace(/\D/g, "")
-    const hasCoords = order.deliveryLat != null && order.deliveryLng != null
-    const locationText = hasCoords
-      ? `\nموقع الزبون: https://maps.google.com/?q=${order.deliveryLat},${order.deliveryLng}`
-      : order.deliveryAddress
-        ? `\nالعنوان: ${order.deliveryAddress}`
-        : ""
+  const getDriverLink = useCallback((d: Driver): string => {
     const slug = (typeof window !== "undefined"
       ? (JSON.parse(document.getElementById("tenant-config")?.textContent || "{}")).slug || ""
       : "") ?? ""
-    const driverLink = `\nرابطك: ${typeof window !== "undefined" ? window.location.origin : ""}/${slug}/driver/${d.token}`
-    const message = encodeURIComponent(
-      `🛵 طلب توصيل جديد!\n` +
-      `الزبون: ${order.serverName}\n` +
-      `رقم الطلب: #${order.orderNumber ?? ""}\n` +
-      `المبلغ: ${order.total} ${lang === "ar" ? "د.ج" : "DA"} (الدفع عند الاستلام 💵)` +
-      locationText +
-      driverLink
-    )
-    return `https://wa.me/${phone}?text=${message}`
-  }, [lang])
+    return `${typeof window !== "undefined" ? window.location.origin : ""}/${slug}/driver/${d.token}`
+  }, [])
+
+  const copyDriverLink = useCallback((d: Driver) => {
+    const url = getDriverLink(d)
+    navigator.clipboard.writeText(url).then(() => {
+      toast({ title: "تم نسخ رابط السائق" })
+    }).catch(() => {
+      toast({ title: "فشل النسخ", variant: "destructive" })
+    })
+  }, [getDriverLink])
 
   const handleCreateOrder = useCallback(async () => {
     if (!newName || newOrderItems.length === 0) return
@@ -717,19 +710,26 @@ export default function POSPage() {
                       {selectedOrder.driverId && (() => {
                         const assignedDriver = drivers.find(d => d.id === selectedOrder.driverId)
                         if (!assignedDriver) return null
-                        const waUrl = buildWhatsAppUrl(selectedOrder, assignedDriver)
+                        const link = getDriverLink(assignedDriver)
                         return (
-                          <a href={waUrl} target="_blank" rel="noopener noreferrer"
-                            className="flex items-center justify-center gap-2 w-full rounded-xl
-                              bg-green-50 dark:bg-green-950/30 border border-green-200
-                              dark:border-green-800 text-green-700 dark:text-green-300
-                              py-2.5 text-sm font-semibold hover:bg-green-100 transition-colors"
-                          >
-                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-                            </svg>
-                            أرسل واتساب للسائق 🛵
-                          </a>
+                          <div className="space-y-2">
+                            <button onClick={() => copyDriverLink(assignedDriver)}
+                              className="flex items-center justify-center gap-2 w-full rounded-xl border border-border bg-card py-2.5 text-sm font-semibold text-foreground hover:bg-secondary transition-colors"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                              </svg>
+                              نسخ رابط السائق
+                            </button>
+                            <a href={link} target="_blank" rel="noopener noreferrer"
+                              className="flex items-center justify-center gap-2 w-full rounded-xl bg-primary text-primary-foreground py-2.5 text-sm font-semibold hover:brightness-110 transition-all"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                              فتح رابط التوصيل
+                            </a>
+                          </div>
                         )
                       })()}
                     </div>
