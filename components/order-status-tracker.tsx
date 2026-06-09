@@ -44,10 +44,10 @@ export function OrderStatusTracker({
   const clamped = clampStage(currentStage)
 
   return (
-    <div className="rounded-3xl overflow-hidden bg-[#1C1C1E] border border-white/5 shadow-2xl">
+    <div className="rounded-2xl overflow-hidden bg-card border border-border shadow-sm">
       <div className="px-5 pt-5 pb-3">
-        <h2 className="text-base font-bold text-white">حالة الطلب</h2>
-        <p className="text-xs text-white/50 mt-0.5">{stages[clamped - 1]?.subtitle ?? ""}</p>
+        <h2 className="text-base font-bold text-foreground">حالة الطلب</h2>
+        <p className="text-xs text-muted-foreground mt-0.5">{stages[clamped - 1]?.subtitle ?? ""}</p>
       </div>
 
       <div className="flex items-center justify-center py-4 relative h-28">
@@ -64,18 +64,17 @@ export function OrderStatusTracker({
       </div>
 
       <div className="px-5 pb-2">
-        <div className="relative h-2.5 bg-white/10 rounded-full overflow-hidden">
+        <div className="relative h-2.5 bg-secondary rounded-full overflow-hidden">
           <div
-            className="absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out"
+            className="absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out bg-primary"
             style={{
               width: `${((clamped - 1) / (stages.length - 1)) * 100}%`,
-              background: "linear-gradient(90deg, #9EFF00, #BFFF00)",
-              boxShadow: "0 0 12px rgba(191,255,0,0.6)",
+              boxShadow: "0 0 12px rgba(var(--primary-shadow, 99,102,241), 0.5)",
             }}
           />
           {clamped < stages.length && (
             <div
-              className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-[#BFFF00] bg-[#1C1C1E] transition-all duration-700"
+              className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-primary bg-card transition-all duration-700"
               style={{ left: `calc(${((clamped - 1) / (stages.length - 1)) * 100}% - 8px)` }}
             />
           )}
@@ -87,13 +86,12 @@ export function OrderStatusTracker({
             const isPast   = clamped > stage.id
             return (
               <div key={stage.id} className="flex-1 text-center">
-                <span
-                  className="text-[10px] font-semibold leading-tight block"
-                  style={{
-                    color: isActive ? "#BFFF00" : isPast ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.25)",
-                    fontWeight: isActive ? 700 : 500,
-                  }}
-                >
+                <span className={cn(
+                  "text-[10px] font-semibold leading-tight block transition-colors",
+                  isActive && "text-primary",
+                  isPast && !isActive && "text-foreground/50",
+                  !isActive && !isPast && "text-muted-foreground/40",
+                )}>
                   {stage.title}
                 </span>
               </div>

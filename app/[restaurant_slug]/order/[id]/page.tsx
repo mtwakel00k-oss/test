@@ -15,11 +15,11 @@ import { FakeMapBackground } from "@/components/fake-map-background"
 
 function OrderSkeleton() {
   return (
-    <div className="min-h-screen bg-[#1C1C1E]">
-      <div className="h-48 bg-[#2C2C2E] animate-pulse" />
+    <div className="min-h-screen bg-background">
+      <div className="h-48 bg-card animate-pulse" />
       <main className="w-full max-w-md mx-auto px-4 py-6 space-y-5 animate-pulse">
-        <div className="h-32 bg-[#2C2C2E] rounded-2xl" />
-        <div className="h-40 bg-[#2C2C2E] rounded-2xl" />
+        <div className="h-32 bg-card rounded-2xl" />
+        <div className="h-40 bg-card rounded-2xl" />
       </main>
     </div>
   )
@@ -58,11 +58,11 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
   if (loading) return <OrderSkeleton />
   if (!order) {
     return (
-      <div className="min-h-screen bg-[#1C1C1E] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="text-center">
           <div className="text-6xl mb-4">🍔</div>
-          <h1 className="text-xl font-bold text-white mb-2">الطلب غير موجود</h1>
-          <Link href={`/${slug}/menu`} className="inline-flex rounded-2xl bg-[#BFFF00] text-black px-6 py-2.5 text-sm font-bold hover:opacity-90 transition-all">
+          <h1 className="text-xl font-bold text-foreground mb-2">الطلب غير موجود</h1>
+          <Link href={`/${slug}/menu`} className="inline-flex rounded-xl bg-primary text-primary-foreground px-6 py-2.5 text-sm font-bold hover:brightness-110 transition-all">
             العودة إلى القائمة
           </Link>
         </div>
@@ -74,41 +74,39 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
   const isReady = stage >= 3
 
   return (
-    <div className="min-h-screen bg-[#1C1C1E] flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
 
       {/* ── MAP AREA ── */}
       <div className="relative flex-shrink-0">
         <FakeMapBackground orderId={id} status={order.status} />
 
         {/* Info overlay — bottom of map */}
-        <div className="absolute bottom-0 inset-x-0 px-4 pb-4 flex items-end justify-between">
-          {/* Order info */}
+        <div className="absolute bottom-0 inset-x-0 px-5 pb-5 flex items-end justify-between">
           <div>
-            <p className="text-white/60 text-xs font-medium">
+            <p className="text-muted-foreground/70 text-xs font-medium">
               {new Date(order.created_at).toLocaleDateString("ar-DZ", {
                 year: "numeric", month: "long", day: "numeric"
               })}
             </p>
-            <h1 className="text-white text-lg font-black leading-tight">
+            <h1 className="text-foreground text-lg font-black leading-tight">
               طلب #{order.order_number ?? "—"}
             </h1>
-            <p className="text-white/60 text-xs">
+            <p className="text-muted-foreground/70 text-xs">
               {order.customer_name}
               {order.table_number ? ` · طاولة ${order.table_number}` : ""}
             </p>
           </div>
 
-          {/* Total */}
           <div className="text-right">
-            <p className="text-white/40 text-[10px] font-medium">المجموع</p>
-            <p className="text-[#BFFF00] text-xl font-black">{order.total}</p>
-            <p className="text-white/40 text-xs">د.ج</p>
+            <p className="text-muted-foreground/50 text-[10px] font-medium">المجموع</p>
+            <p className="text-primary text-xl font-black">{order.total}</p>
+            <p className="text-muted-foreground/50 text-xs">د.ج</p>
           </div>
         </div>
       </div>
 
-      {/* ── DARK PANEL ── */}
-      <div className="flex-1 bg-[#1C1C1E] px-4 pt-5 pb-10 space-y-4">
+      {/* ── BOTTOM PANEL ── */}
+      <div className="flex-1 bg-card px-5 pt-6 pb-10 space-y-5 rounded-t-3xl -mt-5 relative z-10 border border-border/40 border-b-0">
 
         {/* Status tracker */}
         <OrderStatusTracker currentStage={stage} />
@@ -118,22 +116,27 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
 
         {/* Rating */}
         {isReady && (
-          <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
-            <div className="px-4 py-3 border-b border-white/10">
-              <h2 className="text-sm font-bold text-white">قيم وجباتك</h2>
-              <p className="text-xs text-white/40 mt-0.5">شاركنا رأيك ليساعدنا على التحسن</p>
+          <div className="rounded-2xl border border-border/60 bg-background/50 overflow-hidden">
+            <div className="px-4 py-3 border-b border-border/40 bg-gradient-to-r from-primary/[0.04] to-transparent">
+              <h2 className="text-sm font-bold text-foreground">قيم وجباتك</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">شاركنا رأيك ليساعدنا على التحسن</p>
             </div>
-            <div className="divide-y divide-white/10">
+            <div className="divide-y divide-border/40">
               {items.map(i => (
                 <div key={i.id} className="px-4 py-3 space-y-2">
-                  <p className="text-sm font-medium text-white">{i.product_name}</p>
+                  <p className="text-sm font-medium text-foreground">{i.product_name}</p>
                   {!ratedProducts.includes(Number(i.product_id)) ? (
                     <RatingWidget
                       productId={i.product_id}
                       onRated={() => setRatedProducts(prev => [...prev, Number(i.product_id)])}
                     />
                   ) : (
-                    <p className="text-xs text-emerald-400">✓ تم التقييم</p>
+                    <div className="flex items-center gap-1.5 text-xs text-emerald-500 ms-6">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      تم التقييم
+                    </div>
                   )}
                 </div>
               ))}
@@ -142,21 +145,23 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
         )}
 
         {/* Cancel notice */}
-        <p className="text-center text-xs text-red-400/70">
-          في حالة رغبة إلغاء الطلب، يرجى التوجّه إلى الكاشير
-        </p>
+        <div className="text-center">
+          <p className="text-xs text-destructive/60">
+            في حالة رغبة إلغاء الطلب، يرجى التوجّه إلى الكاشير
+          </p>
+        </div>
 
         {/* Back to menu */}
-        <div className="text-center pt-2">
+        <div className="text-center">
           <Link
             href={`/${slug}/menu`}
-            className="inline-flex items-center gap-2 rounded-full border border-white/20 text-white/70 px-8 py-3 text-sm font-semibold hover:bg-white/5 transition-colors"
+            className="inline-flex items-center gap-2 rounded-full border border-border text-muted-foreground px-8 py-3 text-sm font-semibold hover:bg-secondary hover:text-foreground transition-all"
           >
             العودة إلى القائمة
           </Link>
         </div>
 
-        <p className="text-center text-xs text-white/20">
+        <p className="text-center text-xs text-muted-foreground/40">
           تحتاج مساعدة؟ تواصل مع الكاشير
         </p>
       </div>
