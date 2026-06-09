@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { LogOut, ChefHat } from "lucide-react"
+import { LogOut, ChefHat, Receipt } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -42,58 +42,57 @@ export function POSHeader({ totalOrders, activeOrders, todayRevenue }: POSHeader
   const cur = lang === "ar" ? "د.ج" : "DA"
 
   return (
-    <header className="bg-card border-b border-border px-4 lg:px-6 py-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-            <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-            </svg>
+    <header className="bg-card border-b border-border px-3 lg:px-5 py-2.5">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
+            <Receipt className="w-4 h-4" />
           </div>
-          <div>
-            <h1 className="text-base font-semibold text-foreground tracking-tight">{t("pos.title")}</h1>
-            <p className="text-xs text-muted-foreground">{t("pos.subtitle")}</p>
+          <div className="hidden sm:block">
+            <h1 className="text-sm font-semibold text-foreground">{t("pos.title")}</h1>
+            <p className="text-[11px] text-muted-foreground leading-tight">{t("pos.subtitle")}</p>
           </div>
         </div>
 
-        <div className="hidden md:flex items-center gap-6">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-            <span className="text-sm text-muted-foreground">
-              <span className="font-semibold text-foreground">{activeOrders}</span> {t("pos.activeOrders")}
+        <div className="hidden md:flex items-center gap-4">
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 border border-primary/10">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-xs text-muted-foreground whitespace-nowrap">
+              <span className="font-semibold text-foreground">{activeOrders}</span>
+              <span className="hidden lg:inline"> {t("pos.activeOrders")}</span>
             </span>
           </div>
-          <div className="w-px h-4 bg-border"></div>
-          <span className="text-sm text-muted-foreground">
-            <span className="font-semibold text-foreground">{totalOrders}</span> {t("pos.totalOrders")}
-          </span>
-          <div className="w-px h-4 bg-border"></div>
-          <span className="text-sm text-muted-foreground">
-            <span className="font-semibold text-emerald-600 dark:text-emerald-400">{todayRevenue.toLocaleString(lang === "fr" ? "fr-FR" : "en-US")} {cur}</span> {t("pos.dailyRevenue")}
-          </span>
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/50">
+            <Receipt className="w-3 h-3 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground whitespace-nowrap">
+              <span className="font-semibold text-foreground">{totalOrders}</span>
+              <span className="hidden lg:inline"> {t("pos.totalOrders")}</span>
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 border border-primary/10">
+            <span className="w-1 h-1 rounded-full bg-primary" />
+            <span className="text-xs text-muted-foreground whitespace-nowrap">
+              <span className="font-semibold tabular-nums text-primary">{todayRevenue.toLocaleString(lang === "fr" ? "fr-FR" : "en-US")} {cur}</span>
+              <span className="hidden lg:inline"> {t("pos.dailyRevenue")}</span>
+            </span>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="text-right hidden sm:block">
-            <p className="text-sm font-medium text-foreground">{currentTime}</p>
-            <p className="text-xs text-muted-foreground">{currentDate}</p>
+        <div className="flex items-center gap-1.5">
+          <div className="text-right hidden sm:block ltr:text-left">
+            <p className="text-xs font-medium text-foreground tabular-nums">{currentTime}</p>
+            <p className="text-[10px] text-muted-foreground">{currentDate}</p>
           </div>
+          <div className="w-px h-5 bg-border mx-1 hidden sm:block" />
           <ThemeToggle />
           <LanguageSwitcher />
-          <a
-            href={`/${slug}/kitchen`}
-            target="_blank"
-            title={t("pos.kitchen")}
-            className="h-9 w-9 rounded-lg bg-secondary hover:bg-amber-500/10 hover:text-amber-600 flex items-center justify-center transition-colors"
-          >
-            <ChefHat className="h-4 w-4" />
+          <a href={`/${slug}/kitchen`} target="_blank" title={t("pos.kitchen")}
+            className="h-8 w-8 rounded-lg bg-secondary hover:bg-primary/10 hover:text-primary flex items-center justify-center transition-colors">
+            <ChefHat className="h-3.5 w-3.5" />
           </a>
-          <button
-            onClick={logout}
-            title={t("login.logOut")}
-            className="h-9 w-9 rounded-lg bg-secondary hover:bg-destructive/10 hover:text-destructive flex items-center justify-center transition-colors"
-          >
-            <LogOut className="h-4 w-4" />
+          <button onClick={logout} title={t("login.logOut")}
+            className="h-8 w-8 rounded-lg bg-secondary hover:bg-destructive/10 hover:text-destructive flex items-center justify-center transition-colors">
+            <LogOut className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>

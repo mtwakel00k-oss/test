@@ -13,58 +13,31 @@ export function OrderTabs({ activeTab, onTabChange, counts }: OrderTabsProps) {
   const { t } = useTranslation()
 
   return (
-    <div className="px-4 lg:px-6 py-4 border-b border-border/30 bg-card/30">
-      <div className="flex items-center gap-1 p-1 bg-secondary/50 rounded-xl w-fit">
-        <button
-          onClick={() => onTabChange("active")}
-          className={cn(
-            "relative flex items-center gap-2.5 px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out",
+    <div className="px-4 lg:px-5 py-2.5 border-b border-border/50 bg-card/20">
+      <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-0.5 w-fit">
+        <button onClick={() => onTabChange("active")}
+          className={cn("relative flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
             activeTab === "active"
-              ? "bg-card text-foreground shadow-lg shadow-black/20"
-              : "text-muted-foreground hover:text-foreground",
-          )}
-        >
-          <div
-            className={cn(
-              "w-2 h-2 rounded-full transition-all duration-300",
-              activeTab === "active" ? "bg-amber-500 animate-pulse" : "bg-muted-foreground/30",
-            )}
-          />
-          <span>{t("pos.activeTab")}</span>
-          <span
-            className={cn(
-              "me-1 px-2 py-0.5 rounded-md text-xs font-semibold transition-all duration-300",
-              activeTab === "active" ? "bg-amber-500/15 text-amber-400" : "bg-secondary text-muted-foreground",
-            )}
-          >
+              ? "bg-card text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground")}>
+          <span className={cn("w-1.5 h-1.5 rounded-full transition-all", activeTab === "active" ? "bg-amber-500 animate-pulse" : "bg-muted-foreground/30")} />
+          {t("pos.activeTab")}
+          <span className={cn("px-1.5 py-0.5 rounded text-[10px] font-semibold tabular-nums",
+            activeTab === "active" ? "bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400" : "bg-muted text-muted-foreground")}>
             {counts.active}
           </span>
         </button>
-
-        <button
-          onClick={() => onTabChange("completed")}
-          className={cn(
-            "relative flex items-center gap-2.5 px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out",
+        <button onClick={() => onTabChange("completed")}
+          className={cn("relative flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
             activeTab === "completed"
-              ? "bg-card text-foreground shadow-lg shadow-black/20"
-              : "text-muted-foreground hover:text-foreground",
-          )}
-        >
-          <svg
-            className={cn("w-4 h-4 transition-all duration-300", activeTab === "completed" ? "text-primary" : "text-muted-foreground/50")}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+              ? "bg-card text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground")}>
+          <svg className={cn("w-3.5 h-3.5 transition-all", activeTab === "completed" ? "text-primary" : "text-muted-foreground/50")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
-          <span>{t("pos.completedTab")}</span>
-          <span
-            className={cn(
-              "me-1 px-2 py-0.5 rounded-md text-xs font-semibold transition-all duration-300",
-              activeTab === "completed" ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground",
-            )}
-          >
+          {t("pos.completedTab")}
+          <span className={cn("px-1.5 py-0.5 rounded text-[10px] font-semibold tabular-nums",
+            activeTab === "completed" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground")}>
             {counts.completed}
           </span>
         </button>

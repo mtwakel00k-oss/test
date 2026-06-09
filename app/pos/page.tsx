@@ -412,7 +412,7 @@ export default function POSPage() {
     <div className="min-h-screen bg-background">
       <POSHeader totalOrders={orders.length} activeOrders={activeOrders.length} todayRevenue={todayRevenue} />
       <OrderTabs activeTab={activeTab} onTabChange={setActiveTab} counts={counts} />
-      {activeTab === "active" && <OrderFilters activeFilter={statusFilter} onFilterChange={setStatusFilter} counts={counts} activeTab={activeTab} />}
+      {activeTab === "active" && <OrderFilters activeFilter={statusFilter} onFilterChange={setStatusFilter} counts={counts} />}
 
       <div className="flex">
         <div className={cn("flex-1 p-4 lg:p-6 space-y-3", showCheckout ? "hidden lg:block" : "block")}>

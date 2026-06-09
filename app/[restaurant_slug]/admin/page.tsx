@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { DollarSign, TrendingUp, ShoppingBag, Star, CalendarClock, LogOut } from "lucide-react"
+import { DollarSign, TrendingUp, ShoppingBag, Star, CalendarClock, LogOut, ChartNoAxesColumn } from "lucide-react"
 import { supabase, resetTenantClient, fetchApi } from "@/lib/tenant"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -35,10 +35,7 @@ export default function AdminPage() {
   const slug = useSlug()
 
   const PERIOD_LABELS: Record<Period, string> = {
-    "7d": t("admin.week"),
-    "30d": t("admin.month"),
-    "6m": t("admin.sixMonths"),
-    "12m": t("admin.year"),
+    "7d": t("admin.week"), "30d": t("admin.month"), "6m": t("admin.sixMonths"), "12m": t("admin.year"),
   }
   const fmtNum = (n: number) => n.toLocaleString(lang === "fr" ? "fr-FR" : "en-US")
   const currency = lang === "ar" ? "د.ج" : "DA"
@@ -86,9 +83,7 @@ export default function AdminPage() {
       const res = await fetchApi(`/api/admin/stats?period=${period}`)
       if (!res.ok) return null
       return await res.json()
-    } catch {
-      return null
-    }
+    } catch { return null }
   }, [period])
 
   useEffect(() => { fetchStats().then(setStatsFromResult) }, [fetchStats])
@@ -99,70 +94,66 @@ export default function AdminPage() {
       .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => fetchStats().then(setStatsFromResult))
       .subscribe()
     const poll = setInterval(() => fetchStats().then(setStatsFromResult), 15000)
-    return () => {
-      supabase().removeChannel(channel)
-      clearInterval(poll)
-    }
+    return () => { supabase().removeChannel(channel); clearInterval(poll) }
   }, [fetchStats])
 
   return (
     <div className="min-h-screen bg-background" dir={dir}>
-      <header className="bg-card border-b border-border px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-foreground">{restaurantName}</h1>
-            <p className="text-sm text-muted-foreground">{t("admin.dashboard")}</p>
-          </div>
+      <header className="bg-card border-b border-border px-4 lg:px-6 py-3">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
+              <ChartNoAxesColumn className="w-4 h-4" />
+            </div>
+            <div>
+              <h1 className="text-sm font-semibold text-foreground">{restaurantName}</h1>
+              <p className="text-[11px] text-muted-foreground">{t("admin.dashboard")}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
             <ClearData onCleared={() => fetchStats().then(setStatsFromResult)} />
             <ThemeToggle />
             <LanguageSwitcher />
-            <button
-              onClick={async () => {
-                resetTenantClient()
-                await fetch("/api/auth/logout", { method: "POST" })
-                router.push(`/${slug}/login`)
-              }}
-              className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              {t("login.logOut")}
+            <button onClick={async () => {
+              resetTenantClient()
+              await fetch("/api/auth/logout", { method: "POST" })
+              router.push(`/${slug}/login`)
+            }} className="h-8 px-3 rounded-lg text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors flex items-center gap-1.5">
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{t("login.logOut")}</span>
             </button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto p-6 space-y-6">
-        <div className="flex items-center gap-2">
+      <main className="max-w-7xl mx-auto p-4 lg:p-6 space-y-5">
+        <div className="flex items-center gap-1.5 bg-muted/50 p-0.5 rounded-lg w-fit">
           {(Object.entries(PERIOD_LABELS) as [Period, string][]).map(([key, label]) => (
-            <button
-              key={key}
-              onClick={() => setPeriod(key)}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                period === key ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"
-              }`}
-            >
+            <button key={key} onClick={() => setPeriod(key)}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                period === key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}>
               {label}
             </button>
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <StatCard icon={<DollarSign className="w-5 h-5" />} title={t("admin.totalRevenue")} value={`${fmtNum(totalRevenue)} ${currency}`} change={0} trend="up" />
-          <StatCard icon={<ShoppingBag className="w-5 h-5" />} title={t("admin.totalOrders")} value={totalOrders.toString()} change={0} trend="up" />
-          <StatCard icon={<TrendingUp className="w-5 h-5" />} title={t("admin.avgOrder")} value={`${fmtNum(avgOrderValue)} ${currency}`} change={0} trend="up" />
-          <StatCard icon={<Star className="w-5 h-5" />} title={t("admin.avgRating")} value={avgRating.toFixed(1)} change={0} trend="up" />
-          <StatCard icon={<CalendarClock className="w-5 h-5" />} title={t("admin.dailyRevenue")} value={`${fmtNum(dailyRevenue)} ${currency}`} change={0} trend="up" />
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+          <StatCard icon={<DollarSign className="w-4 h-4" />} title={t("admin.totalRevenue")} value={`${fmtNum(totalRevenue)} ${currency}`} change={0} trend="up" />
+          <StatCard icon={<ShoppingBag className="w-4 h-4" />} title={t("admin.totalOrders")} value={totalOrders.toString()} change={0} trend="up" />
+          <StatCard icon={<TrendingUp className="w-4 h-4" />} title={t("admin.avgOrder")} value={`${fmtNum(avgOrderValue)} ${currency}`} change={0} trend="up" />
+          <StatCard icon={<Star className="w-4 h-4" />} title={t("admin.avgRating")} value={avgRating.toFixed(1)} change={0} trend="up" />
+          <StatCard icon={<CalendarClock className="w-4 h-4" />} title={t("admin.dailyRevenue")} value={`${fmtNum(dailyRevenue)} ${currency}`} change={0} trend="up" />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           <div className="lg:col-span-2">
             <SalesChart data={salesData} period={period} onPeriodChange={setPeriod} />
           </div>
           <PeakHoursChart data={peakHours} />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <TopProducts data={topProducts} />
           <ReviewsFeed reviews={reviews} />
         </div>

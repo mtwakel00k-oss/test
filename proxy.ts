@@ -84,7 +84,7 @@ export async function proxy(request: NextRequest) {
     const urlSlug = firstSegment
     const page = parts[1]
 
-    if (page === "menu" || page === "login" || page === "order") {
+    if (page === "menu" || page === "login" || page === "order" || page === "driver") {
       return securedNext()
     }
 
