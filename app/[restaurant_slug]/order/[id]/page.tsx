@@ -23,18 +23,19 @@ function OrderSkeleton() {
   )
 }
 
-export default function OrderTrackingPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
-  const slug = useSlug()
+export default function OrderTrackingPage({ params }: { params: Promise<{ restaurant_slug: string; id: string }> }) {
+  const { id, restaurant_slug } = use(params)
+  const slug = useSlug() || restaurant_slug
   const [order, setOrder] = useState<Order | null>(null)
   const [items, setItems] = useState<OrderItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [errorMsg, setErrorMsg] = useState("")
   const [ratedProducts, setRatedProducts] = useState<number[]>([])
 
   useEffect(() => {
     async function load() {
       const res = await fetchApi(`/api/orders/${id}`)
-      if (!res.ok) { logger.error("Order not found", res.status); setLoading(false); return }
+      if (!res.ok) { const err = await res.json().catch(() => ({ error: "" })); setErrorMsg(err.error || `خطأ ${res.status}`); setLoading(false); return }
       const o = await res.json()
       setOrder(o)
       setItems(o.items || [])
@@ -60,6 +61,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
         <div className="text-center">
           <div className="text-6xl mb-4">🍔</div>
           <h1 className="text-xl font-bold text-foreground mb-2">الطلب غير موجود</h1>
+          {errorMsg && <p className="text-sm text-muted-foreground mb-4">{errorMsg}</p>}
           <Link href={`/${slug}/menu`} className="inline-flex rounded-lg bg-primary text-primary-foreground px-6 py-2.5 text-sm font-semibold hover:bg-primary/90 transition-colors">
             العودة إلى القائمة
           </Link>
