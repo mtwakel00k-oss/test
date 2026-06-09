@@ -6,7 +6,7 @@ import { logger } from "@/lib/logger"
 type Period = "7d" | "30d" | "6m" | "12m"
 const PERIOD_DAYS: Record<Period, number> = { "7d": 7, "30d": 30, "6m": 180, "12m": 365 }
 
-interface OrderRow { id: string; status: string; total: number | string; created_at: string }
+interface OrderRow { id: string; status: string; total: number | string; created_at: string; driver_id: string | null }
 interface ItemRow { product_name: string; quantity: number }
 interface RatingRow { id: string; rating: number; comment: string | null; created_at: string }
 
@@ -79,12 +79,40 @@ export async function GET(req: NextRequest) {
       reviews = rawRatings.map((r) => ({ id: r.id, rating: r.rating, text: r.comment || null, timestamp: new Date(r.created_at) }))
     }
 
+    let driverStats: { id: string; name: string; phone: string; deliveries: number; revenue: number }[] = []
+    const slug = session.slug
+    if (slug) {
+      const { data: driverOrders } = await sb.from("orders")
+        .select("driver_id, total")
+        .eq("status", "out_for_delivery")
+        .gte("created_at", since)
+        .not("driver_id", "is", null)
+        .returns<{ driver_id: string; total: number }[]>()
+      const driverMap = new Map<string, { deliveries: number; revenue: number }>()
+      for (const o of (driverOrders || [])) {
+        const entry = driverMap.get(o.driver_id) || { deliveries: 0, revenue: 0 }
+        entry.deliveries += 1
+        entry.revenue += Number(o.total || 0)
+        driverMap.set(o.driver_id, entry)
+      }
+      const masterSb = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      )
+      const { data: tenantData } = await masterSb.from("tenants").select("drivers").eq("slug", slug).single()
+      const drivers: { id: string; name: string; phone: string }[] = Array.isArray(tenantData?.drivers) ? tenantData.drivers : []
+      driverStats = [...driverMap.entries()].map(([id, stats]) => {
+        const driver = drivers.find(d => d.id === id)
+        return { id, name: driver?.name || id, phone: driver?.phone || "", ...stats }
+      }).sort((a, b) => b.deliveries - a.deliveries)
+    }
+
     return NextResponse.json({
       totalRevenue: revenue,
       totalOrders: completedOrders.length,
       avgOrderValue: completedOrders.length > 0 ? revenue / completedOrders.length : 0,
       dailyRevenue: todayRev,
-      topProducts, salesData, peakHours, avgRating, reviews,
+      topProducts, salesData, peakHours, avgRating, reviews, driverStats,
     })
   } catch (e) {
     const mismatch = isTenantMismatch(e)

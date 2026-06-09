@@ -50,6 +50,7 @@ export default function AdminPage() {
   const [peakHours, setPeakHours] = useState<{ hour: number; orders: number }[]>([])
   const [reviews, setReviews] = useState<ReviewItem[]>([])
   const [dailyRevenue, setDailyRevenue] = useState(0)
+  const [driverStats, setDriverStats] = useState<{ id: string; name: string; phone: string; deliveries: number; revenue: number }[]>([])
   const [sheetOrderId, setSheetOrderId] = useState<string | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
 
@@ -63,7 +64,7 @@ export default function AdminPage() {
     topProducts: { name: string; quantity: number; revenue: number }[]
     salesData: { date: string; revenue: number; orders: number }[]
     peakHours: { hour: number; orders: number }[]
-    avgRating: number; reviews: ReviewItem[]
+    avgRating: number; reviews: ReviewItem[]; driverStats?: { id: string; name: string; phone: string; deliveries: number; revenue: number }[]
   } | null) {
     if (!result) return
     setTotalRevenue(result.totalRevenue)
@@ -75,6 +76,7 @@ export default function AdminPage() {
     setPeakHours(result.peakHours)
     setAvgRating(result.avgRating)
     setReviews(result.reviews)
+    if (result.driverStats) setDriverStats(result.driverStats)
   }
 
   const fetchStats = useCallback(async () => {
@@ -144,6 +146,49 @@ export default function AdminPage() {
           <StatCard icon={<Star className="w-4 h-4" />} title={t("admin.avgRating")} value={avgRating.toFixed(1)} change={0} trend="up" />
           <StatCard icon={<CalendarClock className="w-4 h-4" />} title={t("admin.dailyRevenue")} value={`${fmtNum(dailyRevenue)} ${currency}`} change={0} trend="up" />
         </div>
+
+        {driverStats.length > 0 && (
+          <div className="bg-card border border-border rounded-xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-border">
+              <h3 className="text-sm font-semibold text-foreground">أداء السائقين</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border/50">
+                    <th className="text-right px-4 py-2.5 text-muted-foreground font-medium text-xs">السائق</th>
+                    <th className="text-center px-4 py-2.5 text-muted-foreground font-medium text-xs">توصيلات</th>
+                    <th className="text-center px-4 py-2.5 text-muted-foreground font-medium text-xs">الإيرادات</th>
+                    <th className="text-center px-4 py-2.5 text-muted-foreground font-medium text-xs">متوسط الطلب</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {driverStats.map((d, i) => (
+                    <tr key={d.id} className={i < driverStats.length - 1 ? "border-b border-border/30" : ""}>
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
+                            {d.name.charAt(0)}
+                          </div>
+                          <span className="font-medium text-foreground text-sm">{d.name}</span>
+                        </div>
+                      </td>
+                      <td className="text-center px-4 py-2.5">
+                        <span className="font-bold text-foreground">{d.deliveries}</span>
+                      </td>
+                      <td className="text-center px-4 py-2.5">
+                        <span className="font-medium text-emerald-600 dark:text-emerald-400">{fmtNum(d.revenue)} {currency}</span>
+                      </td>
+                      <td className="text-center px-4 py-2.5">
+                        <span className="text-muted-foreground">{d.deliveries > 0 ? fmtNum(Math.round(d.revenue / d.deliveries)) : 0} {currency}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           <div className="lg:col-span-2">
