@@ -103,27 +103,42 @@ export function FoodDeliveryApp() {
   }, {} as Record<string, number>);
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div
+      className="min-h-screen pb-32"
+      style={{ background: "linear-gradient(160deg, #e8f5e0 0%, #f0fdf4 30%, #ffffff 70%)" }}
+    >
       <AppHeader cartItemCount={itemCount} onCart={() => setCheckoutOpen(true)} />
 
-      <main className="px-4 pt-4 space-y-4">
-        <CategoryFilter categories={categories} selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
-        <div className="grid grid-cols-2 gap-3">
+      <main className="px-4 pt-3">
+        <div className="mb-3">
+          <h2 className="text-lg font-black text-slate-800">القائمة</h2>
+          <p className="text-xs text-slate-400">{filtered.length} وجبة متاحة</p>
+        </div>
+
+        <CategoryFilter
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onSelectCategory={setSelectedCategory}
+        />
+
+        <div className="grid grid-cols-2 gap-3 mt-4">
           {filtered.map(p => {
             const pSizes = getAvailableSizes(p)
             const pSize = sizes[p.id] || pSizes[0] || "UNIQUE"
-            const k = `${p.id}_${pSize}_${sauces[p.id] ?? null}`;
+            const k = `${p.id}_${pSize}_${sauces[p.id] ?? null}`
             return (
-              <MealCard key={p.id} product={p}
+              <MealCard
+                key={p.id}
+                product={p}
                 size={pSize}
                 sauceId={sauces[p.id] ?? null}
                 quantity={cartQuantities[k] || 0}
                 onSizeChange={(s) => setSizes(prev => ({ ...prev, [p.id]: s }))}
                 onSauceChange={(s) => setSauces(prev => ({ ...prev, [p.id]: s }))}
-                onAdd={() => { addItem(p, pSize, sauces[p.id] ?? null); logger.info("Added", { name: p.name }); }}
-                onUpdateQuantity={(d) => { updateQuantity(p.id, pSize, sauces[p.id] ?? null, d); }}
+                onAdd={() => { addItem(p, pSize, sauces[p.id] ?? null); logger.info("Added", { name: p.name }) }}
+                onUpdateQuantity={(d) => { updateQuantity(p.id, pSize, sauces[p.id] ?? null, d) }}
               />
-            );
+            )
           })}
         </div>
       </main>
