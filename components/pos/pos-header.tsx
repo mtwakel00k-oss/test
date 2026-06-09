@@ -46,7 +46,7 @@ export function POSHeader({ totalOrders, activeOrders, todayRevenue, onNewOrder 
     <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-lg">
       <div className="flex items-center justify-between gap-2 px-3 lg:px-5 py-2">
         <div className="flex items-center gap-2.5">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-primary-foreground shadow-sm">
+          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-primary-foreground shadow-xs">
             <Receipt className="w-4 h-4" />
           </div>
           <div className="hidden sm:block">
@@ -57,7 +57,7 @@ export function POSHeader({ totalOrders, activeOrders, todayRevenue, onNewOrder 
 
         <div className="flex items-center gap-2">
           <div className="hidden md:flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/60">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
@@ -67,13 +67,13 @@ export function POSHeader({ totalOrders, activeOrders, todayRevenue, onNewOrder 
                 <span className="hidden lg:inline text-muted-foreground"> {t("pos.activeOrders")}</span>
               </span>
             </div>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/60">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted">
               <Receipt className="w-3 h-3 text-muted-foreground" />
               <span className="text-xs text-muted-foreground tabular-nums">
                 <span className="font-semibold text-foreground">{totalOrders}</span>
               </span>
             </div>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/5">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10">
               <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
               <span className="text-xs text-primary font-semibold tabular-nums">{todayRevenue.toLocaleString()} {cur}</span>
             </div>

@@ -65,7 +65,7 @@ export function ProductGrid({ products, orderItems, onAddItem, onUpdateQuantity 
 
   return (
     <div className="flex flex-1 min-h-0">
-      <aside className="w-44 shrink-0 border-l border-border bg-muted/20 p-3 overflow-y-auto hidden lg:flex flex-col gap-1">
+      <aside className="w-44 shrink-0 border-l border-border bg-muted/30 p-3 overflow-y-auto hidden lg:flex flex-col gap-1">
         <div className="relative mb-2">
           <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <input value={search} onChange={(e) => setSearch(e.target.value)}
@@ -76,7 +76,7 @@ export function ProductGrid({ products, orderItems, onAddItem, onUpdateQuantity 
           <button key={cat} onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
             className={cn("w-full text-right px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all",
               selectedCategory === cat
-                ? "bg-primary text-primary-foreground shadow-sm"
+                ? "bg-primary text-primary-foreground shadow-xs"
                 : "text-muted-foreground hover:bg-background hover:text-foreground")}>
             {cat}
           </button>
@@ -115,7 +115,7 @@ export function ProductGrid({ products, orderItems, onAddItem, onUpdateQuantity 
                         <button key={s} onClick={() => setSizeMap((p) => ({ ...p, [product.id]: s }))}
                           className={cn("text-[10px] px-1.5 py-0.5 rounded-full font-medium transition-all border",
                             curSize === s
-                              ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                              ? "bg-primary text-primary-foreground border-primary shadow-xs"
                               : "bg-background text-muted-foreground border-border/60 hover:border-primary/30 hover:text-foreground")}>
                           {SIZE_LABEL[s] || s}
                         </button>
@@ -128,14 +128,14 @@ export function ProductGrid({ products, orderItems, onAddItem, onUpdateQuantity 
                       {sauces.tomato && (
                         <button onClick={() => setSauceMap((p) => ({ ...p, [product.id]: 1 }))}
                           className={cn("text-[10px] px-1.5 py-0.5 rounded-full font-medium transition-all border",
-                            curSauce === 1 ? "bg-red-500 text-white border-red-500 shadow-sm" : "bg-background text-muted-foreground border-border/60 hover:border-red-300 hover:text-red-600")}>
+                            curSauce === 1 ? "bg-red-500 text-white border-red-500 shadow-xs" : "bg-background text-muted-foreground border-border/60 hover:border-red-300 hover:text-red-600")}>
                           {t("pos.redSauce")}
                         </button>
                       )}
                       {sauces.cream && (
                         <button onClick={() => setSauceMap((p) => ({ ...p, [product.id]: 2 }))}
                           className={cn("text-[10px] px-1.5 py-0.5 rounded-full font-medium transition-all border",
-                            curSauce === 2 ? "bg-amber-100 text-amber-800 border-amber-200 shadow-sm" : "bg-background text-muted-foreground border-border/60 hover:border-amber-300 hover:text-amber-700")}>
+                            curSauce === 2 ? "bg-amber-100 text-amber-800 border-amber-200 shadow-xs" : "bg-background text-muted-foreground border-border/60 hover:border-amber-300 hover:text-amber-700")}>
                           {t("pos.whiteSauce")}
                         </button>
                       )}
