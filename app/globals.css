@@ -360,3 +360,8 @@ html[data-locale="fr"] body {
 .status-delivery { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-violet-50 text-violet-700 dark:bg-violet-900/20 dark:text-violet-300; }
 .status-completed { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-neutral-100 text-neutral-600 dark:bg-neutral-800/30 dark:text-neutral-400; }
 .status-cancelled { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-rose-50 text-rose-700 dark:bg-rose-900/20 dark:text-rose-300; }
+
+@keyframes deliveryBounce {
+  0%,100% { transform: translateY(0) rotate(-3deg); }
+  50%      { transform: translateY(-10px) rotate(3deg); }
+}

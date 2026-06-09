@@ -60,7 +60,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
         <div className="text-center">
           <div className="text-6xl mb-4">🍔</div>
           <h1 className="text-xl font-bold text-foreground mb-2">الطلب غير موجود</h1>
-          <Link href={`/${slug}/menu`} className="inline-flex rounded-lg bg-primary text-primary-foreground px-6 py-2.5 text-sm font-semibold hover:bg-primary/90 transition-colors">
+          <Link href={`/${slug}/menu`} className="inline-flex items-center gap-2 rounded-full border border-white/20 text-foreground/80 px-8 py-3 text-sm font-semibold hover:bg-white/5 transition-colors">
             العودة إلى القائمة
           </Link>
         </div>
@@ -84,27 +84,53 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
     || order.status === "completed"
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className="w-full max-w-md mx-auto px-4 py-6 space-y-5">
-        <div className="text-center pb-2">
-          <h1 className="text-xl font-bold text-foreground">طلب #{order.order_number ?? ""}</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {order.customer_name}{order.table_number ? ` \u00b7 طاولة ${order.table_number}` : ""}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            المجموع: <span className="font-semibold text-primary">{order.total} د.ج</span>
-          </p>
+    <div className="min-h-screen bg-background flex flex-col">
+
+      <div
+        className="relative flex-shrink-0 h-[42vh] flex flex-col items-center justify-center text-center px-4"
+        style={{
+          background: "linear-gradient(180deg, #e8f5e9 0%, #f0fdf4 60%, #f0fdf4 100%)",
+        }}
+      >
+        <div className="absolute inset-0 overflow-hidden opacity-20">
+          <div className="absolute top-1/2 left-0 right-0 h-px border-t-2 border-dashed border-slate-400" />
+          <div className="absolute top-1/3 left-0 right-0 h-px border-t border-dashed border-slate-300" />
+          <div className="absolute top-2/3 left-0 right-0 h-px border-t border-dashed border-slate-300" />
         </div>
 
-        {order.status === "out_for_delivery" && (
-          <div className="rounded-2xl bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-950/40 dark:to-purple-900/30 border border-purple-200 dark:border-purple-800 px-5 py-4 flex items-center gap-4 animate-pulse-once">
-            <span className="text-4xl animate-bounce">🛵</span>
-            <div>
-              <p className="text-base font-bold text-purple-800 dark:text-purple-300">في الطريق</p>
-              <p className="text-sm text-purple-600 dark:text-purple-400">طلبك في الطريق إليك الآن 🛵</p>
-            </div>
-          </div>
-        )}
+        <div
+          className="absolute text-3xl"
+          style={{
+            top: "28%", right: "30%",
+            animation: "deliveryBounce 2s ease-in-out infinite",
+            filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.2))",
+          }}
+        >
+          🛵
+        </div>
+
+        <div className="relative z-10 space-y-1">
+          <p className="text-sm font-medium text-slate-500">
+            {new Date(order.created_at).toLocaleDateString("ar-DZ", { year: "numeric", month: "long", day: "numeric" })}
+          </p>
+          <h1 className="text-2xl font-black text-slate-800 tracking-tight">
+            {order.status === "completed" ? "تم التوصيل ✅"
+             : order.status === "out_for_delivery" ? "الطلب في الطريق 🛵"
+             : order.status === "ready" ? "الطلب جاهز ✅"
+             : order.status === "cancelled" ? "تم إلغاء الطلب ❌"
+             : `طلب #${order.order_number ?? ""}`}
+          </h1>
+          <p className="text-sm text-slate-500">
+            {order.customer_name}
+            {order.table_number ? ` · طاولة ${order.table_number}` : ""}
+          </p>
+          <p className="text-xl font-black" style={{ color: "#5FAD41" }}>
+            {order.total} د.ج
+          </p>
+        </div>
+      </div>
+
+      <div className="flex-1 bg-[#1C1C1E] rounded-t-[2rem] -mt-6 relative z-10 px-5 pt-6 pb-8 space-y-5 overflow-y-auto">
 
         <OrderStatusTracker
           currentStage={stage}
@@ -113,32 +139,32 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
         <OrderDetails items={items} />
 
         {order.order_type === "delivery" && order.delivery_address && (
-          <div className="rounded-xl border border-border/60 bg-card px-4 py-3 flex items-start gap-3">
+          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 flex items-start gap-3">
             <span className="text-xl">📍</span>
             <div>
-              <p className="text-xs font-semibold text-muted-foreground mb-0.5">عنوان التوصيل</p>
-              <p className="text-sm text-foreground">{order.delivery_address}</p>
+              <p className="text-xs font-semibold text-white/50 mb-0.5">عنوان التوصيل</p>
+              <p className="text-sm text-white">{order.delivery_address}</p>
             </div>
           </div>
         )}
 
         {isReady && (
-          <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
-            <div className="bg-gradient-to-r from-primary/5 to-transparent px-4 py-3 border-b border-border/40">
-              <h2 className="text-sm font-semibold text-foreground">قيم وجباتك</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">شاركنا رأيك ليساعدنا على التحسن</p>
+          <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+            <div className="px-4 py-3 border-b border-white/10">
+              <h2 className="text-sm font-semibold text-white">قيم وجباتك</h2>
+              <p className="text-xs text-white/40 mt-0.5">شاركنا رأيك ليساعدنا على التحسن</p>
             </div>
-            <div className="divide-y divide-border/40">
+            <div className="divide-y divide-white/10">
               {items.map(i => (
                 <div key={i.id} className="px-4 py-3 space-y-2">
-                  <p className="text-sm font-medium text-foreground">{i.product_name}</p>
+                  <p className="text-sm font-medium text-white">{i.product_name}</p>
                   {!ratedProducts.includes(Number(i.product_id)) ? (
                     <RatingWidget
                       productId={i.product_id}
                       onRated={() => setRatedProducts(prev => [...prev, Number(i.product_id)])}
                     />
                   ) : (
-                    <p className="text-xs text-emerald-500">✓ تم التقييم</p>
+                    <p className="text-xs text-emerald-400">✓ تم التقييم</p>
                   )}
                 </div>
               ))}
@@ -146,16 +172,24 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
           </div>
         )}
 
-        <p className="text-center text-xs text-red-400 pb-4">
+        <p className="text-center text-xs text-red-400/70">
           في حالة رغبة إلغاء الطلب، يرجى التوجّه إلى الكاشير
         </p>
 
         <div className="text-center">
-          <Link href={`/${slug}/menu`} className="inline-flex rounded-lg bg-primary text-primary-foreground px-6 py-2.5 text-sm font-semibold hover:bg-primary/90 transition-colors">
+          <Link
+            href={`/${slug}/menu`}
+            className="inline-flex items-center gap-2 rounded-full border border-white/20 text-white/80 px-8 py-3 text-sm font-semibold hover:bg-white/5 transition-colors"
+          >
             العودة إلى القائمة
           </Link>
         </div>
-      </main>
+
+        <p className="text-center text-xs text-white/25">
+          تحتاج مساعدة؟ تواصل مع الكاشير
+        </p>
+
+      </div>
     </div>
   )
 }
