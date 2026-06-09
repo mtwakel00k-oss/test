@@ -14,9 +14,10 @@ interface POSHeaderProps {
   activeOrders: number
   todayRevenue: number
   onNewOrder?: () => void
+  cashierName?: string
 }
 
-export function POSHeader({ totalOrders, activeOrders, todayRevenue, onNewOrder }: POSHeaderProps) {
+export function POSHeader({ totalOrders, activeOrders, todayRevenue, onNewOrder, cashierName }: POSHeaderProps) {
   const router = useRouter()
   const slug = useSlug()
   const { t, lang } = useTranslation()
@@ -85,6 +86,12 @@ export function POSHeader({ totalOrders, activeOrders, todayRevenue, onNewOrder 
               <Plus className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">{t("pos.newOrder")}</span>
             </button>
+          )}
+
+          {cashierName && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted hidden md:flex">
+              <span className="text-xs text-muted-foreground">{cashierName}</span>
+            </div>
           )}
 
           <div className="w-px h-5 bg-border mx-0.5 hidden sm:block" />

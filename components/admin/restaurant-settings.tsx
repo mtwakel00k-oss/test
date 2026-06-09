@@ -48,6 +48,13 @@ export function RestaurantSettings() {
   const [newDriverPhone, setNewDriverPhone] = useState("")
   const [driverError, setDriverError] = useState("")
 
+  const [cashiers, setCashiers] = useState<{ id: string; username: string; role: string }[]>([])
+  const [loadingCashiers, setLoadingCashiers] = useState(true)
+  const [newCashierUsername, setNewCashierUsername] = useState("")
+  const [newCashierPassword, setNewCashierPassword] = useState("")
+  const [savingCashier, setSavingCashier] = useState(false)
+  const [cashierError, setCashierError] = useState("")
+
   useEffect(() => {
     fetchApi("/api/tenant/logo")
       .then((r) => r.json())
@@ -63,6 +70,12 @@ export function RestaurantSettings() {
       .then(data => setDrivers(Array.isArray(data) ? data : []))
       .catch(() => {})
       .finally(() => setLoadingDrivers(false))
+
+    fetchApi("/api/tenant/cashiers")
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setCashiers(Array.isArray(data) ? data : []))
+      .catch(() => {})
+      .finally(() => setLoadingCashiers(false))
   }, []);
 
   const pickFile = () => { if (!isUploading) fileRef.current?.click() };
@@ -165,6 +178,42 @@ export function RestaurantSettings() {
     const res = await fetchApi(`/api/tenant/drivers?id=${driverId}`, { method: "DELETE" })
     if (res.ok) {
       setDrivers(prev => prev.filter(d => d.id !== driverId))
+      toast({ title: T(lang, "تم الحذف", "Deleted", "Supprimé") })
+    }
+  }
+
+  const addCashier = async () => {
+    const username = newCashierUsername.trim()
+    const password = newCashierPassword.trim()
+    if (!username) { setCashierError("اسم المستخدم مطلوب"); return }
+    if (!password) { setCashierError("كلمة المرور مطلوبة"); return }
+    if (password.length < 6) { setCashierError("كلمة المرور 6 أحرف على الأقل"); return }
+    setCashierError("")
+    setSavingCashier(true)
+    try {
+      const res = await fetchApi("/api/tenant/cashiers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setCashierError(data.error || "فشل إضافة الكاشير"); return }
+      setCashiers(prev => [...prev, data])
+      setNewCashierUsername("")
+      setNewCashierPassword("")
+      toast({ title: T(lang, "تم إضافة الكاشير", "Cashier added", "Caissier ajouté") })
+    } catch {
+      setCashierError("حدث خطأ")
+    } finally {
+      setSavingCashier(false)
+    }
+  }
+
+  const deleteCashier = async (userId: string) => {
+    if (!confirm(T(lang, "حذف هذا الكاشير؟", "Delete this cashier?", "Supprimer ce caissier?"))) return
+    const res = await fetchApi(`/api/tenant/cashiers?user_id=${userId}`, { method: "DELETE" })
+    if (res.ok) {
+      setCashiers(prev => prev.filter(c => c.id !== userId))
       toast({ title: T(lang, "تم الحذف", "Deleted", "Supprimé") })
     }
   }
@@ -309,6 +358,59 @@ export function RestaurantSettings() {
             "Chaque chauffeur a un lien secret envoyé automatiquement via WhatsApp"
           )}
         </p>
+      </CardContent>
+    </Card>
+
+    <Card className="border-border/50" dir={dir}>
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-2 text-base">
+          👤 {T(lang, "إدارة الكاشير", "Staff Management", "Gestion du personnel")}
+        </CardTitle>
+        <p className="text-sm text-muted-foreground mt-1">
+          {T(lang, "إضافة أو حذف حسابات الكاشير للمطعم", "Add or remove cashier accounts", "Ajouter ou supprimer des caissiers")}
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex gap-2">
+          <Input value={newCashierUsername}
+            onChange={e => setNewCashierUsername(e.target.value)}
+            placeholder={T(lang, "اسم المستخدم", "Username", "Nom d'utilisateur")}
+            className="flex-1" />
+          <Input value={newCashierPassword}
+            onChange={e => setNewCashierPassword(e.target.value)}
+            placeholder={T(lang, "كلمة المرور", "Password", "Mot de passe")}
+            className="flex-1" type="password" />
+          <Button onClick={addCashier} disabled={savingCashier} size="sm">
+            {savingCashier ? "..." : T(lang, "إضافة", "Add", "Ajouter")}
+          </Button>
+        </div>
+        {cashierError && <p className="text-xs text-destructive">{cashierError}</p>}
+
+        {loadingCashiers ? (
+          <div className="space-y-2">
+            {[1,2].map(i => <div key={i} className="h-14 bg-muted rounded-xl animate-pulse" />)}
+          </div>
+        ) : cashiers.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-4">
+            {T(lang, "لا يوجد كاشير بعد", "No cashiers yet", "Aucun caissier")}
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {cashiers.map(cashier => (
+              <div key={cashier.id}
+                className="flex items-center justify-between p-3 rounded-xl border border-border bg-secondary/30">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{cashier.username}</p>
+                  <p className="text-xs text-muted-foreground">{cashier.role}</p>
+                </div>
+                <button onClick={() => deleteCashier(cashier.id)}
+                  className="text-xs px-2.5 py-1 rounded-lg border border-destructive/30 text-destructive hover:bg-destructive/5 transition-colors">
+                  {T(lang, "حذف", "Delete", "Supprimer")}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
     </>

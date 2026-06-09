@@ -6,7 +6,7 @@ import { logger } from "@/lib/logger"
 type Period = "7d" | "30d" | "6m" | "12m"
 const PERIOD_DAYS: Record<Period, number> = { "7d": 7, "30d": 30, "6m": 180, "12m": 365 }
 
-interface OrderRow { id: string; status: string; total: number | string; created_at: string; driver_id: string | null }
+interface OrderRow { id: string; status: string; total: number | string; created_at: string; driver_id: string | null; cashier_id?: string | null; cashier_name?: string | null }
 interface ItemRow { product_name: string; quantity: number }
 interface RatingRow { id: string; rating: number; comment: string | null; created_at: string }
 
@@ -107,12 +107,26 @@ export async function GET(req: NextRequest) {
       }).sort((a, b) => b.deliveries - a.deliveries)
     }
 
+    const cashierMap = new Map<string, { name: string; orders: number; revenue: number }>()
+    for (const o of (rawOrders || [])) {
+      const cid = (o as OrderRow).cashier_id
+      if (!cid) continue
+      const cname = (o as OrderRow).cashier_name || cid
+      const entry = cashierMap.get(cid) || { name: cname, orders: 0, revenue: 0 }
+      entry.orders += 1
+      if (o.status === "out_for_delivery") entry.revenue += Number(o.total || 0)
+      cashierMap.set(cid, entry)
+    }
+    const cashierStats = [...cashierMap.entries()]
+      .map(([id, s]) => ({ id, name: s.name, orders: s.orders, revenue: s.revenue }))
+      .sort((a, b) => b.orders - a.orders)
+
     return NextResponse.json({
       totalRevenue: revenue,
       totalOrders: completedOrders.length,
       avgOrderValue: completedOrders.length > 0 ? revenue / completedOrders.length : 0,
       dailyRevenue: todayRev,
-      topProducts, salesData, peakHours, avgRating, reviews, driverStats,
+      topProducts, salesData, peakHours, avgRating, reviews, driverStats, cashierStats,
     })
   } catch (e) {
     const mismatch = isTenantMismatch(e)

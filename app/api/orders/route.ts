@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
   const startTime = Date.now()
   try {
     const body = await req.json()
-    const { items, customer_name, table_number, idempotency_key } = body
+    const { items, customer_name, table_number, idempotency_key, cashier_id, cashier_name } = body
     const order_type = (body.order_type || "takeaway") as OrderType
     const customer_phone = body.customer_phone || null
     const delivery_address = body.delivery_address || null
@@ -156,9 +156,11 @@ export async function POST(req: NextRequest) {
       if (delivery_lat != null) payload.delivery_lat = delivery_lat
       if (delivery_lng != null) payload.delivery_lng = delivery_lng
     }
+    if (cashier_id) payload.cashier_id = cashier_id
+    if (cashier_name) payload.cashier_name = cashier_name
 
     // ── Column-aware insert ─────────────────────────────
-    const OPTIONAL_COLS = ["payment_status", "order_type", "order_number", "idempotency_key", "delivery_address", "delivery_lat", "delivery_lng"]
+    const OPTIONAL_COLS = ["payment_status", "order_type", "order_number", "idempotency_key", "delivery_address", "delivery_lat", "delivery_lng", "cashier_id", "cashier_name"]
     const STATUS_FALLBACKS = ["preparing"] // if status check constraint rejects "pending"
 
     async function tryInsert(row: Record<string, unknown>): Promise<Record<string, unknown> | null> {

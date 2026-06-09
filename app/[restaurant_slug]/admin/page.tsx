@@ -51,6 +51,7 @@ export default function AdminPage() {
   const [reviews, setReviews] = useState<ReviewItem[]>([])
   const [dailyRevenue, setDailyRevenue] = useState(0)
   const [driverStats, setDriverStats] = useState<{ id: string; name: string; phone: string; deliveries: number; revenue: number }[]>([])
+  const [cashierStats, setCashierStats] = useState<{ id: string; name: string; orders: number; revenue: number }[]>([])
   const [sheetOrderId, setSheetOrderId] = useState<string | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
 
@@ -64,7 +65,7 @@ export default function AdminPage() {
     topProducts: { name: string; quantity: number; revenue: number }[]
     salesData: { date: string; revenue: number; orders: number }[]
     peakHours: { hour: number; orders: number }[]
-    avgRating: number; reviews: ReviewItem[]; driverStats?: { id: string; name: string; phone: string; deliveries: number; revenue: number }[]
+    avgRating: number; reviews: ReviewItem[]; driverStats?: { id: string; name: string; phone: string; deliveries: number; revenue: number }[]; cashierStats?: { id: string; name: string; orders: number; revenue: number }[]
   } | null) {
     if (!result) return
     setTotalRevenue(result.totalRevenue)
@@ -77,6 +78,7 @@ export default function AdminPage() {
     setAvgRating(result.avgRating)
     setReviews(result.reviews)
     if (result.driverStats) setDriverStats(result.driverStats)
+    if (result.cashierStats) setCashierStats(result.cashierStats)
   }
 
   const fetchStats = useCallback(async () => {
@@ -181,6 +183,40 @@ export default function AdminPage() {
                       </td>
                       <td className="text-center px-4 py-2.5">
                         <span className="text-muted-foreground">{d.deliveries > 0 ? fmtNum(Math.round(d.revenue / d.deliveries)) : 0} {currency}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {cashierStats.length > 0 && (
+          <div className="bg-card border border-border rounded-xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-border">
+              <h3 className="text-sm font-semibold text-foreground">أداء الكاشير</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border/50">
+                    <th className="text-right px-4 py-2.5 text-muted-foreground font-medium text-xs">الكاشير</th>
+                    <th className="text-center px-4 py-2.5 text-muted-foreground font-medium text-xs">الطلبات</th>
+                    <th className="text-center px-4 py-2.5 text-muted-foreground font-medium text-xs">الإيرادات</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cashierStats.map((c, i) => (
+                    <tr key={c.id} className={i < cashierStats.length - 1 ? "border-b border-border/30" : ""}>
+                      <td className="px-4 py-2.5">
+                        <span className="font-medium text-foreground text-sm">{c.name}</span>
+                      </td>
+                      <td className="text-center px-4 py-2.5">
+                        <span className="font-bold text-foreground">{c.orders}</span>
+                      </td>
+                      <td className="text-center px-4 py-2.5">
+                        <span className="font-medium text-emerald-600 dark:text-emerald-400">{fmtNum(c.revenue)} {currency}</span>
                       </td>
                     </tr>
                   ))}
