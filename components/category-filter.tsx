@@ -25,8 +25,8 @@ export function CategoryFilter({
             onClick={() => onSelectCategory(cat)}
             className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 border ${
               isSelected
-                ? "bg-primary text-primary-foreground border-primary shadow-xs"
-                : "bg-card text-muted-foreground border-border hover:border-primary/40 hover:text-primary"
+                ? "bg-green-500 text-white border-green-500 shadow-sm"
+                : "bg-white text-slate-500 border-slate-200 hover:border-green-300 hover:text-green-600"
             }`}
           >
             {cat === "All" ? t("menu.all") : cat}

@@ -103,13 +103,16 @@ export function FoodDeliveryApp() {
   }, {} as Record<string, number>);
 
   return (
-    <div className="min-h-screen pb-32 bg-gradient-to-b from-primary-bg via-background to-background">
+    <div
+      className="min-h-screen pb-32"
+      style={{ background: "linear-gradient(160deg, #e8f5e0 0%, #f0fdf4 30%, #ffffff 70%)" }}
+    >
       <AppHeader cartItemCount={itemCount} onCart={() => setCheckoutOpen(true)} />
 
-      <main className="px-4 pt-2">
-        <div className="mb-4">
-          <h2 className="text-xl font-bold text-foreground tracking-tight">القائمة</h2>
-          <p className="text-sm text-muted-foreground mt-0.5">{filtered.length} وجبة متاحة</p>
+      <main className="px-4 pt-3">
+        <div className="mb-3">
+          <h2 className="text-lg font-black text-slate-800">القائمة</h2>
+          <p className="text-xs text-slate-400">{filtered.length} وجبة متاحة</p>
         </div>
 
         <CategoryFilter
