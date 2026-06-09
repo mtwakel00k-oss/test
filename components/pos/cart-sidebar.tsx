@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ShoppingCart, Trash2, Minus, Plus, ChevronDown, ChevronUp, Table2, X } from "lucide-react"
+import { ShoppingCart, Minus, Plus, Table2, X, Store, UtensilsCrossed } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { MenuProduct } from "@/lib/types"
 import { getPrice } from "@/lib/types"
@@ -51,9 +51,9 @@ export function CartSidebar({
   return (
     <aside className={cn(
       "w-full lg:w-80 shrink-0 bg-card lg:border-r border-border flex flex-col",
-      "lg:h-full max-h-[40vh] lg:max-h-none border-t lg:border-t-0"
+      "lg:h-full max-h-[45vh] lg:max-h-none border-t lg:border-t-0"
     )}>
-      <div className="flex items-center justify-between px-3 py-2.5 border-b border-border bg-muted/20">
+      <div className="flex items-center justify-between px-3 py-2.5 border-b border-border bg-muted/10">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
             <ShoppingCart className="w-3 h-3 text-primary" />
@@ -69,9 +69,6 @@ export function CartSidebar({
               <X className="w-3 h-3" />
             </Button>
           )}
-          <Button variant="ghost" size="icon-sm" onClick={() => setExpanded(!expanded)} className="h-6 w-6 lg:hidden">
-            {expanded ? <ChevronDown className="w-3 h-3" /> : <ChevronUp className="w-3 h-3" />}
-          </Button>
         </div>
       </div>
 
@@ -80,31 +77,33 @@ export function CartSidebar({
           <div className="p-3 space-y-3">
             <input value={customerName} onChange={e => onCustomerNameChange(e.target.value)}
               placeholder={t("pos.customerName")}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/30" />
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40" />
 
             <div className="flex gap-1.5">
               <button onClick={() => onOrderTypeChange("dine_in")}
-                className={cn("flex-1 rounded-lg px-2 py-1.5 text-[11px] font-medium transition-all border",
+                className={cn("flex-1 rounded-lg px-2 py-2 text-[11px] font-medium transition-all border flex items-center justify-center gap-1",
                   orderType === "dine_in"
                     ? "bg-primary text-primary-foreground border-primary shadow-sm"
                     : "bg-background text-muted-foreground border-border hover:border-primary/30 hover:text-foreground")}>
-                🍽️ {t("pos.dineIn")}
+                <UtensilsCrossed className="w-3 h-3" />
+                {t("pos.dineIn")}
               </button>
               <button onClick={() => onOrderTypeChange("takeaway")}
-                className={cn("flex-1 rounded-lg px-2 py-1.5 text-[11px] font-medium transition-all border",
+                className={cn("flex-1 rounded-lg px-2 py-2 text-[11px] font-medium transition-all border flex items-center justify-center gap-1",
                   orderType === "takeaway"
                     ? "bg-primary text-primary-foreground border-primary shadow-sm"
                     : "bg-background text-muted-foreground border-border hover:border-primary/30 hover:text-foreground")}>
-                🥡 {t("pos.takeaway")}
+                <Store className="w-3 h-3" />
+                {t("pos.takeaway")}
               </button>
             </div>
 
             {orderType === "dine_in" && (
               <div className="relative">
-                <Table2 className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                <Table2 className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                 <input value={tableNumber} onChange={e => onTableNumberChange(e.target.value.replace(/\D/g, '').slice(0, 3))}
                   placeholder={t("pos.tableNumber")} inputMode="numeric"
-                  className="w-full rounded-lg border border-border bg-background pr-8 px-2.5 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/30" />
+                  className="w-full rounded-lg border border-border bg-background pr-9 px-2.5 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40" />
               </div>
             )}
 
@@ -122,12 +121,12 @@ export function CartSidebar({
                   const sauceLabel = item.sauceId === 1 ? "أحمر" : item.sauceId === 2 ? "أبيض" : null
                   return (
                     <div key={`${item.product.id}-${item.size}-${item.sauceId ?? "none"}-${idx}`}
-                      className="flex items-center gap-2 p-2 rounded-lg bg-secondary/40">
+                      className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium text-foreground truncate">{item.product.name}</p>
                         <p className="text-[10px] text-muted-foreground">
                           {sizeLabel}{sauceLabel && <span className="mx-0.5">·</span>}
-                          {sauceLabel && <span className={item.sauceId === 1 ? "text-red-500" : "text-amber-600"}>{sauceLabel}</span>}
+                          {sauceLabel && <span className={cn(item.sauceId === 1 ? "text-red-500" : "text-amber-600")}>{sauceLabel}</span>}
                           <span className="mx-0.5">·</span>
                           <span className="tabular-nums">{price.toLocaleString()} {cur}</span>
                         </p>
@@ -135,7 +134,7 @@ export function CartSidebar({
                       <div className="flex items-center gap-0.5">
                         <button onClick={() => onUpdateQuantity(item.product.id, -1)}
                           className="w-6 h-6 rounded flex items-center justify-center text-muted-foreground hover:bg-background hover:text-foreground transition-colors">
-                          {item.quantity === 1 ? <Trash2 className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
+                          {item.quantity === 1 ? <X className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
                         </button>
                         <span className="text-xs font-bold text-foreground w-5 text-center tabular-nums">{item.quantity}</span>
                         <button onClick={() => onUpdateQuantity(item.product.id, 1)}
@@ -152,7 +151,7 @@ export function CartSidebar({
         </ScrollArea>
 
         <div className="p-3 border-t border-border bg-muted/10 space-y-2">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between px-1">
             <span className="text-xs text-muted-foreground">{t("pos.total")}</span>
             <span className="text-base font-bold text-foreground tabular-nums">{total.toLocaleString()} {cur}</span>
           </div>

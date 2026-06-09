@@ -469,7 +469,8 @@ export default function POSPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <POSHeader totalOrders={orders.length} activeOrders={activeOrders.length} todayRevenue={todayRevenue} />
+      <POSHeader totalOrders={orders.length} activeOrders={activeOrders.length} todayRevenue={todayRevenue}
+        onNewOrder={() => { setShowNewOrder(true); setSelectedOrder(null); setNewOrderError("") }} />
       <OrderTabs activeTab={activeTab} onTabChange={setActiveTab} counts={counts} />
       {activeTab === "active" && <OrderFilters activeFilter={statusFilter} onFilterChange={setStatusFilter} counts={counts} />}
 

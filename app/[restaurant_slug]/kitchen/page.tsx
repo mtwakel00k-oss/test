@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback, useMemo } from "react"
 import Link from "next/link"
-import { ExternalLink } from "lucide-react"
+import { ExternalLink, Volume2, VolumeX } from "lucide-react"
 import { fetchApi } from "@/lib/tenant"
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js"
 import { useRealtime } from "@/lib/use-realtime"
@@ -55,14 +55,18 @@ export default function KitchenPage() {
   const [orders, setOrders] = useState<KitchenOrder[]>([])
   const [currentTime, setCurrentTime] = useState("")
   const [currentDate, setCurrentDate] = useState("")
+  const [soundOn, setSoundOn] = useState(true)
   const prevOrderIdsRef = useRef<Set<string | number>>(new Set())
   const [now, setNow] = useState(() => Date.now())
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
 
   useEffect(() => {
-    const unlock = () => { initAudio(); document.removeEventListener("pointerdown", unlock) }
-    document.addEventListener("pointerdown", unlock)
-    return () => document.removeEventListener("pointerdown", unlock)
-  }, [])
+    if (soundOn) {
+      const unlock = () => { initAudio(); document.removeEventListener("pointerdown", unlock) }
+      document.addEventListener("pointerdown", unlock)
+      return () => document.removeEventListener("pointerdown", unlock)
+    }
+  }, [soundOn])
 
   useEffect(() => {
     const updateTime = () => {
@@ -90,6 +94,7 @@ export default function KitchenPage() {
       const res = await fetchApi(`/api/orders?status_in=${ACTIVE_STATUSES.join(",")}&include_items=true`)
       if (!res.ok) { logger.error("Kitchen fetch error", res.status); return [] }
       const raw: (RawOrder & { items?: RawOrderItem[] })[] = await res.json()
+      setLastRefresh(new Date())
       const mapped: KitchenOrder[] = (raw || []).map((o) => ({
         id: o.id,
         orderNumber: o.order_number ?? null,
@@ -104,7 +109,7 @@ export default function KitchenPage() {
         createdAt: new Date(o.created_at),
       }))
 
-      if (prevOrderIdsRef.current.size > 0) {
+      if (prevOrderIdsRef.current.size > 0 && soundOn) {
         const newOrders = mapped.filter(o => !prevOrderIdsRef.current.has(o.id))
         if (newOrders.length > 0) playNewOrderSound()
       }
@@ -114,7 +119,7 @@ export default function KitchenPage() {
       logger.error("Kitchen fetch error")
       return []
     }
-  }, [])
+  }, [soundOn])
 
   useEffect(() => { fetchOrders().then(setOrders) }, [fetchOrders])
 
@@ -178,18 +183,18 @@ export default function KitchenPage() {
             </div>
           </div>
 
-          <div className="hidden md:flex items-center gap-4">
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800">
+          <div className="hidden md:flex items-center gap-3">
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700">
               <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
               <span className="text-xs text-amber-700 dark:text-amber-300 font-medium">
-                <span className="font-bold">{pendingOrders.length}</span>
+                <span className="font-bold text-base">{pendingOrders.length}</span>
                 <span className="hidden lg:inline"> {t("kitchen.new")}</span>
               </span>
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-950/20 border border-sky-200 dark:border-sky-800">
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-700">
               <span className="w-2 h-2 rounded-full bg-sky-500" />
               <span className="text-xs text-sky-700 dark:text-sky-300 font-medium">
-                <span className="font-bold">{preparingOrders.length}</span>
+                <span className="font-bold text-base">{preparingOrders.length}</span>
                 <span className="hidden lg:inline"> {t("kitchen.preparing")}</span>
               </span>
             </div>
@@ -200,7 +205,12 @@ export default function KitchenPage() {
               <p className="text-xs font-medium text-foreground tabular-nums">{currentTime}</p>
               <p className="text-[10px] text-muted-foreground">{currentDate}</p>
             </div>
-            <div className="w-px h-4 bg-border mx-1 hidden sm:block" />
+            <div className="w-px h-4 bg-border mx-0.5 hidden sm:block" />
+            <button onClick={() => setSoundOn(!soundOn)}
+              className="h-8 w-8 rounded-lg bg-secondary hover:bg-primary/10 hover:text-primary flex items-center justify-center transition-colors"
+              title={soundOn ? t("kitchen.mute") : t("kitchen.unmute")}>
+              {soundOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+            </button>
             <ThemeToggle />
             <LanguageSwitcher />
             <Link href={`/${slug}/pos`} title={t("kitchen.posLink")}
@@ -214,8 +224,8 @@ export default function KitchenPage() {
       <main className="p-3 lg:p-5">
         {orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-            <div className="w-20 h-20 rounded-2xl bg-muted/30 flex items-center justify-center mb-4">
-              <svg className="w-10 h-10 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-20 h-20 rounded-2xl bg-muted/20 flex items-center justify-center mb-4">
+              <svg className="w-10 h-10 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
@@ -227,13 +237,13 @@ export default function KitchenPage() {
             {pendingOrders.length > 0 && (
               <section className="mb-6">
                 <div className="flex items-center gap-2 mb-3 px-1">
-                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
                   <h2 className="text-sm font-bold text-amber-600 dark:text-amber-400">{t("kitchen.newOrders")}</h2>
                   <span className="text-xs text-muted-foreground tabular-nums">({pendingOrders.length})</span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                   {pendingOrders.map(order => (
-                    <div key={order.id} className="bg-card rounded-xl border-l-4 border-l-amber-500 shadow-sm overflow-hidden">
+                    <div key={order.id} className="bg-card rounded-xl border-l-4 border-l-amber-500 shadow-sm overflow-hidden transition-all hover:shadow-md">
                       <div className="p-4">
                         <div className="flex justify-between items-start mb-3">
                           <div>
@@ -245,17 +255,17 @@ export default function KitchenPage() {
                             </div>
                           </div>
                           <div className="flex flex-col items-end gap-1">
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 font-medium dark:bg-amber-950/20 dark:text-amber-400">
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 font-medium dark:bg-amber-900/20 dark:text-amber-400">
                               {order.orderType === "takeaway" ? t("pos.takeaway") : t("pos.dineIn")}
                             </span>
-                            <span className="text-[11px] font-mono text-amber-600 dark:text-amber-400 tabular-nums">{fmtTime(order.createdAt)}</span>
+                            <span className="text-xs font-mono text-amber-600 dark:text-amber-400 tabular-nums">{fmtTime(order.createdAt)}</span>
                           </div>
                         </div>
-                        <div className="border-t border-border/40 pt-3 space-y-2">
+                        <div className="border-t border-border/30 pt-3 space-y-2">
                           {order.items.map(item => (
                             <div key={item.id} className="flex items-center gap-3">
-                              <span className="text-base font-bold text-amber-600 dark:text-amber-400 min-w-[2rem] tabular-nums">{item.quantity}x</span>
-                              <span className="text-sm text-foreground">{item.name}</span>
+                              <span className="text-lg font-bold text-amber-600 dark:text-amber-400 min-w-[2.5rem] tabular-nums">{item.quantity}x</span>
+                              <span className="text-sm font-medium text-foreground">{item.name}</span>
                             </div>
                           ))}
                         </div>
@@ -269,13 +279,13 @@ export default function KitchenPage() {
             {preparingOrders.length > 0 && (
               <section>
                 <div className="flex items-center gap-2 mb-3 px-1">
-                  <span className="w-2 h-2 rounded-full bg-sky-500" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-sky-500" />
                   <h2 className="text-sm font-bold text-sky-600 dark:text-sky-400">{t("kitchen.preparingOrders")}</h2>
                   <span className="text-xs text-muted-foreground tabular-nums">({preparingOrders.length})</span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                   {preparingOrders.map(order => (
-                    <div key={order.id} className="bg-card rounded-xl border-l-4 border-l-sky-400 shadow-sm overflow-hidden">
+                    <div key={order.id} className="bg-card rounded-xl border-l-4 border-l-sky-400 shadow-sm overflow-hidden transition-all hover:shadow-md">
                       <div className="p-4">
                         <div className="flex justify-between items-start mb-3">
                           <div>
@@ -287,17 +297,17 @@ export default function KitchenPage() {
                             </div>
                           </div>
                           <div className="flex flex-col items-end gap-1">
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-50 text-sky-600 font-medium dark:bg-sky-950/20 dark:text-sky-400">
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-50 text-sky-600 font-medium dark:bg-sky-900/20 dark:text-sky-400">
                               {order.orderType === "takeaway" ? t("pos.takeaway") : t("pos.dineIn")}
                             </span>
-                            <span className="text-[11px] font-mono text-sky-600 dark:text-sky-400 tabular-nums">{fmtTime(order.createdAt)}</span>
+                            <span className="text-xs font-mono text-sky-600 dark:text-sky-400 tabular-nums">{fmtTime(order.createdAt)}</span>
                           </div>
                         </div>
-                        <div className="border-t border-border/40 pt-3 space-y-2">
+                        <div className="border-t border-border/30 pt-3 space-y-2">
                           {order.items.map(item => (
                             <div key={item.id} className="flex items-center gap-3">
-                              <span className="text-base font-bold text-sky-600 dark:text-sky-400 min-w-[2rem] tabular-nums">{item.quantity}x</span>
-                              <span className="text-sm text-foreground">{item.name}</span>
+                              <span className="text-lg font-bold text-sky-600 dark:text-sky-400 min-w-[2.5rem] tabular-nums">{item.quantity}x</span>
+                              <span className="text-sm font-medium text-foreground">{item.name}</span>
                             </div>
                           ))}
                         </div>

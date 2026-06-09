@@ -266,8 +266,8 @@ export function CheckoutModal({
           </div>
 
           {orderType === "delivery" && (
-            <div className="rounded-xl border border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/20 p-4 space-y-3">
-              <div className="flex items-center gap-2 text-sm font-semibold text-orange-700 dark:text-orange-300">
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+              <div className="flex items-center gap-2 text-sm font-semibold text-primary">
                 <MapPin className="w-4 h-4" />
                 <span>معلومات التوصيل</span>
               </div>
@@ -286,7 +286,7 @@ export function CheckoutModal({
                     ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300"
                     : geoStatus === "error"
                       ? "border-destructive/30 bg-destructive/5 text-destructive"
-                      : "border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100 dark:border-orange-800 dark:bg-orange-900/20 dark:text-orange-300"
+                      : "border-border bg-muted/30 text-muted-foreground hover:bg-muted/50"
                 }`}
               >
                 {geoStatus === "loading" ? (

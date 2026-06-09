@@ -79,19 +79,19 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
         {topBar}
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
-            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <div className="w-14 h-14 rounded-2xl bg-primary/5 flex items-center justify-center mx-auto mb-4">
               <span className="text-2xl">🍽️</span>
             </div>
             <h1 className="text-lg font-bold text-foreground">{t("login.pickRestaurant")}</h1>
             <p className="text-sm text-muted-foreground mt-1">{t("login.pickRestaurantSub")}</p>
           </div>
           <div className="space-y-2">
-            {tenants.map((t) => (
-              <button key={t.slug} onClick={() => router.push(`/${t.slug}/login`)}
+            {tenants.map((tenant) => (
+              <button key={tenant.slug} onClick={() => router.push(`/${tenant.slug}/login`)}
                 className="w-full text-right rounded-xl border border-border bg-card px-4 py-3.5 text-foreground hover:border-primary/30 hover:shadow-sm transition-all flex items-center justify-between group">
                 <div>
-                  <span className="font-medium text-sm">{t.name}</span>
-                  <span className="text-xs text-muted-foreground block mt-0.5">/{t.slug}</span>
+                  <span className="font-medium text-sm">{tenant.name}</span>
+                  <span className="text-xs text-muted-foreground block mt-0.5">/{tenant.slug}</span>
                 </div>
                 <span className="text-muted-foreground group-hover:text-primary transition-colors">←</span>
               </button>
@@ -106,10 +106,9 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <style>{`@keyframes shake { 0%,100% { transform: translateX(0) } 20% { transform: translateX(-6px) } 40% { transform: translateX(6px) } 60% { transform: translateX(-4px) } 80% { transform: translateX(4px) } }`}</style>
       {topBar}
       <div className="w-full max-w-sm">
-        <div className={`bg-card border border-border rounded-2xl p-6 ${shaking ? "animate-[shake_0.3s_ease-in-out]" : ""}`}>
+        <div className={`bg-card border border-border rounded-2xl p-6 ${shaking ? "animate-shake" : ""}`}>
           {slugProp && (
             <button onClick={() => router.push("/login")}
               className="mb-4 text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
@@ -117,14 +116,14 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
             </button>
           )}
           <div className="text-center mb-5">
-            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+            <div className="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center mx-auto mb-3">
               <span className="text-2xl">{activeRole.icon}</span>
             </div>
             <h1 className="text-lg font-bold text-foreground">{activeRole.label}</h1>
             <p className="text-xs text-muted-foreground mt-1">{t("login.subtitle")}</p>
           </div>
 
-          <div className="flex gap-1.5 mb-5 bg-secondary/50 rounded-lg p-1">
+          <div className="flex gap-1.5 mb-5 bg-muted/50 rounded-lg p-1">
             {tabs.map(tab => (
               <button key={tab.key} onClick={() => { setPage(tab.key); setError("") }}
                 className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${
@@ -140,7 +139,7 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
               <input type="text" value={username} onChange={(e) => setUsername(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleLogin()}
                 className={`w-full rounded-lg border bg-background px-3 py-2.5 pr-9 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 transition-colors ${
-                  error ? "border-destructive focus:ring-destructive" : "border-border focus:ring-primary"
+                  error ? "border-destructive focus:ring-destructive" : "border-border focus:ring-primary/40"
                 }`}
                 placeholder={t("login.usernamePlaceholder")} autoFocus />
               <span className="absolute ltr:left-3 rtl:right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">🔑</span>
@@ -148,14 +147,14 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleLogin()}
               className={`w-full rounded-lg border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 transition-colors ${
-                error ? "border-destructive focus:ring-destructive" : "border-border focus:ring-primary"
+                error ? "border-destructive focus:ring-destructive" : "border-border focus:ring-primary/40"
               }`}
               placeholder={t("login.passwordPlaceholder")} />
 
             {error && <p className="text-xs text-destructive text-center font-medium">{error}</p>}
 
             <button onClick={handleLogin} disabled={loading || !username || !password}
-              className="w-full rounded-lg bg-primary text-primary-foreground py-2.5 text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors active:scale-[0.98]">
+              className="w-full rounded-lg bg-primary text-primary-foreground py-2.5 text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors active:scale-[0.98] shadow-sm">
               {loading ? (
                 <span className="flex items-center justify-center gap-1.5">
                   <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">

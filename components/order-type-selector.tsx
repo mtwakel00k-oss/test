@@ -55,7 +55,7 @@ export function OrderTypeSelector({
               title={isLocked ? "تتوفر ميزة التوصيل في الباقة الاحترافية (Pro) 👑" : undefined}
               className={`flex items-center justify-center gap-1.5 flex-1 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${
                 isActive
-                  ? "bg-orange-500 text-white shadow-md shadow-orange-500/20"
+                  ? "bg-primary text-primary-foreground shadow-sm"
                   : isLocked
                     ? "text-muted-foreground/40 cursor-not-allowed"
                     : "text-muted-foreground hover:text-foreground hover:bg-background/50"
@@ -88,7 +88,7 @@ export function OrderTypeSelector({
               type="tel"
               value={deliveryPhone}
               onChange={e => onDeliveryPhoneChange?.(e.target.value)}
-              className="w-full rounded-lg border border-border bg-secondary px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-orange-500 transition-shadow"
+              className="w-full rounded-lg border border-border bg-secondary px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 transition-shadow"
               placeholder="رقم الهاتف (مثال: 0555123456)"
               dir="auto"
             />
@@ -103,7 +103,7 @@ export function OrderTypeSelector({
                   ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300"
                   : geoStatus === "error"
                     ? "border-destructive/30 bg-destructive/5 text-destructive"
-                    : "border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100 dark:border-orange-800 dark:bg-orange-900/20 dark:text-orange-300"
+                    : "border-border bg-muted/30 text-muted-foreground hover:bg-muted/50"
               }`}
             >
               {geoStatus === "loading" ? (

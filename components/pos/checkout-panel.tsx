@@ -63,7 +63,7 @@ export function CheckoutPanel({ order, onClose, onComplete }: CheckoutPanelProps
         </div>
         <div className="flex items-center gap-2">
           {isAlreadyPaid && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-xs font-medium dark:bg-emerald-950/20 dark:text-emerald-400">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-xs font-medium dark:bg-emerald-900/20 dark:text-emerald-400">
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
@@ -80,7 +80,7 @@ export function CheckoutPanel({ order, onClose, onComplete }: CheckoutPanelProps
 
       {order.orderType === "delivery" ? (
         <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+          <div className="w-16 h-16 rounded-2xl bg-primary/5 flex items-center justify-center">
             <span className="text-3xl">💵</span>
           </div>
           <div>
@@ -90,7 +90,7 @@ export function CheckoutPanel({ order, onClose, onComplete }: CheckoutPanelProps
           </div>
           <button onClick={() => onComplete(order.id, order.total, 0, () => {})}
             disabled={isProcessing}
-            className="w-full max-w-xs rounded-xl bg-primary text-primary-foreground py-3 text-sm font-bold hover:bg-primary/90 transition-colors disabled:opacity-60">
+            className="w-full max-w-xs rounded-xl bg-primary text-primary-foreground py-3 text-sm font-bold hover:bg-primary/90 transition-colors disabled:opacity-60 active:scale-[0.98]">
             {isProcessing ? (
               <span className="flex items-center justify-center gap-2">
                 <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -99,7 +99,7 @@ export function CheckoutPanel({ order, onClose, onComplete }: CheckoutPanelProps
                 </svg>
                 {t("common.processing")}
               </span>
-            ) : "✅ " + t("pos.confirmDelivery")}
+            ) : t("pos.confirmDelivery")}
           </button>
         </div>
       ) : (
@@ -117,17 +117,17 @@ export function CheckoutPanel({ order, onClose, onComplete }: CheckoutPanelProps
               ))}
             </div>
 
-            <div className="bg-muted/50 rounded-xl px-4 py-3 flex justify-between items-center">
+            <div className="bg-muted/40 rounded-xl px-4 py-3 flex justify-between items-center">
               <span className="text-xs text-muted-foreground">{t("pos.totalDue")}</span>
               <span className="text-lg font-bold text-foreground tabular-nums">{fmt(order.total)} {cur}</span>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-              <div className="bg-secondary/50 rounded-xl p-3">
+              <div className="bg-muted/30 rounded-xl p-3">
                 <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{t("pos.amountPaid")}</label>
                 <div className="text-xl font-bold text-foreground mt-0.5 tabular-nums">{cashReceived || "0"} {cur}</div>
               </div>
-              <div className={cn("rounded-xl p-3 transition-all", change >= 0 && cashAmount > 0 ? "bg-emerald-50" : "bg-muted/30")}>
+              <div className={cn("rounded-xl p-3 transition-all", change >= 0 && cashAmount > 0 ? "bg-emerald-50" : "bg-muted/20")}>
                 <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{t("pos.change")}</label>
                 <div className={cn("text-xl font-bold mt-0.5 tabular-nums transition-colors", change >= 0 && cashAmount > 0 ? "text-emerald-600" : "text-muted-foreground")}>
                   {change >= 0 ? `${fmt(change)} ${cur}` : "—"}
@@ -145,12 +145,12 @@ export function CheckoutPanel({ order, onClose, onComplete }: CheckoutPanelProps
             </div>
           </div>
 
-          <div className="px-4 py-3 border-t border-border bg-muted/20">
+          <div className="px-4 py-3 border-t border-border bg-muted/10">
             <div className="grid grid-cols-3 gap-1.5 mb-3">
               {["1","2","3","4","5","6","7","8","9",".","0","backspace"].map((key) => (
                 <button key={key} onClick={() => handleKeyPress(key)} disabled={isAlreadyPaid}
                   className={cn("h-12 rounded-lg text-base font-medium transition-all active:scale-95",
-                    key === "backspace" ? "bg-secondary text-secondary-foreground" : "bg-card text-foreground border border-border/50",
+                    key === "backspace" ? "bg-secondary text-secondary-foreground" : "bg-card text-foreground border border-border/40",
                     isAlreadyPaid && "opacity-30 cursor-not-allowed")}>
                   {key === "backspace" ? (
                     <svg className="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -24,28 +24,30 @@ function formatTimeAgo(date: Date, t: (key: string) => string): string {
 }
 
 const STATUS_CONFIG = {
-  pending: { label: "statusNew", dot: "bg-amber-500", bg: "bg-amber-50 dark:bg-amber-950/20", text: "text-amber-700 dark:text-amber-300", border: "border-l-amber-500" },
-  preparing: { label: "statusPreparing", dot: "bg-sky-500", bg: "bg-sky-50 dark:bg-sky-950/20", text: "text-sky-700 dark:text-sky-300", border: "border-l-sky-500" },
-  ready: { label: "statusReady", dot: "bg-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-950/20", text: "text-emerald-700 dark:text-emerald-300", border: "border-l-emerald-500" },
-  out_for_delivery: { label: "statusOutForDelivery", dot: "bg-violet-500", bg: "bg-violet-50 dark:bg-violet-950/20", text: "text-violet-700 dark:text-violet-300", border: "border-l-violet-500" },
-  completed: { label: "statusCompleted", dot: "bg-neutral-400", bg: "bg-neutral-100 dark:bg-neutral-800/20", text: "text-neutral-600 dark:text-neutral-400", border: "border-l-neutral-400" },
-  cancelled: { label: "statusCancelled", dot: "bg-rose-500", bg: "bg-rose-50 dark:bg-rose-950/20", text: "text-rose-700 dark:text-rose-300", border: "border-l-rose-500" },
+  pending: { label: "statusNew", badge: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300", dot: "bg-amber-500", border: "border-l-amber-500" },
+  preparing: { label: "statusPreparing", badge: "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300", dot: "bg-sky-500", border: "border-l-sky-500" },
+  ready: { label: "statusReady", badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300", dot: "bg-emerald-500", border: "border-l-emerald-500" },
+  out_for_delivery: { label: "statusOutForDelivery", badge: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300", dot: "bg-violet-500", border: "border-l-violet-500" },
+  completed: { label: "statusCompleted", badge: "bg-neutral-100 text-neutral-600 dark:bg-neutral-800/30 dark:text-neutral-400", dot: "bg-neutral-400", border: "border-l-neutral-400" },
+  cancelled: { label: "statusCancelled", badge: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300", dot: "bg-rose-500", border: "border-l-rose-500" },
+} as const
+
+const ORDER_TYPE_CONFIG = {
+  delivery: { icon: "🛵", label: "pos.delivery" },
+  takeaway: { icon: "🥡", label: "pos.takeaway" },
+  dine_in: { icon: "🍽️", label: "pos.dineIn" },
 } as const
 
 export function OrderCard({ order, isSelected, onSelect, onStatusChange, onCancel }: OrderCardProps) {
   const { t, lang } = useTranslation()
   const [timeAgo, setTimeAgo] = useState(() => formatTimeAgo(order.createdAt, t))
   const status = STATUS_CONFIG[order.status]
-  const isActive = order.status === "pending" || order.status === "preparing"
   const cur = lang === "ar" ? "د.ج" : "DA"
 
-  const orderTypeDisplay = () => {
-    if (order.orderType === "delivery") return { label: t("pos.delivery"), icon: "🛵" }
-    if (order.orderType === "takeaway") return { label: t("pos.takeaway"), icon: "🥡" }
-    if (order.tableNumber) return { label: `${t("pos.table")} ${order.tableNumber}`, icon: "🪑" }
-    return { label: t("pos.dineIn"), icon: "🍽️" }
-  }
-  const typeInfo = orderTypeDisplay()
+  const orderTypeLabel = order.orderType === "dine_in" && order.tableNumber
+    ? `${t("pos.table")} ${order.tableNumber}`
+    : t(ORDER_TYPE_CONFIG[order.orderType]?.label || "pos.dineIn")
+  const orderTypeIcon = ORDER_TYPE_CONFIG[order.orderType]?.icon || "🍽️"
 
   useEffect(() => {
     const interval = setInterval(() => setTimeAgo(formatTimeAgo(order.createdAt, t)), 30000)
@@ -72,55 +74,45 @@ export function OrderCard({ order, isSelected, onSelect, onStatusChange, onCance
       onClick={onSelect}
       className={cn(
         "relative bg-card rounded-xl border border-border cursor-pointer overflow-hidden",
-        "transition-all duration-200 ease-out",
-        "hover:shadow-sm hover:border-primary/20",
-        isSelected && "ring-1 ring-primary/30 border-primary/30 shadow-sm",
-        isActive && "hover:shadow-md",
+        "transition-all duration-200",
+        "hover:border-primary/20 hover:shadow-sm",
+        isSelected && "ring-2 ring-primary/20 border-primary/30 shadow-sm",
       )}
     >
       <div className={cn("absolute left-0 top-0 bottom-0 w-1", status.border)} />
 
-      <div className="flex items-start justify-between p-3 pr-4">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className={cn(
-              "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold",
-              status.bg, status.text
-            )}>
+      <div className="flex items-start justify-between p-3 pr-4 gap-2">
+        <div className="flex-1 min-w-0 space-y-1.5">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold", status.badge)}>
               <span className={cn("w-1.5 h-1.5 rounded-full", status.dot)} />
               {t(`pos.${status.label}`)}
             </span>
             <span className={cn(
-              "text-[11px] px-1.5 py-0.5 rounded font-medium",
+              "text-[10px] px-1.5 py-0.5 rounded font-medium",
               order.paymentStatus === "paid"
-                ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400"
-                : "bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400",
+                ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400"
+                : "bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400",
             )}>
               {order.paymentStatus === "paid" ? t("pos.paid") : t("pos.unpaid")}
             </span>
           </div>
 
-          <div className="flex items-center gap-2 mt-1.5">
-            <span className="text-sm font-semibold text-foreground">{typeInfo.icon} {typeInfo.label}</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm font-semibold text-foreground">{orderTypeIcon} {orderTypeLabel}</span>
             <span className="text-xs text-muted-foreground">#{order.orderNumber}</span>
             {order.status === "pending" && (
-              <span className="flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-1.5 w-1.5 rounded-full bg-amber-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500" />
+              <span className="flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-amber-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
               </span>
             )}
           </div>
-          <p className="text-[11px] text-muted-foreground mt-0.5">{order.serverName}</p>
         </div>
 
-        <div className="flex flex-col items-end gap-1 shrink-0">
-          <span className="text-sm font-bold text-foreground tabular-nums">{order.total.toLocaleString(lang === "fr" ? "fr-FR" : "en-US")} {cur}</span>
-          <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            {timeAgo}
-          </span>
+        <div className="flex flex-col items-end gap-0.5 shrink-0">
+          <span className="text-sm font-bold text-foreground tabular-nums">{order.total.toLocaleString()} {cur}</span>
+          <span className="text-[10px] text-muted-foreground whitespace-nowrap">{timeAgo}</span>
         </div>
       </div>
 
@@ -136,15 +128,15 @@ export function OrderCard({ order, isSelected, onSelect, onStatusChange, onCance
           )}
         </div>
 
-        <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/50">
-          <div className="flex items-center gap-1">
+        <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/40">
+          <div className="flex items-center gap-1.5">
             {getNextStatus() && (
               <button onClick={handleAdvanceStatus}
                 className={cn(
                   "text-[11px] font-medium px-2.5 py-1 rounded-lg transition-all",
                   "bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground active:scale-95"
                 )}>
-                {t(`pos.${STATUS_CONFIG[getNextStatus()!].label}`)} →
+                {t(`pos.${STATUS_CONFIG[getNextStatus()!].label}`)}
               </button>
             )}
             {order.status === "pending" && (
@@ -154,10 +146,9 @@ export function OrderCard({ order, isSelected, onSelect, onStatusChange, onCance
               </button>
             )}
           </div>
-          <button onClick={(e) => { e.stopPropagation(); onSelect() }}
-            className="text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors">
-            {isSelected ? t("common.close") : t("pos.viewDetails")}
-          </button>
+          <span className="text-[10px] text-muted-foreground">
+            {isSelected ? t("pos.viewDetails") : t("pos.viewDetails")}
+          </span>
         </div>
       </div>
     </div>

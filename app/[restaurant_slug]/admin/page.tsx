@@ -49,7 +49,6 @@ export default function AdminPage() {
   const [topProducts, setTopProducts] = useState<{ name: string; quantity: number; revenue: number }[]>([])
   const [peakHours, setPeakHours] = useState<{ hour: number; orders: number }[]>([])
   const [reviews, setReviews] = useState<ReviewItem[]>([])
-  const [restaurantName] = useState(t("admin.dashboard"))
   const [dailyRevenue, setDailyRevenue] = useState(0)
   const [sheetOrderId, setSheetOrderId] = useState<string | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -102,12 +101,12 @@ export default function AdminPage() {
       <header className="bg-card border-b border-border px-4 lg:px-6 py-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center shadow-sm">
               <ChartNoAxesColumn className="w-4 h-4" />
             </div>
             <div>
-              <h1 className="text-sm font-semibold text-foreground">{restaurantName}</h1>
-              <p className="text-[11px] text-muted-foreground">{t("admin.dashboard")}</p>
+              <h1 className="text-sm font-semibold text-foreground">{t("admin.dashboard")}</h1>
+              <p className="text-[11px] text-muted-foreground">{slug}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -126,7 +125,7 @@ export default function AdminPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto p-4 lg:p-6 space-y-5">
+      <main className="max-w-7xl mx-auto p-4 lg:p-6 space-y-6">
         <div className="flex items-center gap-1.5 bg-muted/50 p-0.5 rounded-lg w-fit">
           {(Object.entries(PERIOD_LABELS) as [Period, string][]).map(([key, label]) => (
             <button key={key} onClick={() => setPeriod(key)}

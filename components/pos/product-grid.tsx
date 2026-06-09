@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Search, Plus } from "lucide-react"
+import { Search, Plus, Minus, Trash2 } from "lucide-react"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 import type { MenuProduct } from "@/lib/types"
@@ -65,26 +65,26 @@ export function ProductGrid({ products, orderItems, onAddItem, onUpdateQuantity,
 
   return (
     <div className="flex flex-1 min-h-0">
-      <aside className="w-48 shrink-0 border-l border-border bg-card p-3 overflow-y-auto hidden lg:flex flex-col gap-1">
+      <aside className="w-44 shrink-0 border-l border-border bg-muted/20 p-3 overflow-y-auto hidden lg:flex flex-col gap-1">
         <div className="relative mb-2">
           <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <input value={search} onChange={(e) => setSearch(e.target.value)}
             placeholder={t("pos.search")}
-            className="w-full rounded-lg bg-secondary pr-8 px-2.5 py-1.5 text-xs text-foreground placeholder:text-muted-foreground border-none outline-none focus:ring-1 focus:ring-primary/30" />
+            className="w-full rounded-lg bg-background pr-8 px-2.5 py-1.5 text-xs text-foreground placeholder:text-muted-foreground border border-border/50 outline-none focus:ring-1 focus:ring-primary/40" />
         </div>
         {categories.map((cat) => (
           <button key={cat} onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
             className={cn("w-full text-right px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all",
               selectedCategory === cat
                 ? "bg-primary text-primary-foreground shadow-sm"
-                : "text-muted-foreground hover:bg-secondary hover:text-foreground")}>
+                : "text-muted-foreground hover:bg-background hover:text-foreground")}>
             {cat}
           </button>
         ))}
       </aside>
 
       <div className="flex-1 overflow-y-auto p-3">
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           {filtered.map((product) => {
             const sizes = getAvailableSizes(product)
             const curSize = sizeMap[product.id] || sizes[0] || "UNIQUE"
@@ -96,12 +96,12 @@ export function ProductGrid({ products, orderItems, onAddItem, onUpdateQuantity,
             const count = qty(product.id)
 
             return (
-              <div key={product.id} className="group relative bg-card rounded-xl border border-border/60 overflow-hidden hover:shadow-sm hover:border-primary/20 transition-all">
-                <div className="aspect-[4/3] bg-muted/40 flex items-center justify-center overflow-hidden">
+              <div key={product.id} className="group relative bg-card rounded-xl border border-border/60 overflow-hidden hover:shadow-sm hover:border-primary/25 transition-all">
+                <div className="aspect-[4/3] bg-muted/30 flex items-center justify-center overflow-hidden">
                   {product.image_url ? (
                     <Image src={product.image_url} alt={product.name} width={200} height={150} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                   ) : (
-                    <span className="text-3xl opacity-25">🍕</span>
+                    <span className="text-3xl opacity-20">🍕</span>
                   )}
                 </div>
                 <div className="p-2.5 space-y-2">
@@ -113,7 +113,7 @@ export function ProductGrid({ products, orderItems, onAddItem, onUpdateQuantity,
                         <button key={s} onClick={() => setSizeMap((p) => ({ ...p, [product.id]: s }))}
                           className={cn("text-[10px] px-1.5 py-0.5 rounded-full font-medium transition-all border",
                             curSize === s
-                              ? "bg-primary text-primary-foreground border-primary"
+                              ? "bg-primary text-primary-foreground border-primary shadow-sm"
                               : "bg-background text-muted-foreground border-border/60 hover:border-primary/30 hover:text-foreground")}>
                           {SIZE_LABEL[s] || s}
                         </button>
@@ -127,37 +127,37 @@ export function ProductGrid({ products, orderItems, onAddItem, onUpdateQuantity,
                         <button onClick={() => setSauceMap((p) => ({ ...p, [product.id]: 1 }))}
                           className={cn("text-[10px] px-1.5 py-0.5 rounded-full font-medium transition-all border flex items-center gap-1",
                             curSauce === 1 ? "bg-red-500 text-white border-red-500 shadow-sm" : "bg-background text-muted-foreground border-border/60 hover:border-red-300 hover:text-red-600")}>
-                          <span className="w-1 h-1 rounded-full bg-current" /> {t("pos.redSauce")}
+                          {t("pos.redSauce")}
                         </button>
                       )}
                       {sauces.cream && (
                         <button onClick={() => setSauceMap((p) => ({ ...p, [product.id]: 2 }))}
                           className={cn("text-[10px] px-1.5 py-0.5 rounded-full font-medium transition-all border flex items-center gap-1",
                             curSauce === 2 ? "bg-amber-100 text-amber-800 border-amber-200 shadow-sm" : "bg-background text-muted-foreground border-border/60 hover:border-amber-300 hover:text-amber-700")}>
-                          <span className="w-1 h-1 rounded-full bg-current" /> {t("pos.whiteSauce")}
+                          {t("pos.whiteSauce")}
                         </button>
                       )}
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between pt-1 border-t border-border/30">
+                  <div className="flex items-center justify-between pt-1.5 border-t border-border/30">
                     <span className="text-xs font-bold text-foreground tabular-nums">{price.toLocaleString()} {t("pos.currency")}</span>
                     {count > 0 ? (
                       <div className="flex items-center gap-0.5">
                         <button onClick={() => onUpdateQuantity(product.id, -1)}
-                          className="w-6 h-6 rounded-md bg-secondary text-secondary-foreground flex items-center justify-center text-sm font-medium hover:bg-destructive/10 hover:text-destructive transition-colors">
-                          {count === 1 ? <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5.143 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg> : "−"}
+                          className="w-7 h-7 rounded-lg bg-secondary text-secondary-foreground flex items-center justify-center text-sm font-medium hover:bg-destructive/10 hover:text-destructive transition-colors active:scale-90">
+                          {count === 1 ? <Trash2 className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
                         </button>
                         <span className="text-xs font-bold text-foreground w-5 text-center tabular-nums">{count}</span>
                         <button onClick={() => onUpdateQuantity(product.id, 1)}
-                          className="w-6 h-6 rounded-md bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium hover:bg-primary/90 transition-colors">
-                          +
+                          className="w-7 h-7 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium hover:bg-primary/90 transition-colors active:scale-90">
+                          <Plus className="w-3 h-3" />
                         </button>
                       </div>
                     ) : (
                       <button onClick={() => onAddItem({ product, size: curSize, sauceId: curSauce, quantity: 1 })}
-                        className="h-6 px-2 rounded-md bg-primary/10 text-primary text-[10px] font-medium hover:bg-primary hover:text-primary-foreground transition-colors flex items-center gap-0.5">
-                        <Plus className="w-2.5 h-2.5" /> {t("pos.add")}
+                        className="h-7 px-2.5 rounded-lg bg-primary/10 text-primary text-[11px] font-medium hover:bg-primary hover:text-primary-foreground transition-colors flex items-center gap-1 active:scale-95">
+                        <Plus className="w-3 h-3" /> {t("pos.add")}
                       </button>
                     )}
                   </div>
