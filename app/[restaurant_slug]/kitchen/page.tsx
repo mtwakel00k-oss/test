@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react"
 import Link from "next/link"
 import { ExternalLink, Volume2, VolumeX } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { fetchApi } from "@/lib/tenant"
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js"
 import { useRealtime } from "@/lib/use-realtime"
@@ -58,7 +59,8 @@ export default function KitchenPage() {
   const [soundOn, setSoundOn] = useState(true)
   const prevOrderIdsRef = useRef<Set<string | number>>(new Set())
   const [now, setNow] = useState(() => Date.now())
-  const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
+  const [countdown, setCountdown] = useState(10)
+  const countdownRef = useRef(10)
 
   useEffect(() => {
     if (soundOn) {
@@ -81,6 +83,14 @@ export default function KitchenPage() {
     return () => clearInterval(interval)
   }, [lang])
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      countdownRef.current = countdownRef.current > 0 ? countdownRef.current - 1 : 10
+      setCountdown(countdownRef.current)
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [])
+
   function fmtTime(date: Date): string {
     const diff = Math.floor((now - date.getTime()) / 60000)
     if (diff < 1) return t("time.justNow")
@@ -94,7 +104,8 @@ export default function KitchenPage() {
       const res = await fetchApi(`/api/orders?status_in=${ACTIVE_STATUSES.join(",")}&include_items=true`)
       if (!res.ok) { logger.error("Kitchen fetch error", res.status); return [] }
       const raw: (RawOrder & { items?: RawOrderItem[] })[] = await res.json()
-      setLastRefresh(new Date())
+      countdownRef.current = 10
+      setCountdown(10)
       const mapped: KitchenOrder[] = (raw || []).map((o) => ({
         id: o.id,
         orderNumber: o.order_number ?? null,
@@ -169,10 +180,10 @@ export default function KitchenPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="bg-card border-b border-border px-3 lg:px-5 py-2.5">
-        <div className="flex items-center justify-between gap-3">
+      <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-lg">
+        <div className="flex items-center justify-between gap-3 px-3 lg:px-5 py-2.5">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10">
               <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
               </svg>
@@ -183,40 +194,47 @@ export default function KitchenPage() {
             </div>
           </div>
 
-          <div className="hidden md:flex items-center gap-3">
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700">
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-              <span className="text-xs text-amber-700 dark:text-amber-300 font-medium">
-                <span className="font-bold text-base">{pendingOrders.length}</span>
-                <span className="hidden lg:inline"> {t("kitchen.new")}</span>
-              </span>
+          <div className="flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-3">
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700">
+                <span className="relative flex w-2 h-2">
+                  <span className="absolute inline-flex w-full h-full rounded-full bg-amber-400 opacity-75 animate-ping" />
+                  <span className="relative inline-flex w-2 h-2 rounded-full bg-amber-500" />
+                </span>
+                <span className="text-xs text-amber-700 dark:text-amber-300 font-medium">
+                  <span className="font-bold text-base">{pendingOrders.length}</span>
+                  <span className="hidden lg:inline"> {t("kitchen.new")}</span>
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-700">
+                <span className="w-2 h-2 rounded-full bg-sky-500" />
+                <span className="text-xs text-sky-700 dark:text-sky-300 font-medium">
+                  <span className="font-bold text-base">{preparingOrders.length}</span>
+                  <span className="hidden lg:inline"> {t("kitchen.preparing")}</span>
+                </span>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-700">
-              <span className="w-2 h-2 rounded-full bg-sky-500" />
-              <span className="text-xs text-sky-700 dark:text-sky-300 font-medium">
-                <span className="font-bold text-base">{preparingOrders.length}</span>
-                <span className="hidden lg:inline"> {t("kitchen.preparing")}</span>
-              </span>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-1.5">
-            <div className="text-end hidden sm:block">
-              <p className="text-xs font-medium text-foreground tabular-nums">{currentTime}</p>
-              <p className="text-[10px] text-muted-foreground">{currentDate}</p>
+            <div className="flex items-center gap-1.5">
+              <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg bg-muted/60 text-muted-foreground text-[10px] font-mono tabular-nums">
+                <span className={cn(
+                  "w-1.5 h-1.5 rounded-full transition-colors",
+                  countdown <= 3 ? "bg-amber-500" : countdown <= 6 ? "bg-amber-400" : "bg-emerald-400"
+                )} />
+                {countdown}s
+              </div>
+              <button onClick={() => setSoundOn(!soundOn)}
+                className="flex items-center justify-center w-8 h-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all"
+                title={soundOn ? t("kitchen.mute") : t("kitchen.unmute")}>
+                {soundOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+              </button>
+              <ThemeToggle />
+              <LanguageSwitcher />
+              <Link href={`/${slug}/pos`} title={t("kitchen.posLink")}
+                className="flex items-center justify-center w-8 h-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all">
+                <ExternalLink className="h-3.5 w-3.5" />
+              </Link>
             </div>
-            <div className="w-px h-4 bg-border mx-0.5 hidden sm:block" />
-            <button onClick={() => setSoundOn(!soundOn)}
-              className="h-8 w-8 rounded-lg bg-secondary hover:bg-primary/10 hover:text-primary flex items-center justify-center transition-colors"
-              title={soundOn ? t("kitchen.mute") : t("kitchen.unmute")}>
-              {soundOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
-            </button>
-            <ThemeToggle />
-            <LanguageSwitcher />
-            <Link href={`/${slug}/pos`} title={t("kitchen.posLink")}
-              className="h-8 w-8 rounded-lg bg-secondary hover:bg-primary/10 hover:text-primary flex items-center justify-center transition-colors">
-              <ExternalLink className="h-3.5 w-3.5" />
-            </Link>
           </div>
         </div>
       </header>
@@ -224,7 +242,7 @@ export default function KitchenPage() {
       <main className="p-3 lg:p-5">
         {orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-            <div className="w-20 h-20 rounded-2xl bg-muted/20 flex items-center justify-center mb-4">
+            <div className="flex items-center justify-center w-20 h-20 rounded-2xl bg-muted/20 mb-4">
               <svg className="w-10 h-10 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
@@ -237,15 +255,18 @@ export default function KitchenPage() {
             {pendingOrders.length > 0 && (
               <section className="mb-6">
                 <div className="flex items-center gap-2 mb-3 px-1">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
+                  <span className="relative flex w-2.5 h-2.5">
+                    <span className="absolute inline-flex w-full h-full rounded-full bg-amber-400 opacity-75 animate-ping" />
+                    <span className="relative inline-flex w-2.5 h-2.5 rounded-full bg-amber-500" />
+                  </span>
                   <h2 className="text-sm font-bold text-amber-600 dark:text-amber-400">{t("kitchen.newOrders")}</h2>
                   <span className="text-xs text-muted-foreground tabular-nums">({pendingOrders.length})</span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                   {pendingOrders.map(order => (
-                    <div key={order.id} className="bg-card rounded-xl border-l-4 border-l-amber-500 shadow-sm overflow-hidden transition-all hover:shadow-md">
+                    <div key={order.id} className="bg-card rounded-xl border-l-4 border-l-amber-500 shadow-sm overflow-hidden transition-all hover:shadow-md card-hover">
                       <div className="p-4">
-                        <div className="flex justify-between items-start mb-3">
+                        <div className="flex items-start justify-between mb-3">
                           <div>
                             <div className="flex items-center gap-2">
                               <span className="text-base font-bold text-foreground">
@@ -255,16 +276,16 @@ export default function KitchenPage() {
                             </div>
                           </div>
                           <div className="flex flex-col items-end gap-1">
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 font-medium dark:bg-amber-900/20 dark:text-amber-400">
+                            <span className="badge badge-amber text-[10px]">
                               {order.orderType === "takeaway" ? t("pos.takeaway") : t("pos.dineIn")}
                             </span>
                             <span className="text-xs font-mono text-amber-600 dark:text-amber-400 tabular-nums">{fmtTime(order.createdAt)}</span>
                           </div>
                         </div>
-                        <div className="border-t border-border/30 pt-3 space-y-2">
+                        <div className="pt-3 space-y-2 border-t border-border/30">
                           {order.items.map(item => (
                             <div key={item.id} className="flex items-center gap-3">
-                              <span className="text-lg font-bold text-amber-600 dark:text-amber-400 min-w-[2.5rem] tabular-nums">{item.quantity}x</span>
+                              <span className="min-w-[2.5rem] text-lg font-bold text-amber-600 dark:text-amber-400 tabular-nums">{item.quantity}x</span>
                               <span className="text-sm font-medium text-foreground">{item.name}</span>
                             </div>
                           ))}
@@ -285,9 +306,9 @@ export default function KitchenPage() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                   {preparingOrders.map(order => (
-                    <div key={order.id} className="bg-card rounded-xl border-l-4 border-l-sky-400 shadow-sm overflow-hidden transition-all hover:shadow-md">
+                    <div key={order.id} className="bg-card rounded-xl border-l-4 border-l-sky-400 shadow-sm overflow-hidden transition-all hover:shadow-md card-hover">
                       <div className="p-4">
-                        <div className="flex justify-between items-start mb-3">
+                        <div className="flex items-start justify-between mb-3">
                           <div>
                             <div className="flex items-center gap-2">
                               <span className="text-base font-bold text-foreground">
@@ -297,16 +318,16 @@ export default function KitchenPage() {
                             </div>
                           </div>
                           <div className="flex flex-col items-end gap-1">
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-50 text-sky-600 font-medium dark:bg-sky-900/20 dark:text-sky-400">
+                            <span className="badge badge-sky text-[10px]">
                               {order.orderType === "takeaway" ? t("pos.takeaway") : t("pos.dineIn")}
                             </span>
                             <span className="text-xs font-mono text-sky-600 dark:text-sky-400 tabular-nums">{fmtTime(order.createdAt)}</span>
                           </div>
                         </div>
-                        <div className="border-t border-border/30 pt-3 space-y-2">
+                        <div className="pt-3 space-y-2 border-t border-border/30">
                           {order.items.map(item => (
                             <div key={item.id} className="flex items-center gap-3">
-                              <span className="text-lg font-bold text-sky-600 dark:text-sky-400 min-w-[2.5rem] tabular-nums">{item.quantity}x</span>
+                              <span className="min-w-[2.5rem] text-lg font-bold text-sky-600 dark:text-sky-400 tabular-nums">{item.quantity}x</span>
                               <span className="text-sm font-medium text-foreground">{item.name}</span>
                             </div>
                           ))}

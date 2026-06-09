@@ -55,7 +55,7 @@ export function CheckoutPanel({ order, onClose, onComplete }: CheckoutPanelProps
   ].filter((v, i, a) => a.indexOf(v) === i).slice(0, 4)
 
   return (
-    <div className="h-full flex flex-col bg-card">
+    <div className="flex flex-col h-full bg-card">
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div>
           <h2 className="text-sm font-semibold text-foreground">{t("pos.paymentCash")}</h2>
@@ -63,14 +63,14 @@ export function CheckoutPanel({ order, onClose, onComplete }: CheckoutPanelProps
         </div>
         <div className="flex items-center gap-2">
           {isAlreadyPaid && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-xs font-medium dark:bg-emerald-900/20 dark:text-emerald-400">
+            <span className="badge-emerald badge">
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
               {t("pos.paid")}
             </span>
           )}
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted transition-colors" aria-label={t("common.close")}>
+          <button onClick={onClose} className="flex items-center justify-center w-7 h-7 rounded-lg hover:bg-muted transition-colors">
             <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -79,20 +79,20 @@ export function CheckoutPanel({ order, onClose, onComplete }: CheckoutPanelProps
       </div>
 
       {order.orderType === "delivery" ? (
-        <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-primary/5 flex items-center justify-center">
+        <div className="flex flex-col items-center justify-center flex-1 gap-4 p-6 text-center">
+          <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/5">
             <span className="text-3xl">💵</span>
           </div>
           <div>
             <p className="text-base font-bold text-foreground">{t("pos.cashOnDelivery")}</p>
-            <p className="text-2xl font-black text-primary mt-2 tabular-nums">{order.total.toLocaleString()} {cur}</p>
-            <p className="text-xs text-muted-foreground mt-2 max-w-xs">{t("pos.deliveryNote")}</p>
+            <p className="mt-2 text-2xl font-black text-primary tabular-nums">{order.total.toLocaleString()} {cur}</p>
+            <p className="mt-2 text-xs text-muted-foreground max-w-xs">{t("pos.deliveryNote")}</p>
           </div>
           <button onClick={() => onComplete(order.id, order.total, 0, () => {})}
             disabled={isProcessing}
-            className="w-full max-w-xs rounded-xl bg-primary text-primary-foreground py-3 text-sm font-bold hover:bg-primary/90 transition-colors disabled:opacity-60 active:scale-[0.98]">
+            className="w-full max-w-xs btn-primary py-3">
             {isProcessing ? (
-              <span className="flex items-center justify-center gap-2">
+              <span className="flex items-center gap-2">
                 <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
@@ -104,10 +104,10 @@ export function CheckoutPanel({ order, onClose, onComplete }: CheckoutPanelProps
         </div>
       ) : (
         <>
-          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+          <div className="flex-1 px-4 py-3 space-y-3 overflow-y-auto">
             <div className="space-y-1.5">
               {order.items.map((item) => (
-                <div key={item.id} className="flex justify-between items-center py-1.5">
+                <div key={item.id} className="flex items-center justify-between py-1.5">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-foreground truncate">{item.name}</p>
                     <p className="text-[11px] text-muted-foreground">{item.quantity}x {fmt(item.price)} {cur}</p>
@@ -117,19 +117,19 @@ export function CheckoutPanel({ order, onClose, onComplete }: CheckoutPanelProps
               ))}
             </div>
 
-            <div className="bg-muted/40 rounded-xl px-4 py-3 flex justify-between items-center">
+            <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-muted/40">
               <span className="text-xs text-muted-foreground">{t("pos.totalDue")}</span>
               <span className="text-lg font-bold text-foreground tabular-nums">{fmt(order.total)} {cur}</span>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-              <div className="bg-muted/30 rounded-xl p-3">
+              <div className="p-3 rounded-xl bg-muted/30">
                 <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{t("pos.amountPaid")}</label>
-                <div className="text-xl font-bold text-foreground mt-0.5 tabular-nums">{cashReceived || "0"} {cur}</div>
+                <div className="mt-0.5 text-xl font-bold text-foreground tabular-nums">{cashReceived || "0"} {cur}</div>
               </div>
-              <div className={cn("rounded-xl p-3 transition-all", change >= 0 && cashAmount > 0 ? "bg-emerald-50" : "bg-muted/20")}>
+              <div className={cn("p-3 rounded-xl transition-all", change >= 0 && cashAmount > 0 ? "bg-emerald-50" : "bg-muted/20")}>
                 <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{t("pos.change")}</label>
-                <div className={cn("text-xl font-bold mt-0.5 tabular-nums transition-colors", change >= 0 && cashAmount > 0 ? "text-emerald-600" : "text-muted-foreground")}>
+                <div className={cn("mt-0.5 text-xl font-bold tabular-nums transition-colors", change >= 0 && cashAmount > 0 ? "text-emerald-600" : "text-muted-foreground")}>
                   {change >= 0 ? `${fmt(change)} ${cur}` : "—"}
                 </div>
               </div>
@@ -149,8 +149,8 @@ export function CheckoutPanel({ order, onClose, onComplete }: CheckoutPanelProps
             <div className="grid grid-cols-3 gap-1.5 mb-3">
               {["1","2","3","4","5","6","7","8","9",".","0","backspace"].map((key) => (
                 <button key={key} onClick={() => handleKeyPress(key)} disabled={isAlreadyPaid}
-                  className={cn("h-12 rounded-lg text-base font-medium transition-all active:scale-95",
-                    key === "backspace" ? "bg-secondary text-secondary-foreground" : "bg-card text-foreground border border-border/40",
+                  className={cn("h-12 rounded-lg text-base font-medium transition-all active:scale-90",
+                    key === "backspace" ? "bg-secondary text-secondary-foreground" : "bg-card text-foreground border border-border/40 hover:bg-muted",
                     isAlreadyPaid && "opacity-30 cursor-not-allowed")}>
                   {key === "backspace" ? (
                     <svg className="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -167,7 +167,7 @@ export function CheckoutPanel({ order, onClose, onComplete }: CheckoutPanelProps
               </button>
               <button onClick={handleComplete} disabled={!canComplete || isProcessing}
                 className={cn("h-11 rounded-lg text-sm font-semibold transition-all active:scale-95",
-                  !canComplete || isProcessing ? "bg-muted text-muted-foreground cursor-not-allowed" : "bg-primary text-primary-foreground hover:bg-primary/90")}>
+                  !canComplete || isProcessing ? "bg-muted text-muted-foreground cursor-not-allowed" : "btn-primary")}>
                 {isProcessing ? (
                   <span className="flex items-center justify-center gap-1.5">
                     <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">

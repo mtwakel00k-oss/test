@@ -44,7 +44,7 @@ const SIZE_LABEL: Record<string, string> = {
   S: "صغير", M: "وسط", L: "كبير", XL: "كبير جداً", XXL: "خارق",
 }
 
-export function ProductGrid({ products, orderItems, onAddItem, onUpdateQuantity, onClose }: ProductGridProps) {
+export function ProductGrid({ products, orderItems, onAddItem, onUpdateQuantity }: ProductGridProps) {
   const { t } = useTranslation()
   const [search, setSearch] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
@@ -70,7 +70,7 @@ export function ProductGrid({ products, orderItems, onAddItem, onUpdateQuantity,
           <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <input value={search} onChange={(e) => setSearch(e.target.value)}
             placeholder={t("pos.search")}
-            className="w-full rounded-lg bg-background pr-8 px-2.5 py-1.5 text-xs text-foreground placeholder:text-muted-foreground border border-border/50 outline-none focus:ring-1 focus:ring-primary/40" />
+            className="input-base text-xs py-1.5 pr-8" />
         </div>
         {categories.map((cat) => (
           <button key={cat} onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
@@ -96,10 +96,12 @@ export function ProductGrid({ products, orderItems, onAddItem, onUpdateQuantity,
             const count = qty(product.id)
 
             return (
-              <div key={product.id} className="group relative bg-card rounded-xl border border-border/60 overflow-hidden hover:shadow-sm hover:border-primary/25 transition-all">
+              <div key={product.id}
+                className="group relative bg-card rounded-xl border border-border/60 overflow-hidden card-hover">
                 <div className="aspect-[4/3] bg-muted/30 flex items-center justify-center overflow-hidden">
                   {product.image_url ? (
-                    <Image src={product.image_url} alt={product.name} width={200} height={150} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    <Image src={product.image_url} alt={product.name} width={200} height={150}
+                      className="w-full h-full object-cover transition duration-500 group-hover:scale-110" />
                   ) : (
                     <span className="text-3xl opacity-20">🍕</span>
                   )}
@@ -125,14 +127,14 @@ export function ProductGrid({ products, orderItems, onAddItem, onUpdateQuantity,
                     <div className="flex gap-1">
                       {sauces.tomato && (
                         <button onClick={() => setSauceMap((p) => ({ ...p, [product.id]: 1 }))}
-                          className={cn("text-[10px] px-1.5 py-0.5 rounded-full font-medium transition-all border flex items-center gap-1",
+                          className={cn("text-[10px] px-1.5 py-0.5 rounded-full font-medium transition-all border",
                             curSauce === 1 ? "bg-red-500 text-white border-red-500 shadow-sm" : "bg-background text-muted-foreground border-border/60 hover:border-red-300 hover:text-red-600")}>
                           {t("pos.redSauce")}
                         </button>
                       )}
                       {sauces.cream && (
                         <button onClick={() => setSauceMap((p) => ({ ...p, [product.id]: 2 }))}
-                          className={cn("text-[10px] px-1.5 py-0.5 rounded-full font-medium transition-all border flex items-center gap-1",
+                          className={cn("text-[10px] px-1.5 py-0.5 rounded-full font-medium transition-all border",
                             curSauce === 2 ? "bg-amber-100 text-amber-800 border-amber-200 shadow-sm" : "bg-background text-muted-foreground border-border/60 hover:border-amber-300 hover:text-amber-700")}>
                           {t("pos.whiteSauce")}
                         </button>
@@ -145,18 +147,18 @@ export function ProductGrid({ products, orderItems, onAddItem, onUpdateQuantity,
                     {count > 0 ? (
                       <div className="flex items-center gap-0.5">
                         <button onClick={() => onUpdateQuantity(product.id, -1)}
-                          className="w-7 h-7 rounded-lg bg-secondary text-secondary-foreground flex items-center justify-center text-sm font-medium hover:bg-destructive/10 hover:text-destructive transition-colors active:scale-90">
+                          className="flex items-center justify-center w-7 h-7 rounded-lg bg-secondary text-secondary-foreground hover:bg-destructive/10 hover:text-destructive transition-all active:scale-90">
                           {count === 1 ? <Trash2 className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
                         </button>
-                        <span className="text-xs font-bold text-foreground w-5 text-center tabular-nums">{count}</span>
+                        <span className="w-5 text-center text-xs font-bold text-foreground tabular-nums">{count}</span>
                         <button onClick={() => onUpdateQuantity(product.id, 1)}
-                          className="w-7 h-7 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium hover:bg-primary/90 transition-colors active:scale-90">
+                          className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary text-primary-foreground hover:brightness-110 transition-all active:scale-90">
                           <Plus className="w-3 h-3" />
                         </button>
                       </div>
                     ) : (
                       <button onClick={() => onAddItem({ product, size: curSize, sauceId: curSauce, quantity: 1 })}
-                        className="h-7 px-2.5 rounded-lg bg-primary/10 text-primary text-[11px] font-medium hover:bg-primary hover:text-primary-foreground transition-colors flex items-center gap-1 active:scale-95">
+                        className="inline-flex items-center h-7 px-2.5 rounded-lg bg-primary/10 text-primary text-[11px] font-medium hover:bg-primary hover:text-primary-foreground transition-all active:scale-95">
                         <Plus className="w-3 h-3" /> {t("pos.add")}
                       </button>
                     )}

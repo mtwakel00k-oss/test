@@ -43,10 +43,10 @@ export function POSHeader({ totalOrders, activeOrders, todayRevenue, onNewOrder 
   const cur = lang === "ar" ? "د.ج" : "DA"
 
   return (
-    <header className="bg-card border-b border-border px-3 lg:px-5 py-2">
-      <div className="flex items-center justify-between gap-2">
+    <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-lg">
+      <div className="flex items-center justify-between gap-2 px-3 lg:px-5 py-2">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center shadow-sm">
+          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-primary-foreground shadow-sm">
             <Receipt className="w-4 h-4" />
           </div>
           <div className="hidden sm:block">
@@ -57,28 +57,31 @@ export function POSHeader({ totalOrders, activeOrders, todayRevenue, onNewOrder 
 
         <div className="flex items-center gap-2">
           <div className="hidden md:flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/50">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/60">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              </span>
               <span className="text-xs text-muted-foreground tabular-nums">
                 <span className="font-semibold text-foreground">{activeOrders}</span>
                 <span className="hidden lg:inline text-muted-foreground"> {t("pos.activeOrders")}</span>
               </span>
             </div>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/50">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/60">
               <Receipt className="w-3 h-3 text-muted-foreground" />
               <span className="text-xs text-muted-foreground tabular-nums">
                 <span className="font-semibold text-foreground">{totalOrders}</span>
               </span>
             </div>
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/5">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
               <span className="text-xs text-primary font-semibold tabular-nums">{todayRevenue.toLocaleString()} {cur}</span>
             </div>
           </div>
 
           {onNewOrder && (
             <button onClick={onNewOrder}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-all active:scale-95 shadow-sm">
+              className="btn-primary h-8 text-xs px-3">
               <Plus className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">{t("pos.newOrder")}</span>
             </button>
@@ -93,18 +96,21 @@ export function POSHeader({ totalOrders, activeOrders, todayRevenue, onNewOrder 
 
           <ThemeToggle />
           <LanguageSwitcher />
-          <a href={`/${slug}/kitchen`} target="_blank" title={t("pos.kitchen")}
-            className="h-8 w-8 rounded-lg bg-secondary hover:bg-primary/10 hover:text-primary flex items-center justify-center transition-colors">
-            <ChefHat className="h-3.5 w-3.5" />
-          </a>
-          <a href={`/${slug}/admin`} title={t("pos.admin")}
-            className="h-8 w-8 rounded-lg bg-secondary hover:bg-primary/10 hover:text-primary flex items-center justify-center transition-colors">
-            <LayoutDashboard className="h-3.5 w-3.5" />
-          </a>
-          <button onClick={logout} title={t("login.logOut")}
-            className="h-8 w-8 rounded-lg bg-secondary hover:bg-destructive/10 hover:text-destructive flex items-center justify-center transition-colors">
-            <LogOut className="h-3.5 w-3.5" />
-          </button>
+
+          <div className="flex items-center gap-1">
+            <a href={`/${slug}/kitchen`} target="_blank" title={t("pos.kitchen")}
+              className="flex items-center justify-center w-8 h-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all">
+              <ChefHat className="h-3.5 w-3.5" />
+            </a>
+            <a href={`/${slug}/admin`} title={t("pos.admin")}
+              className="flex items-center justify-center w-8 h-8 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all">
+              <LayoutDashboard className="h-3.5 w-3.5" />
+            </a>
+            <button onClick={logout} title={t("login.logOut")}
+              className="flex items-center justify-center w-8 h-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-all">
+              <LogOut className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
       </div>
     </header>

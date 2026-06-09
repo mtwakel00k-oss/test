@@ -9,9 +9,8 @@ export function ThemeToggle() {
   const toggle = () => {
     const isDark = document.documentElement.classList.contains("dark")
     const t = isDark ? "light" : "dark"
-    const d = document as Document & { startViewTransition: (cb: () => void) => void }
-    if (d.startViewTransition) {
-      d.startViewTransition(() => setTheme(t))
+    if (typeof document !== "undefined" && "startViewTransition" in document) {
+      ;(document as Document & { startViewTransition: (cb: () => void) => void }).startViewTransition(() => setTheme(t))
     } else {
       setTheme(t)
     }
@@ -19,11 +18,13 @@ export function ThemeToggle() {
 
   return (
     <button onClick={toggle}
-      className="h-9 w-9 rounded-lg bg-secondary hover:bg-secondary/80 flex items-center justify-center transition-colors"
+      className="relative flex items-center justify-center w-9 h-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all overflow-hidden"
       aria-label="Toggle theme">
-      <span className="block">
-        <Sun className="h-4 w-4 hidden dark:block" />
-        <Moon className="h-4 w-4 block dark:hidden" />
+      <span className="absolute transition-all duration-300 rotate-0 scale-100 dark:-rotate-90 dark:scale-0">
+        <Moon className="h-4 w-4" />
+      </span>
+      <span className="absolute transition-all duration-300 rotate-90 scale-0 dark:rotate-0 dark:scale-100">
+        <Sun className="h-4 w-4" />
       </span>
     </button>
   )
