@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
     const sb = await supabaseForRequest(req)
     const { data, error } = await sb.from("delivery_men").select("*").order("name")
     if (error) {
-      if (error.message.includes("does not exist")) {
+      if (error.message.includes("does not exist") || error.code === "PGRST205") {
         return NextResponse.json([])
       }
       throw new Error(error.message)
