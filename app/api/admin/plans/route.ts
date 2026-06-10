@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { parseSession } from "@/lib/tenant"
+import { revalidatePath } from "next/cache"
+import { parseSession, invalidateTenantConfig } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 
 const MASTER_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -60,7 +61,7 @@ export async function PATCH(req: NextRequest) {
 
     const updates: Record<string, string | boolean> = {}
 
-    if (planType) {
+    if (planType !== undefined && planType !== null) {
       if (!VALID_PLANS.includes(planType)) {
         return NextResponse.json({ error: `Invalid plan. Must be one of: ${VALID_PLANS.join(", ")}` }, { status: 400 })
       }
@@ -87,7 +88,15 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true })
+    invalidateTenantConfig(slug)
+    revalidatePath("/admin")
+    revalidatePath(`/${slug}/admin`)
+    revalidatePath(`/${slug}/menu`)
+    revalidatePath(`/${slug}/order/[id]`)
+    revalidatePath(`/${slug}/pos`)
+
+    logger.info(`Tenant ${slug} updated`, updates)
+    return NextResponse.json({ success: true, slug, updates })
   } catch (e) {
     logger.error("Unexpected error updating plan", e)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

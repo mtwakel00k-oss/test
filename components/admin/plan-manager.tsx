@@ -17,6 +17,7 @@ import { Select } from "@/components/ui/select"
 import { fetchApi } from "@/lib/tenant"
 import { useTranslation } from "@/lib/use-translation"
 import { logger } from "@/lib/logger"
+import { toast } from "@/hooks/use-toast"
 
 interface Tenant {
   id: string
@@ -123,16 +124,22 @@ export function PlanManager() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug, plan_type: planType }),
       })
+      const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        logger.error("Failed to update plan", data.error)
+        const msg = data.error || "Failed to update plan"
+        logger.error("Failed to update plan", msg)
+        toast({ title: msg, variant: "destructive" })
       } else {
         setTenants((prev) =>
           prev.map((t) => (t.slug === slug ? { ...t, plan_type: planType } : t))
         )
+        toast({ title: `✅ Plan changed to ${planType}` })
+        logger.info("Plan updated", { slug, planType })
       }
     } catch (e) {
+      const msg = e instanceof Error ? e.message : "Failed to update plan"
       logger.error("Failed to update plan", e)
+      toast({ title: msg, variant: "destructive" })
     } finally {
       setUpdating((prev) => ({ ...prev, [slug]: false }))
     }
