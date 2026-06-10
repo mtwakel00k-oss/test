@@ -172,9 +172,10 @@ export async function POST(req: NextRequest) {
     // ── Column-aware insert ─────────────────────────────
     const OPTIONAL_COLS = ["payment_status", "order_type", "order_number", "idempotency_key", "delivery_address", "delivery_lat", "delivery_lng", "google_maps_link", "cashier_id", "cashier_name", "processed_by_staff_id", "processed_by_staff_name"]
     const STATUS_FALLBACKS = ["preparing"] // if status check constraint rejects "pending"
+    const ORDER_TYPE_FALLBACKS: Record<string, string> = { delivery: "takeaway" } // if order_type check constraint rejects value
 
     async function tryInsert(row: Record<string, unknown>): Promise<Record<string, unknown> | null> {
-      for (let attempt = 0; attempt <= OPTIONAL_COLS.length + STATUS_FALLBACKS.length; attempt++) {
+      for (let attempt = 0; attempt <= OPTIONAL_COLS.length + STATUS_FALLBACKS.length + Object.keys(ORDER_TYPE_FALLBACKS).length; attempt++) {
         const { data, error } = await (sb.from("orders")).insert(row).select().maybeSingle()
         if (data) return data
         const msg = error?.message || ""
@@ -183,10 +184,21 @@ export async function POST(req: NextRequest) {
           const found = OPTIONAL_COLS.find((c) => row[c] !== undefined && msg.includes(c))
           if (found) { delete row[found]; continue }
         }
-        // Status check violation → try fallback statuses
-        if (msg.includes("23514") || msg.includes("check constraint") || msg.includes("status")) {
+        // Check constraint violation → try fallback statuses or order_type
+        if (msg.includes("23514") || msg.includes("check constraint")) {
           const nextStatus = STATUS_FALLBACKS.shift()
           if (nextStatus) { row.status = nextStatus; continue }
+          if (typeof row.order_type === "string") {
+            const fallbackOrderType = ORDER_TYPE_FALLBACKS[row.order_type]
+            if (fallbackOrderType) {
+              row.order_type = fallbackOrderType
+              delete row.delivery_address
+              delete row.delivery_lat
+              delete row.delivery_lng
+              delete row.google_maps_link
+              continue
+            }
+          }
         }
         // Unknown error → throw with classified code
         throw new Error(classifyPgError(msg) || JSON.stringify(error))
