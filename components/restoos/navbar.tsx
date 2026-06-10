@@ -2,6 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { Logo } from './logo'
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+} from '@/components/ui/navigation-menu'
+import { cn } from '@/lib/utils'
 
 const navLinks = [
   { label: 'الميزات', href: '#features' },
@@ -29,31 +36,36 @@ export function Navbar() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 transition-transform duration-500 ${
-        hidden ? '-translate-y-full' : 'translate-y-0'
-      }`}
+      className={cn(
+        'fixed inset-x-0 top-0 z-50 transition-transform duration-500',
+        hidden ? '-translate-y-full' : 'translate-y-0',
+      )}
     >
       <div
-        className={`mx-auto mt-3 flex max-w-6xl items-center justify-between gap-4 rounded-full px-5 py-3 transition-all duration-300 ${
+        className={cn(
+          'mx-auto mt-3 flex max-w-6xl items-center justify-between gap-4 rounded-full px-5 py-3 transition-all duration-300',
           scrolled
             ? 'border border-border/70 bg-white/70 shadow-lg shadow-primary/5 backdrop-blur-xl'
-            : 'border border-transparent bg-transparent'
-        }`}
+            : 'border border-transparent bg-transparent',
+        )}
         style={{ width: 'calc(100% - 1.5rem)' }}
       >
         <Logo />
 
-        <nav className="hidden items-center gap-8 md:flex">
-          {navLinks.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-            >
-              {l.label}
-            </a>
-          ))}
-        </nav>
+        <NavigationMenu className="hidden md:flex">
+          <NavigationMenuList>
+            {navLinks.map((l) => (
+              <NavigationMenuItem key={l.href}>
+                <NavigationMenuLink
+                  href={l.href}
+                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary px-4 py-2"
+                >
+                  {l.label}
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            ))}
+          </NavigationMenuList>
+        </NavigationMenu>
 
         <div className="flex items-center gap-2">
           <a

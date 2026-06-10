@@ -1,3 +1,4 @@
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Reveal } from './reveal'
 
 const testimonials = [
@@ -47,9 +48,11 @@ export function Testimonials() {
                   {t.quote}
                 </blockquote>
                 <figcaption className="mt-6 flex items-center gap-3">
-                  <span className={`grid size-11 place-items-center rounded-full text-base font-bold text-white ${t.bg}`}>
-                    {t.initial}
-                  </span>
+                  <Avatar>
+                    <AvatarFallback className={t.bg + ' text-white text-base font-bold'}>
+                      {t.initial}
+                    </AvatarFallback>
+                  </Avatar>
                   <div>
                     <p className="font-bold text-foreground">{t.name}</p>
                     <p className="text-sm text-muted-foreground">{t.place}</p>

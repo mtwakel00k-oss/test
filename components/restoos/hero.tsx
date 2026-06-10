@@ -1,6 +1,8 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { AnimatedShinyText } from '@/components/ui/animated-shiny-text'
+import { SparklesText } from '@/components/ui/sparkles-text'
 import { DashboardMockup } from './dashboard-mockup'
 
 const avatars = [
@@ -14,7 +16,6 @@ const ease = [0.22, 1, 0.36, 1] as const
 export function Hero() {
   return (
     <section className="hero-gradient relative overflow-hidden pb-24 pt-36 md:pt-44">
-      {/* orbs */}
       <div className="animate-orb pointer-events-none absolute -left-20 top-24 size-72 rounded-full bg-primary/30 blur-[90px]" />
       <div className="animate-orb pointer-events-none absolute -right-16 top-48 size-80 rounded-full bg-sky-300/30 blur-[100px]" style={{ animationDelay: '3s' }} />
 
@@ -25,8 +26,7 @@ export function Hero() {
           transition={{ duration: 0.6, ease }}
           className="mx-auto mb-7 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/70 px-4 py-1.5 text-sm font-medium text-primary backdrop-blur"
         >
-          <span>✨</span>
-          الحل الرقمي الأول للمطاعم في الجزائر
+          <AnimatedShinyText shimmerWidth={80}>الحل الرقمي الأول للمطاعم في الجزائر</AnimatedShinyText>
         </motion.div>
 
         <motion.h1
@@ -35,7 +35,11 @@ export function Hero() {
           transition={{ duration: 0.7, ease, delay: 0.05 }}
           className="mx-auto max-w-3xl text-balance text-4xl font-extrabold leading-tight tracking-tight text-foreground sm:text-5xl md:text-6xl"
         >
-          نظام نقاط البيع الذكي
+          <SparklesText
+            text="نظام نقاط البيع الذكي"
+            colors={{ first: '#22c55e', second: '#06b6d4' }}
+            className="text-4xl sm:text-5xl md:text-6xl"
+          />
           <span className="mt-2 block text-foreground">للمطاعم متعددة الفروع</span>
         </motion.h1>
 

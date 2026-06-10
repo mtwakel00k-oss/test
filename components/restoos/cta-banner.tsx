@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { useState } from 'react'
+import { AnimatedShinyText } from '@/components/ui/animated-shiny-text'
 
 const particles = Array.from({ length: 14 })
 
@@ -58,7 +59,9 @@ export function CtaBanner() {
             transition={{ duration: 0.6 }}
             className="text-balance text-3xl font-extrabold leading-tight text-white sm:text-4xl"
           >
-            جاهز لتحويل مطعمك رقمياً؟
+            <AnimatedShinyText shimmerWidth={120} className="text-white dark:text-white">
+              جاهز لتحويل مطعمك رقمياً؟
+            </AnimatedShinyText>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}

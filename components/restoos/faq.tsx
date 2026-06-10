@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useState } from 'react'
 import { Reveal } from './reveal'
+import { Badge } from '@/components/ui/badge'
 
 const faqs = [
   { q: 'هل يعمل النظام بدون إنترنت؟', a: 'النظام سحابي بالكامل ويحتاج اتصال بالإنترنت للعمل. جميع البيانات والطلبات مخزنة على خوادم Supabase السحابية.' },
@@ -19,6 +20,9 @@ export function Faq() {
     <section id="faq" className="bg-muted/40 py-24">
       <div className="mx-auto max-w-3xl px-5">
         <Reveal className="mb-12 text-center">
+          <Badge variant="outline" className="mb-4 px-4 py-1.5 text-sm font-medium">
+            الأسئلة الشائعة
+          </Badge>
           <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
             الأسئلة الشائعة
           </h2>

@@ -1,4 +1,5 @@
 import { Logo } from './logo'
+import { Separator } from '@/components/ui/separator'
 
 const columns = [
   { title: 'المنتج', links: ['الميزات', 'التسعير', 'شاشة المطبخ', 'نقطة البيع'] },
@@ -47,7 +48,8 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="mt-12 border-t border-border pt-6 text-center text-sm text-muted-foreground">
+        <Separator className="my-8" />
+        <div className="text-center text-sm text-muted-foreground">
           © 2026 RestoOS — جميع الحقوق محفوظة
         </div>
       </div>

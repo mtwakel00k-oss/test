@@ -5,6 +5,10 @@ import { useRouter } from "next/navigation"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useTranslation } from "@/lib/use-translation"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 
 type PageRole = "cashier" | "chef" | "admin" | "owner"
 const ROLE_PAGE: Record<PageRole, string> = { cashier: "pos", chef: "kitchen", admin: "admin", owner: "admin" }
@@ -92,7 +96,7 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
                 className="flex items-center justify-between w-full px-4 py-3.5 text-right transition-all border rounded-xl border-border bg-card text-foreground hover:border-primary/30 hover:shadow-sm group">
                 <div>
                   <span className="text-sm font-medium">{tenant.name}</span>
-                  <span className="block mt-0.5 text-xs text-muted-foreground">/{tenant.slug}</span>
+                  <Badge variant="secondary" className="mt-1 text-xs">/{tenant.slug}</Badge>
                 </div>
                 <span className="text-muted-foreground transition-colors group-hover:text-primary">←</span>
               </button>
@@ -106,64 +110,74 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
   return (
     <div className="relative flex items-center justify-center min-h-screen p-4 bg-background">
       {topBar}
-      <div className="w-full max-w-sm">
-        <div className={`relative overflow-hidden bg-card border border-border rounded-2xl p-6 shadow-sm ${shaking ? "animate-shake" : ""}`}>
+      <div className={`w-full max-w-sm ${shaking ? "animate-shake" : ""}`}>
+        <Card className="border-border shadow-sm">
           {slugProp && (
-            <button onClick={() => router.push("/login")}
-              className="flex items-center gap-1 mb-4 text-xs transition-colors text-muted-foreground hover:text-foreground">
-              <span>←</span> {t("login.changeRestaurant")}
-            </button>
+            <div className="px-6 pt-4">
+              <button onClick={() => router.push("/login")}
+                className="flex items-center gap-1 text-xs transition-colors text-muted-foreground hover:text-foreground">
+                <span>←</span> {t("login.changeRestaurant")}
+              </button>
+            </div>
           )}
-          <div className="mb-5 text-center">
+          <CardHeader className="text-center">
             <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 rounded-xl bg-primary/5">
               <span className="text-2xl">{activeRole.icon}</span>
             </div>
-            <h1 className="text-lg font-bold text-foreground">{activeRole.label}</h1>
-            <p className="mt-1 text-xs text-muted-foreground">{t("login.subtitle")}</p>
-          </div>
-
-          <div className="flex gap-1.5 p-1 mb-5 rounded-lg bg-muted/50">
-            {tabs.map(tab => (
-              <button key={tab.key} onClick={() => { setPage(tab.key); setError("") }}
-                className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${
-                  page === tab.key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                }`}>
-                {tab.icon} {tab.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="space-y-3">
-            <div className="relative">
-              <input type="text" value={username} onChange={(e) => setUsername(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                className={`input-base pr-9 ${
-                  error ? "border-destructive focus:ring-destructive/20" : ""
-                }`}
-                placeholder={t("login.usernamePlaceholder")} autoFocus />
-              <span className="absolute ltr:left-3 rtl:right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">🔑</span>
+            <CardTitle>{activeRole.label}</CardTitle>
+            <CardDescription>{t("login.subtitle")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-1.5 p-1 mb-5 rounded-lg bg-muted/50">
+              {tabs.map(tab => (
+                <button key={tab.key} onClick={() => { setPage(tab.key); setError("") }}
+                  className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${
+                    page === tab.key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  }`}>
+                  {tab.icon} {tab.label}
+                </button>
+              ))}
             </div>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-              className={`input-base ${error ? "border-destructive focus:ring-destructive/20" : ""}`}
-              placeholder={t("login.passwordPlaceholder")} />
 
-            {error && <p className="text-xs font-medium text-center text-destructive">{error}</p>}
+            <div className="space-y-3">
+              <Input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                placeholder={t("login.usernamePlaceholder")}
+                className={error ? "border-destructive focus-visible:ring-destructive/20" : ""}
+                autoFocus
+              />
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                placeholder={t("login.passwordPlaceholder")}
+                className={error ? "border-destructive focus-visible:ring-destructive/20" : ""}
+              />
 
-            <button onClick={handleLogin} disabled={loading || !username || !password}
-              className="btn-primary w-full py-2.5">
-              {loading ? (
-                <span className="flex items-center justify-center gap-1.5">
-                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  {t("login.loggingIn")}
-                </span>
-              ) : t("login.logIn")}
-            </button>
-          </div>
-        </div>
+              {error && <p className="text-xs font-medium text-center text-destructive">{error}</p>}
+
+              <Button
+                onClick={handleLogin}
+                disabled={loading || !username || !password}
+                className="w-full"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-1.5">
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    {t("login.loggingIn")}
+                  </span>
+                ) : t("login.logIn")}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
