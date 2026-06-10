@@ -109,16 +109,16 @@ export default function AdminPage() {
   }, [fetchStats])
 
   return (
-    <div className="min-h-screen bg-background" dir={dir}>
-      <header className="bg-card border-b border-border px-4 lg:px-6 py-3">
+    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white" dir={dir}>
+      <header className="sticky top-0 z-30 bg-black/40 backdrop-blur-xl border-b border-white/5 px-4 lg:px-6 py-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center shadow-sm">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-lg shadow-amber-500/20">
               <ChartNoAxesColumn className="w-4 h-4" />
             </div>
             <div>
-              <h1 className="text-sm font-semibold text-foreground">{t("admin.dashboard")}</h1>
-              <p className="text-[11px] text-muted-foreground">{slug}</p>
+              <h1 className="text-sm font-bold text-white">{t("admin.dashboard")}</h1>
+              <p className="text-[10px] text-white/40">{slug}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -129,7 +129,7 @@ export default function AdminPage() {
               resetTenantClient()
               await fetch("/api/auth/logout", { method: "POST" })
               router.push(`/${slug}/login`)
-            }} className="h-8 px-3 rounded-lg text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors flex items-center gap-1.5">
+            }} className="h-8 px-3 rounded-lg text-xs font-bold text-rose-400 hover:bg-rose-500/10 transition-colors flex items-center gap-1.5">
               <LogOut className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">{t("login.logOut")}</span>
             </button>
@@ -138,11 +138,11 @@ export default function AdminPage() {
       </header>
 
       <main className="max-w-7xl mx-auto p-4 lg:p-6 space-y-6">
-        <div className="flex items-center gap-1.5 bg-muted/50 p-0.5 rounded-lg w-fit">
+        <div className="flex items-center gap-1.5 bg-white/5 p-0.5 rounded-lg w-fit border border-white/5">
           {(Object.entries(PERIOD_LABELS) as [Period, string][]).map(([key, label]) => (
             <button key={key} onClick={() => setPeriod(key)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                period === key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+                period === key ? "bg-white/10 text-white shadow-sm" : "text-white/40 hover:text-white/70"
               }`}>
               {label}
             </button>

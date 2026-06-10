@@ -23,19 +23,19 @@ function formatTimeAgo(date: Date, t: (key: string) => string): string {
   return `${hours} ${t("time.hoursAgo")}`
 }
 
-const STATUS_CONFIG = {
-  pending: { label: "statusNew", badge: "badge-amber", dot: "bg-amber-500", border: "border-l-amber-500" },
-  preparing: { label: "statusPreparing", badge: "badge-sky", dot: "bg-sky-500", border: "border-l-sky-500" },
-  ready: { label: "statusReady", badge: "badge-emerald", dot: "bg-emerald-500", border: "border-l-emerald-500" },
-  out_for_delivery: { label: "statusOutForDelivery", badge: "badge-violet", dot: "bg-violet-500", border: "border-l-violet-500" },
-  completed: { label: "statusCompleted", badge: "badge-neutral", dot: "bg-neutral-400", border: "border-l-neutral-400" },
-  cancelled: { label: "statusCancelled", badge: "badge-rose", dot: "bg-rose-500", border: "border-l-rose-500" },
+const STATUS_STYLES = {
+  pending: { label: "statusNew", badge: "badge-amber", dot: "bg-amber-500", bar: "bg-amber-500", shadow: "shadow-amber-500/10" },
+  preparing: { label: "statusPreparing", badge: "badge-sky", dot: "bg-sky-500", bar: "bg-sky-500", shadow: "shadow-sky-500/10" },
+  ready: { label: "statusReady", badge: "badge-emerald", dot: "bg-emerald-500", bar: "bg-emerald-500", shadow: "shadow-emerald-500/10" },
+  out_for_delivery: { label: "statusOutForDelivery", badge: "badge-violet", dot: "bg-violet-500", bar: "bg-violet-500", shadow: "shadow-violet-500/10" },
+  completed: { label: "statusCompleted", badge: "badge-neutral", dot: "bg-neutral-400", bar: "bg-neutral-400", shadow: "" },
+  cancelled: { label: "statusCancelled", badge: "badge-rose", dot: "bg-rose-500", bar: "bg-rose-500", shadow: "" },
 } as const
 
 export function OrderCard({ order, isSelected, onSelect, onStatusChange, onCancel }: OrderCardProps) {
   const { t, lang } = useTranslation()
   const [timeAgo, setTimeAgo] = useState(() => formatTimeAgo(order.createdAt, t))
-  const status = STATUS_CONFIG[order.status]
+  const s = STATUS_STYLES[order.status]
   const cur = lang === "ar" ? "د.ج" : "DA"
 
   const orderTypeInfo = {
@@ -69,71 +69,76 @@ export function OrderCard({ order, isSelected, onSelect, onStatusChange, onCance
     <div
       onClick={onSelect}
       className={cn(
-        "relative bg-card rounded-xl border border-border overflow-hidden cursor-pointer",
-        "card-hover",
-        isSelected && "ring-2 ring-primary/20 border-primary/30",
+        "relative bg-card rounded-2xl border border-border/50 overflow-hidden cursor-pointer",
+        "transition-all duration-200 hover:shadow-lg hover:border-border/80 active:scale-[0.99]",
+        isSelected && "ring-2 ring-primary/30 border-primary/30 shadow-xl",
       )}
     >
-      <div className={cn("absolute left-0 top-0 bottom-0 w-[3px]", status.border)} />
+      {/* Top status bar */}
+      <div className={cn("h-1.5 w-full", s.bar)} />
 
-      <div className="flex items-start justify-between p-3 pr-4 gap-2">
-        <div className="flex-1 min-w-0 space-y-1.5">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className={cn("badge", status.badge)}>
-              <span className={cn("w-1.5 h-1.5 rounded-full", status.dot)} />
-              {t(`pos.${status.label}`)}
-            </span>
-            <span className="badge bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400">
-              {order.paymentStatus === "paid" ? t("pos.paid") : t("pos.unpaid")}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm font-semibold text-foreground">{orderTypeInfo.icon} {orderTypeInfo.label}</span>
-            <span className="text-xs text-muted-foreground">#{order.orderNumber}</span>
-            {order.status === "pending" && (
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0 space-y-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold", s.badge)}>
+                <span className={cn("w-1.5 h-1.5 rounded-full", s.dot)} />
+                {t(`pos.${s.label}`)}
               </span>
-            )}
+              <span className={cn("inline-flex px-2 py-1 rounded-lg text-[11px] font-semibold",
+                order.paymentStatus === "paid"
+                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+                  : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+              )}>
+                {order.paymentStatus === "paid" ? t("pos.paid") : t("pos.unpaid")}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold text-foreground">{orderTypeInfo.icon} {orderTypeInfo.label}</span>
+              <span className="text-xs text-muted-foreground font-mono">#{order.orderNumber}</span>
+              {order.status === "pending" && (
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {order.items.slice(0, 4).map((item) => (
+                <span key={item.id} className="text-xs text-muted-foreground bg-muted/50 rounded-lg px-2 py-1">
+                  {item.quantity}× {item.name}
+                </span>
+              ))}
+              {order.items.length > 4 && (
+                <span className="text-xs text-muted-foreground font-semibold">+{order.items.length - 4}</span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-col items-end gap-1 shrink-0">
+            <span className="text-lg font-black text-foreground tabular-nums">{order.total.toLocaleString()} {cur}</span>
+            <span className="text-[10px] text-muted-foreground whitespace-nowrap">{timeAgo}</span>
           </div>
         </div>
 
-        <div className="flex flex-col items-end gap-0.5 shrink-0">
-          <span className="text-sm font-bold text-foreground tabular-nums">{order.total.toLocaleString()} {cur}</span>
-          <span className="text-[10px] text-muted-foreground whitespace-nowrap">{timeAgo}</span>
-        </div>
-      </div>
-
-      <div className="px-3 pb-3 pr-4">
-        <div className="flex items-center gap-1 flex-wrap mt-1">
-          {order.items.slice(0, 3).map((item) => (
-            <span key={item.id} className="text-xs text-muted-foreground bg-muted/50 rounded-md px-1.5 py-0.5">
-              {item.quantity}x {item.name}
-            </span>
-          ))}
-          {order.items.length > 3 && (
-            <span className="text-xs text-muted-foreground">+{order.items.length - 3}</span>
-          )}
-        </div>
-
-        <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/40">
-          <div className="flex items-center gap-1.5">
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/30">
+          <div className="flex items-center gap-2">
             {getNextStatus() && (
               <button onClick={handleAdvanceStatus}
-                className="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-all active:scale-95">
-                {t(`pos.${STATUS_CONFIG[getNextStatus()!].label}`)}
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-bold bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-all active:scale-95">
+                {t(`pos.${STATUS_STYLES[getNextStatus()!].label}`)}
               </button>
             )}
             {order.status === "pending" && (
               <button onClick={(e) => { e.stopPropagation(); onCancel(order.id) }}
-                className="inline-flex items-center px-2 py-1 rounded-lg text-[11px] font-medium text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-all">
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-all">
                 {t("common.cancel")}
               </button>
             )}
           </div>
-          <span className="text-[10px] text-muted-foreground">{t("pos.viewDetails")}</span>
+          <span className="text-[10px] text-muted-foreground font-medium">{t("pos.viewDetails")}</span>
         </div>
       </div>
     </div>

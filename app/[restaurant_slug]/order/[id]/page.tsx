@@ -12,16 +12,20 @@ import type { Order, OrderItem } from "@/lib/types"
 import { OrderStatusTracker } from "@/components/order-status-tracker"
 import { OrderDetails } from "@/components/order-details"
 import RatingWidget from "@/components/RatingWidget"
+import { CheckCircle, Clock, ChefHat, Bike, Sparkles } from "lucide-react"
 
 const DriverMap = dynamic(() => import("@/components/driver-map"), { ssr: false })
 
 function OrderSkeleton() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
       <main className="w-full max-w-md mx-auto px-4 py-6 space-y-5 animate-pulse">
-        <div className="h-6 bg-secondary rounded-lg w-1/2 mx-auto" />
-        <div className="h-32 bg-secondary rounded-2xl" />
-        <div className="h-40 bg-secondary rounded-2xl" />
+        <div className="space-y-2 text-center">
+          <div className="h-6 bg-zinc-800 rounded-lg w-1/2 mx-auto" />
+          <div className="h-4 bg-zinc-800 rounded w-1/3 mx-auto" />
+        </div>
+        <div className="h-32 bg-zinc-800 rounded-2xl" />
+        <div className="h-40 bg-zinc-800 rounded-2xl" />
       </main>
     </div>
   )
@@ -34,6 +38,14 @@ function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): nu
   const a = Math.sin(dLat / 2) ** 2
     + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+const STATUS_ICONS: Record<string, { icon: React.ReactNode; color: string; label: string }> = {
+  pending: { icon: <Clock className="w-5 h-5" />, color: "bg-amber-500", label: "track.pending" },
+  preparing: { icon: <ChefHat className="w-5 h-5" />, color: "bg-sky-500", label: "track.preparing" },
+  ready: { icon: <CheckCircle className="w-5 h-5" />, color: "bg-emerald-500", label: "track.ready" },
+  out_for_delivery: { icon: <Bike className="w-5 h-5" />, color: "bg-violet-500", label: "track.outForDelivery" },
+  completed: { icon: <Sparkles className="w-5 h-5" />, color: "bg-neutral-400", label: "track.completed" },
 }
 
 export default function OrderTrackingPage({ params }: { params: Promise<{ restaurant_slug: string; id: string }> }) {
@@ -106,12 +118,12 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
   if (loading) return <OrderSkeleton />
   if (!order) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 flex items-center justify-center p-4">
         <div className="text-center">
-          <div className="text-6xl mb-4">🍔</div>
-          <h1 className="text-xl font-bold text-foreground mb-2">{t("order.notFound")}</h1>
-          {errorMsg && <p className="text-sm text-muted-foreground mb-4">{errorMsg}</p>}
-          <Link href={`/${slug}/menu`} className="inline-flex rounded-lg bg-primary text-primary-foreground px-6 py-2.5 text-sm font-semibold hover:bg-primary/90 transition-colors">
+          <div className="text-7xl mb-6 opacity-80">🍔</div>
+          <h1 className="text-2xl font-black text-white mb-2">{t("order.notFound")}</h1>
+          {errorMsg && <p className="text-sm text-white/50 mb-6">{errorMsg}</p>}
+          <Link href={`/${slug}/menu`} className="inline-flex rounded-xl bg-amber-500 text-white px-7 py-3 text-sm font-bold hover:bg-amber-400 transition-all active:scale-95 shadow-lg shadow-amber-500/20">
             {t("common.backToMenu")}
           </Link>
         </div>
@@ -123,6 +135,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
   const isDelivery = order.order_type === "delivery"
   const isOutForDelivery = order.status === "out_for_delivery"
   const isReady = order.status === "ready" || isOutForDelivery || order.status === "completed"
+  const statusInfo = STATUS_ICONS[order.status] || STATUS_ICONS.pending
 
   const distance = driverLat != null && driverLng != null && deliveryCoords
     ? haversineKm(driverLat, driverLng, deliveryCoords.lat, deliveryCoords.lng)
@@ -130,39 +143,51 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
   const estimatedMin = distance != null ? Math.round(distance / 30 * 60) : null
 
   return (
-    <div className="min-h-screen bg-background" dir={dir}>
+    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white" dir={dir}>
       <main className="w-full max-w-md mx-auto px-4 py-6 space-y-5">
+        {/* Header */}
         <div className="text-center pb-2">
-          <h1 className="text-xl font-bold text-foreground">{t("track.orderNumber")} #{order.order_number ?? ""}</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white/50 text-xs mb-3">
+            <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.color}`} />
+            {t(statusInfo.label)}
+          </div>
+          <h1 className="text-2xl font-black text-white tracking-tight">{t("track.orderNumber")} <span className="text-amber-400">#{order.order_number ?? ""}</span></h1>
+          <p className="text-sm text-white/50 mt-1">
             {order.customer_name}
-            {order.table_number ? ` \u00b7 ${t("track.table")} ${order.table_number}` : ""}
+            {order.table_number ? ` · ${t("track.table")} ${order.table_number}` : ""}
           </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {t("track.total")}: <span className="font-semibold text-primary">{order.total} {cur}</span>
+          <p className="text-xs text-white/30 mt-2">
+            {t("track.total")}: <span className="font-bold text-amber-400">{order.total} {cur}</span>
           </p>
         </div>
 
+        {/* Delivery ETA Banner */}
         {isOutForDelivery && (
-          <div className="rounded-2xl bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-950/40 dark:to-purple-900/30 border border-purple-200 dark:border-purple-800 overflow-hidden">
-            <div className="p-4">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-3xl animate-bounce">🛵</span>
+          <div className="rounded-2xl bg-gradient-to-br from-violet-500/10 to-purple-500/5 border border-violet-500/20 overflow-hidden shadow-xl shadow-violet-500/5">
+            <div className="p-5">
+              <div className="flex items-center gap-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-violet-500/20">
+                  <span className="text-3xl animate-bounce">🛵</span>
+                </div>
                 <div>
-                  <p className="text-base font-bold text-purple-800 dark:text-purple-300">{t("track.outForDelivery")}</p>
-                  <p className="text-sm text-purple-600 dark:text-purple-400">{t("track.outForDeliverySub")}</p>
+                  <p className="text-lg font-bold text-white">{t("track.outForDelivery")}</p>
+                  <p className="text-sm text-violet-300/70">{t("track.outForDeliverySub")}</p>
                 </div>
               </div>
               {distance != null && estimatedMin != null && (
-                <div className="flex items-center gap-4 text-xs text-purple-700 dark:text-purple-300 bg-purple-100/50 dark:bg-purple-900/30 rounded-xl px-3 py-2">
-                  <span>{t("track.distance")}: {distance < 1 ? `${Math.round(distance * 1000)} m` : `${distance.toFixed(1)} ${t("track.km")}`}</span>
-                  <span className="w-px h-4 bg-purple-300 dark:bg-purple-700" />
-                  <span>{t("track.estimatedTime")}: ≈{estimatedMin} {t("track.min")}</span>
+                <div className="mt-4 flex items-center gap-4 text-xs bg-violet-500/10 border border-violet-500/10 rounded-xl px-4 py-3">
+                  <span className="text-violet-300">
+                    📍 {t("track.distance")}: <strong className="text-white">{distance < 1 ? `${Math.round(distance * 1000)} m` : `${distance.toFixed(1)} ${t("track.km")}`}</strong>
+                  </span>
+                  <span className="w-px h-5 bg-violet-500/20" />
+                  <span className="text-violet-300">
+                    ⏱ {t("track.estimatedTime")}: <strong className="text-white">≈{estimatedMin} {t("track.min")}</strong>
+                  </span>
                 </div>
               )}
             </div>
             {driverLat != null && driverLng != null && deliveryCoords && (
-              <div className="w-full" style={{ height: "280px" }}>
+              <div className="w-full border-t border-violet-500/10" style={{ height: "260px" }}>
                 <DriverMap
                   driverLat={driverLat}
                   driverLng={driverLng}
@@ -181,32 +206,38 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
         <OrderDetails items={items} />
 
         {isDelivery && order.delivery_address && (
-          <div className="rounded-xl border border-border/60 bg-card px-4 py-3 flex items-start gap-3">
-            <span className="text-xl">📍</span>
+          <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 flex items-start gap-3">
+            <span className="text-xl leading-none">📍</span>
             <div>
-              <p className="text-xs font-semibold text-muted-foreground mb-0.5">{t("track.deliveryAddress")}</p>
-              <p className="text-sm text-foreground">{order.delivery_address}</p>
+              <p className="text-xs font-semibold text-white/40 mb-0.5">{t("track.deliveryAddress")}</p>
+              <p className="text-sm text-white/80">{order.delivery_address}</p>
             </div>
           </div>
         )}
 
+        {/* Ratings */}
         {isReady && (
-          <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
-            <div className="bg-gradient-to-r from-primary/5 to-transparent px-4 py-3 border-b border-border/40">
-              <h2 className="text-sm font-semibold text-foreground">{t("order.rateMeals")}</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">{t("order.rateSubtitle")}</p>
+          <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+            <div className="bg-gradient-to-r from-amber-500/10 to-transparent px-5 py-4 border-b border-white/5">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-400" />
+                <h2 className="text-sm font-bold text-white">{t("order.rateMeals")}</h2>
+              </div>
+              <p className="text-xs text-white/40 mt-0.5">{t("order.rateSubtitle")}</p>
             </div>
-            <div className="divide-y divide-border/40">
+            <div className="divide-y divide-white/5">
               {items.map(i => (
-                <div key={i.id} className="px-4 py-3 space-y-2">
-                  <p className="text-sm font-medium text-foreground">{i.product_name}</p>
+                <div key={i.id} className="px-5 py-4 space-y-2">
+                  <p className="text-sm font-medium text-white/80">{i.product_name}</p>
                   {!ratedProducts.includes(Number(i.product_id)) ? (
                     <RatingWidget
                       productId={i.product_id}
                       onRated={() => setRatedProducts(prev => [...prev, Number(i.product_id)])}
                     />
                   ) : (
-                    <p className="text-xs text-emerald-500">{t("order.rated")}</p>
+                    <p className="text-xs text-emerald-400 flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3" /> {t("order.rated")}
+                    </p>
                   )}
                 </div>
               ))}
@@ -214,12 +245,12 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
           </div>
         )}
 
-        <p className="text-center text-xs text-red-400 pb-4">
+        <p className="text-center text-xs text-rose-500/50 pb-2">
           {t("order.cancelNotice")}
         </p>
 
-        <div className="text-center">
-          <Link href={`/${slug}/menu`} className="inline-flex rounded-lg bg-primary text-primary-foreground px-6 py-2.5 text-sm font-semibold hover:bg-primary/90 transition-colors">
+        <div className="text-center pb-4">
+          <Link href={`/${slug}/menu`} className="inline-flex rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 px-6 py-2.5 text-sm font-bold hover:bg-amber-500/20 transition-all active:scale-95">
             {t("track.backToMenu")}
           </Link>
         </div>

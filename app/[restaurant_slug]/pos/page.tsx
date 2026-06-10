@@ -466,7 +466,7 @@ export default function POSPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
       <POSHeader totalOrders={orders.length} activeOrders={activeOrders.length} todayRevenue={todayRevenue}
         onNewOrder={() => { setShowNewOrder(true); setSelectedOrder(null); setNewOrderError("") }}
         userName={cashier?.email?.split("@")[0]} userRole={cashier?.role} />

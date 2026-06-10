@@ -11,37 +11,46 @@ import { OrderStatusTracker } from "@/components/order-status-tracker"
 import { OrderDetails } from "@/components/order-details"
 import RatingWidget from "@/components/RatingWidget"
 import { useTranslation } from "@/lib/use-translation"
+import { CheckCircle, Clock, ChefHat, Bike, Sparkles } from "lucide-react"
 
 function OrderSkeleton() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
       <main className="w-full max-w-md mx-auto px-4 py-6 space-y-5 animate-pulse">
         <div className="space-y-2">
-          <div className="h-7 w-40 bg-secondary rounded-lg" />
-          <div className="h-4 w-28 bg-secondary rounded" />
+          <div className="h-7 w-40 bg-zinc-800 rounded-lg mx-auto" />
+          <div className="h-4 w-28 bg-zinc-800 rounded mx-auto" />
         </div>
-        <div className="bg-card rounded-2xl p-5 border border-border space-y-4">
+        <div className="bg-zinc-800/50 rounded-2xl p-5 space-y-4">
           {[1, 2, 3].map(i => (
             <div key={i} className="flex gap-4 items-start">
-              <div className="w-12 h-12 rounded-2xl bg-secondary shrink-0" />
+              <div className="w-12 h-12 rounded-2xl bg-zinc-800 shrink-0" />
               <div className="flex-1 space-y-2">
-                <div className="h-4 w-28 bg-secondary rounded" />
-                <div className="h-3 w-20 bg-secondary rounded" />
+                <div className="h-4 w-28 bg-zinc-800 rounded" />
+                <div className="h-3 w-20 bg-zinc-800 rounded" />
               </div>
             </div>
           ))}
         </div>
-        <div className="bg-card rounded-xl border border-border p-4 space-y-3">
+        <div className="bg-zinc-800/30 rounded-xl p-4 space-y-3">
           {[1, 2].map(i => (
             <div key={i} className="flex justify-between">
-              <div className="h-4 w-28 bg-secondary rounded" />
-              <div className="h-4 w-14 bg-secondary rounded" />
+              <div className="h-4 w-28 bg-zinc-800 rounded" />
+              <div className="h-4 w-14 bg-zinc-800 rounded" />
             </div>
           ))}
         </div>
       </main>
     </div>
   )
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  pending: "pos.statusNew",
+  preparing: "pos.statusPreparing",
+  ready: "pos.statusReady",
+  out_for_delivery: "pos.statusOutForDelivery",
+  completed: "pos.statusCompleted",
 }
 
 export default function OrderPage() {
@@ -110,16 +119,12 @@ export default function OrderPage() {
   if (loading) return <OrderSkeleton />
 
   if (error || !order) return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 flex items-center justify-center p-4">
       <div className="w-full max-w-sm text-center">
-        <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-5">
-          <svg className="w-8 h-8 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <h1 className="text-xl font-bold text-foreground mb-2">{error || t("order.notFound")}</h1>
-        <p className="text-sm text-muted-foreground mb-6">{t("track.couldNotFind")}</p>
-        <Link href="/menu" className="inline-flex rounded-lg bg-primary text-primary-foreground px-6 py-2.5 text-sm font-semibold hover:bg-primary/90 transition-colors">
+        <div className="text-6xl mb-6 opacity-80">🍔</div>
+        <h1 className="text-2xl font-black text-white mb-2">{error || t("order.notFound")}</h1>
+        <p className="text-sm text-white/50 mb-6">{t("track.couldNotFind")}</p>
+        <Link href="/menu" className="inline-flex rounded-xl bg-amber-500 text-white px-7 py-3 text-sm font-bold hover:bg-amber-400 transition-all active:scale-95 shadow-lg shadow-amber-500/20">
           {t("track.backToMenu")}
         </Link>
       </div>
@@ -140,26 +145,30 @@ export default function OrderPage() {
   const showRating = order.status === "ready"
     || order.status === "out_for_delivery"
     || order.status === "completed"
+  const statusLabel = STATUS_LABELS[order.status] || "pos.statusNew"
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white">
       <main className="w-full max-w-md mx-auto px-4 py-6 space-y-5">
         <div className="text-center pb-2">
-          <h1 className="text-xl font-bold text-foreground">{t("track.orderNumber")} #{order.order_number ?? ""}</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {order.customer_name}{order.table_number ? ` \u00b7 ${t("track.table")} ${order.table_number}` : ""}
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white/50 text-xs mb-3">
+            {t(statusLabel)}
+          </div>
+          <h1 className="text-2xl font-black text-white tracking-tight">{t("track.orderNumber")} <span className="text-amber-400">#{order.order_number ?? ""}</span></h1>
+          <p className="text-sm text-white/50 mt-1">
+            {order.customer_name}{order.table_number ? ` · ${t("track.table")} ${order.table_number}` : ""}
           </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {t("track.total")}: <span className="font-semibold text-primary">{order.total} {t("track.currency")}</span>
+          <p className="text-xs text-white/30 mt-2">
+            {t("track.total")}: <span className="font-bold text-amber-400">{order.total} {t("track.currency")}</span>
           </p>
         </div>
 
         {order.status === "out_for_delivery" && (
-          <div className="rounded-2xl bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-950/40 dark:to-purple-900/30 border border-purple-200 dark:border-purple-800 px-5 py-4 flex items-center gap-4 animate-pulse-once">
+          <div className="rounded-2xl bg-gradient-to-br from-violet-500/10 to-purple-500/5 border border-violet-500/20 px-5 py-4 flex items-center gap-4 shadow-xl shadow-violet-500/5">
             <span className="text-4xl animate-bounce">🛵</span>
             <div>
-              <p className="text-base font-bold text-purple-800 dark:text-purple-300">{t("track.outForDelivery")}</p>
-              <p className="text-sm text-purple-600 dark:text-purple-400">{t("track.outForDeliverySub")}</p>
+              <p className="text-base font-bold text-white">{t("track.outForDelivery")}</p>
+              <p className="text-sm text-violet-300/70">{t("track.outForDeliverySub")}</p>
             </div>
           </div>
         )}
@@ -171,25 +180,28 @@ export default function OrderPage() {
         <OrderDetails items={items} />
 
         {order.order_type === "delivery" && order.delivery_address && (
-          <div className="rounded-xl border border-border/60 bg-card px-4 py-3 flex items-start gap-3">
-            <span className="text-xl">📍</span>
+          <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 flex items-start gap-3">
+            <span className="text-xl leading-none">📍</span>
             <div>
-              <p className="text-xs font-semibold text-muted-foreground mb-0.5">{t("track.deliveryAddress")}</p>
-              <p className="text-sm text-foreground">{order.delivery_address}</p>
+              <p className="text-xs font-semibold text-white/40 mb-0.5">{t("track.deliveryAddress")}</p>
+              <p className="text-sm text-white/80">{order.delivery_address}</p>
             </div>
           </div>
         )}
 
         {showRating && (
-        <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
-          <div className="bg-gradient-to-r from-primary/5 to-transparent px-4 py-3 border-b border-border/40">
-            <h2 className="text-sm font-semibold text-foreground">{t("order.rateMeals")}</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">{t("order.rateSubtitle")}</p>
+        <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+          <div className="bg-gradient-to-r from-amber-500/10 to-transparent px-5 py-4 border-b border-white/5">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-amber-400" />
+              <h2 className="text-sm font-bold text-white">{t("order.rateMeals")}</h2>
+            </div>
+            <p className="text-xs text-white/40 mt-0.5">{t("order.rateSubtitle")}</p>
           </div>
-          <div className="divide-y divide-border/40">
+          <div className="divide-y divide-white/5">
             {items.map(i => (
-              <div key={i.id} className="px-4 py-3 space-y-2">
-                <p className="text-sm font-medium text-foreground">{i.product_name}</p>
+              <div key={i.id} className="px-5 py-4 space-y-2">
+                <p className="text-sm font-medium text-white/80">{i.product_name}</p>
                 <RatingWidget
                   productId={i.product_id}
                   orderId={id}
@@ -201,7 +213,7 @@ export default function OrderPage() {
         </div>
         )}
 
-        <p className="text-center text-xs text-red-400 pb-4">
+        <p className="text-center text-xs text-rose-500/50 pb-4">
           {t("order.cancelNotice")}
         </p>
       </main>
