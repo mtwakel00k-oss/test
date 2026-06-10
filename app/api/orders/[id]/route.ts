@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabaseForRequest, isTenantMismatch } from "@/lib/tenant"
 import { createClientForRouteHandler } from "@/lib/supabase-server"
+import { findOrderAcrossTenants } from "@/lib/order-tracking"
 import { logger } from "@/lib/logger"
 import { DB_STATUS_TO_POS } from "@/lib/constants"
 
@@ -20,13 +21,58 @@ function getRole(req: NextRequest): string | null {
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
+    const { searchParams } = new URL(req.url)
+    const isPublic = searchParams.get("public") === "true"
+
+    // ── Public mode: customer tracking, no session/role required ─────────
+    if (isPublic) {
+      logger.info(`[orders GET] Public lookup for order ${id}`)
+
+      // 1. Try standard lookup first (works if x-tenant-slug header is present)
+      const sb = await supabaseForRequest(req)
+      const { data: directOrder, error: directError } = await (sb.from("orders"))
+        .select("*, items:order_items(*)")
+        .eq("id", id)
+        .maybeSingle()
+
+      if (directOrder) {
+        logger.info(`[orders GET] Public: found order ${id} via direct lookup`)
+        if (directOrder.status) directOrder.status = DB_STATUS_TO_POS[directOrder.status as string] || directOrder.status
+        return NextResponse.json({ order: directOrder })
+      }
+      if (directError) {
+        logger.warn(`[orders GET] Public: direct lookup failed`, { error: directError.message })
+      }
+
+      // 2. No slug known → scan all active tenants
+      logger.info(`[orders GET] Public: scanning all tenants for order ${id}`)
+      const found = await findOrderAcrossTenants(id)
+      if (found) {
+        if (found.order.status) found.order.status = DB_STATUS_TO_POS[found.order.status as string] || found.order.status
+        return NextResponse.json({ order: found.order, slug: found.slug })
+      }
+
+      logger.warn(`[orders GET] Public: order ${id} not found in any tenant`)
+      return NextResponse.json({ error: "Order not found" }, { status: 404 })
+    }
+
+    // ── Standard mode: requires session / x-tenant-slug ──────────────────
     const sb = await supabaseForRequest(req)
     const { data: order, error } = await (sb.from("orders"))
       .select("*, items:order_items(*)")
       .eq("id", id)
       .maybeSingle()
-    if (error) throw new Error(error.message || JSON.stringify(error))
-    if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 })
+
+    if (error) {
+      logger.error(`[orders GET] Query error for order ${id}`, { error: error.message })
+      throw new Error(error.message || JSON.stringify(error))
+    }
+
+    if (!order) {
+      logger.warn(`[orders GET] Order ${id} not found in tenant`)
+      return NextResponse.json({ error: "Order not found" }, { status: 404 })
+    }
+
     if (order.status) order.status = DB_STATUS_TO_POS[order.status as string] || order.status
     return NextResponse.json(order)
   } catch (e) {

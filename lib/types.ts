@@ -58,6 +58,7 @@ export interface Order {
   driver_lat?: number | null
   driver_lng?: number | null
   driver_location_updated_at?: string | null
+  items?: OrderItem[]
 }
 
 export interface OrderItem {

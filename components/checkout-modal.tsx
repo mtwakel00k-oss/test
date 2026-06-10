@@ -12,8 +12,10 @@ interface CheckoutModalProps {
   items: CartItem[]
   total: number
   onClose: () => void
-  onSuccess: (orderId: string, orderNumber?: number) => void
+  /** Called with (orderId, slug, orderNumber) */
+  onSuccess: (orderId: string, slug: string, orderNumber?: number) => void
   onClear: () => void
+  slug: string
   initialOrderType?: OrderType
   initialDeliveryPhone?: string
   initialCoords?: { lat: number; lng: number } | null
@@ -42,6 +44,7 @@ export function CheckoutModal({
   onClose,
   onSuccess,
   onClear,
+  slug,
   initialOrderType = "dine_in",
   initialDeliveryPhone = "",
   initialCoords = null,
@@ -166,7 +169,7 @@ export function CheckoutModal({
           setOrderId(data.id)
           setOrderNumber(data.orderNumber)
           setSubmitted(true)
-          setTimeout(() => { onSuccess(data.id, data.orderNumber) }, 2500)
+          setTimeout(() => { onSuccess(data.id, slug, data.orderNumber) }, 2500)
           return
         } catch (e) {
           lastErr = e
@@ -199,7 +202,7 @@ export function CheckoutModal({
           <h2 className="text-xl font-bold text-foreground mb-2">{t("menu.orderConfirmed")}</h2>
           <p className="text-muted-foreground mb-1">{t("menu.orderNumber")} <span className="font-bold text-foreground text-lg">#{orderNumber}</span></p>
           <p className="text-sm text-muted-foreground mb-6">{t("menu.willPrepare")}</p>
-          <button onClick={() => { if (orderId) onSuccess(orderId, orderNumber) }}
+          <button onClick={() => { if (orderId) onSuccess(orderId, slug, orderNumber) }}
             className="w-full rounded-lg bg-primary text-primary-foreground py-2.5 text-sm font-semibold hover:bg-primary/90 transition-colors">
             {t("menu.trackOrder")}
           </button>

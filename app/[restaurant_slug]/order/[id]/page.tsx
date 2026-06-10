@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { use } from "react"
 import Link from "next/link"
 import dynamic from "next/dynamic"
-import { supabase, fetchApi } from "@/lib/tenant"
+import { supabase } from "@/lib/tenant"
 import { useSlug } from "@/lib/use-slug"
 import { useTranslation } from "@/lib/use-translation"
 import { logger } from "@/lib/logger"
@@ -57,30 +57,103 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
   const [items, setItems] = useState<OrderItem[]>([])
   const [loading, setLoading] = useState(true)
   const [errorMsg, setErrorMsg] = useState("")
+  const [errorDetail, setErrorDetail] = useState("")
   const [ratedProducts, setRatedProducts] = useState<number[]>([])
   const [driverLat, setDriverLat] = useState<number | null>(null)
   const [driverLng, setDriverLng] = useState<number | null>(null)
   const [deliveryCoords, setDeliveryCoords] = useState<{ lat: number; lng: number } | null>(null)
 
+  /**
+   * Fetch order with detailed error logging.
+   *
+   * Logs to Vercel Logs:
+   *  - The exact HTTP status returned
+   *  - Whether the error is 404 (not found), 403 (RLS), or 500 (server)
+   *  - The raw response body for debugging
+   *  - Whether the slug matched the tenant
+   */
   useEffect(() => {
+    let cancelled = false
+
     async function load() {
-      const res = await fetchApi(`/api/orders/${id}`)
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: "" }))
-        setErrorMsg(err.error || `${t("common.unknownError")} ${res.status}`)
-        setLoading(false)
-        return
+      logger.info(`[OrderTracking] Fetching order ${id} for slug "${slug}"`)
+
+      try {
+        const res = await fetch(`/api/orders/${id}`, {
+          headers: {
+            "Content-Type": "application/json",
+            "x-tenant-slug": slug,
+          },
+        })
+        if (cancelled) return
+
+        logger.info(`[OrderTracking] Response status: ${res.status} for order ${id}`)
+
+        if (!res.ok) {
+          let errorBody = ""
+          try {
+            const json = await res.json()
+            errorBody = json.error || JSON.stringify(json)
+          } catch {
+            errorBody = await res.text().catch(() => "Unable to read response body")
+          }
+
+          logger.error(`[OrderTracking] Failed to fetch order ${id}`, {
+            status: res.status,
+            body: errorBody,
+            slug,
+          })
+
+          if (res.status === 404) {
+            setErrorMsg(t("order.notFound"))
+            setErrorDetail(`API returned 404 — order ${id} does not exist in tenant "${slug}"`)
+          } else if (res.status === 403) {
+            setErrorMsg(t("order.notFound"))
+            setErrorDetail(`API returned 403 — RLS policy may be blocking SELECT for anonymous users on tenant "${slug}"`)
+          } else {
+            setErrorMsg(`${t("common.unknownError")} (${res.status})`)
+            setErrorDetail(`API returned ${res.status}: ${errorBody}`)
+          }
+
+          setLoading(false)
+          return
+        }
+
+        const o: Order = await res.json()
+
+        if (!o || !o.id) {
+          logger.warn(`[OrderTracking] Empty response body for order ${id}`)
+          setErrorMsg(t("order.notFound"))
+          setErrorDetail("API returned 200 but response body was empty or missing id")
+          setLoading(false)
+          return
+        }
+
+        logger.info(`[OrderTracking] Successfully loaded order ${id}`, {
+          status: o.status,
+          orderType: o.order_type,
+          orderNumber: o.order_number,
+          itemCount: o.items?.length,
+        })
+
+        setOrder(o)
+        setItems(o.items || [])
+        if (o.delivery_lat != null && o.delivery_lng != null) {
+          setDeliveryCoords({ lat: o.delivery_lat, lng: o.delivery_lng })
+        }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e)
+        logger.error(`[OrderTracking] Network/parse error for order ${id}`, { error: msg })
+        setErrorMsg(t("common.unknownError"))
+        setErrorDetail(`Network error: ${msg}`)
+      } finally {
+        if (!cancelled) setLoading(false)
       }
-      const o = await res.json()
-      setOrder(o)
-      setItems(o.items || [])
-      if (o.delivery_lat != null && o.delivery_lng != null) {
-        setDeliveryCoords({ lat: o.delivery_lat, lng: o.delivery_lng })
-      }
-      setLoading(false)
     }
+
     load()
-  }, [id, t])
+    return () => { cancelled = true }
+  }, [id, slug, t])
 
   useEffect(() => {
     const sub = supabase().channel(`order:${id}`)
@@ -89,6 +162,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
         (payload: { new?: Record<string, unknown> }) => {
           if (payload.new) {
             const updated = payload.new as unknown as Order
+            logger.info(`[OrderTracking] Realtime update for order ${id}`, { status: updated.status })
             setOrder(updated)
             if (updated.driver_lat != null && updated.driver_lng != null) {
               setDriverLat(Number(updated.driver_lat))
@@ -119,10 +193,13 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
   if (!order) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 flex items-center justify-center p-4">
-        <div className="text-center">
+        <div className="text-center max-w-sm">
           <div className="text-7xl mb-6 opacity-80">🍔</div>
           <h1 className="text-2xl font-black text-white mb-2">{t("order.notFound")}</h1>
-          {errorMsg && <p className="text-sm text-white/50 mb-6">{errorMsg}</p>}
+          {errorMsg && <p className="text-sm text-white/50 mb-2">{errorMsg}</p>}
+          {process.env.NODE_ENV === "development" && errorDetail && (
+            <p className="text-xs text-rose-400/60 mb-6 break-all">{errorDetail}</p>
+          )}
           <Link href={`/${slug}/menu`} className="inline-flex rounded-xl bg-amber-500 text-white px-7 py-3 text-sm font-bold hover:bg-amber-400 transition-all active:scale-95 shadow-lg shadow-amber-500/20">
             {t("common.backToMenu")}
           </Link>
@@ -145,7 +222,6 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white" dir={dir}>
       <main className="w-full max-w-md mx-auto px-4 py-6 space-y-5">
-        {/* Header */}
         <div className="text-center pb-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white/50 text-xs mb-3">
             <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.color}`} />
@@ -161,7 +237,6 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
           </p>
         </div>
 
-        {/* Delivery ETA Banner */}
         {isOutForDelivery && (
           <div className="rounded-2xl bg-gradient-to-br from-violet-500/10 to-purple-500/5 border border-violet-500/20 overflow-hidden shadow-xl shadow-violet-500/5">
             <div className="p-5">
@@ -215,7 +290,6 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
           </div>
         )}
 
-        {/* Ratings */}
         {isReady && (
           <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
             <div className="bg-gradient-to-r from-amber-500/10 to-transparent px-5 py-4 border-b border-white/5">

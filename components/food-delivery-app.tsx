@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { logger } from "@/lib/logger";
 import type { MenuProduct } from "@/lib/types";
 import { fetchApi } from "@/lib/tenant";
+import { getOrderTrackingUrl } from "@/lib/order-tracking";
 import { useCart } from "@/context/CartContext";
 import { AppHeader } from "./app-header";
 import { CategoryFilter } from "./category-filter";
@@ -22,6 +23,14 @@ export function FoodDeliveryApp() {
   const [sauces, setSauces] = useState<Record<number, number | null>>({});
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const { items, addItem, updateQuantity, itemCount, clear, total } = useCart();
+
+  const slug = useMemo(() => {
+    if (typeof window === "undefined") return ""
+    const el = document.getElementById("tenant-config")
+    try { if (el?.textContent) return JSON.parse(el.textContent).slug || "" } catch {}
+    try { return ((window as unknown as Record<string, unknown>).__TENANT_CONFIG__ as { slug?: string })?.slug || "" } catch {}
+    return ""
+  }, [])
 
   useEffect(() => {
     fetchApi("/api/products").then(r => r.json()).then(data => {
@@ -84,8 +93,9 @@ export function FoodDeliveryApp() {
         <CheckoutModal
           items={items}
           total={total}
+          slug={slug}
           onClose={() => setCheckoutOpen(false)}
-          onSuccess={(orderId) => { setCheckoutOpen(false); router.push(`/order/${orderId}`) }}
+          onSuccess={(orderId) => { setCheckoutOpen(false); router.push(getOrderTrackingUrl(slug, orderId)) }}
           onClear={clear}
         />
       )}
