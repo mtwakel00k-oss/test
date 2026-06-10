@@ -1,10 +1,11 @@
 "use client"
 
-import { useEffect, useState, useRef, useCallback } from "react"
+import { useEffect, useState, useRef, useCallback, useMemo } from "react"
 import { use } from "react"
 import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
 import { logger } from "@/lib/logger"
+import { readTenantConfig } from "@/lib/use-slug"
 
 const DriverMap = dynamic(() => import("@/components/driver-map"), { ssr: false })
 
@@ -34,6 +35,13 @@ export default function DriverManagePage({ params }: { params: Promise<{ order_i
   const [locationStatus, setLocationStatus] = useState<string>("")
   const watchIdRef = useRef<number | null>(null)
   const orderIdRef = useRef(order_id)
+
+  const planType = useMemo(() => {
+    const config = readTenantConfig()
+    return config?.plan_type ?? "starter"
+  }, [])
+
+  const isElite = planType === "elite"
 
   useEffect(() => {
     orderIdRef.current = order_id
@@ -71,12 +79,17 @@ export default function DriverManagePage({ params }: { params: Promise<{ order_i
   useEffect(() => {
     if (!order || order.status === "completed" || order.status === "cancelled") return
 
+    if (!isElite) {
+      setLocationStatus("📍 GPS tracking requires Elite plan")
+      return
+    }
+
     if (!navigator.geolocation) {
       setLocationStatus("📍 GPS not available")
       return
     }
 
-    setLocationStatus("📍 Tracking enabled")
+    setLocationStatus("📍 Live tracking active")
 
     watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
@@ -93,7 +106,7 @@ export default function DriverManagePage({ params }: { params: Promise<{ order_i
         navigator.geolocation.clearWatch(watchIdRef.current)
       }
     }
-  }, [order?.status, sendLocation])
+  }, [order?.status, sendLocation, isElite])
 
   const handleDelivered = async () => {
     setConfirming(true)
@@ -144,7 +157,6 @@ export default function DriverManagePage({ params }: { params: Promise<{ order_i
   }
 
   const isCompleted = order.status === "completed" || order.status === "cancelled"
-  const driverName = order.delivery_men?.name || "Driver"
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
@@ -165,7 +177,7 @@ export default function DriverManagePage({ params }: { params: Promise<{ order_i
           </div>
         ) : (
           <>
-            {order.delivery_lat != null && order.delivery_lng != null && (
+            {isElite && order.delivery_lat != null && order.delivery_lng != null && (
               <div className="rounded-2xl overflow-hidden border border-zinc-800" style={{ height: "280px" }}>
                 <DriverMap
                   driverLat={order.driver_lat ?? order.delivery_lat}
@@ -173,6 +185,14 @@ export default function DriverManagePage({ params }: { params: Promise<{ order_i
                   customerLat={order.delivery_lat}
                   customerLng={order.delivery_lng}
                 />
+              </div>
+            )}
+
+            {!isElite && (
+              <div className="rounded-2xl bg-zinc-900 border border-zinc-800 p-5 text-center">
+                <div className="text-4xl mb-3">📍</div>
+                <h3 className="text-sm font-semibold text-zinc-300 mb-1">Live GPS tracking</h3>
+                <p className="text-xs text-zinc-500">Available on the Elite plan</p>
               </div>
             )}
 
@@ -210,7 +230,7 @@ export default function DriverManagePage({ params }: { params: Promise<{ order_i
             </div>
 
             <p className="text-center text-xs text-zinc-500 flex items-center justify-center gap-1">
-              <span>{locationStatus || "📍 Location shared"}</span>
+              <span>{locationStatus || (isElite ? "📍 Location shared" : "")}</span>
             </p>
 
             <button onClick={handleDelivered} disabled={confirming}

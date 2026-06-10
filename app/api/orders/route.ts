@@ -10,6 +10,7 @@ const ORDER_COLS = [
   "id", "customer_name", "total", "status", "order_type",
   "table_number", "created_at", "order_number", "customer_phone", "payment_status",
   "delivery_lat", "delivery_lng", "delivery_address", "driver_id",
+  "processed_by_staff_id", "processed_by_staff_name",
 ]
 
 async function queryOrders(sb: SupabaseClient, statusIn: string | null, limit: number) {
@@ -113,7 +114,7 @@ export async function POST(req: NextRequest) {
   const startTime = Date.now()
   try {
     const body = await req.json()
-    const { items, customer_name, table_number, idempotency_key, cashier_id, cashier_name } = body
+    const { items, customer_name, table_number, idempotency_key, cashier_id, cashier_name, processed_by_staff_id, processed_by_staff_name } = body
     const order_type = (body.order_type || "takeaway") as OrderType
     const customer_phone = body.customer_phone || null
     const delivery_address = body.delivery_address || null
@@ -158,9 +159,11 @@ export async function POST(req: NextRequest) {
     }
     if (cashier_id) payload.cashier_id = cashier_id
     if (cashier_name) payload.cashier_name = cashier_name
+    if (processed_by_staff_id) payload.processed_by_staff_id = processed_by_staff_id
+    if (processed_by_staff_name) payload.processed_by_staff_name = processed_by_staff_name
 
     // ── Column-aware insert ─────────────────────────────
-    const OPTIONAL_COLS = ["payment_status", "order_type", "order_number", "idempotency_key", "delivery_address", "delivery_lat", "delivery_lng", "cashier_id", "cashier_name"]
+    const OPTIONAL_COLS = ["payment_status", "order_type", "order_number", "idempotency_key", "delivery_address", "delivery_lat", "delivery_lng", "cashier_id", "cashier_name", "processed_by_staff_id", "processed_by_staff_name"]
     const STATUS_FALLBACKS = ["preparing"] // if status check constraint rejects "pending"
 
     async function tryInsert(row: Record<string, unknown>): Promise<Record<string, unknown> | null> {

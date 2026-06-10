@@ -3,6 +3,7 @@ import { cookies, headers } from "next/headers"
 import Script from "next/script"
 import "./globals.css"
 import { CartProvider } from "@/context/CartContext"
+import { StaffProvider } from "@/context/StaffContext"
 import { ThemeProvider } from "@/lib/theme"
 import { LangProvider } from "@/lib/lang-context"
 import { Geist } from "next/font/google";
@@ -50,7 +51,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="antialiased bg-background text-foreground">
         <LangProvider lang={lang}>
           <ThemeProvider>
-            <CartProvider>{children}</CartProvider>
+            <StaffProvider><CartProvider>{children}</CartProvider></StaffProvider>
           </ThemeProvider>
         </LangProvider>
       </body>

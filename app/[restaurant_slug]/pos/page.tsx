@@ -25,6 +25,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog"
 import { ProductGrid } from "@/components/pos/product-grid"
 import { CartSidebar } from "@/components/pos/cart-sidebar"
 import { useTranslation } from "@/lib/use-translation"
+import { useStaff } from "@/context/StaffContext"
 
 interface RawOrder {
   id: string
@@ -150,6 +151,7 @@ export default function POSPage() {
   const [assigningDeliveryMan, setAssigningDeliveryMan] = useState(false)
   const [pendingDeliveryManId, setPendingDeliveryManId] = useState<string | null>(null)
   const [cashier, setCashier] = useState<{ email: string; role: string; name?: string } | null>(null)
+  const { activeStaff } = useStaff()
 
   useEffect(() => {
     fetchApi("/api/tenant/drivers")
@@ -428,6 +430,8 @@ export default function POSPage() {
         order_type: newOrderType,
         cashier_id: cashier?.email || null,
         cashier_name: cashier?.email?.split("@")[0] || null,
+        processed_by_staff_id: activeStaff?.id || null,
+        processed_by_staff_name: activeStaff?.name || null,
         items: availableItems.map(i => ({
           product_id: i.product.id,
           product_name: i.product.name,

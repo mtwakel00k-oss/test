@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Component, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
 import { logger } from "@/lib/logger";
@@ -13,6 +13,36 @@ import { CategoryFilter } from "./category-filter";
 import { MealCard } from "./meal-card";
 import { OrderBar } from "./order-bar";
 import { CheckoutModal } from "./checkout-modal";
+
+class ErrorBoundary extends Component<
+  { children: ReactNode; fallback?: ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: ReactNode; fallback?: ReactNode }) {
+    super(props)
+    this.state = { hasError: false }
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+  componentDidCatch(error: Error) {
+    logger.error("Menu ErrorBoundary caught", error)
+  }
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || (
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+          <div className="text-center max-w-sm">
+            <div className="text-5xl mb-4">🍔</div>
+            <h2 className="text-lg font-bold text-foreground mb-2">Something went wrong</h2>
+            <p className="text-sm text-muted-foreground">Please refresh the page to try again.</p>
+          </div>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
 
 export function FoodDeliveryApp() {
   const router = useRouter();
@@ -33,7 +63,10 @@ export function FoodDeliveryApp() {
   }, [])
 
   useEffect(() => {
-    fetchApi("/api/products").then(r => r.json()).then(data => {
+    fetchApi("/api/products").then(r => {
+      if (!r.ok) throw new Error(`Products API returned ${r.status}`)
+      return r.json()
+    }).then(data => {
       if (!Array.isArray(data)) return
       const available = data.filter((p: { is_available?: boolean }) => p.is_available !== false) as MenuProduct[]
       setProducts(available);
@@ -51,6 +84,8 @@ export function FoodDeliveryApp() {
         initSizes[p.id] = avSizes[0] || "L";
       });
       setSizes(initSizes);
+    }).catch(e => {
+      logger.error("Failed to fetch products", e)
     });
   }, []);
 
@@ -64,41 +99,49 @@ export function FoodDeliveryApp() {
   }, {} as Record<string, number>);
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <AppHeader cartItemCount={itemCount} onCart={() => setCheckoutOpen(true)} />
+    <ErrorBoundary>
+      <div className="min-h-screen bg-background pb-24">
+        <AppHeader cartItemCount={itemCount} onCart={() => setCheckoutOpen(true)} />
 
-      <main className="px-4 pt-4">
-        <CategoryFilter categories={categories} selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
-        <div className="grid grid-cols-2 gap-3 mt-4">
-          {filtered.map(p => {
-            const k = `${p.id}_${sizes[p.id] || "L"}_${sauces[p.id] ?? null}`;
-            return (
-              <MealCard key={p.id} product={p}
-                size={sizes[p.id] || "L"}
-                sauceId={sauces[p.id] ?? null}
-                quantity={cartQuantities[k] || 0}
-                onSizeChange={(s) => setSizes(prev => ({ ...prev, [p.id]: s }))}
-                onSauceChange={(s) => setSauces(prev => ({ ...prev, [p.id]: s }))}
-                onAdd={() => { addItem(p, sizes[p.id] || "L", sauces[p.id] ?? null); logger.info("Added", { name: p.name }); }}
-                onUpdateQuantity={(d) => { updateQuantity(p.id, sizes[p.id] || "L", sauces[p.id] ?? null, d); }}
-              />
-            );
-          })}
-        </div>
-      </main>
+        <main className="px-4 pt-4">
+          <CategoryFilter categories={categories} selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
+          <div className="grid grid-cols-2 gap-3 mt-4">
+            {filtered.length === 0 && (
+              <div className="col-span-2 text-center py-16 text-muted-foreground">
+                <p className="text-5xl mb-4">🍽️</p>
+                <p className="text-sm">No products available</p>
+              </div>
+            )}
+            {filtered.map(p => {
+              const k = `${p.id}_${sizes[p.id] || "L"}_${sauces[p.id] ?? null}`;
+              return (
+                <MealCard key={p.id} product={p}
+                  size={sizes[p.id] || "L"}
+                  sauceId={sauces[p.id] ?? null}
+                  quantity={cartQuantities[k] || 0}
+                  onSizeChange={(s) => setSizes(prev => ({ ...prev, [p.id]: s }))}
+                  onSauceChange={(s) => setSauces(prev => ({ ...prev, [p.id]: s }))}
+                  onAdd={() => { addItem(p, sizes[p.id] || "L", sauces[p.id] ?? null); logger.info("Added", { name: p.name }); }}
+                  onUpdateQuantity={(d) => { updateQuantity(p.id, sizes[p.id] || "L", sauces[p.id] ?? null, d); }}
+                />
+              );
+            })}
+          </div>
+        </main>
 
-      <OrderBar onCheckout={() => setCheckoutOpen(true)} />
+        <OrderBar onCheckout={() => setCheckoutOpen(true)} />
 
-      {checkoutOpen && (
-        <CheckoutModal
-          items={items}
-          total={total}
-          slug={slug}
-          onClose={() => setCheckoutOpen(false)}
-          onSuccess={(orderId) => { setCheckoutOpen(false); router.push(getOrderTrackingUrl(slug, orderId)) }}
-          onClear={clear}
-        />
-      )}
-    </div>
+        {checkoutOpen && (
+          <CheckoutModal
+            items={items}
+            total={total}
+            slug={slug}
+            onClose={() => setCheckoutOpen(false)}
+            onSuccess={(orderId) => { setCheckoutOpen(false); router.push(getOrderTrackingUrl(slug, orderId)) }}
+            onClear={clear}
+          />
+        )}
+      </div>
+    </ErrorBoundary>
   );
 }

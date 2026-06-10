@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useRef } from "react"
-import { LogOut, Receipt, Plus, User, ChevronDown } from "lucide-react"
+import { LogOut, Receipt, Plus, User, ChevronDown, Check } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -9,6 +9,7 @@ import { resetTenantClient } from "@/lib/tenant"
 import { useSlug } from "@/lib/use-slug"
 import { useTranslation } from "@/lib/use-translation"
 import { cn } from "@/lib/utils"
+import { useStaff } from "@/context/StaffContext"
 
 interface POSHeaderProps {
   totalOrders: number
@@ -28,6 +29,7 @@ export function POSHeader({ totalOrders, activeOrders, todayRevenue, onNewOrder,
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const cur = lang === "ar" ? "د.ج" : "DA"
+  const { activeStaff, staffList, setActiveStaff, loading } = useStaff()
 
   const logout = async () => {
     setMenuOpen(false)
@@ -69,6 +71,15 @@ export function POSHeader({ totalOrders, activeOrders, todayRevenue, onNewOrder,
         </div>
 
         <div className="flex items-center gap-2">
+          {activeStaff && (
+            <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              <span className="text-[11px] text-amber-400 font-semibold whitespace-nowrap">
+                {lang === "ar" ? "الكاشير:" : lang === "fr" ? "Caissier:" : "Cashier:"} {activeStaff.name}
+              </span>
+            </div>
+          )}
+
           <div className="hidden md:flex items-center gap-2">
             <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 border border-border/40">
               <span className="relative flex h-2 w-2">
@@ -112,15 +123,62 @@ export function POSHeader({ totalOrders, activeOrders, todayRevenue, onNewOrder,
             <button onClick={() => setMenuOpen(!menuOpen)}
               className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-border/60 hover:bg-muted transition-all">
               <User className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="text-xs font-medium text-foreground max-w-[80px] truncate">{userName || t("pos.user")}</span>
+              <span className="text-xs font-medium text-foreground max-w-[80px] truncate">
+                {activeStaff ? activeStaff.name : (userName || t("pos.user"))}
+              </span>
               <ChevronDown className="w-3 h-3 text-muted-foreground" />
             </button>
             {menuOpen && (
-              <div className={cn("absolute top-full mt-1.5 w-48 rounded-xl border border-border/60 bg-card shadow-xl overflow-hidden", lang === "ar" ? "left-0" : "right-0")}>
+              <div className={cn("absolute top-full mt-1.5 w-56 rounded-xl border border-border/60 bg-card shadow-xl overflow-hidden z-50", lang === "ar" ? "left-0" : "right-0")}>
                 <div className="px-3 py-2.5 border-b border-border/40">
                   <p className="text-xs font-bold text-foreground">{userName || t("pos.user")}</p>
                   {userRole && <p className="text-[10px] text-muted-foreground mt-0.5">{userRole}</p>}
                 </div>
+
+                <div className="border-b border-border/40">
+                  <div className="px-3 py-1.5">
+                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                      {lang === "ar" ? "المستخدم الحالي" : lang === "fr" ? "Opérateur" : "Active Cashier"}
+                    </p>
+                  </div>
+                  <div className="max-h-48 overflow-y-auto">
+                    <button onClick={() => { setActiveStaff(null); setMenuOpen(false) }}
+                      className={cn(
+                        "flex items-center gap-2 w-full px-3 py-2 text-xs transition-colors hover:bg-muted",
+                        !activeStaff ? "bg-primary/10 text-primary font-semibold" : "text-muted-foreground"
+                      )}>
+                      <User className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">{userName || t("pos.user")}</span>
+                      {!activeStaff && <Check className="w-3 h-3 ml-auto shrink-0" />}
+                    </button>
+                    {loading ? (
+                      <div className="px-3 py-2 text-[11px] text-muted-foreground">
+                        {lang === "ar" ? "جاري التحميل..." : "Loading..."}
+                      </div>
+                    ) : staffList.length === 0 ? (
+                      <div className="px-3 py-2 text-[11px] text-muted-foreground">
+                        {lang === "ar" ? "لا يوجد موظفون" : lang === "fr" ? "Aucun employé" : "No staff"}
+                      </div>
+                    ) : (
+                      staffList.map(staff => (
+                        <button key={staff.id} onClick={() => { setActiveStaff(staff); setMenuOpen(false) }}
+                          className={cn(
+                            "flex items-center gap-2 w-full px-3 py-2 text-xs transition-colors hover:bg-muted",
+                            activeStaff?.id === staff.id ? "bg-primary/10 text-primary font-semibold" : "text-foreground"
+                          )}>
+                          <div className={cn("w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0",
+                            activeStaff?.id === staff.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                          )}>
+                            {staff.name.charAt(0)}
+                          </div>
+                          <span className="truncate">{staff.name}</span>
+                          {activeStaff?.id === staff.id && <Check className="w-3 h-3 ml-auto shrink-0" />}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+
                 <button onClick={logout} className="flex items-center gap-2 w-full px-3 py-2.5 text-xs text-destructive hover:bg-destructive/5 transition-colors">
                   <LogOut className="w-3.5 h-3.5" /> {t("login.logOut")}
                 </button>
