@@ -1,7 +1,10 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import { useParams } from "next/navigation"
+import { t, type Lang } from "@/lib/translations"
+
+const LANG: Lang = "ar"
 
 interface DriverOrder {
   id: string
@@ -31,19 +34,21 @@ export default function DriverPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [delivering, setDelivering] = useState<string | null>(null)
+  const [locationActive, setLocationActive] = useState(false)
+  const watchIdRef = useRef<number | null>(null)
 
   const fetchOrders = useCallback(async () => {
     try {
       const res = await fetch(`/api/driver/${token}`)
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: "خطأ غير معروف" }))
-        setError(err.error || "رابط غير صالح")
+        const err = await res.json().catch(() => ({ error: t("driver.unknownError", LANG) }))
+        setError(err.error || t("driver.invalidLink", LANG))
         return
       }
       const json = await res.json()
       setData(json)
     } catch {
-      setError("تعذر الاتصال")
+      setError(t("driver.connectionError", LANG))
     } finally {
       setLoading(false)
     }
@@ -55,6 +60,39 @@ export default function DriverPage() {
     return () => clearInterval(interval)
   }, [fetchOrders])
 
+  useEffect(() => {
+    if (!data?.orders.length) return
+    const activeOrders = data.orders.filter(o => o.status === "out_for_delivery" || o.status === "ready")
+    if (!activeOrders.length) return
+
+    if (!navigator.geolocation) return
+
+    const sendLocation = (lat: number, lng: number) => {
+      for (const order of activeOrders) {
+        fetch(`/api/driver/${token}/location`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ order_id: order.id, lat, lng }),
+        }).catch(() => {})
+      }
+    }
+
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (pos) => {
+        setLocationActive(true)
+        sendLocation(pos.coords.latitude, pos.coords.longitude)
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
+    )
+
+    return () => {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current)
+      }
+    }
+  }, [data?.orders, token])
+
   const markDelivered = useCallback(async (orderId: string) => {
     setDelivering(orderId)
     try {
@@ -65,12 +103,12 @@ export default function DriverPage() {
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
-        alert(err.error || "فشل تأكيد التوصيل")
+        alert(err.error || t("driver.deliveryFailed", LANG))
         return
       }
       setData(prev => prev ? { ...prev, orders: prev.orders.filter(o => o.id !== orderId) } : prev)
     } catch {
-      alert("حدث خطأ، حاول مرة أخرى")
+      alert(t("driver.tryAgain", LANG))
     } finally {
       setDelivering(null)
     }
@@ -86,7 +124,7 @@ export default function DriverPage() {
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
           </div>
-          <p className="text-sm text-muted-foreground">جاري التحميل...</p>
+          <p className="text-sm text-muted-foreground">{t("driver.loading", LANG)}</p>
         </div>
       </div>
     )
@@ -99,9 +137,9 @@ export default function DriverPage() {
           <div className="flex items-center justify-center w-16 h-16 mx-auto rounded-2xl bg-muted/30">
             <span className="text-3xl">🔒</span>
           </div>
-          <h1 className="text-lg font-bold text-foreground">رابط غير صالح</h1>
+          <h1 className="text-lg font-bold text-foreground">{t("driver.invalidLink", LANG)}</h1>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            {error ?? "هذا الرابط غير صالح أو انتهت صلاحيته. تواصل مع صاحب المطعم."}
+            {error ?? t("driver.invalidLinkSub", LANG)}
           </p>
         </div>
       </div>
@@ -121,13 +159,24 @@ export default function DriverPage() {
               <h1 className="text-sm font-bold text-foreground">{data.driver.name}</h1>
             </div>
           </div>
-          <button onClick={fetchOrders}
-            className="flex items-center justify-center w-9 h-9 transition-colors rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/5"
-            title="تحديث">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-          </button>
+          <div className="flex items-center gap-2">
+            {locationActive && (
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20" title={t("driver.locationShared", LANG)}>
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                </span>
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">{t("driver.locationShared", LANG)}</span>
+              </div>
+            )}
+            <button onClick={fetchOrders}
+              className="flex items-center justify-center w-9 h-9 transition-colors rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/5"
+              title={t("driver.refresh", LANG)}>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -138,8 +187,8 @@ export default function DriverPage() {
               <span className="text-3xl">✅</span>
             </div>
             <div>
-              <p className="text-base font-bold text-foreground">لا توجد طلبات نشطة</p>
-              <p className="mt-1 text-sm text-muted-foreground">سيظهر هنا أي طلب يخصص لك</p>
+              <p className="text-base font-bold text-foreground">{t("driver.noOrders", LANG)}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{t("driver.noOrdersSub", LANG)}</p>
             </div>
           </div>
         ) : (
@@ -161,15 +210,15 @@ export default function DriverPage() {
                     <div>
                       <span className="text-base font-bold text-foreground">{order.customer_name}</span>
                       {order.order_number && (
-                        <span className="block text-[11px] text-muted-foreground">طلب #{order.order_number}</span>
+                        <span className="block text-[11px] text-muted-foreground">{t("driver.orderHash", LANG)}{order.order_number}</span>
                       )}
                     </div>
                   </div>
                   <div className="text-right">
                     <span className="text-lg font-bold text-primary tabular-nums">
-                      {order.total.toLocaleString()} د.ج
+                      {order.total.toLocaleString()} {t("track.currency", LANG)}
                     </span>
-                    <p className="text-[10px] text-muted-foreground">الدفع عند الاستلام</p>
+                    <p className="text-[10px] text-muted-foreground">{t("driver.cashOnDelivery", LANG)}</p>
                   </div>
                 </div>
 
@@ -185,11 +234,11 @@ export default function DriverPage() {
                     {mapsUrl ? (
                       <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
                         className="flex items-center justify-center gap-1.5 py-3 text-sm font-semibold transition-colors rounded-xl bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-100 active:scale-[0.97]">
-                        🗺️ فتح الخريطة
+                        {t("driver.openMap", LANG)}
                       </a>
                     ) : (
                       <div className="flex items-center justify-center py-3 text-sm border rounded-xl bg-muted/20 border-border text-muted-foreground opacity-50">
-                        🗺️ لا يوجد موقع
+                        {t("driver.noLocation", LANG)}
                       </div>
                     )}
                     {telUri ? (
@@ -198,11 +247,11 @@ export default function DriverPage() {
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                         </svg>
-                        اتصال
+                        {t("driver.call", LANG)}
                       </a>
                     ) : (
                       <div className="flex items-center justify-center py-3 text-sm border rounded-xl bg-muted/20 border-border text-muted-foreground opacity-50">
-                        لا يوجد رقم
+                        {t("driver.noPhone", LANG)}
                       </div>
                     )}
                   </div>
@@ -212,12 +261,12 @@ export default function DriverPage() {
                     {isDelivering ? (
                       <>
                         <div className="w-5 h-5 border-2 rounded-full border-primary-foreground border-t-transparent animate-spin" />
-                        جاري التأكيد...
+                        {t("driver.confirming", LANG)}
                       </>
                     ) : (
                       <>
                         <span className="text-xl">✅</span>
-                        وصّلت وقبضت
+                        {t("driver.delivered", LANG)}
                       </>
                     )}
                   </button>

@@ -6,20 +6,22 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { logger } from "@/lib/logger"
 import { fetchApi } from "@/lib/tenant"
+import { useTranslation } from "@/lib/use-translation"
 
 interface RatingSectionProps {
   productId: number
   isVisible: boolean
 }
 
-const STARS = ["", "سيء", "مقبول", "جيد", "جيد جداً", "ممتاز"]
-
 export function RatingSection({ productId, isVisible }: RatingSectionProps) {
+  const { t } = useTranslation()
   const [rating, setRating] = useState(0)
   const [hoveredRating, setHoveredRating] = useState(0)
   const [review, setReview] = useState("")
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const STARS = ["", t("rating.bad"), t("rating.acceptable"), t("rating.good"), t("rating.veryGood"), t("rating.excellent")]
 
   const handleSubmit = async () => {
     if (rating === 0) return
@@ -51,8 +53,8 @@ export function RatingSection({ productId, isVisible }: RatingSectionProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h3 className="text-lg font-semibold text-foreground mb-2">شكراً لك!</h3>
-          <p className="text-sm text-muted-foreground">نقدر تقييمك، يساعدنا في تحسين خدماتنا</p>
+          <h3 className="text-lg font-semibold text-foreground mb-2">{t("rating.thanksTitle")}</h3>
+          <p className="text-sm text-muted-foreground">{t("rating.thanksMsg")}</p>
         </div>
       </section>
     )
@@ -60,7 +62,7 @@ export function RatingSection({ productId, isVisible }: RatingSectionProps) {
 
   return (
     <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <h2 className="text-lg font-semibold text-foreground mb-4">قيّم طلبك</h2>
+      <h2 className="text-lg font-semibold text-foreground mb-4">{t("rating.rateOrder")}</h2>
       <div className="bg-card rounded-2xl p-6 border border-border space-y-6">
         <div className="flex flex-col items-center gap-3">
           <div className="flex gap-2">
@@ -68,7 +70,7 @@ export function RatingSection({ productId, isVisible }: RatingSectionProps) {
               <button key={star} onClick={() => setRating(star)}
                 onMouseEnter={() => setHoveredRating(star)} onMouseLeave={() => setHoveredRating(0)}
                 className="transition-transform hover:scale-110 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
-                aria-label={`${star} من 5`}
+                aria-label={`${star} ${t("rating.of5")}`}
               >
                 <svg width="40" height="40" viewBox="0 0 24 24"
                   className={cn("transition-colors duration-200", (hoveredRating || rating) >= star ? "text-primary fill-primary" : "text-muted-foreground/30 fill-transparent")}
@@ -79,15 +81,15 @@ export function RatingSection({ productId, isVisible }: RatingSectionProps) {
             ))}
           </div>
           <p className="text-sm text-muted-foreground">
-            {rating === 0 ? "اضغط لبدء التقييم" : STARS[rating]}
+            {rating === 0 ? t("rating.clickToStart") : STARS[rating]}
           </p>
         </div>
 
         <div className="space-y-2">
           <label htmlFor="review" className="text-sm font-medium text-foreground">
-            شاركنا رأيك <span className="text-muted-foreground font-normal">(اختياري)</span>
+            {t("rating.shareFeedback")} <span className="text-muted-foreground font-normal">{t("rating.optional")}</span>
           </label>
-          <Textarea id="review" placeholder="اكتب رأيك هنا..." value={review}
+          <Textarea id="review" placeholder={t("rating.writeHere")} value={review}
             onChange={(e) => setReview(e.target.value)} className="min-h-[100px] bg-secondary border-border resize-none focus:ring-primary" />
         </div>
 
@@ -99,9 +101,9 @@ export function RatingSection({ productId, isVisible }: RatingSectionProps) {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              جاري الإرسال...
+              {t("rating.sending")}
             </span>
-          ) : "إرسال التقييم"}
+          ) : t("rating.submit")}
         </Button>
       </div>
     </section>

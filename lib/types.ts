@@ -55,6 +55,9 @@ export interface Order {
   delivery_address?: string | null
   delivery_lat?: number | null
   delivery_lng?: number | null
+  driver_lat?: number | null
+  driver_lng?: number | null
+  driver_location_updated_at?: string | null
 }
 
 export interface OrderItem {

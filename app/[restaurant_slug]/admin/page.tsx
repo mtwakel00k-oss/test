@@ -160,16 +160,16 @@ export default function AdminPage() {
         {driverStats.length > 0 && (
           <div className="bg-card border border-border rounded-xl overflow-hidden">
             <div className="px-4 py-3 border-b border-border">
-              <h3 className="text-sm font-semibold text-foreground">أداء السائقين</h3>
+              <h3 className="text-sm font-semibold text-foreground">{t("admin.driverPerformance")}</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border/50">
-                    <th className="text-right px-4 py-2.5 text-muted-foreground font-medium text-xs">السائق</th>
-                    <th className="text-center px-4 py-2.5 text-muted-foreground font-medium text-xs">توصيلات</th>
-                    <th className="text-center px-4 py-2.5 text-muted-foreground font-medium text-xs">الإيرادات</th>
-                    <th className="text-center px-4 py-2.5 text-muted-foreground font-medium text-xs">متوسط الطلب</th>
+                    <th className="text-right px-4 py-2.5 text-muted-foreground font-medium text-xs">{t("admin.driver")}</th>
+                    <th className="text-center px-4 py-2.5 text-muted-foreground font-medium text-xs">{t("admin.deliveries")}</th>
+                    <th className="text-center px-4 py-2.5 text-muted-foreground font-medium text-xs">{t("admin.revenue")}</th>
+                    <th className="text-center px-4 py-2.5 text-muted-foreground font-medium text-xs">{t("admin.avgOrder")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -203,15 +203,15 @@ export default function AdminPage() {
         {cashierStats.length > 0 && (
           <div className="bg-card border border-border rounded-xl overflow-hidden">
             <div className="px-4 py-3 border-b border-border">
-              <h3 className="text-sm font-semibold text-foreground">أداء الكاشير</h3>
+              <h3 className="text-sm font-semibold text-foreground">{t("admin.cashierPerformance")}</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border/50">
-                    <th className="text-right px-4 py-2.5 text-muted-foreground font-medium text-xs">الكاشير</th>
-                    <th className="text-center px-4 py-2.5 text-muted-foreground font-medium text-xs">الطلبات</th>
-                    <th className="text-center px-4 py-2.5 text-muted-foreground font-medium text-xs">الإيرادات</th>
+                    <th className="text-right px-4 py-2.5 text-muted-foreground font-medium text-xs">{t("admin.cashier")}</th>
+                    <th className="text-center px-4 py-2.5 text-muted-foreground font-medium text-xs">{t("admin.orders")}</th>
+                    <th className="text-center px-4 py-2.5 text-muted-foreground font-medium text-xs">{t("admin.revenue")}</th>
                   </tr>
                 </thead>
                 <tbody>

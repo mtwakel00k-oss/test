@@ -3,8 +3,11 @@
 import { useState } from "react"
 import { logger } from "@/lib/logger"
 import { fetchApi } from "@/lib/tenant"
+import { t } from "@/lib/translations"
+import { useLang } from "@/lib/lang-context"
 
 export default function RatingWidget({ productId, orderId, onRated }: { productId: number | string; orderId?: string; onRated: () => void }) {
+  const lang = useLang()
   const [rating, setRating] = useState(0)
   const [comment, setComment] = useState("")
   const [submitting, setSubmitting] = useState(false)
@@ -38,7 +41,7 @@ export default function RatingWidget({ productId, orderId, onRated }: { productI
         <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        <span className="text-xs font-medium">شكراً على تقييمك!</span>
+        <span className="text-xs font-medium">{t("rating.thanks", lang)}</span>
       </div>
     )
   }
@@ -54,7 +57,7 @@ export default function RatingWidget({ productId, orderId, onRated }: { productI
           </button>
         ))}
       </div>
-      <textarea placeholder="أكتب ملاحظاتك هنا (اختياري)..."
+      <textarea placeholder={t("rating.feedbackPlaceholder", lang)}
         value={comment}
         onChange={(e) => setComment(e.target.value)}
         disabled={submitting}

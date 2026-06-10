@@ -2,6 +2,7 @@
 
 import type { OrderItem } from "@/lib/types"
 import { SAUCES } from "@/lib/constants"
+import { useTranslation } from "@/lib/use-translation"
 
 function ItemIcon() {
   return (
@@ -12,13 +13,15 @@ function ItemIcon() {
 }
 
 export function OrderDetails({ items }: { items: OrderItem[] }) {
+  const { t, lang } = useTranslation()
+  const cur = lang === "ar" ? "د.ج" : "DA"
   const subtotal = items.reduce((acc, item) => acc + item.subtotal, 0)
 
   return (
     <section>
       <div className="bg-card rounded-2xl border border-border/60 overflow-hidden">
         <div className="px-4 py-3 border-b border-border/40">
-          <h2 className="text-sm font-semibold text-foreground">تفاصيل الطلب</h2>
+          <h2 className="text-sm font-semibold text-foreground">{t("track.details")}</h2>
         </div>
         <div className="divide-y divide-border/40">
           {items.map((item, idx) => (
@@ -40,14 +43,14 @@ export function OrderDetails({ items }: { items: OrderItem[] }) {
                   </p>
                 </div>
               </div>
-              <span className="text-sm font-semibold text-foreground whitespace-nowrap">{item.subtotal.toLocaleString("en-US")} <span className="text-xs font-normal text-muted-foreground">د.ج</span></span>
+              <span className="text-sm font-semibold text-foreground whitespace-nowrap">{item.subtotal.toLocaleString("en-US")} <span className="text-xs font-normal text-muted-foreground">{cur}</span></span>
             </div>
           ))}
         </div>
         <div className="px-4 py-3.5 bg-gradient-to-r from-primary/[0.04] to-transparent border-t border-border/40">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-foreground">الإجمالي</span>
-            <span className="text-base font-bold text-primary">{subtotal.toLocaleString("en-US")} <span className="text-xs font-semibold">د.ج</span></span>
+            <span className="text-sm font-semibold text-foreground">{t("track.total")}</span>
+            <span className="text-base font-bold text-primary">{subtotal.toLocaleString("en-US")} <span className="text-xs font-semibold">{cur}</span></span>
           </div>
         </div>
       </div>

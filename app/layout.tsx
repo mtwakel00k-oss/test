@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { cookies, headers } from "next/headers"
+import Script from "next/script"
 import "./globals.css"
 import { CartProvider } from "@/context/CartContext"
 import { ThemeProvider } from "@/lib/theme"
@@ -43,7 +44,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html suppressHydrationWarning lang={lang} dir={dir} data-locale={lang} className={cn(htmlClass, "font-sans", geist.variable)}>
-      <head />
+      <head>
+        <Script src="https://t.contentsquare.net/uxa/05c7a34c9ff7b.js" strategy="afterInteractive" />
+      </head>
       <body className="antialiased bg-background text-foreground">
         <LangProvider lang={lang}>
           <ThemeProvider>
