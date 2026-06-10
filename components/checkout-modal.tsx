@@ -1,12 +1,13 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useMemo } from "react"
 import { MapPin, Lock, CheckCircle2, Loader2 } from "lucide-react"
 import { getPrice } from "@/lib/types"
 import type { CartItem, OrderType } from "@/lib/types"
 import { logger } from "@/lib/logger"
 import { useTranslation } from "@/lib/use-translation"
 import { fetchApi } from "@/lib/tenant"
+import { readTenantConfig } from "@/lib/use-slug"
 
 interface CheckoutModalProps {
   items: CartItem[]
@@ -50,6 +51,12 @@ export function CheckoutModal({
   initialCoords = null,
 }: CheckoutModalProps) {
   const { t, lang } = useTranslation()
+
+  const deliveryAllowed = useMemo(() => {
+    const config = readTenantConfig()
+    const plan = config?.plan_type ?? "starter"
+    return plan === "pro" || plan === "elite"
+  }, [])
 
   const [orderType, setOrderType] = useState<OrderType>(initialOrderType)
   const [form, setForm] = useState<FormData>({ name: "", table: "", phone: initialDeliveryPhone, deliveryAddress: "" })
@@ -102,10 +109,10 @@ export function CheckoutModal({
   }, [lang])
 
   useEffect(() => {
-    if (orderType === "delivery") {
+    if (orderType === "delivery" && deliveryAllowed) {
       getLocation()
     }
-  }, [orderType, getLocation])
+  }, [orderType, deliveryAllowed, getLocation])
 
   const validate = (): boolean => {
     const e: FormErrors = {}
@@ -232,10 +239,10 @@ export function CheckoutModal({
             }`}>
             {t("menu.takeaway")}
           </button>
-          <button type="button"
-            onClick={() => { setOrderType("delivery"); setErrors({}) }}
+          <button type="button" title={!deliveryAllowed ? "تتوفر ميزة التوصيل في الباقة الاحترافية (Pro) 👑" : undefined}
+            onClick={() => { if (deliveryAllowed) { setOrderType("delivery"); setErrors({}) } }}
             className={`flex-1 py-2 text-xs font-medium rounded-md transition-colors ${
-              orderType === "delivery" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              orderType === "delivery" ? "bg-primary text-primary-foreground shadow-sm" : !deliveryAllowed ? "text-muted-foreground/40 cursor-not-allowed" : "text-muted-foreground hover:text-foreground"
             }`}>
             🛵 {t("pos.delivery")}
           </button>
@@ -268,7 +275,13 @@ export function CheckoutModal({
             {errors.name && <p className="text-xs text-destructive mt-1">{errors.name}</p>}
           </div>
 
-          {orderType === "delivery" && (
+          {orderType === "delivery" && !deliveryAllowed && (
+            <div className="rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 text-center">
+              <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">التوصيل غير متاح في هذا المطعم حالياً</p>
+              <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">تتوفر ميزة التوصيل في الباقة الاحترافية (Pro) 👑</p>
+            </div>
+          )}
+          {orderType === "delivery" && deliveryAllowed && (
             <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
               <div className="flex items-center gap-2 text-sm font-semibold text-primary">
                 <MapPin className="w-4 h-4" />

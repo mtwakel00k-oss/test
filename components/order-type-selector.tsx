@@ -1,12 +1,12 @@
 "use client"
 
 import { MapPin, Lock, CheckCircle2, Loader2 } from "lucide-react"
-import { useCallback } from "react"
+import { useCallback, useMemo } from "react"
 import type { OrderType } from "@/lib/types"
 import { useTranslation } from "@/lib/use-translation"
+import { readTenantConfig } from "@/lib/use-slug"
 
 interface OrderTypeSelectorProps {
-  planType: string
   value: OrderType
   onChange: (type: OrderType) => void
   deliveryPhone?: string
@@ -16,7 +16,6 @@ interface OrderTypeSelectorProps {
 }
 
 export function OrderTypeSelector({
-  planType,
   value,
   onChange,
   deliveryPhone = "",
@@ -25,7 +24,12 @@ export function OrderTypeSelector({
   onGetLocation,
 }: OrderTypeSelectorProps) {
   const { t } = useTranslation()
-  const deliveryAllowed = planType === "pro" || planType === "elite"
+
+  const deliveryAllowed = useMemo(() => {
+    const config = readTenantConfig()
+    const plan = config?.plan_type ?? "starter"
+    return plan === "pro" || plan === "elite"
+  }, [])
 
   const handleChange = useCallback((type: OrderType) => {
     if (type === "delivery" && !deliveryAllowed) return

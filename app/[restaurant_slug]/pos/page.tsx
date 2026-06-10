@@ -112,6 +112,13 @@ function addCancelledId(id: string | number) {
   } catch {}
 }
 
+interface DeliveryMan {
+  id: string
+  name: string
+  whatsapp_number: string
+  is_busy: boolean
+}
+
 export default function POSPage() {
   const router = useRouter()
   const slug = useSlug()
@@ -139,12 +146,19 @@ export default function POSPage() {
   const [drivers, setDrivers] = useState<Driver[]>([])
   const [assigningDriver, setAssigningDriver] = useState(false)
   const [pendingDriverId, setPendingDriverId] = useState<string | null>(null)
+  const [deliveryMen, setDeliveryMen] = useState<DeliveryMan[]>([])
+  const [assigningDeliveryMan, setAssigningDeliveryMan] = useState(false)
+  const [pendingDeliveryManId, setPendingDeliveryManId] = useState<string | null>(null)
   const [cashier, setCashier] = useState<{ email: string; role: string; name?: string } | null>(null)
 
   useEffect(() => {
     fetchApi("/api/tenant/drivers")
       .then(r => r.ok ? r.json() : [])
       .then(data => setDrivers(Array.isArray(data) ? data : []))
+      .catch(() => {})
+    fetchApi("/api/delivery-men")
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setDeliveryMen(Array.isArray(data) ? data : []))
       .catch(() => {})
   }, [])
 
@@ -359,6 +373,38 @@ export default function POSPage() {
     }
     setAssigningDriver(false)
   }, [])
+
+  const assignDeliveryMan = useCallback(async (orderId: string | number, deliveryManId: string | null) => {
+    if (!deliveryManId) return
+    setAssigningDeliveryMan(true)
+    const res = await fetchApi("/api/admin/assign-delivery", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ order_id: String(orderId), delivery_man_id: deliveryManId }),
+    })
+    if (res.ok) {
+      setOrders(prev => prev.map(o => o.id === orderId ? {
+        ...o,
+        driverId: deliveryManId,
+        driverName: deliveryMen.find(d => d.id === deliveryManId)?.name ?? null,
+        driverPhone: deliveryMen.find(d => d.id === deliveryManId)?.whatsapp_number ?? null,
+        status: "out_for_delivery" as PosOrderStatus,
+      } : o))
+      setSelectedOrder(prev => prev?.id === orderId ? {
+        ...prev,
+        driverId: deliveryManId,
+        driverName: deliveryMen.find(d => d.id === deliveryManId)?.name ?? null,
+        driverPhone: deliveryMen.find(d => d.id === deliveryManId)?.whatsapp_number ?? null,
+        status: "out_for_delivery" as PosOrderStatus,
+      } : prev)
+      setDeliveryMen(prev => prev.map(d => d.id === deliveryManId ? { ...d, is_busy: true } : d))
+    } else {
+      const err = await res.json().catch(() => ({ error: "Unknown error" }))
+      toast({ title: err.error || "فشل تعيين السائق", variant: "destructive" })
+    }
+    setAssigningDeliveryMan(false)
+    setPendingDeliveryManId(null)
+  }, [deliveryMen])
 
   const handleCreateOrder = useCallback(async () => {
     if (!newName || newOrderItems.length === 0) return
@@ -746,6 +792,36 @@ export default function POSPage() {
                           )}
                         </div>
                       )}
+                    </div>
+                  )}
+                  {selectedOrder.status === "ready" && selectedOrder.orderType === "delivery" && !selectedOrder.driverId && (
+                    <div className="border-t border-border/50 pt-3 space-y-2">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">نظام السائقين الجديد</p>
+                      <div className="space-y-2">
+                        <select value={pendingDeliveryManId ?? ""} onChange={e => setPendingDeliveryManId(e.target.value || null)}
+                          disabled={assigningDeliveryMan || deliveryMen.length === 0}
+                          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed">
+                          <option value="">{deliveryMen.length === 0 ? "لا يوجد سائقون — أضف من الإعدادات" : "اختر سائقاً..."}</option>
+                          {deliveryMen.map(dm => (
+                            <option key={dm.id} value={dm.id} disabled={dm.is_busy}>
+                              {dm.name} {dm.is_busy ? "🔴 مشغول" : "🟢 متاح"} — {dm.whatsapp_number}
+                            </option>
+                          ))}
+                        </select>
+                        {pendingDeliveryManId && (
+                          <div className="flex gap-2">
+                            <button onClick={async () => { await assignDeliveryMan(selectedOrder.id, pendingDeliveryManId) }}
+                              disabled={assigningDeliveryMan}
+                              className="flex-1 rounded-lg bg-primary text-primary-foreground py-2.5 text-sm font-semibold hover:brightness-110 transition-all disabled:opacity-50">
+                              {assigningDeliveryMan ? "جاري التعيين..." : "تعيين السائق"}
+                            </button>
+                            <button onClick={() => setPendingDeliveryManId(null)}
+                              className="rounded-lg border border-border px-4 py-2.5 text-sm text-muted-foreground hover:bg-secondary transition-colors">
+                              إلغاء
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                   {selectedOrder.status !== "completed" && selectedOrder.status !== "cancelled" && (

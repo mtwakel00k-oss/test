@@ -5,7 +5,7 @@ import { use } from "react"
 import Link from "next/link"
 import dynamic from "next/dynamic"
 import { supabase } from "@/lib/tenant"
-import { useSlug } from "@/lib/use-slug"
+import { useSlug, readTenantConfig } from "@/lib/use-slug"
 import { useTranslation } from "@/lib/use-translation"
 import { logger } from "@/lib/logger"
 import type { Order, OrderItem } from "@/lib/types"
@@ -62,6 +62,12 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
   const [driverLat, setDriverLat] = useState<number | null>(null)
   const [driverLng, setDriverLng] = useState<number | null>(null)
   const [deliveryCoords, setDeliveryCoords] = useState<{ lat: number; lng: number } | null>(null)
+  const [planType, setPlanType] = useState<string>("starter")
+
+  useEffect(() => {
+    const config = readTenantConfig()
+    if (config?.plan_type) setPlanType(config.plan_type)
+  }, [])
 
   /**
    * Fetch order with detailed error logging.
@@ -262,14 +268,21 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
               )}
             </div>
             {driverLat != null && driverLng != null && deliveryCoords && (
-              <div className="w-full border-t border-violet-500/10" style={{ height: "260px" }}>
-                <DriverMap
-                  driverLat={driverLat}
-                  driverLng={driverLng}
-                  customerLat={deliveryCoords.lat}
-                  customerLng={deliveryCoords.lng}
-                />
-              </div>
+              planType === "starter" ? (
+                <div className="w-full border-t border-violet-500/10 px-5 py-4 text-center">
+                  <p className="text-sm text-violet-300/70">📍 Driver location available</p>
+                  <p className="text-xs text-zinc-500 mt-1">Upgrade to Pro for live tracking map</p>
+                </div>
+              ) : (
+                <div className="w-full border-t border-violet-500/10" style={{ height: "260px" }}>
+                  <DriverMap
+                    driverLat={driverLat}
+                    driverLng={driverLng}
+                    customerLat={deliveryCoords.lat}
+                    customerLng={deliveryCoords.lng}
+                  />
+                </div>
+              )
             )}
           </div>
         )}
