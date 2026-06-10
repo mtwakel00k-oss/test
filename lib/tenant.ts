@@ -69,7 +69,17 @@ export async function getTenantConfig(slug: string): Promise<TenantConfig | null
 export const getTenantConfigRSC = cache(getTenantConfig)
 
 export function createTenantClient(config: TenantConfig): SupabaseClient {
-  return createClient(config.supabase_url, config.supabase_anon_key)
+  return tryCreateClient(config.supabase_url, config.supabase_anon_key, config.slug)
+}
+
+function tryCreateClient(url: string, key: string, slug?: string): SupabaseClient {
+  try {
+    return createClient(url, key)
+  } catch (e) {
+    console.error("❌ CRITICAL: Tenant has an invalid or expired Supabase API Key in the database!", { slug, url })
+    logger.error("Failed to create tenant client, falling back to master client", { slug, error: e })
+    return createClient(MASTER_URL, MASTER_KEY || FALLBACK_KEY!)
+  }
 }
 
 export async function supabaseForSlug(slug: string): Promise<SupabaseClient> {
@@ -107,7 +117,7 @@ export async function supabaseForRequest(req: Request): Promise<SupabaseClient> 
   if (slug) {
     const config = await getTenantConfig(slug)
     if (config) {
-      return createTenantClient(config)
+      return tryCreateClient(config.supabase_url, config.supabase_anon_key, config.slug)
     }
   }
 
@@ -122,7 +132,7 @@ export async function supabaseForRequestAdmin(req: Request): Promise<SupabaseCli
   if (slug) {
     const config = await getTenantConfig(slug)
     if (config) {
-      return createClient(config.supabase_url, MASTER_KEY || config.supabase_anon_key)
+      return tryCreateClient(config.supabase_url, MASTER_KEY || config.supabase_anon_key, config.slug)
     }
   }
 
@@ -148,9 +158,16 @@ export function browserSupabase(): SupabaseClient {
   const injected = readTenantConfigFromDOM()
   if (injected?.url && injected?.key && !injected.key.startsWith("sb_secret_")) {
     const cacheKey = `${injected.url}:${injected.key}`
-    if (!_browserTenantClient || _browserTenantKey !== cacheKey) {
+    if (_browserTenantClient && _browserTenantKey === cacheKey) {
+      return _browserTenantClient
+    }
+    try {
       _browserTenantClient = createBrowserClient(injected.url, injected.key)
       _browserTenantKey = cacheKey
+    } catch (e) {
+      console.error("❌ CRITICAL: Tenant has an invalid or expired Supabase API Key in the database!", { slug: injected.slug })
+      logger.error("browserSupabase: failed to create tenant client, falling back to master", e)
+      return createBrowserClient(MASTER_URL, FALLBACK_KEY!)
     }
     return _browserTenantClient
   }
