@@ -58,6 +58,10 @@ export async function getTenantConfig(slug: string): Promise<TenantConfig | null
     return null
   }
 
+  if (typeof data.plan_type === "string") {
+    data.plan_type = data.plan_type.toLowerCase()
+  }
+
   configCache.set(slug, { data, expiry: Date.now() + CACHE_TTL })
   return data
 }

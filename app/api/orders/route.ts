@@ -152,7 +152,7 @@ export async function POST(req: NextRequest) {
       customer_name,
       total,
       status: "pending",
-      order_type,
+      order_type: order_type.toLowerCase(),
       payment_status: "unpaid",
     }
     if (order_type === "dine_in") payload.table_number = table_number
@@ -184,10 +184,8 @@ export async function POST(req: NextRequest) {
           const found = OPTIONAL_COLS.find((c) => row[c] !== undefined && msg.includes(c))
           if (found) { delete row[found]; continue }
         }
-        // Check constraint violation → try fallback statuses or order_type
+        // Check constraint violation → try fallback order_type first, then status
         if (msg.includes("23514") || msg.includes("check constraint")) {
-          const nextStatus = STATUS_FALLBACKS.shift()
-          if (nextStatus) { row.status = nextStatus; continue }
           if (typeof row.order_type === "string") {
             const fallbackOrderType = ORDER_TYPE_FALLBACKS[row.order_type]
             if (fallbackOrderType) {
@@ -199,6 +197,8 @@ export async function POST(req: NextRequest) {
               continue
             }
           }
+          const nextStatus = STATUS_FALLBACKS.shift()
+          if (nextStatus) { row.status = nextStatus; continue }
         }
         // Unknown error → throw with classified code
         throw new Error(classifyPgError(msg) || JSON.stringify(error))
