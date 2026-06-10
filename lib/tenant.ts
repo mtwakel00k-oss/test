@@ -228,7 +228,7 @@ export function fetchApi(path: string, init?: RequestInit): Promise<Response> {
 
 export function isTenantMismatch(e: unknown): NextResponse | null {
   if (e instanceof TenantMismatchError) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    return NextResponse.json({ error: "Tenant mismatch — please log out and log in again" }, { status: 403 })
   }
   return null
 }

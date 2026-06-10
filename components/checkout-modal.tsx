@@ -1,13 +1,14 @@
 "use client"
 
 import { useState, useCallback, useEffect, useMemo } from "react"
-import { MapPin, Lock, CheckCircle2, Loader2 } from "lucide-react"
+import { MapPin, Loader2 } from "lucide-react"
 import { getPrice } from "@/lib/types"
 import type { CartItem, OrderType } from "@/lib/types"
 import { logger } from "@/lib/logger"
 import { useTranslation } from "@/lib/use-translation"
 import { fetchApi } from "@/lib/tenant"
 import { readTenantConfig } from "@/lib/use-slug"
+import { phoneRegex } from "@/lib/validations"
 
 interface CheckoutModalProps {
   items: CartItem[]
@@ -38,6 +39,10 @@ interface FormErrors {
 }
 
 const GEOCODE_URL = "https://nominatim.openstreetmap.org/reverse"
+
+function maskPhone(value: string): string {
+  return value.replace(/\D/g, "").slice(0, 10)
+}
 
 export function CheckoutModal({
   items,
@@ -122,7 +127,11 @@ export function CheckoutModal({
       if (!form.table || isNaN(tn) || tn < 1) e.table = t("menu.enterTable")
     }
     if (orderType === "delivery") {
-      // phone is optional for delivery
+      if (!form.phone.trim()) {
+        e.phone = "رقم الهاتف مطلوب للتوصيل"
+      } else if (!phoneRegex.test(form.phone.trim())) {
+        e.phone = "رقم الهاتف غير صحيح — يجب أن يبدأ بـ 05 أو 06 أو 07 ويتكون من 10 أرقام"
+      }
     }
     setErrors(e)
     return Object.keys(e).length === 0
@@ -170,6 +179,9 @@ export function CheckoutModal({
           })
           const data = await res.json().catch(() => ({}))
           if (!res.ok) {
+            if (res.status === 403) {
+              throw new Error(t("menu.forbiddenError") || "عذراً، حدث خطأ في التحقق من الصلاحية. يرجى المحاولة مرة أخرى.")
+            }
             throw new Error(data.error === "Table is occupied" ? t("pos.tableOccupied") : (data.error || t("menu.orderFailed")))
           }
           onClear()
@@ -189,7 +201,8 @@ export function CheckoutModal({
       throw lastErr
     } catch (e) {
       const msg = e instanceof Error ? e.message : t("menu.somethingWrong")
-      setErrors({ general: msg })
+      const isForbidden = msg === "Forbidden" || msg.includes("صلاحية") || msg.includes("permission")
+      setErrors({ general: isForbidden ? "عذراً، حدث خطأ في التحقق من الصلاحية. يرجى تحديث الصفحة والمحاولة مرة أخرى." : msg })
       logger.error("Checkout failed: " + msg)
     } finally {
       setSubmitting(false)
@@ -287,8 +300,8 @@ export function CheckoutModal({
                 <MapPin className="w-4 h-4" />
                 <span>معلومات التوصيل</span>
               </div>
-              <input type="tel" value={form.phone}
-                onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+              <input type="tel" value={form.phone} maxLength={10}
+                onChange={e => setForm(f => ({ ...f, phone: maskPhone(e.target.value) }))}
                 onKeyDown={e => e.key === "Enter" && !submitting && handleSubmit()}
                 className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
                 placeholder="رقم الهاتف (مثال: 0555123456)" disabled={submitting} />
@@ -345,8 +358,8 @@ export function CheckoutModal({
 
           {orderType === "takeaway" && (
             <div>
-              <input type="tel" value={form.phone}
-                onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+              <input type="tel" value={form.phone} maxLength={10}
+                onChange={e => setForm(f => ({ ...f, phone: maskPhone(e.target.value) }))}
                 onKeyDown={e => e.key === "Enter" && !submitting && handleSubmit()}
                 className="w-full rounded-lg border border-border bg-secondary px-3 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
                 placeholder="رقم الهاتف (اختياري)" disabled={submitting} />

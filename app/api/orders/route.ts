@@ -5,6 +5,7 @@ import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit
 import { logger } from "@/lib/logger"
 import type { OrderType } from "@/lib/types"
 import { DB_STATUS_TO_POS } from "@/lib/constants"
+import { phoneRegex } from "@/lib/validations"
 
 const ORDER_COLS = [
   "id", "customer_name", "total", "status", "order_type",
@@ -127,8 +128,13 @@ export async function POST(req: NextRequest) {
     if (order_type === "dine_in" && (!table_number || table_number < 1)) {
       return NextResponse.json({ error: "Missing table_number for dine-in" }, { status: 400 })
     }
-    if (order_type === "delivery" && !customer_phone) {
-      return NextResponse.json({ error: "customer_phone required for delivery" }, { status: 400 })
+    if (order_type === "delivery") {
+      if (!customer_phone) {
+        return NextResponse.json({ error: "customer_phone required for delivery" }, { status: 400 })
+      }
+      if (!phoneRegex.test(customer_phone)) {
+        return NextResponse.json({ error: "رقم الهاتف غير صحيح — يجب أن يبدأ بـ 05 أو 06 أو 07 ويتكون من 10 أرقام" }, { status: 400 })
+      }
     }
 
     const rl = checkRateLimit(`orders:${getClientIp(req)}`, { max: 20, windowMs: 60_000 })
