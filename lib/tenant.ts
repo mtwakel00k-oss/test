@@ -110,6 +110,21 @@ export async function supabaseForRequest(req: Request): Promise<SupabaseClient> 
   return createClient(MASTER_URL, MASTER_KEY || FALLBACK_KEY!)
 }
 
+export async function supabaseForRequestAdmin(req: Request): Promise<SupabaseClient> {
+  const session = parseSession(req.headers.get("cookie") || "")
+  const requestSlug = getSlugFromHeaderOrReferer(req)
+  const slug = session.slug || requestSlug
+
+  if (slug) {
+    const config = await getTenantConfig(slug)
+    if (config) {
+      return createClient(config.supabase_url, MASTER_KEY || config.supabase_anon_key)
+    }
+  }
+
+  return createClient(MASTER_URL, MASTER_KEY || FALLBACK_KEY!)
+}
+
 let _browserMasterClient: SupabaseClient | null = null
 let _browserTenantClient: SupabaseClient | null = null
 let _browserTenantKey = ""

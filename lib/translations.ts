@@ -317,6 +317,7 @@ export const T: Dict = {
   "menu.orderNumber": { ar: "رقم الطلب:", en: "Order number:", fr: "Numéro de commande :" },
   "menu.willPrepare": { ar: "سيتم تحضير طلبك فوراً", en: "Your order will be prepared right away", fr: "Votre commande sera préparée immédiatement" },
   "menu.trackOrder": { ar: "تتبع الطلب", en: "Track Order", fr: "Suivre la commande" },
+  "menu.forbiddenError": { ar: "عذراً، حدث خطأ في التحقق من الصلاحية. يرجى تحديث الصفحة والمحاولة مرة أخرى.", en: "Sorry, a permission error occurred. Please refresh and try again.", fr: "Désolé, une erreur de permission s'est produite. Veuillez actualiser et réessayer." },
   "menu.confirmOrder": { ar: "تأكيد الطلب", en: "Confirm Order", fr: "Confirmer la commande" },
   "menu.tableDineIn": { ar: "طاولة (Dine-in)", en: "Table (Dine-in)", fr: "Table (Sur place)" },
   "menu.takeaway": { ar: "أخذ للخارج (Takeaway)", en: "Takeaway", fr: "À emporter" },
