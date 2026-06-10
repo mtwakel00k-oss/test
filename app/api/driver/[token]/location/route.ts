@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { createTenantSupabaseClient } from "@/lib/tenant"
 
 export async function PATCH(req: NextRequest) {
   try {
@@ -28,7 +29,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Invalid driver token" }, { status: 401 })
     }
 
-    const tenantClient = createClient(tenant.supabase_url, tenant.supabase_anon_key)
+    const tenantClient = createTenantSupabaseClient(tenant.supabase_url, tenant.supabase_anon_key)
 
     const { data: order } = await tenantClient
       .from("orders")

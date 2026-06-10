@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { createTenantSupabaseClient } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 
 const masterClient = createClient(
@@ -47,7 +48,7 @@ export async function GET(
   }
 
   const { driver, tenant } = result
-  const tenantClient = createClient(tenant.supabase_url, tenant.supabase_anon_key)
+  const tenantClient = createTenantSupabaseClient(tenant.supabase_url, tenant.supabase_anon_key)
   const { data: orders, error: ordersErr } = await tenantClient
     .from("orders")
     .select("id, order_number, customer_name, customer_phone, delivery_address, delivery_lat, delivery_lng, status, total, created_at")
@@ -92,7 +93,7 @@ export async function PATCH(
   const { order_id } = body as { order_id?: string }
   if (!order_id) return NextResponse.json({ error: "order_id required" }, { status: 400 })
 
-  const tenantClient = createClient(tenant.supabase_url, tenant.supabase_anon_key)
+  const tenantClient = createTenantSupabaseClient(tenant.supabase_url, tenant.supabase_anon_key)
 
   const { data: order, error: fetchErr } = await tenantClient
     .from("orders")

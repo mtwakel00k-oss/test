@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
-import { parseSession, getTenantConfig } from "@/lib/tenant"
+import { parseSession, getTenantConfig, createTenantSupabaseClient } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 
 export async function POST(req: NextRequest) {
@@ -27,7 +26,7 @@ export async function POST(req: NextRequest) {
     const ext = file.name.split(".").pop()?.toLowerCase() || "png"
     const fileName = `${tenantSlug}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
 
-    const supabase = createClient(tenantConfig.supabase_url, tenantConfig.supabase_anon_key)
+    const supabase = createTenantSupabaseClient(tenantConfig.supabase_url, tenantConfig.supabase_anon_key)
 
     const buffer = Buffer.from(await file.arrayBuffer())
     const { error: uploadErr } = await supabase.storage

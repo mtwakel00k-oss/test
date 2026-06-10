@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
-import { getTenantConfig, type TenantConfig } from "@/lib/tenant"
+import { getTenantConfig, createTenantSupabaseClient, type TenantConfig } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 
 const MASTER_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -50,7 +50,7 @@ export async function findOrderAcrossTenants(orderId: string): Promise<{
       const config = await getTenantConfig(slug)
       if (!config) continue
 
-      const tenantClient = createClient(config.supabase_url, config.supabase_anon_key)
+      const tenantClient = createTenantSupabaseClient(config.supabase_url, config.supabase_anon_key)
       const { data: order, error: queryError } = await tenantClient
         .from("orders")
         .select("*, items:order_items(*)")

@@ -56,6 +56,27 @@ function getSafeServiceKey(config: TenantConfig): string {
   return MASTER_KEY || config.supabase_anon_key
 }
 
+/**
+ * Create a Supabase client for a tenant, using the env-var anon key
+ * when the tenant shares the master project (never trusts DB-stored keys
+ * for shared-project tenants). External tenants fall back to DB key but
+ * strip sb_secret_ prefixes.
+ */
+export function createTenantSupabaseClient(supabaseUrl: string, dbAnonKey: string): SupabaseClient {
+  const key = isSharedProjectTenant(supabaseUrl)
+    ? FALLBACK_KEY!
+    : dbAnonKey.startsWith("sb_secret_")
+      ? FALLBACK_KEY!
+      : dbAnonKey
+  try {
+    return createClient(supabaseUrl, key)
+  } catch (e) {
+    console.error("❌ CRITICAL: Tenant has an invalid or expired Supabase API Key in the database!", { url: supabaseUrl })
+    logger.error("createTenantSupabaseClient: failed, falling back to master client", e)
+    return createClient(MASTER_URL, MASTER_KEY || FALLBACK_KEY!)
+  }
+}
+
 const _masterClient: SupabaseClient = createClient(
   MASTER_URL,
   MASTER_KEY || FALLBACK_KEY!
