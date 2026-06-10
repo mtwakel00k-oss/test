@@ -15,10 +15,10 @@ function useCountUp(target: number, decimals = 0, run = false) {
     if (!run) return
     let raf = 0
     const start = performance.now()
-    const duration = 1800
+    const duration = 2000
     const tick = (now: number) => {
       const p = Math.min((now - start) / duration, 1)
-      const eased = 1 - Math.pow(1 - p, 3)
+      const eased = 1 - Math.pow(1 - p, 4)
       setVal(target * eased)
       if (p < 1) raf = requestAnimationFrame(tick)
     }
@@ -32,12 +32,14 @@ function StatItem({ stat, run }: { stat: (typeof stats)[number]; run: boolean })
   const display = useCountUp(stat.value, stat.decimals ?? 0, run)
   return (
     <div className="px-4 text-center">
-      <p className="text-4xl font-extrabold text-primary sm:text-5xl">
-        {stat.prefix}
-        {display}
-        {stat.suffix}
+      <p className="text-5xl font-black tracking-tight text-foreground sm:text-6xl">
+        <span className="bg-gradient-to-b from-foreground to-foreground/60 bg-clip-text text-transparent">
+          {stat.prefix}
+          {display}
+          {stat.suffix}
+        </span>
       </p>
-      <p className="mt-2 font-medium text-muted-foreground">{stat.label}</p>
+      <p className="mt-3 font-medium text-muted-foreground">{stat.label}</p>
     </div>
   )
 }
@@ -63,10 +65,11 @@ export function Stats() {
   }, [])
 
   return (
-    <section className="bg-primary-bg py-16">
+    <section className="relative py-20">
+      <div className="absolute inset-0 bg-[radial-gradient(oklch(0.52_0.18_145/0.04)_1px,transparent_1px)] bg-[length:24px_24px]" />
       <div
         ref={ref}
-        className="mx-auto grid max-w-5xl grid-cols-2 gap-y-10 px-5 md:grid-cols-4 md:gap-y-0 md:divide-x md:divide-x-reverse md:divide-primary/15"
+        className="relative mx-auto grid max-w-5xl grid-cols-2 gap-y-12 px-5 md:grid-cols-4 md:gap-y-0 md:divide-x md:divide-x-reverse md:divide-border"
       >
         {stats.map((s) => (
           <StatItem key={s.label} stat={s} run={run} />

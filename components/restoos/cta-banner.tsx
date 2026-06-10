@@ -2,9 +2,6 @@
 
 import { motion } from 'framer-motion'
 import { useState } from 'react'
-import { AnimatedShinyText } from '@/components/ui/animated-shiny-text'
-
-const particles = Array.from({ length: 14 })
 
 export function CtaBanner() {
   const [name, setName] = useState('')
@@ -31,20 +28,21 @@ export function CtaBanner() {
   }
 
   return (
-    <section id="cta" className="px-5 py-24">
-      <div className="relative mx-auto max-w-5xl overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-primary-light px-6 py-16 text-center shadow-2xl shadow-primary/30">
+    <section id="cta" className="px-5 py-28">
+      <div className="relative mx-auto max-w-5xl overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 px-8 py-20 text-center shadow-2xl shadow-primary/30">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(oklch(1_0_0/0.1)_1px,transparent_1px)] bg-[length:32px_32px]" />
         <div className="pointer-events-none absolute inset-0">
-          {particles.map((_, i) => (
+          {Array.from({ length: 20 }).map((_, i) => (
             <motion.span
               key={i}
-              className="absolute bottom-0 size-2 rounded-full bg-white/40"
-              style={{ left: `${(i * 7 + 5) % 100}%` }}
+              className="absolute bottom-0 size-2.5 rounded-full bg-white/30"
+              style={{ left: `${(i * 5 + 3) % 100}%` }}
               initial={{ y: 0, opacity: 0 }}
-              animate={{ y: '-220%', opacity: [0, 0.7, 0] }}
+              animate={{ y: '-250%', opacity: [0, 0.6, 0] }}
               transition={{
-                duration: 5 + (i % 5),
+                duration: 4 + (i % 4),
                 repeat: Infinity,
-                delay: i * 0.4,
+                delay: i * 0.35,
                 ease: 'easeInOut',
               }}
             />
@@ -57,18 +55,16 @@ export function CtaBanner() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-balance text-3xl font-extrabold leading-tight text-white sm:text-4xl"
+            className="text-balance text-4xl font-extrabold leading-tight text-white sm:text-5xl"
           >
-            <AnimatedShinyText shimmerWidth={120} className="text-white dark:text-white">
-              جاهز لتحويل مطعمك رقمياً؟
-            </AnimatedShinyText>
+            جاهز لتحويل مطعمك رقمياً؟
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-white/85"
+            className="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-white/80"
           >
             اترك رقمك وسنعاود الاتصال بك في أقرب وقت
           </motion.p>
@@ -77,7 +73,7 @@ export function CtaBanner() {
             <motion.p
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="mt-8 text-xl font-bold text-white"
+              className="mt-10 text-xl font-bold text-white"
             >
               تم الاستلام! سنتواصل معك قريباً ✅
             </motion.p>
@@ -88,14 +84,14 @@ export function CtaBanner() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="mx-auto mt-8 flex max-w-md flex-col gap-3 sm:flex-row"
+              className="mx-auto mt-10 flex max-w-lg flex-col gap-4 sm:flex-row"
             >
               <input
                 type="text"
                 placeholder="الاسم (اختياري)"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="flex-1 rounded-full bg-white/20 px-5 py-3 text-sm text-white placeholder:text-white/60 backdrop-blur outline-none ring-1 ring-white/30 focus:ring-white/60"
+                className="flex-1 rounded-2xl bg-white/15 px-6 py-4 text-sm text-white placeholder:text-white/50 backdrop-blur outline-none ring-1 ring-white/20 transition-all focus:ring-white/50 focus:bg-white/20"
               />
               <input
                 type="tel"
@@ -103,12 +99,12 @@ export function CtaBanner() {
                 placeholder="رقم الهاتف *"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="flex-1 rounded-full bg-white/20 px-5 py-3 text-sm text-white placeholder:text-white/60 backdrop-blur outline-none ring-1 ring-white/30 focus:ring-white/60"
+                className="flex-1 rounded-2xl bg-white/15 px-6 py-4 text-sm text-white placeholder:text-white/50 backdrop-blur outline-none ring-1 ring-white/20 transition-all focus:ring-white/50 focus:bg-white/20"
               />
               <button
                 type="submit"
                 disabled={status === 'sending'}
-                className="shrink-0 rounded-full bg-white px-8 py-3 text-base font-bold text-primary shadow-lg transition-transform hover:-translate-y-0.5 disabled:opacity-70"
+                className="shrink-0 rounded-2xl bg-white px-8 py-4 text-base font-bold text-primary shadow-xl transition-all hover:-translate-y-0.5 hover:shadow-2xl disabled:opacity-70"
               >
                 {status === 'sending' ? '...' : 'تواصل معنا'}
               </button>
@@ -116,7 +112,7 @@ export function CtaBanner() {
           )}
 
           {status === 'error' && (
-            <p className="mt-3 text-sm text-red-200">فشل الإرسال، حاول مرة أخرى</p>
+            <p className="mt-4 text-sm text-red-200">فشل الإرسال، حاول مرة أخرى</p>
           )}
         </div>
       </div>

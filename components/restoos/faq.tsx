@@ -2,7 +2,6 @@
 
 import { AnimatePresence, motion } from 'framer-motion'
 import { useState } from 'react'
-import { Reveal } from './reveal'
 import { Badge } from '@/components/ui/badge'
 
 const faqs = [
@@ -17,52 +16,56 @@ export function Faq() {
   const [open, setOpen] = useState<number | null>(0)
 
   return (
-    <section id="faq" className="bg-muted/40 py-24">
-      <div className="mx-auto max-w-3xl px-5">
-        <Reveal className="mb-12 text-center">
-          <Badge variant="outline" className="mb-4 px-4 py-1.5 text-sm font-medium">
-            الأسئلة الشائعة
+    <section id="faq" className="relative py-28">
+      <div className="absolute inset-0 bg-muted/30" />
+      <div className="relative mx-auto max-w-3xl px-5">
+        <div className="mb-12 text-center">
+          <Badge variant="outline" className="mb-5 px-5 py-2 text-sm font-medium rounded-xl border-primary/20 bg-primary/5 text-primary">
+            الأسئلة
           </Badge>
-          <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+          <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl md:text-5xl">
             الأسئلة الشائعة
           </h2>
-        </Reveal>
+        </div>
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
           {faqs.map((f, i) => {
             const isOpen = open === i
             return (
-              <Reveal key={f.q} delay={i * 0.06}>
-                <div className="overflow-hidden rounded-2xl border border-border bg-card">
-                  <button
-                    type="button"
-                    onClick={() => setOpen(isOpen ? null : i)}
-                    className="flex w-full items-center justify-between gap-4 px-6 py-5 text-right"
-                    aria-expanded={isOpen}
+              <div
+                key={f.q}
+                className={`overflow-hidden rounded-2xl border transition-all duration-300 ${
+                  isOpen ? 'border-primary/20 bg-card shadow-md' : 'border-border/50 bg-card/50 hover:border-border'
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => setOpen(isOpen ? null : i)}
+                  className="flex w-full items-center justify-between gap-4 px-6 py-5 text-right"
+                  aria-expanded={isOpen}
+                >
+                  <span className="font-bold text-foreground">{f.q}</span>
+                  <motion.span
+                    animate={{ rotate: isOpen ? 45 : 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="grid size-8 shrink-0 place-items-center rounded-xl bg-primary/10 text-lg font-bold text-primary"
                   >
-                    <span className="font-bold text-foreground">{f.q}</span>
-                    <motion.span
-                      animate={{ rotate: isOpen ? 45 : 0 }}
-                      transition={{ duration: 0.25 }}
-                      className="grid size-7 shrink-0 place-items-center rounded-full bg-primary-bg text-lg font-bold text-primary"
+                    +
+                  </motion.span>
+                </button>
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                     >
-                      +
-                    </motion.span>
-                  </button>
-                  <AnimatePresence initial={false}>
-                    {isOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                      >
-                        <p className="px-6 pb-5 leading-relaxed text-muted-foreground">{f.a}</p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </Reveal>
+                      <p className="px-6 pb-6 leading-relaxed text-muted-foreground">{f.a}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             )
           })}
         </div>

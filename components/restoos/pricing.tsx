@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Reveal } from './reveal'
+import { Badge } from '@/components/ui/badge'
 
 type Plan = {
   name: string
@@ -66,7 +66,7 @@ function Check({ on }: { on: boolean }) {
       <path d="M20 6 9 17l-5-5" />
     </svg>
   ) : (
-    <svg className="size-5 shrink-0 text-muted-foreground/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
+    <svg className="size-5 shrink-0 text-muted-foreground/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
       <path d="M18 6 6 18M6 6l12 12" />
     </svg>
   )
@@ -74,18 +74,22 @@ function Check({ on }: { on: boolean }) {
 
 export function Pricing() {
   return (
-    <section id="pricing" className="bg-muted/40 py-24">
-      <div className="mx-auto max-w-6xl px-5">
-        <Reveal className="mx-auto mb-14 max-w-2xl text-center">
-          <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+    <section id="pricing" className="relative py-28">
+      <div className="absolute inset-0 bg-muted/30" />
+      <div className="relative mx-auto max-w-6xl px-5">
+        <div className="mx-auto mb-16 max-w-2xl text-center">
+          <Badge variant="outline" className="mb-5 px-5 py-2 text-sm font-medium rounded-xl border-primary/20 bg-primary/5 text-primary">
+            التسعير
+          </Badge>
+          <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl md:text-5xl">
             اختر الخطة المناسبة لمطعمك
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
             ابدأ مجاناً وارتقِ بخطتك عندما ينمو مطعمك.
           </p>
-        </Reveal>
+        </div>
 
-        <div className="grid items-stretch gap-6 md:grid-cols-3">
+        <div className="grid items-stretch gap-8 md:grid-cols-3">
           {plans.map((p, i) => (
             <motion.div
               key={p.name}
@@ -93,34 +97,38 @@ export function Pricing() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-60px' }}
               transition={{ duration: 0.6, delay: i * 0.12 }}
-              className={`relative flex flex-col rounded-2xl border p-7 ${
+              className={`relative flex flex-col rounded-3xl border p-8 transition-all duration-300 ${
                 p.highlight
-                  ? 'animate-pulse-glow z-10 border-primary bg-card md:scale-105'
+                  ? 'border-primary/30 bg-card shadow-2xl shadow-primary/10 md:scale-105'
                   : p.dark
-                    ? 'border-transparent bg-[#15151f] text-white'
-                    : 'border-border bg-card'
+                    ? 'border-border/50 bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white shadow-xl'
+                    : 'border-border/50 bg-card shadow-sm hover:shadow-lg'
               }`}
             >
               {p.highlight && (
-                <span className="absolute -top-3 right-7 rounded-full bg-primary px-4 py-1 text-xs font-bold text-primary-foreground shadow-lg shadow-primary/30">
+                <span className="absolute -top-3.5 right-8 rounded-full bg-gradient-to-r from-primary to-primary/80 px-5 py-1.5 text-xs font-bold text-primary-foreground shadow-lg shadow-primary/30">
                   الأكثر طلباً
                 </span>
               )}
-              <p className={`text-sm font-medium ${p.dark ? 'text-white/60' : 'text-muted-foreground'}`}>
-                {p.tag}
-              </p>
-              <h3 className={`mt-1 text-2xl font-extrabold ${p.dark ? 'text-white' : 'text-foreground'}`}>
-                {p.name}
-              </h3>
-              <p className={`mt-4 text-2xl font-bold ${p.highlight ? 'text-primary' : p.dark ? 'text-white' : 'text-foreground'}`}>
+
+              <div className="mb-2 flex items-center justify-between">
+                <p className={`text-sm font-medium ${p.dark ? 'text-white/60' : 'text-muted-foreground'}`}>
+                  {p.tag}
+                </p>
+                <span className={`text-2xl font-black ${p.dark ? 'text-white' : 'text-foreground'}`}>
+                  {p.name}
+                </span>
+              </div>
+
+              <p className={`mt-4 text-3xl font-black ${p.highlight ? 'text-primary' : p.dark ? 'text-white' : 'text-foreground'}`}>
                 {p.price}
               </p>
 
-              <ul className="mt-6 flex flex-1 flex-col gap-3">
+              <ul className="mt-8 flex flex-1 flex-col gap-3.5">
                 {p.features.map((f) => (
-                  <li key={f.label} className="flex items-center gap-2.5">
+                  <li key={f.label} className="flex items-center gap-3">
                     <Check on={f.on} />
-                    <span className={`text-sm ${!f.on ? 'text-muted-foreground/50' : p.dark ? 'text-white/85' : 'text-foreground'}`}>
+                    <span className={`text-sm ${!f.on ? 'text-muted-foreground/40' : p.dark ? 'text-white/80' : 'text-foreground/80'}`}>
                       {f.label}
                     </span>
                   </li>
@@ -129,12 +137,12 @@ export function Pricing() {
 
               <a
                 href="#cta"
-                className={`mt-7 rounded-full px-6 py-3 text-center text-sm font-bold transition-all hover:-translate-y-0.5 ${
+                className={`mt-8 rounded-2xl px-6 py-3.5 text-center text-sm font-bold transition-all hover:-translate-y-0.5 ${
                   p.highlight
-                    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30'
+                    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40'
                     : p.dark
-                      ? 'bg-white text-[#15151f]'
-                      : 'border border-border bg-white text-foreground hover:border-primary/40 hover:text-primary'
+                      ? 'bg-white/10 text-white border border-white/20 hover:bg-white/20'
+                      : 'border border-border bg-card text-foreground hover:border-primary/30 hover:text-primary hover:bg-primary/5'
                 }`}
               >
                 {p.cta}

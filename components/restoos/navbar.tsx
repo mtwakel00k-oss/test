@@ -37,18 +37,18 @@ export function Navbar() {
   return (
     <header
       className={cn(
-        'fixed inset-x-0 top-0 z-50 transition-transform duration-500',
+        'fixed inset-x-0 top-0 z-50 transition-all duration-500',
         hidden ? '-translate-y-full' : 'translate-y-0',
       )}
     >
       <div
         className={cn(
-          'mx-auto mt-3 flex max-w-6xl items-center justify-between gap-4 rounded-full px-5 py-3 transition-all duration-300',
+          'mx-auto mt-4 flex max-w-6xl items-center justify-between gap-4 rounded-2xl px-6 py-3.5 transition-all duration-300',
           scrolled
-            ? 'border border-border/70 bg-white/70 shadow-lg shadow-primary/5 backdrop-blur-xl'
-            : 'border border-transparent bg-transparent',
+            ? 'glass shadow-sm'
+            : 'bg-transparent',
         )}
-        style={{ width: 'calc(100% - 1.5rem)' }}
+        style={{ width: 'calc(100% - 2rem)' }}
       >
         <Logo />
 
@@ -58,7 +58,7 @@ export function Navbar() {
               <NavigationMenuItem key={l.href}>
                 <NavigationMenuLink
                   href={l.href}
-                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary px-4 py-2"
+                  className="text-sm font-medium text-muted-foreground/80 transition-colors hover:text-foreground px-4 py-2 rounded-lg hover:bg-muted"
                 >
                   {l.label}
                 </NavigationMenuLink>
@@ -67,18 +67,19 @@ export function Navbar() {
           </NavigationMenuList>
         </NavigationMenu>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <a
             href="#cta"
-            className="hidden rounded-full bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/40 md:inline-block"
+            className="hidden md:inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30"
           >
             تواصل معنا
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </a>
           <button
             type="button"
             aria-label="القائمة"
             onClick={() => setOpen((v) => !v)}
-            className="grid size-10 place-items-center rounded-full border border-border bg-white/70 text-foreground md:hidden"
+            className="grid size-10 place-items-center rounded-xl border border-border bg-card text-foreground md:hidden transition-colors hover:bg-muted"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               {open ? <path d="M18 6 6 18M6 6l12 12" /> : <path d="M4 6h16M4 12h16M4 18h16" />}
@@ -88,14 +89,14 @@ export function Navbar() {
       </div>
 
       {open && (
-        <div className="mx-3 mt-2 rounded-2xl border border-border bg-white/95 p-4 shadow-xl backdrop-blur-xl md:hidden">
+        <div className="mx-4 mt-2 rounded-2xl glass p-4 shadow-lg md:hidden">
           <nav className="flex flex-col gap-1">
             {navLinks.map((l) => (
               <a
                 key={l.href}
                 href={l.href}
                 onClick={() => setOpen(false)}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-primary-bg hover:text-primary"
+                className="rounded-lg px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
               >
                 {l.label}
               </a>
@@ -103,9 +104,9 @@ export function Navbar() {
             <a
               href="#cta"
               onClick={() => setOpen(false)}
-              className="mt-2 rounded-full bg-primary px-6 py-2.5 text-center text-sm font-bold text-primary-foreground"
+              className="mt-2 rounded-xl bg-primary px-6 py-3 text-center text-sm font-semibold text-primary-foreground"
             >
-              ابدأ الآن
+              تواصل معنا
             </a>
           </nav>
         </div>
