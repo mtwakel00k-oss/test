@@ -31,6 +31,31 @@ if (typeof window === "undefined" && !MASTER_KEY) {
   logger.warn("SUPABASE_SERVICE_ROLE_KEY not set — master client will use anon key (RLS-restricted)")
 }
 
+/** A tenant whose `supabase_url` matches the master project shares the same Supabase project. */
+function isSharedProjectTenant(supabaseUrl: string): boolean {
+  return supabaseUrl === MASTER_URL || !supabaseUrl
+}
+
+/**
+ * Returns a safe anon key for the given tenant config.
+ * Shared-project tenants → always use the global env var (never trust DB-stored key).
+ * External tenants → must use the DB-stored key (no other option).
+ */
+function getSafeAnonKey(config: TenantConfig): string {
+  if (isSharedProjectTenant(config.supabase_url)) {
+    return FALLBACK_KEY!
+  }
+  return config.supabase_anon_key
+}
+
+/** Same for service-role key: shared-project → env, external → try DB or fallback to anon. */
+function getSafeServiceKey(config: TenantConfig): string {
+  if (isSharedProjectTenant(config.supabase_url)) {
+    return MASTER_KEY || FALLBACK_KEY!
+  }
+  return MASTER_KEY || config.supabase_anon_key
+}
+
 const _masterClient: SupabaseClient = createClient(
   MASTER_URL,
   MASTER_KEY || FALLBACK_KEY!
@@ -69,15 +94,15 @@ export async function getTenantConfig(slug: string): Promise<TenantConfig | null
 export const getTenantConfigRSC = cache(getTenantConfig)
 
 export function createTenantClient(config: TenantConfig): SupabaseClient {
-  return tryCreateClient(config.supabase_url, config.supabase_anon_key, config.slug)
+  return createSafeClient(config.supabase_url, getSafeAnonKey(config), config.slug)
 }
 
-function tryCreateClient(url: string, key: string, slug?: string): SupabaseClient {
+function createSafeClient(url: string, key: string, slug?: string): SupabaseClient {
   try {
     return createClient(url, key)
   } catch (e) {
     console.error("❌ CRITICAL: Tenant has an invalid or expired Supabase API Key in the database!", { slug, url })
-    logger.error("Failed to create tenant client, falling back to master client", { slug, error: e })
+    logger.error("createSafeClient: failed to create client, falling back to master client", { slug, error: e })
     return createClient(MASTER_URL, MASTER_KEY || FALLBACK_KEY!)
   }
 }
@@ -117,7 +142,7 @@ export async function supabaseForRequest(req: Request): Promise<SupabaseClient> 
   if (slug) {
     const config = await getTenantConfig(slug)
     if (config) {
-      return tryCreateClient(config.supabase_url, config.supabase_anon_key, config.slug)
+      return createSafeClient(config.supabase_url, getSafeAnonKey(config), config.slug)
     }
   }
 
@@ -132,7 +157,7 @@ export async function supabaseForRequestAdmin(req: Request): Promise<SupabaseCli
   if (slug) {
     const config = await getTenantConfig(slug)
     if (config) {
-      return tryCreateClient(config.supabase_url, MASTER_KEY || config.supabase_anon_key, config.slug)
+      return createSafeClient(config.supabase_url, getSafeServiceKey(config), config.slug)
     }
   }
 
