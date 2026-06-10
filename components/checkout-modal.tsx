@@ -166,6 +166,7 @@ export function CheckoutModal({
         if (coords) {
           body.delivery_lat = coords.lat
           body.delivery_lng = coords.lng
+          body.google_maps_link = `https://www.google.com/maps?q=${coords.lat},${coords.lng}`
         }
       }
 

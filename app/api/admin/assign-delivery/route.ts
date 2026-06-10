@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     const sb = await supabaseForRequest(req)
 
     const { data: order, error: orderErr } = await sb.from("orders")
-      .select("id, customer_name, customer_phone, order_number, status, total")
+      .select("id, customer_name, customer_phone, order_number, status, total, delivery_lat, delivery_lng, delivery_address")
       .eq("id", order_id)
       .single()
 
@@ -65,6 +65,12 @@ export async function POST(req: NextRequest) {
 
     const origin = req.headers.get("origin") || `https://${tenantSlug}.app`
     const manageLink = `${origin}/delivery/manage/${order_id}`
+
+    let mapsLink = ""
+    if (order.delivery_lat != null && order.delivery_lng != null) {
+      mapsLink = `https://www.google.com/maps?q=${order.delivery_lat},${order.delivery_lng}`
+    }
+
     const message = [
       `🛵 *${man.name}*`,
       ``,
@@ -72,6 +78,8 @@ export async function POST(req: NextRequest) {
       `الزبون: ${order.customer_name}`,
       `رقم الزبون: ${order.customer_phone || "غير متوفر"}`,
       `المبلغ: ${order.total} د.ج`,
+      ...(order.delivery_address ? [`العنوان: ${order.delivery_address}`] : []),
+      ...(mapsLink ? [`📍 خرائط جوجل: ${mapsLink}`] : []),
       ``,
       `رابط التوصيل الخاص بك:`,
       manageLink,
