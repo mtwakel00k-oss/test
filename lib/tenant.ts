@@ -10,6 +10,7 @@ export interface TenantConfig {
   name: string
   supabase_url: string
   supabase_anon_key: string
+  supabase_service_key?: string | null
   is_active: boolean
   created_at: string
   logo_url: string | null
@@ -49,11 +50,12 @@ function getSafeAnonKey(config: TenantConfig): string {
 }
 
 /** Same for service-role key: shared-project → env, external → try DB or fallback to anon. */
-function getSafeServiceKey(config: TenantConfig): string {
+async function getSafeServiceKey(config: TenantConfig): Promise<string> {
   if (isSharedProjectTenant(config.supabase_url)) {
     return MASTER_KEY || FALLBACK_KEY!
   }
-  return MASTER_KEY || config.supabase_anon_key
+  const svcKey = await getTenantServiceKey(config.slug)
+  return svcKey || config.supabase_anon_key
 }
 
 /**
@@ -110,6 +112,37 @@ export async function getTenantConfig(slug: string): Promise<TenantConfig | null
 
   configCache.set(slug, { data, expiry: Date.now() + CACHE_TTL })
   return data
+}
+
+/** Fetch only the service key for a tenant (separate call — column may not exist on all DBs). */
+const _svcKeyCache = new Map<string, { key: string; expiry: number }>()
+const SVC_KEY_TTL = 60_000
+
+async function getTenantServiceKey(slug: string): Promise<string | null> {
+  const cached = _svcKeyCache.get(slug)
+  if (cached && cached.expiry > Date.now()) return cached.key
+
+  try {
+    const { data, error } = await (_masterClient.from("tenants"))
+      .select("supabase_service_key")
+      .eq("slug", slug)
+      .maybeSingle()
+    if (error) {
+      // Column doesn't exist yet
+      if (error.message?.includes("does not exist") || (error as any)?.code === "42703") {
+        _svcKeyCache.set(slug, { key: "", expiry: Date.now() + SVC_KEY_TTL })
+        return null
+      }
+      logger.error("getTenantServiceKey query failed", error)
+      return null
+    }
+    const key = (data as Record<string, string | null>)?.supabase_service_key || null
+    _svcKeyCache.set(slug, { key: key ?? "", expiry: Date.now() + SVC_KEY_TTL })
+    return key
+  } catch (e) {
+    logger.error("getTenantServiceKey unexpected error", e)
+    return null
+  }
 }
 
 export const getTenantConfigRSC = cache(getTenantConfig)
@@ -178,7 +211,7 @@ export async function supabaseForRequestAdmin(req: Request): Promise<SupabaseCli
   if (slug) {
     const config = await getTenantConfig(slug)
     if (config) {
-      return createSafeClient(config.supabase_url, getSafeServiceKey(config), config.slug)
+      return createSafeClient(config.supabase_url, await getSafeServiceKey(config), config.slug)
     }
   }
 
