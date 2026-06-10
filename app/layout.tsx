@@ -4,6 +4,7 @@ import Script from "next/script"
 import "./globals.css"
 import { CartProvider } from "@/context/CartContext"
 import { StaffProvider } from "@/context/StaffContext"
+import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from "@/lib/theme"
 import { LangProvider } from "@/lib/lang-context"
 import { Geist } from "next/font/google";
@@ -52,6 +53,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <LangProvider lang={lang}>
           <ThemeProvider>
             <StaffProvider><CartProvider>{children}</CartProvider></StaffProvider>
+            <Toaster />
           </ThemeProvider>
         </LangProvider>
       </body>

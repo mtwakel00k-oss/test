@@ -9,9 +9,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { toast } from "@/hooks/use-toast"
 
-type PageRole = "cashier" | "chef" | "admin" | "owner"
-const ROLE_PAGE: Record<PageRole, string> = { cashier: "pos", chef: "kitchen", admin: "admin", owner: "admin" }
+type PageRole = "admin" | "owner"
+const ROLE_PAGE: Record<PageRole, string> = { admin: "admin", owner: "admin" }
 
 interface TenantItem {
   slug: string
@@ -19,7 +20,7 @@ interface TenantItem {
 }
 
 export default function LoginForm({ redirect: redirectProp, slug: slugProp, tenants }: { redirect?: string; slug?: string; tenants?: TenantItem[] }) {
-  const [page, setPage] = useState<PageRole>("cashier")
+  const [page, setPage] = useState<PageRole>("admin")
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -29,8 +30,6 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
   const { t } = useTranslation()
 
   const ROLE_LABELS: Record<PageRole, { icon: string; label: string }> = {
-    cashier: { icon: "💰", label: t("login.cashier") },
-    chef: { icon: "👨‍🍳", label: t("login.chef") },
     admin: { icon: "⚙️", label: t("login.admin") },
     owner: { icon: "👑", label: t("login.owner") },
   }
@@ -47,7 +46,9 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setError(res.status === 429 ? t("login.tooMany") : t("login.failed"))
+        const msg = res.status === 429 ? t("login.tooMany") : (data.error || t("login.failed"))
+        setError(msg)
+        toast({ title: msg, variant: "destructive" })
         setShaking(true)
         setTimeout(() => setShaking(false), 300)
         return
@@ -60,14 +61,17 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
       } else if (targetSlug) {
         window.location.href = `/${targetSlug}/${ROLE_PAGE[page]}`
       }
-    } catch {
-      setError(t("login.failed"))
+    } catch (err) {
+      console.error("Login error:", err)
+      const msg = t("login.failed")
+      setError(msg)
+      toast({ title: msg, variant: "destructive" })
       setShaking(true)
       setTimeout(() => setShaking(false), 300)
     } finally { setLoading(false) }
   }
 
-  const visibleRoles: PageRole[] = slugProp ? ["cashier", "chef", "admin"] : ["cashier", "chef", "admin", "owner"]
+  const visibleRoles: PageRole[] = slugProp ? ["admin"] : ["admin", "owner"]
   const tabs = visibleRoles.map((key) => ({ key, ...ROLE_LABELS[key] }))
   const activeRole = ROLE_LABELS[page]
 
@@ -128,16 +132,18 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
             <CardDescription>{t("login.subtitle")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-1.5 p-1 mb-5 rounded-lg bg-muted/50">
-              {tabs.map(tab => (
-                <button key={tab.key} onClick={() => { setPage(tab.key); setError("") }}
-                  className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${
-                    page === tab.key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                  }`}>
-                  {tab.icon} {tab.label}
-                </button>
-              ))}
-            </div>
+            {tabs.length > 1 && (
+              <div className="flex gap-1.5 p-1 mb-5 rounded-lg bg-muted/50">
+                {tabs.map(tab => (
+                  <button key={tab.key} onClick={() => { setPage(tab.key); setError("") }}
+                    className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${
+                      page === tab.key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                    }`}>
+                    {tab.icon} {tab.label}
+                  </button>
+                ))}
+              </div>
+            )}
 
             <div className="space-y-3">
               <Input
