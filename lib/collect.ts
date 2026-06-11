@@ -7,7 +7,7 @@ export async function markOrderAsCollected(orderId: string, slug: string): Promi
     const sb = await supabaseForSlug(slug)
 
     const { data: order, error: orderErr } = await sb.from("orders")
-      .select("id, delivery_man_id, status")
+      .select("id, status")
       .eq("id", orderId)
       .maybeSingle()
 
@@ -23,10 +23,6 @@ export async function markOrderAsCollected(orderId: string, slug: string): Promi
     if (updateErr) {
       logger.error("markOrderAsCollected: update error", { orderId, slug, error: updateErr.message })
       return { success: false, error: "Update error: " + updateErr.message }
-    }
-
-    if (order.delivery_man_id) {
-      await sb.from("delivery_men").update({ is_busy: false }).eq("id", order.delivery_man_id)
     }
 
     logger.info("Order marked as collected", { orderId, slug })
