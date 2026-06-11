@@ -35,6 +35,7 @@ export default function DriverPage() {
   const [error, setError] = useState<string | null>(null)
   const [delivering, setDelivering] = useState<string | null>(null)
   const [locationActive, setLocationActive] = useState(false)
+  const [locationError, setLocationError] = useState<string | null>(null)
   const watchIdRef = useRef<number | null>(null)
   const lastSentRef = useRef<number>(0)
 
@@ -66,7 +67,10 @@ export default function DriverPage() {
     const activeOrders = data.orders.filter(o => o.status === "out_for_delivery" || o.status === "ready")
     if (!activeOrders.length) return
 
-    if (!navigator.geolocation) return
+    if (!navigator.geolocation) {
+      setLocationError(t("driver.noGps", LANG))
+      return
+    }
 
     const sendLocation = (lat: number, lng: number) => {
       const now = Date.now()
@@ -81,14 +85,40 @@ export default function DriverPage() {
       }
     }
 
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      (pos) => {
-        setLocationActive(true)
-        sendLocation(pos.coords.latitude, pos.coords.longitude)
-      },
-      () => {},
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
-    )
+    const errorMessages: Record<number, string> = {
+      1: t("driver.permissionDenied", LANG),
+      2: t("driver.positionUnavailable", LANG),
+      3: t("driver.timeoutError", LANG),
+    }
+
+    let highAccuracyAttempt = true
+
+    const startWatching = (highAccuracy: boolean) => {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current)
+      }
+
+      watchIdRef.current = navigator.geolocation.watchPosition(
+        (pos) => {
+          setLocationActive(true)
+          setLocationError(null)
+          sendLocation(pos.coords.latitude, pos.coords.longitude)
+        },
+        (err) => {
+          const code = err.code
+          if (code === 3 && highAccuracy) {
+            highAccuracyAttempt = false
+            startWatching(false)
+            return
+          }
+          setLocationActive(false)
+          setLocationError(errorMessages[code] || err.message)
+        },
+        { enableHighAccuracy: highAccuracy, timeout: 10000, maximumAge: 0 },
+      )
+    }
+
+    startWatching(true)
 
     return () => {
       if (watchIdRef.current !== null) {
@@ -165,7 +195,7 @@ export default function DriverPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {locationActive && (
+            {locationActive ? (
               <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
                 <span className="relative flex h-2 w-2">
                   <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
@@ -173,7 +203,11 @@ export default function DriverPage() {
                 </span>
                 <span className="text-[10px] text-emerald-400 font-bold">{t("driver.locationShared", LANG)}</span>
               </div>
-            )}
+            ) : locationError ? (
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 max-w-[140px]">
+                <span className="text-[10px] text-red-400 font-bold leading-tight">{locationError}</span>
+              </div>
+            ) : null}
             <button onClick={fetchOrders}
               className="flex items-center justify-center h-10 w-10 rounded-lg bg-white/5 hover:bg-amber-500/20 hover:text-amber-400 text-white/50 transition-all active:scale-90">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

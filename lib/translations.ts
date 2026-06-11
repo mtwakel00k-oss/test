@@ -267,6 +267,10 @@ export const T: Dict = {
   "driver.locationShared": { ar: "موقعك يُشارك", en: "Location shared", fr: "Position partagée" },
   "driver.refresh": { ar: "تحديث", en: "Refresh", fr: "Actualiser" },
   "driver.mapError": { ar: "تعذر تحميل الخريطة", en: "Could not load map", fr: "Impossible de charger la carte" },
+  "driver.noGps": { ar: "الجهاز لا يدعم تحديد الموقع", en: "Device does not support GPS", fr: "L'appareil ne supporte pas le GPS" },
+  "driver.permissionDenied": { ar: "الرجاء السماح بتحديد الموقع", en: "Please enable location permission", fr: "Veuillez autoriser la localisation" },
+  "driver.positionUnavailable": { ar: "ضعف الإشارة — حاول الخروج للخارج", en: "Weak signal — try going outside", fr: "Signal faible — essayez de sortir" },
+  "driver.timeoutError": { ar: "تعذر الحصول على الموقع — حاول مرة أخرى", en: "Could not get location — try again", fr: "Position indisponible — réessayez" },
 
   // ── Admin Driver/Cashier Performance ────────────────
   "admin.driverPerformance": { ar: "أداء السائقين", en: "Driver Performance", fr: "Performance des livreurs" },
