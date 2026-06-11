@@ -1,35 +1,30 @@
 import { createClient } from "@supabase/supabase-js"
-import { getTenantConfig } from "@/lib/tenant"
+import { supabaseForSlug } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 
 export async function markOrderAsCollected(orderId: string, slug: string): Promise<{ success: boolean; error?: string }> {
   try {
-    const tenant = await getTenantConfig(slug)
-    if (!tenant?.supabase_url) {
-      return { success: false, error: "Tenant not found" }
-    }
-
-    const isShared = tenant.supabase_url === process.env.NEXT_PUBLIC_SUPABASE_URL
-    const key = isShared
-      ? (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-      : tenant.supabase_anon_key
-
-    const sb = createClient(tenant.supabase_url, key)
+    const sb = await supabaseForSlug(slug)
 
     const { data: order, error: orderErr } = await sb.from("orders")
-      .select("id, delivery_man_id, status, order_number, total, delivery_address, delivery_lat, delivery_lng")
+      .select("id, delivery_man_id, status")
       .eq("id", orderId)
       .maybeSingle()
 
     if (orderErr) {
-      logger.error("markOrderAsCollected: query error", { orderId, slug, error: orderErr.message })
-      return { success: false, error: "Database query error: " + orderErr.message }
+      logger.error("markOrderAsCollected: select error", { orderId, slug, error: orderErr.message })
+      return { success: false, error: "Query error: " + orderErr.message }
     }
 
     if (!order) return { success: false, error: "Order not found" }
     if (order.status === "completed") return { success: true }
 
-    await sb.from("orders").update({ status: "completed" }).eq("id", orderId)
+    const { error: updateErr } = await sb.from("orders").update({ status: "completed" }).eq("id", orderId)
+    if (updateErr) {
+      logger.error("markOrderAsCollected: update error", { orderId, slug, error: updateErr.message })
+      return { success: false, error: "Update error: " + updateErr.message }
+    }
+
     if (order.delivery_man_id) {
       await sb.from("delivery_men").update({ is_busy: false }).eq("id", order.delivery_man_id)
     }
