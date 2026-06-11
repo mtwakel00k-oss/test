@@ -90,6 +90,15 @@ export async function POST(req: NextRequest) {
     await masterSb().from("restaurant_users").insert({ user_id: userId, restaurant_id: tenant.id, role: "cashier" })
   }
 
+  await masterSb().from("restaurant_staff").upsert({
+    tenant_slug: slug,
+    name: username,
+    role: "cashier",
+    is_active: true,
+  }).catch((err: Error) => {
+    logger.warn("Failed to sync to restaurant_staff (table may not exist)", { error: err.message })
+  })
+
   logger.info("Cashier created", { username, slug })
   return NextResponse.json({ id: userId, username, role: "cashier" })
 }
@@ -110,6 +119,13 @@ export async function DELETE(req: NextRequest) {
   if (!tenant) return NextResponse.json({ error: "Tenant not found" }, { status: 404 })
 
   await masterSb().from("restaurant_users").delete().eq("user_id", userId).eq("restaurant_id", tenant.id)
+
+  const { data: profile } = await masterSb().from("profiles").select("username").eq("id", userId).maybeSingle()
+  if (profile?.username) {
+    await masterSb().from("restaurant_staff").update({ is_active: false })
+      .eq("tenant_slug", slug).eq("name", profile.username).catch(() => {})
+  }
+
   logger.info("Cashier removed", { userId, slug })
   return NextResponse.json({ success: true })
 }

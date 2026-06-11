@@ -1,13 +1,34 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabaseForRequest, isTenantMismatch } from "@/lib/tenant"
+import { createClient } from "@supabase/supabase-js"
+import { supabaseForRequest, isTenantMismatch, parseSession } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
+
+function masterSb() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  )
+}
+
+function getSlug(req: NextRequest): string | null {
+  const header = req.headers.get("x-tenant-slug")
+  if (header) return header
+  const session = parseSession(req.headers.get("cookie") || "")
+  return session.slug ?? null
+}
 
 export async function GET(req: NextRequest) {
   try {
     const sb = await supabaseForRequest(req)
     const { data, error } = await sb.from("restaurant_staff").select("*").order("name")
     if (error) {
-      if (error.message.includes("does not exist") || error.code === "PGRST205") return NextResponse.json([])
+      if (error.message.includes("does not exist") || error.code === "PGRST205") {
+        const slug = getSlug(req)
+        if (!slug) return NextResponse.json([])
+        const { data: masterData } = await masterSb().from("restaurant_staff")
+          .select("*").eq("tenant_slug", slug).order("name")
+        return NextResponse.json(masterData || [])
+      }
       throw new Error(error.message)
     }
     return NextResponse.json(data || [])
