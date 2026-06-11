@@ -48,3 +48,8 @@ product-flags.json
 .images.json
 
 .vercel
+
+test-*.js
+evolution-api.env
+qr-code*.png
+
