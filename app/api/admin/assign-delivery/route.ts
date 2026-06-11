@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabaseForRequest, isTenantMismatch, getTenantConfig } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
-import { sendDriverWhatsApp } from "@/lib/whatsapp"
+import { sendDriverInteractive } from "@/lib/whatsapp"
 
 export async function POST(req: NextRequest) {
   try {
@@ -63,9 +63,6 @@ export async function POST(req: NextRequest) {
       logger.error("Failed to mark delivery man as busy", busyErr)
     }
 
-    const origin = req.headers.get("origin") || `https://${tenantSlug}.app`
-    const manageLink = `${origin}/delivery/manage/${order_id}`
-
     let mapsLink = ""
     if (order.delivery_lat != null && order.delivery_lng != null) {
       mapsLink = `https://www.google.com/maps?q=${order.delivery_lat},${order.delivery_lng}`
@@ -81,20 +78,19 @@ export async function POST(req: NextRequest) {
       ...(order.delivery_address ? [`العنوان: ${order.delivery_address}`] : []),
       ...(mapsLink ? [`📍 خرائط جوجل: ${mapsLink}`] : []),
       ``,
-      `رابط التوصيل الخاص بك:`,
-      manageLink,
+      `اضغط على زر "💰 قبضت" بعد استلام المبلغ`,
     ].join("\n")
 
-    sendDriverWhatsApp(man.whatsapp_number, message).then((sent) => {
+    sendDriverInteractive(man.whatsapp_number, message, order_id, tenantSlug).then((sent) => {
       if (sent) {
-        logger.info("WhatsApp sent to delivery man", { id: delivery_man_id, order_id })
+        logger.info("Interactive WhatsApp sent to delivery man", { id: delivery_man_id, order_id })
       } else {
-        logger.warn("WhatsApp delivery notification failed, delivery assigned anyway", { id: delivery_man_id, order_id })
+        logger.warn("Interactive WhatsApp failed, delivery assigned anyway", { id: delivery_man_id, order_id })
       }
     })
 
     logger.info("Delivery assigned", { order_id, delivery_man_id })
-    return NextResponse.json({ success: true, manageLink })
+    return NextResponse.json({ success: true })
   } catch (e) {
     const mismatch = isTenantMismatch(e)
     if (mismatch) return mismatch

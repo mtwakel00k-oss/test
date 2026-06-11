@@ -12,6 +12,56 @@ interface DriverRecord {
   id: string; name: string; phone: string; token: string; is_active: boolean
 }
 
+export async function sendDriverInteractive(
+  to: string,
+  bodyText: string,
+  orderId: string,
+  slug: string,
+): Promise<boolean> {
+  if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY) {
+    logger.warn("Evolution API not configured — skipping interactive")
+    return false
+  }
+
+  const number = to.replace(/[^0-9]/g, "")
+  const buttonId = `collect|${orderId}|${slug}`
+
+  try {
+    const res = await fetch(
+      `${EVOLUTION_API_URL}/message/sendInteractive/${EVOLUTION_INSTANCE}`,
+      {
+        method: "POST",
+        headers: { apikey: EVOLUTION_API_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          number,
+          options: { delay: 0, presence: "composing" },
+          interactive: {
+            type: "button",
+            body: { text: bodyText },
+            action: {
+              buttons: [
+                { type: "reply", reply: { id: buttonId, title: "💰 قبضت" } },
+              ],
+            },
+          },
+        }),
+      },
+    )
+
+    if (!res.ok) {
+      const err = await res.text()
+      logger.error("Evolution API interactive error", { status: res.status, error: err })
+      return false
+    }
+
+    logger.info("Interactive WhatsApp sent to driver", { to })
+    return true
+  } catch (e) {
+    logger.error("Failed to send interactive WhatsApp", e)
+    return false
+  }
+}
+
 export async function sendDriverWhatsApp(
   to: string,
   message: string,
