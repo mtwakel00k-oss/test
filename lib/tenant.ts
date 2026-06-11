@@ -189,7 +189,10 @@ export async function supabaseForRequest(req: Request): Promise<SupabaseClient> 
   const requestSlug = getSlugFromHeaderOrReferer(req)
 
   if (session.slug && requestSlug && session.slug !== requestSlug) {
-    throw new TenantMismatchError(session.slug, requestSlug)
+    logger.warn("supabaseForRequest: session slug differs from request slug, using session slug", {
+      sessionSlug: session.slug,
+      requestSlug,
+    })
   }
 
   const slug = session.slug || requestSlug
