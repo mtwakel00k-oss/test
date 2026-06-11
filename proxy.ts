@@ -8,7 +8,7 @@ const isDev = process.env.NODE_ENV === 'development'
 function addSecurityHeaders(res: NextResponse, nonce: string) {
   const csp = [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://*.contentsquare.com https://*.contentsquare.net${isDev ? " 'unsafe-eval'" : ''}`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ''}`,
     `style-src 'self' 'unsafe-inline'`,
     "img-src 'self' blob: data: https://*.supabase.co",
     "font-src 'self'",
@@ -16,7 +16,7 @@ function addSecurityHeaders(res: NextResponse, nonce: string) {
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
-    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org https://*.contentsquare.net https://*.contentsquare.com",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org",
     "upgrade-insecure-requests",
   ].join('; ')
 
