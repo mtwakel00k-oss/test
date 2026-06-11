@@ -16,10 +16,15 @@ export async function markOrderAsCollected(orderId: string, slug: string): Promi
 
     const sb = createClient(tenant.supabase_url, key)
 
-    const { data: order } = await sb.from("orders")
-      .select("id, delivery_man_id, status")
+    const { data: order, error: orderErr } = await sb.from("orders")
+      .select("id, delivery_man_id, status, order_number, total, delivery_address, delivery_lat, delivery_lng")
       .eq("id", orderId)
-      .single()
+      .maybeSingle()
+
+    if (orderErr) {
+      logger.error("markOrderAsCollected: query error", { orderId, slug, error: orderErr.message })
+      return { success: false, error: "Database query error: " + orderErr.message }
+    }
 
     if (!order) return { success: false, error: "Order not found" }
     if (order.status === "completed") return { success: true }
