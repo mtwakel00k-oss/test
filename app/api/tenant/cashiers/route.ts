@@ -90,14 +90,16 @@ export async function POST(req: NextRequest) {
     await masterSb().from("restaurant_users").insert({ user_id: userId, restaurant_id: tenant.id, role: "cashier" })
   }
 
-  await masterSb().from("restaurant_staff").upsert({
-    tenant_slug: slug,
-    name: username,
-    role: "cashier",
-    is_active: true,
-  }).catch((err: Error) => {
-    logger.warn("Failed to sync to restaurant_staff (table may not exist)", { error: err.message })
-  })
+  try {
+    await masterSb().from("restaurant_staff").upsert({
+      tenant_slug: slug,
+      name: username,
+      role: "cashier",
+      is_active: true,
+    })
+  } catch (e) {
+    logger.warn("Failed to sync to restaurant_staff (table may not exist)", { error: (e as Error).message })
+  }
 
   logger.info("Cashier created", { username, slug })
   return NextResponse.json({ id: userId, username, role: "cashier" })
@@ -122,8 +124,10 @@ export async function DELETE(req: NextRequest) {
 
   const { data: profile } = await masterSb().from("profiles").select("username").eq("id", userId).maybeSingle()
   if (profile?.username) {
-    await masterSb().from("restaurant_staff").update({ is_active: false })
-      .eq("tenant_slug", slug).eq("name", profile.username).catch(() => {})
+    try {
+      await masterSb().from("restaurant_staff").update({ is_active: false })
+        .eq("tenant_slug", slug).eq("name", profile.username)
+    } catch { /* table may not exist */ }
   }
 
   logger.info("Cashier removed", { userId, slug })
