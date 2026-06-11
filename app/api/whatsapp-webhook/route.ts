@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { logger } from "@/lib/logger"
+import { markOrderAsCollected } from "@/lib/collect"
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,15 +14,12 @@ export async function POST(req: NextRequest) {
       const parts = btnResponse.selectedButtonId.split("|")
       if (parts[0] === "collect" && parts[1] && parts[2]) {
         const [_, orderId, slug] = parts
-        const baseUrl = process.env.VERCEL_URL
-          ? `https://${process.env.VERCEL_URL}`
-          : "http://localhost:3000"
-        await fetch(`${baseUrl}/api/delivery/collect`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ order_id: orderId, slug }),
-        }).catch((e) => logger.error("Webhook collect fetch failed", e))
-        logger.info("Collected via webhook", { orderId, slug })
+        const result = await markOrderAsCollected(orderId, slug)
+        if (result.success) {
+          logger.info("Collected via webhook", { orderId, slug })
+        } else {
+          logger.warn("Webhook collect failed", { orderId, slug, error: result.error })
+        }
       }
     }
 
