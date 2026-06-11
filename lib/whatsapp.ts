@@ -3,8 +3,10 @@ import { logger } from "@/lib/logger"
 
 const MASTER_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
-const PHONE_ID = process.env.WHATSAPP_PHONE_ID
-const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN
+
+const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL
+const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY
+const EVOLUTION_INSTANCE = process.env.EVOLUTION_INSTANCE || "burger-house"
 
 interface DriverRecord {
   id: string; name: string; phone: string; token: string; is_active: boolean
@@ -14,39 +16,39 @@ export async function sendDriverWhatsApp(
   to: string,
   message: string,
 ): Promise<boolean> {
-  if (!PHONE_ID || !ACCESS_TOKEN) {
-    logger.warn("WHATSAPP_PHONE_ID or WHATSAPP_ACCESS_TOKEN not set — skipping")
+  if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY) {
+    logger.warn("EVOLUTION_API_URL or EVOLUTION_API_KEY not set — skipping")
     return false
   }
 
   try {
+    const number = to.replace(/[^0-9]/g, "")
     const res = await fetch(
-      `https://graph.facebook.com/v21.0/${PHONE_ID}/messages`,
+      `${EVOLUTION_API_URL}/message/sendText/${EVOLUTION_INSTANCE}`,
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${ACCESS_TOKEN}`,
+          apikey: EVOLUTION_API_KEY,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          messaging_product: "whatsapp",
-          to: to.replace(/^\+/, ""),
-          type: "text",
-          text: { preview_url: true, body: message },
+          number,
+          text: message,
+          delay: 0,
         }),
       },
     )
 
     if (!res.ok) {
       const err = await res.text()
-      logger.error("WhatsApp API error", { status: res.status, error: err })
+      logger.error("Evolution API error", { status: res.status, error: err })
       return false
     }
 
-    logger.info("WhatsApp sent to driver", { to })
+    logger.info("WhatsApp sent to driver via Evolution API", { to })
     return true
   } catch (e) {
-    logger.error("Failed to send WhatsApp", e)
+    logger.error("Failed to send WhatsApp via Evolution API", e)
     return false
   }
 }
