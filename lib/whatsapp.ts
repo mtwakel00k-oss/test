@@ -106,9 +106,9 @@ export async function sendDriverWhatsApp(
 export async function notifyDriverAssigned(
   slug: string,
   driverId: string,
+  orderId: string,
   orderNumber: string | number,
   total: number,
-  origin: string,
 ): Promise<void> {
   try {
     if (!MASTER_URL || !SERVICE_KEY) return
@@ -133,20 +133,16 @@ export async function notifyDriverAssigned(
       return
     }
 
-    const link = `${origin}/${slug}/driver/${driver.token}`
     const message = [
       `🛵 *${driver.name}*`,
       ``,
       `تم تعيينك لتوصيل الطلب رقم #${orderNumber}`,
-      `المبلغ: ${total} د.ل`,
+      `المبلغ: ${total} د.ج`,
       ``,
-      `رابط الطلبات الخاص بك:`,
-      link,
-      ``,
-      t.name,
+      `اضغط على زر "💰 قبضت" بعد استلام المبلغ`,
     ].join("\n")
 
-    await sendDriverWhatsApp(driver.phone, message)
+    await sendDriverInteractive(driver.phone, message, orderId, slug)
   } catch (e) {
     logger.error("notifyDriverAssigned failed", e)
   }

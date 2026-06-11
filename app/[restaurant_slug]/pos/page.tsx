@@ -139,6 +139,7 @@ export default function POSPage() {
   const [cancelTargetId, setCancelTargetId] = useState<string | null>(null)
   const [newName, setNewName] = useState("")
   const [newTable, setNewTable] = useState("")
+  const [newPhone, setNewPhone] = useState("")
   const [newOrderItems, setNewOrderItems] = useState<NewOrderItem[]>([])
   const [newOrderError, setNewOrderError] = useState("")
   const [newOrderType, setNewOrderType] = useState<OrderType>("dine_in")
@@ -426,6 +427,7 @@ export default function POSPage() {
     try {
       const bodyObj = {
         customer_name: newName,
+        customer_phone: newOrderType === "delivery" ? newPhone || null : null,
         table_number: newOrderType === "dine_in" && newTable ? tableNum : null,
         order_type: newOrderType,
         cashier_id: cashier?.email || null,
@@ -461,7 +463,7 @@ export default function POSPage() {
         status: "pending",
         paymentStatus: "unpaid",
         serverName: newName,
-        customerPhone: "",
+        customerPhone: newPhone,
         items: availableItems.map(i => ({
           id: Math.random(),
           name: i.product.name + (i.size && i.size !== "UNIQUE" ? ` (${i.size})` : ""),
@@ -480,6 +482,7 @@ export default function POSPage() {
       setShowNewOrder(false)
       setNewName("")
       setNewTable("")
+      setNewPhone("")
       setNewOrderItems([])
       setNewOrderType("dine_in")
     } catch (e) {
@@ -488,7 +491,7 @@ export default function POSPage() {
     } finally {
       setCreatingOrder(false)
     }
-  }, [newName, newTable, newOrderItems, newOrderType, t])
+  }, [newName, newTable, newPhone, newOrderItems, newOrderType, t])
 
   const activeOrders = orders.filter(o => o.status !== "completed" && o.status !== "cancelled")
   const completedOrders = orders.filter(o => o.status === "completed")
@@ -543,6 +546,7 @@ export default function POSPage() {
                   setShowNewOrder(false)
                   setNewName("")
                   setNewTable("")
+                  setNewPhone("")
                   setNewOrderItems([])
                   setNewOrderType("dine_in")
                 }}
@@ -551,6 +555,8 @@ export default function POSPage() {
                 orderItems={newOrderItems}
                 customerName={newName}
                 onCustomerNameChange={setNewName}
+                customerPhone={newPhone}
+                onCustomerPhoneChange={setNewPhone}
                 onUpdateQuantity={(productId, delta) => {
                   setNewOrderItems(prev => {
                     const updated = prev.map(i =>
@@ -564,7 +570,7 @@ export default function POSPage() {
                 }}
                 onSubmit={handleCreateOrder}
                 submitting={creatingOrder}
-                disabled={!newName || newOrderItems.length === 0}
+                disabled={!newName || newOrderItems.length === 0 || (newOrderType === "delivery" && !newPhone)}
                 error={newOrderError}
                 orderType={newOrderType}
                 onOrderTypeChange={setNewOrderType}
@@ -574,6 +580,7 @@ export default function POSPage() {
                   setShowNewOrder(false)
                   setNewName("")
                   setNewTable("")
+                  setNewPhone("")
                   setNewOrderItems([])
                   setNewOrderType("dine_in")
                 }}

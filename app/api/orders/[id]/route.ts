@@ -4,6 +4,7 @@ import { createClientForRouteHandler } from "@/lib/supabase-server"
 import { findOrderAcrossTenants } from "@/lib/order-tracking"
 import { logger } from "@/lib/logger"
 import { DB_STATUS_TO_POS } from "@/lib/constants"
+import { notifyDriverAssigned } from "@/lib/whatsapp"
 
 const ALLOWED_STATUSES = ["pending", "preparing", "ready", "out_for_delivery", "completed", "cancelled"]
 
@@ -178,6 +179,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const result = await tryUpdate(updateData)
     if (!result) throw new Error("Failed to update order after exhausting retries")
     logger.info("Order updated", { id, status })
+
+    if (driver_id && result) {
+      const slug = req.headers.get("x-tenant-slug") || ""
+      if (slug) {
+        const orderNumber = typeof result.order_number === "number" ? result.order_number : id
+        const total = typeof result.total === "number" ? result.total : 0
+        notifyDriverAssigned(slug, driver_id, id, orderNumber, total)
+      }
+    }
 
     return NextResponse.json(result)
   } catch (e) {

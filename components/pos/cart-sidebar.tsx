@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ShoppingCart, Minus, Plus, Table2, X, Store, UtensilsCrossed } from "lucide-react"
+import { ShoppingCart, Minus, Plus, Table2, X, Store, UtensilsCrossed, Truck } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { MenuProduct } from "@/lib/types"
 import { getPrice } from "@/lib/types"
@@ -25,6 +25,8 @@ interface CartSidebarProps {
   orderItems: NewOrderItem[]
   customerName: string
   onCustomerNameChange: (name: string) => void
+  customerPhone: string
+  onCustomerPhoneChange: (phone: string) => void
   onUpdateQuantity: (productId: number, delta: number) => void
   onRemoveItem: (productId: number) => void
   onSubmit: () => void
@@ -39,7 +41,7 @@ interface CartSidebarProps {
 }
 
 export function CartSidebar({
-  orderItems, customerName, onCustomerNameChange, onUpdateQuantity, onRemoveItem, onSubmit,
+  orderItems, customerName, onCustomerNameChange, customerPhone, onCustomerPhoneChange, onUpdateQuantity, onRemoveItem, onSubmit,
   submitting, disabled, error, orderType, onOrderTypeChange, tableNumber, onTableNumberChange, onCancel,
 }: CartSidebarProps) {
   const { t, lang } = useTranslation()
@@ -96,6 +98,14 @@ export function CartSidebar({
                 <Store className="w-3 h-3" />
                 {t("pos.takeaway")}
               </button>
+              <button onClick={() => onOrderTypeChange("delivery")}
+                className={cn("flex-1 rounded-lg px-2 py-2 text-[11px] font-medium transition-all border flex items-center justify-center gap-1",
+                  orderType === "delivery"
+                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                    : "bg-background text-muted-foreground border-border hover:border-primary/30 hover:text-foreground")}>
+                <Truck className="w-3 h-3" />
+                {t("pos.delivery")}
+              </button>
             </div>
 
             {orderType === "dine_in" && (
@@ -103,6 +113,16 @@ export function CartSidebar({
                 <Table2 className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                 <input value={tableNumber} onChange={e => onTableNumberChange(e.target.value.replace(/\D/g, '').slice(0, 3))}
                   placeholder={t("pos.tableNumber")} inputMode="numeric"
+                  className="w-full rounded-lg border border-border bg-background pr-9 px-2.5 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40" />
+              </div>
+            )}
+            {orderType === "delivery" && (
+              <div className="relative">
+                <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+                <input value={customerPhone} onChange={e => onCustomerPhoneChange(e.target.value.replace(/[^0-9+]/g, '').slice(0, 20))}
+                  placeholder={t("pos.customerPhone")} inputMode="tel" dir="ltr"
                   className="w-full rounded-lg border border-border bg-background pr-9 px-2.5 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/40" />
               </div>
             )}
