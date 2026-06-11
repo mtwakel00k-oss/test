@@ -3,16 +3,17 @@ import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit
 import { logger } from "@/lib/logger"
 
 const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN || ""
-const TELEGRAM_CHAT = process.env.TELEGRAM_CHAT_ID || ""
+const TELEGRAM_CHAT = process.env.TELEGRAM_CHAT_ID
 
 export async function POST(req: NextRequest) {
   try {
+    if (!TELEGRAM_CHAT) {
+      logger.warn("TELEGRAM_CHAT_ID not set")
+      return NextResponse.json({ success: true, warn: "no_chat_id" })
+    }
+
     const rl = checkRateLimit(`contact:${getClientIp(req)}`, { max: 5, windowMs: 60_000 })
     if (!rl.allowed) return rateLimitResponse(rl.resetAt)
-
-    if (!TELEGRAM_CHAT) {
-      return NextResponse.json({ error: "Telegram not configured" }, { status: 500 })
-    }
 
     const { name, phone } = await req.json()
     if (!phone || typeof phone !== "string" || phone.trim().length < 3) {

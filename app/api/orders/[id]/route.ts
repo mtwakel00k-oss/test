@@ -180,13 +180,20 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (!result) throw new Error("Failed to update order after exhausting retries")
     logger.info("Order updated", { id, status })
 
-    if (driver_id && result) {
-      const slug = req.headers.get("x-tenant-slug") || ""
-      if (slug) {
-        const orderNumber = typeof result.order_number === "number" ? result.order_number : id
-        const total = typeof result.total === "number" ? result.total : 0
-        notifyDriverAssigned(slug, driver_id, id, orderNumber, total)
-      }
+    if (driver_id && result.order_number != null) {
+      const slug =
+        req.headers.get("x-tenant-slug") ||
+        (() => {
+          const referer = req.headers.get("referer") || ""
+          const m = referer.match(/\/([^/]+)\/(?:pos|admin|menu|kitchen)\b/)
+          return m ? m[1] : ""
+        })()
+      const origin =
+        req.headers.get("origin") ||
+        req.headers.get("referer")?.split("/").slice(0, 3).join("/") ||
+        ""
+      notifyDriverAssigned(slug, driver_id, String(result.order_number ?? ""), Number(result.total ?? 0), origin)
+        .catch((e: unknown) => logger.error("WhatsApp notify failed", e))
     }
 
     return NextResponse.json(result)

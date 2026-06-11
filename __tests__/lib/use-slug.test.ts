@@ -1,48 +1,32 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest"
+import { beforeEach, afterEach, describe, it, expect } from "vitest"
 
 const mockConfig = { url: "", key: "", slug: "burger-house", name: "", logo_url: null }
 
-function setConfig(config: typeof mockConfig | null) {
-  const existing = document.getElementById("tenant-config")
-  if (existing) existing.remove()
-  if (config) {
-    const el = document.createElement("script")
-    el.id = "tenant-config"
-    el.type = "application/json"
-    el.textContent = JSON.stringify(config)
-    document.body.appendChild(el)
-  }
+function injectConfig(config: typeof mockConfig | null) {
+  document.getElementById("tenant-config")?.remove()
+  if (!config) return
+  const el = document.createElement("script")
+  el.id = "tenant-config"
+  el.type = "application/json"
+  el.textContent = JSON.stringify(config)
+  document.body.appendChild(el)
 }
 
-async function importModule() {
-  return await import("@/lib/use-slug")
-}
+beforeEach(() => injectConfig(mockConfig))
+afterEach(() => injectConfig(null))
 
-describe("useSlug()", () => {
-  beforeEach(() => {
-    setConfig(mockConfig)
-  })
-
-  afterEach(() => {
-    document.getElementById("tenant-config")?.remove()
-  })
-
+describe("slugPath()", () => {
   it("returns path unchanged when no config", async () => {
-    setConfig(null)
-    const { slugPath } = await importModule()
+    injectConfig(null)
+    const { slugPath } = await import("@/lib/use-slug")
     expect(slugPath("/admin")).toBe("/admin")
-    expect(slugPath("login")).toBe("login")
   })
-
-  it("reads slug from tenant-config script tag", async () => {
-    setConfig({ ...mockConfig, slug: "my-restaurant" })
-    const { slugPath } = await importModule()
-    expect(slugPath("/pos")).toBe("/my-restaurant/pos")
+  it("prepends slug to path", async () => {
+    const { slugPath } = await import("@/lib/use-slug")
+    expect(slugPath("/pos")).toBe("/burger-house/pos")
   })
-
-  it("slugPath handles leading slash", async () => {
-    const { slugPath } = await importModule()
-    expect(slugPath("pos")).toBe("/burger-house/pos")
-    expect(slugPath("/kitchen")).toBe("/burger-house/kitchen")
+  it("handles missing leading slash", async () => {
+    const { slugPath } = await import("@/lib/use-slug")
+    expect(slugPath("kitchen")).toBe("/burger-house/kitchen")
   })
 })

@@ -4,13 +4,6 @@ import { randomUUID } from "crypto"
 import { parseSession } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 
-function masterDb() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
-}
-
 export interface Driver {
   id: string
   name: string
@@ -36,7 +29,12 @@ export async function GET(req: NextRequest) {
   const slug = getSlug(req)
   if (!slug) return NextResponse.json({ error: "No tenant" }, { status: 400 })
 
-  const { data, error } = await masterDb()
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) return NextResponse.json({ error: "Server config error" }, { status: 500 })
+  const masterClient = createClient(url, key)
+
+  const { data, error } = await masterClient
     .from("tenants")
     .select("drivers")
     .eq("slug", slug)
@@ -78,7 +76,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid phone number" }, { status: 400 })
   }
 
-  const { data: tenant, error: fetchErr } = await masterDb()
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) return NextResponse.json({ error: "Server config error" }, { status: 500 })
+  const masterClient = createClient(url, key)
+
+  const { data: tenant, error: fetchErr } = await masterClient
     .from("tenants").select("drivers").eq("slug", slug).single()
   if (fetchErr) return NextResponse.json({ error: fetchErr.message }, { status: 500 })
 
@@ -93,7 +96,7 @@ export async function POST(req: NextRequest) {
     created_at: new Date().toISOString(),
   }
 
-  const { error: updateErr } = await masterDb()
+  const { error: updateErr } = await masterClient
     .from("tenants")
     .update({ drivers: [...drivers, newDriver] })
     .eq("slug", slug)
@@ -128,7 +131,12 @@ export async function PATCH(req: NextRequest) {
 
   if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 })
 
-  const { data: tenant, error: fetchErr } = await masterDb()
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) return NextResponse.json({ error: "Server config error" }, { status: 500 })
+  const masterClient = createClient(url, key)
+
+  const { data: tenant, error: fetchErr } = await masterClient
     .from("tenants").select("drivers").eq("slug", slug).single()
   if (fetchErr) return NextResponse.json({ error: fetchErr.message }, { status: 500 })
 
@@ -144,7 +152,7 @@ export async function PATCH(req: NextRequest) {
 
   drivers[idx] = updated
 
-  const { error: updateErr } = await masterDb()
+  const { error: updateErr } = await masterClient
     .from("tenants").update({ drivers }).eq("slug", slug)
   if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 })
 
@@ -164,14 +172,19 @@ export async function DELETE(req: NextRequest) {
   const id = searchParams.get("id")
   if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 })
 
-  const { data: tenant, error: fetchErr } = await masterDb()
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) return NextResponse.json({ error: "Server config error" }, { status: 500 })
+  const masterClient = createClient(url, key)
+
+  const { data: tenant, error: fetchErr } = await masterClient
     .from("tenants").select("drivers").eq("slug", slug).single()
   if (fetchErr) return NextResponse.json({ error: fetchErr.message }, { status: 500 })
 
   const drivers: Driver[] = Array.isArray(tenant?.drivers) ? tenant.drivers : []
   const filtered = drivers.filter(d => d.id !== id)
 
-  const { error: updateErr } = await masterDb()
+  const { error: updateErr } = await masterClient
     .from("tenants").update({ drivers: filtered }).eq("slug", slug)
   if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 })
 

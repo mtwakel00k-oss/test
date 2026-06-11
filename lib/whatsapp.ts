@@ -1,100 +1,55 @@
 import { createClient } from "@supabase/supabase-js"
 import { logger } from "@/lib/logger"
 
-const MASTER_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
-const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL
-const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY
+const EVOLUTION_URL      = (process.env.EVOLUTION_API_URL || "").replace(/\/$/, "")
+const EVOLUTION_KEY      = process.env.EVOLUTION_API_KEY  || ""
 const EVOLUTION_INSTANCE = process.env.EVOLUTION_INSTANCE || "burger-house"
 
 interface DriverRecord {
-  id: string; name: string; phone: string; token: string; is_active: boolean
+  id: string
+  name: string
+  phone: string
+  token: string
+  is_active: boolean
 }
 
-export async function sendDriverInteractive(
-  to: string,
-  bodyText: string,
-  orderId: string,
-  slug: string,
-): Promise<boolean> {
-  if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY) {
-    logger.warn("Evolution API not configured — skipping interactive")
+function formatPhone(raw: string): string {
+  const digits = raw.replace(/\D/g, "")
+  if (digits.startsWith("213")) return digits
+  if (digits.startsWith("0"))   return "213" + digits.slice(1)
+  return digits
+}
+
+export async function sendDriverWhatsApp(to: string, message: string): Promise<boolean> {
+  if (!EVOLUTION_URL || !EVOLUTION_KEY) {
+    logger.warn("EVOLUTION_API_URL or EVOLUTION_API_KEY not set — skipping WhatsApp")
     return false
   }
 
-  const number = to.replace(/[^0-9]/g, "")
-  const buttonId = `collect|${orderId}|${slug}`
+  const number = formatPhone(to)
+  const url    = `${EVOLUTION_URL}/message/sendText/${EVOLUTION_INSTANCE}`
+
+  logger.info("Evolution API → request", { url, number })
 
   try {
-    const res = await fetch(
-      `${EVOLUTION_API_URL}/message/sendButtons/${EVOLUTION_INSTANCE}`,
-      {
-        method: "POST",
-        headers: { apikey: EVOLUTION_API_KEY, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          number,
-          title: "💰 قبضت",
-          description: bodyText,
-          footer: "RestoOS",
-          buttons: [
-            { type: "reply", id: buttonId, text: "💰 قبضت" },
-          ],
-        }),
-      },
-    )
+    const res  = await fetch(url, {
+      method:  "POST",
+      headers: { "apikey": EVOLUTION_KEY, "Content-Type": "application/json" },
+      body:    JSON.stringify({ number, text: message }),
+    })
+
+    const body = await res.text()
+    logger.info("Evolution API ← response", { status: res.status, body })
 
     if (!res.ok) {
-      const err = await res.text()
-      logger.error("Evolution API sendButtons error", { status: res.status, error: err })
+      logger.error("Evolution API error", { status: res.status, body })
       return false
     }
 
-    logger.info("Interactive button WhatsApp sent to driver", { to })
+    logger.info("WhatsApp sent", { to: number })
     return true
   } catch (e) {
-    logger.error("Failed to send interactive WhatsApp", e)
-    return false
-  }
-}
-
-export async function sendDriverWhatsApp(
-  to: string,
-  message: string,
-): Promise<boolean> {
-  if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY) {
-    logger.warn("EVOLUTION_API_URL or EVOLUTION_API_KEY not set — skipping")
-    return false
-  }
-
-  try {
-    const number = to.replace(/[^0-9]/g, "")
-    const res = await fetch(
-      `${EVOLUTION_API_URL}/message/sendText/${EVOLUTION_INSTANCE}`,
-      {
-        method: "POST",
-        headers: {
-          apikey: EVOLUTION_API_KEY,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          number,
-          text: message,
-          delay: 0,
-        }),
-      },
-    )
-
-    if (!res.ok) {
-      const err = await res.text()
-      logger.error("Evolution API error", { status: res.status, error: err })
-      return false
-    }
-
-    logger.info("WhatsApp sent to driver via Evolution API", { to })
-    return true
-  } catch (e) {
-    logger.error("Failed to send WhatsApp via Evolution API", e)
+    logger.error("Evolution API fetch failed", e)
     return false
   }
 }
@@ -102,43 +57,49 @@ export async function sendDriverWhatsApp(
 export async function notifyDriverAssigned(
   slug: string,
   driverId: string,
-  orderId: string,
   orderNumber: string | number,
   total: number,
+  origin: string,
 ): Promise<void> {
   try {
-    if (!MASTER_URL || !SERVICE_KEY) return
+    if (!slug) { logger.warn("notifyDriverAssigned: no slug"); return }
 
-    const masterSb = createClient(MASTER_URL, SERVICE_KEY)
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!url || !key) { logger.warn("notifyDriverAssigned: missing env vars"); return }
+
+    const masterSb = createClient(url, key)
+
     const { data: tenant, error } = await masterSb
       .from("tenants")
-      .select("drivers, name")
+      .select("drivers")
       .eq("slug", slug)
-      .maybeSingle()
+      .single()
 
     if (error || !tenant) {
       logger.warn("notifyDriverAssigned: tenant not found", { slug, error })
       return
     }
 
-    const t = tenant as { drivers: DriverRecord[]; name: string }
-    const drivers: DriverRecord[] = t.drivers ?? []
-    const driver = drivers.find((d) => d.id === driverId && d.is_active)
-    if (!driver) {
-      logger.warn("notifyDriverAssigned: driver not found", { slug, driverId })
+    const drivers: DriverRecord[] = Array.isArray(tenant.drivers) ? tenant.drivers : []
+    const d = drivers.find((dr) => dr.id === driverId && dr.is_active)
+
+    if (!d) {
+      logger.warn("notifyDriverAssigned: driver not found in tenant drivers JSON", { slug, driverId })
       return
     }
-
+    const link   = `${origin}/${slug}/driver/${d.token}`
     const message = [
-      `🛵 *${driver.name}*`,
+      `🛵 *${d.name}*`,
       ``,
       `تم تعيينك لتوصيل الطلب رقم #${orderNumber}`,
       `المبلغ: ${total} د.ج`,
       ``,
-      `اضغط على زر "💰 قبضت" بعد استلام المبلغ`,
+      `رابط طلباتك:`,
+      link,
     ].join("\n")
 
-    await sendDriverInteractive(driver.phone, message, orderId, slug)
+    await sendDriverWhatsApp(d.phone, message)
   } catch (e) {
     logger.error("notifyDriverAssigned failed", e)
   }

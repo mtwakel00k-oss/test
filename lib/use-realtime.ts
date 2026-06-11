@@ -33,17 +33,22 @@ export function useRealtime(options: UseRealtimeOptions) {
   }, [])
 
   const stableOnPoll = useRef(options.onPoll)
+  const subscriptionsRef = useRef(subscriptions)
 
   useEffect(() => {
     stableOnPoll.current = options.onPoll
   })
 
   useEffect(() => {
+    subscriptionsRef.current = subscriptions
+  }, [subscriptions])
+
+  useEffect(() => {
     retriesRef.current = 0
 
     const channel = supabase().channel(channelName)
 
-    for (const sub of subscriptions) {
+    for (const sub of subscriptionsRef.current) {
       const event = sub.event || "*"
       channel.on(
         "postgres_changes",
@@ -80,7 +85,7 @@ export function useRealtime(options: UseRealtimeOptions) {
       supabase().removeChannel(channel)
       channelRef.current = null
     }
-  }, [channelName]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [channelName])
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 

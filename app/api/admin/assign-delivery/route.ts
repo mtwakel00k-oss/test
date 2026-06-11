@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabaseForRequest, isTenantMismatch, getTenantConfig } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
-import { sendDriverInteractive } from "@/lib/whatsapp"
+import { sendDriverWhatsApp } from "@/lib/whatsapp"
 
 export async function POST(req: NextRequest) {
   try {
@@ -81,11 +81,11 @@ export async function POST(req: NextRequest) {
       `اضغط على زر "💰 قبضت" بعد استلام المبلغ`,
     ].join("\n")
 
-    sendDriverInteractive(man.whatsapp_number, message, order_id, tenantSlug).then((sent) => {
+    sendDriverWhatsApp(man.whatsapp_number, message).then((sent: boolean) => {
       if (sent) {
-        logger.info("Interactive WhatsApp sent to delivery man", { id: delivery_man_id, order_id })
+        logger.info("WhatsApp sent to delivery man", { id: delivery_man_id, order_id })
       } else {
-        logger.warn("Interactive WhatsApp failed, delivery assigned anyway", { id: delivery_man_id, order_id })
+        logger.warn("WhatsApp failed, delivery assigned anyway", { id: delivery_man_id, order_id })
       }
     })
 

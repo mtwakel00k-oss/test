@@ -84,7 +84,7 @@ export async function GET(req: NextRequest) {
     if (slug) {
       const { data: driverOrders } = await sb.from("orders")
         .select("driver_id, total")
-        .eq("status", "out_for_delivery")
+        .in("status", ["completed", "out_for_delivery"])
         .gte("created_at", since)
         .not("driver_id", "is", null)
         .returns<{ driver_id: string; total: number }[]>()
@@ -114,7 +114,7 @@ export async function GET(req: NextRequest) {
       const cname = (o as OrderRow).cashier_name || cid
       const entry = cashierMap.get(cid) || { name: cname, orders: 0, revenue: 0 }
       entry.orders += 1
-      if (o.status === "out_for_delivery") entry.revenue += Number(o.total || 0)
+      if (o.status === "completed" || o.status === "out_for_delivery") entry.revenue += Number(o.total || 0)
       cashierMap.set(cid, entry)
     }
     const cashierStats = [...cashierMap.entries()]
@@ -146,10 +146,10 @@ async function handleRootDashboard(sb: SupabaseClient) {
   const { data: rawOrders } = await sb.from("orders").select("*").gte("created_at", twoMonthsAgo).limit(500).returns<OrderRow[]>()
   const orders = (rawOrders || [])
 
-  const thisMonth = orders.filter((o) => o.status === "out_for_delivery" && new Date(o.created_at) >= monthStart)
+  const thisMonth = orders.filter((o) => (o.status === "completed" || o.status === "out_for_delivery") && new Date(o.created_at) >= monthStart)
   const thisRev = thisMonth.reduce((s, o) => s + Number(o.total), 0)
   const lastMonth = orders.filter(
-    (o) => o.status === "out_for_delivery" && new Date(o.created_at) >= prevMonthStart && new Date(o.created_at) < monthStart,
+    (o) => (o.status === "completed" || o.status === "out_for_delivery") && new Date(o.created_at) >= prevMonthStart && new Date(o.created_at) < monthStart,
   )
   const lastRev = lastMonth.reduce((s, o) => s + Number(o.total), 0)
 
@@ -168,7 +168,7 @@ async function handleRootDashboard(sb: SupabaseClient) {
 
   const dailyMap = new Map<string, { revenue: number; orders: number }>()
   for (const o of orders) {
-    if (o.status !== "out_for_delivery") continue
+    if (o.status !== "completed" && o.status !== "out_for_delivery") continue
     const day = o.created_at?.slice(0, 10)
     if (!day) continue
     const entry = dailyMap.get(day) || { revenue: 0, orders: 0 }
