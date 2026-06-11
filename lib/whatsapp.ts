@@ -28,33 +28,29 @@ export async function sendDriverInteractive(
 
   try {
     const res = await fetch(
-      `${EVOLUTION_API_URL}/message/sendInteractive/${EVOLUTION_INSTANCE}`,
+      `${EVOLUTION_API_URL}/message/sendButtons/${EVOLUTION_INSTANCE}`,
       {
         method: "POST",
         headers: { apikey: EVOLUTION_API_KEY, "Content-Type": "application/json" },
         body: JSON.stringify({
           number,
-          options: { delay: 0, presence: "composing" },
-          interactive: {
-            type: "button",
-            body: { text: bodyText },
-            action: {
-              buttons: [
-                { type: "reply", reply: { id: buttonId, title: "💰 قبضت" } },
-              ],
-            },
-          },
+          title: "💰 قبضت",
+          description: bodyText,
+          footer: "RestoOS",
+          buttons: [
+            { type: "reply", id: buttonId, text: "💰 قبضت" },
+          ],
         }),
       },
     )
 
     if (!res.ok) {
       const err = await res.text()
-      logger.error("Evolution API interactive error", { status: res.status, error: err })
+      logger.error("Evolution API sendButtons error", { status: res.status, error: err })
       return false
     }
 
-    logger.info("Interactive WhatsApp sent to driver", { to })
+    logger.info("Interactive button WhatsApp sent to driver", { to })
     return true
   } catch (e) {
     logger.error("Failed to send interactive WhatsApp", e)
