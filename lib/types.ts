@@ -58,6 +58,8 @@ export interface Order {
   driver_lat?: number | null
   driver_lng?: number | null
   driver_location_updated_at?: string | null
+  driver_id?: string | null
+  restaurant_id?: string | null
   items?: OrderItem[]
 }
 

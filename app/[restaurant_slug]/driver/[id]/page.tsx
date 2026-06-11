@@ -36,6 +36,7 @@ export default function DriverPage() {
   const [delivering, setDelivering] = useState<string | null>(null)
   const [locationActive, setLocationActive] = useState(false)
   const watchIdRef = useRef<number | null>(null)
+  const lastSentRef = useRef<number>(0)
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -68,6 +69,9 @@ export default function DriverPage() {
     if (!navigator.geolocation) return
 
     const sendLocation = (lat: number, lng: number) => {
+      const now = Date.now()
+      if (now - lastSentRef.current < 10000) return
+      lastSentRef.current = now
       for (const order of activeOrders) {
         fetch(`/api/driver/${token}/location`, {
           method: "PATCH",

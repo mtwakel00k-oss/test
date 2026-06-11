@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useState, useMemo, useRef } from "react"
 import { use } from "react"
 import Link from "next/link"
 import dynamic from "next/dynamic"
@@ -14,7 +14,7 @@ import { OrderDetails } from "@/components/order-details"
 import RatingWidget from "@/components/RatingWidget"
 import { CheckCircle, Clock, ChefHat, Bike, Sparkles } from "lucide-react"
 
-const DriverMap = dynamic(() => import("@/components/driver-map"), { ssr: false })
+const LiveDriverMap = dynamic(() => import("@/components/live-driver-map"), { ssr: false })
 
 function OrderSkeleton() {
   return (
@@ -29,15 +29,6 @@ function OrderSkeleton() {
       </main>
     </div>
   )
-}
-
-function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 6371
-  const dLat = (lat2 - lat1) * Math.PI / 180
-  const dLng = (lng2 - lng1) * Math.PI / 180
-  const a = Math.sin(dLat / 2) ** 2
-    + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
 const STATUS_ICONS: Record<string, { icon: React.ReactNode; color: string; label: string }> = {
@@ -62,6 +53,8 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
   const [driverLat, setDriverLat] = useState<number | null>(null)
   const [driverLng, setDriverLng] = useState<number | null>(null)
   const [deliveryCoords, setDeliveryCoords] = useState<{ lat: number; lng: number } | null>(null)
+  const [hasLiveTracking, setHasLiveTracking] = useState(false)
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const planType = useMemo(() => {
     const config = readTenantConfig()
@@ -140,6 +133,18 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
         if (o.delivery_lat != null && o.delivery_lng != null) {
           setDeliveryCoords({ lat: o.delivery_lat, lng: o.delivery_lng })
         }
+        if (o.driver_lat != null && o.driver_lng != null) {
+          setDriverLat(Number(o.driver_lat))
+          setDriverLng(Number(o.driver_lng))
+        }
+
+        const trackingRes = await fetch(`/api/orders/${id}/tracking-access`, {
+          headers: { "x-tenant-slug": slug },
+        })
+        if (!cancelled && trackingRes.ok) {
+          const trackingData = await trackingRes.json()
+          setHasLiveTracking(trackingData.hasLiveTracking === true)
+        }
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e)
         logger.error(`[OrderTracking] Network/parse error for order ${id}`, { error: msg })
@@ -155,7 +160,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
   }, [id, slug, t])
 
   useEffect(() => {
-    if (!isElite) return
+    if (!hasLiveTracking) return
 
     const sub = supabase().channel(`order:${id}`)
       .on("postgres_changes" as any,
@@ -177,7 +182,26 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
       )
       .subscribe()
     return () => { supabase().removeChannel(sub) }
-  }, [id, isElite])
+  }, [id, hasLiveTracking])
+
+  useEffect(() => {
+    if (!hasLiveTracking) return
+    if (pollingRef.current) clearInterval(pollingRef.current)
+    pollingRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/orders/${id}?public=true`, {
+          headers: { "x-tenant-slug": slug },
+        })
+        if (!res.ok) return
+        const o: Order = await res.json()
+        if (o.driver_lat != null && o.driver_lng != null) {
+          setDriverLat(Number(o.driver_lat))
+          setDriverLng(Number(o.driver_lng))
+        }
+      } catch {}
+    }, 8000)
+    return () => { if (pollingRef.current) clearInterval(pollingRef.current) }
+  }, [id, slug, hasLiveTracking])
 
   const getStage = (status: string, orderType: string): number => {
     if (orderType === "delivery") {
@@ -215,11 +239,6 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
   const isReady = order.status === "ready" || isOutForDelivery || order.status === "completed"
   const statusInfo = STATUS_ICONS[order.status] || STATUS_ICONS.pending
 
-  const distance = isElite && driverLat != null && driverLng != null && deliveryCoords
-    ? haversineKm(driverLat, driverLng, deliveryCoords.lat, deliveryCoords.lng)
-    : null
-  const estimatedMin = distance != null ? Math.round(distance / 30 * 60) : null
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white" dir={dir}>
       <main className="w-full max-w-md mx-auto px-4 py-6 space-y-5">
@@ -238,44 +257,17 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
           </p>
         </div>
 
-        {isOutForDelivery && isElite && (
-          <div className="rounded-2xl bg-gradient-to-br from-violet-500/10 to-purple-500/5 border border-violet-500/20 overflow-hidden shadow-xl shadow-violet-500/5">
-            <div className="p-5">
-              <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-violet-500/20">
-                  <span className="text-3xl animate-bounce">🛵</span>
-                </div>
-                <div>
-                  <p className="text-lg font-bold text-white">{t("track.outForDelivery")}</p>
-                  <p className="text-sm text-violet-300/70">{t("track.outForDeliverySub")}</p>
-                </div>
-              </div>
-              {distance != null && estimatedMin != null && (
-                <div className="mt-4 flex items-center gap-4 text-xs bg-violet-500/10 border border-violet-500/10 rounded-xl px-4 py-3">
-                  <span className="text-violet-300">
-                    📍 {t("track.distance")}: <strong className="text-white">{distance < 1 ? `${Math.round(distance * 1000)} m` : `${distance.toFixed(1)} ${t("track.km")}`}</strong>
-                  </span>
-                  <span className="w-px h-5 bg-violet-500/20" />
-                  <span className="text-violet-300">
-                    ⏱ {t("track.estimatedTime")}: <strong className="text-white">≈{estimatedMin} {t("track.min")}</strong>
-                  </span>
-                </div>
-              )}
-            </div>
-            {driverLat != null && driverLng != null && deliveryCoords && (
-              <div className="w-full border-t border-violet-500/10" style={{ height: "260px" }}>
-                <DriverMap
-                  driverLat={driverLat}
-                  driverLng={driverLng}
-                  customerLat={deliveryCoords.lat}
-                  customerLng={deliveryCoords.lng}
-                />
-              </div>
-            )}
-          </div>
+        {isOutForDelivery && hasLiveTracking && (
+          <LiveDriverMap
+            driverLat={driverLat}
+            driverLng={driverLng}
+            customerLat={deliveryCoords?.lat ?? null}
+            customerLng={deliveryCoords?.lng ?? null}
+            lastUpdated={order.driver_location_updated_at ?? null}
+          />
         )}
 
-        {isOutForDelivery && isPro && (
+        {isOutForDelivery && !hasLiveTracking && isElite && (
           <div className="rounded-2xl bg-gradient-to-br from-violet-500/10 to-purple-500/5 border border-violet-500/20 p-5 text-center">
             <div className="flex items-center justify-center gap-3 mb-2">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-500/20">
@@ -286,7 +278,22 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
                 <p className="text-xs text-violet-300/70">{t("track.outForDeliverySub")}</p>
               </div>
             </div>
-            <p className="text-xs text-zinc-500 mt-3">Live GPS tracking available on the Elite plan</p>
+            <p className="text-xs text-zinc-500 mt-3">جاري تحميل التتبع المباشر...</p>
+          </div>
+        )}
+
+        {isOutForDelivery && !hasLiveTracking && (isPro || (!isElite && !isPro)) && (
+          <div className="rounded-2xl bg-gradient-to-br from-violet-500/10 to-purple-500/5 border border-violet-500/20 p-5 text-center">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-500/20">
+                <span className="text-2xl">🛵</span>
+              </div>
+              <div className="text-left">
+                <p className="text-base font-bold text-white">{t("track.outForDelivery")}</p>
+                <p className="text-xs text-violet-300/70">{t("track.outForDeliverySub")}</p>
+              </div>
+            </div>
+            {isPro && <p className="text-xs text-zinc-500 mt-3">Live GPS tracking available on the Elite plan</p>}
           </div>
         )}
 
