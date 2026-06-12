@@ -3,7 +3,7 @@ export function getRoleFromUser(user: { user_metadata?: { role?: string } } | nu
 }
 
 const ROUTE_ROLES: Record<string, string[]> = {
-  "pos": ["cashier", "admin"],
+  "pos": ["cashier", "admin", "owner"],
   "kitchen": ["chef", "admin"],
   "admin": ["admin", "owner"],
 }

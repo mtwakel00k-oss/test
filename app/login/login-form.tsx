@@ -11,8 +11,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "@/hooks/use-toast"
 
-type PageRole = "admin" | "owner"
-const ROLE_PAGE: Record<PageRole, string> = { admin: "admin", owner: "admin" }
+type PageRole = "cashier" | "chef" | "admin" | "owner"
+const ROLE_PAGE: Record<PageRole, string> = { cashier: "pos", chef: "kitchen", admin: "admin", owner: "admin" }
 
 interface TenantItem {
   slug: string
@@ -20,7 +20,7 @@ interface TenantItem {
 }
 
 export default function LoginForm({ redirect: redirectProp, slug: slugProp, tenants }: { redirect?: string; slug?: string; tenants?: TenantItem[] }) {
-  const [page, setPage] = useState<PageRole>("admin")
+  const [page, setPage] = useState<PageRole>(slugProp ? "cashier" : "admin")
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -30,6 +30,8 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
   const { t } = useTranslation()
 
   const ROLE_LABELS: Record<PageRole, { icon: string; label: string }> = {
+    cashier: { icon: "💳", label: t("login.cashier") },
+    chef: { icon: "👨‍🍳", label: t("login.chef") },
     admin: { icon: "⚙️", label: t("login.admin") },
     owner: { icon: "👑", label: t("login.owner") },
   }
@@ -74,7 +76,7 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
     } finally { setLoading(false) }
   }
 
-  const visibleRoles: PageRole[] = slugProp ? ["admin"] : ["admin", "owner"]
+  const visibleRoles: PageRole[] = slugProp ? ["cashier", "chef", "admin"] : ["admin", "owner"]
   const tabs = visibleRoles.map((key) => ({ key, ...ROLE_LABELS[key] }))
   const activeRole = ROLE_LABELS[page]
 
