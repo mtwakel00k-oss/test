@@ -288,16 +288,21 @@ export default function POSPage() {
     }
   }, [orders])
 
-  const handleComplete = useCallback(async (orderId: string | number, paid: number, change: number, onError: () => void) => {
+  const handleComplete = useCallback(async (orderId: string | number, paid: number, change: number, onError: () => void, driverId?: string | null) => {
     const prevStatus = orders.find(o => o.id === orderId)?.status
     const order = orders.find(o => o.id === orderId)
     const isDelivery = order?.orderType === "delivery"
+    if (isDelivery && !driverId) {
+      toast({ title: "يرجى اختيار سائق", variant: "destructive" })
+      onError()
+      return
+    }
     const dbStatus = POS_STATUS_TO_DB[isDelivery ? "out_for_delivery" : "completed"]
     setOrders(p => p.map(o => o.id === orderId
-      ? { ...o, status: isDelivery ? "out_for_delivery" : "completed", ...(isDelivery ? {} : { paymentStatus: "paid" as const }) }
+      ? { ...o, status: isDelivery ? "out_for_delivery" : "completed", ...(isDelivery ? {} : { paymentStatus: "paid" as const }), driverId: driverId ?? o.driverId }
       : o))
     setSelectedOrder(p => p?.id === orderId
-      ? { ...p, status: isDelivery ? "out_for_delivery" : "completed", ...(isDelivery ? {} : { paymentStatus: "paid" as const }) }
+      ? { ...p, status: isDelivery ? "out_for_delivery" : "completed", ...(isDelivery ? {} : { paymentStatus: "paid" as const }), driverId: driverId ?? p?.driverId }
       : p)
     const res = await fetchApi(`/api/orders/${orderId}`, {
       method: "PATCH",
@@ -305,6 +310,7 @@ export default function POSPage() {
       body: JSON.stringify({
         status: dbStatus,
         ...(isDelivery ? {} : { payment_status: "paid" }),
+        ...(isDelivery && driverId ? { driver_id: driverId } : {}),
       }),
     })
     if (!res.ok) {
@@ -674,7 +680,7 @@ export default function POSPage() {
               </div>
 
               {showCheckout ? (
-                <CheckoutPanel order={selectedOrder} onClose={() => setShowCheckout(false)} onComplete={handleComplete} hasDriverAssigned={!!selectedOrder.driverId} />
+                <CheckoutPanel order={selectedOrder} onClose={() => setShowCheckout(false)} onComplete={handleComplete} hasDriverAssigned={!!selectedOrder.driverId} drivers={allDrivers} />
               ) : showReceipt && receiptData ? (
                 <div id="receipt" className="flex-1 overflow-y-auto p-4 space-y-3">
                   <div className="text-center pb-3 border-b border-border">

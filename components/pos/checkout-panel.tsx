@@ -8,16 +8,18 @@ import { useTranslation } from "@/lib/use-translation"
 interface CheckoutPanelProps {
   order: PosOrder
   onClose: () => void
-  onComplete: (orderId: string | number, paid: number, change: number, onError: () => void) => void
+  onComplete: (orderId: string | number, paid: number, change: number, onError: () => void, driverId?: string | null) => void
   hasDriverAssigned?: boolean
+  drivers?: { id: string; name: string; phone: string; isBusy: boolean }[]
 }
 
 const fmt = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
-export function CheckoutPanel({ order, onClose, onComplete, hasDriverAssigned = true }: CheckoutPanelProps) {
+export function CheckoutPanel({ order, onClose, onComplete, hasDriverAssigned = true, drivers = [] }: CheckoutPanelProps) {
   const { t, lang } = useTranslation()
   const [cashReceived, setCashReceived] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
+  const [selectedDriverId, setSelectedDriverId] = useState<string | null>(order.driverId ?? null)
   const cur = lang === "ar" ? "د.ج" : "DA"
 
   const isAlreadyPaid = order.paymentStatus === "paid"
@@ -48,12 +50,20 @@ export function CheckoutPanel({ order, onClose, onComplete, hasDriverAssigned = 
     onComplete(order.id, cashAmount, change, () => setIsProcessing(false))
   }, [canComplete, onComplete, order.id, cashAmount, change])
 
+  const handleDeliveryConfirm = useCallback(() => {
+    setIsProcessing(true)
+    onComplete(order.id, order.total, 0, () => setIsProcessing(false), selectedDriverId)
+  }, [onComplete, order.id, order.total, selectedDriverId])
+
   const quickAmounts = [
     Math.ceil(order.total / 5) * 5,
     Math.ceil(order.total / 10) * 10,
     Math.ceil(order.total / 20) * 20,
     100,
   ].filter((v, i, a) => a.indexOf(v) === i).slice(0, 4)
+
+  const availableDrivers = drivers.filter(d => !d.isBusy)
+  const canConfirmDelivery = selectedDriverId && !isProcessing
 
   return (
     <div className="flex flex-col h-full bg-card">
@@ -80,24 +90,64 @@ export function CheckoutPanel({ order, onClose, onComplete, hasDriverAssigned = 
       </div>
 
       {order.orderType === "delivery" ? (
-        <div className="flex flex-col items-center justify-center flex-1 gap-4 p-6 text-center">
-          <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/5">
-            <span className="text-3xl">💵</span>
-          </div>
-          <div>
+        <div className="flex flex-col flex-1 gap-4 p-6 overflow-y-auto">
+          <div className="text-center space-y-2">
+            <div className="flex items-center justify-center w-16 h-16 mx-auto rounded-2xl bg-primary/5">
+              <span className="text-3xl">💵</span>
+            </div>
             <p className="text-base font-bold text-foreground">{t("pos.cashOnDelivery")}</p>
-            <p className="mt-2 text-2xl font-black text-primary tabular-nums">{order.total.toLocaleString()} {cur}</p>
-            <p className="mt-2 text-xs text-muted-foreground max-w-xs">{t("pos.deliveryNote")}</p>
+            <p className="text-2xl font-black text-primary tabular-nums">{order.total.toLocaleString()} {cur}</p>
+            <p className="text-xs text-muted-foreground">{t("pos.deliveryNote")}</p>
           </div>
-          {!hasDriverAssigned && (
-            <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/30 text-amber-700 dark:text-amber-300 text-sm w-full max-w-xs animate-fade-in">
-              <span className="text-lg shrink-0">⚠️</span>
-              <span className="leading-relaxed">لم يُعيَّن سائق بعد</span>
+
+          {drivers.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">اختر السائق</p>
+              <div className="grid gap-2 max-h-48 overflow-y-auto pe-1">
+                {drivers.map(driver => (
+                  <button key={driver.id} onClick={() => { if (!driver.isBusy) setSelectedDriverId(driver.id) }}
+                    disabled={driver.isBusy}
+                    className={cn(
+                      "flex items-center gap-3 w-full rounded-xl border px-3.5 py-3 text-right transition-all",
+                      selectedDriverId === driver.id
+                        ? "border-primary/40 bg-primary/5 shadow-sm ring-1 ring-primary/20"
+                        : driver.isBusy
+                          ? "border-border/30 bg-muted/20 opacity-60 cursor-not-allowed"
+                          : "border-border/50 bg-card hover:border-border hover:bg-muted/30"
+                    )}>
+                    <div className={cn(
+                      "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-bold",
+                      driver.isBusy ? "bg-rose-500/10 text-rose-500" : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                    )}>
+                      {driver.name.charAt(0)}
+                    </div>
+                    <div className="flex-1 min-w-0 text-right">
+                      <p className="text-sm font-medium text-foreground">{driver.name}</p>
+                      <p className="text-[11px] text-muted-foreground font-mono dir-ltr text-left">{driver.phone}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className={cn("w-2 h-2 rounded-full", driver.isBusy ? "bg-rose-500" : "bg-emerald-500")} />
+                      <span className="text-[11px] font-semibold whitespace-nowrap"
+                        style={{ color: driver.isBusy ? "oklch(0.64 0.23 25)" : "oklch(0.55 0.18 145)" }}>
+                        {driver.isBusy ? "مشغول" : "متاح"}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
-          <button onClick={() => { setIsProcessing(true); onComplete(order.id, order.total, 0, () => setIsProcessing(false)) }}
-            disabled={isProcessing}
-            className="w-full max-w-xs rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white py-3.5 text-sm font-bold hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]">
+
+          {drivers.length === 0 && !hasDriverAssigned && (
+            <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/30 text-amber-700 dark:text-amber-300 text-sm w-full animate-fade-in">
+              <span className="text-lg shrink-0">⚠️</span>
+              <span className="leading-relaxed">لا يوجد سائقون متاحون — أضف من الإعدادات</span>
+            </div>
+          )}
+
+          <button onClick={handleDeliveryConfirm}
+            disabled={!canConfirmDelivery}
+            className="w-full rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white py-3.5 text-sm font-bold hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]">
             {isProcessing ? (
               <span className="flex items-center justify-center gap-2">
                 <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
