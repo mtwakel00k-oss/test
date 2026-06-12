@@ -110,13 +110,21 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       const { error: delErr } = await sb.from("order_items").delete().eq("order_id", id)
       if (delErr) throw new Error(delErr.message || JSON.stringify(delErr))
       if (items.length > 0) {
+        const prodIds = [...new Set(items.map((i: { product_id: number }) => i.product_id))] as number[]
+        const { data: existingProds } = await (sb.from("produits")).select("id").in("id", prodIds)
+        const existingSet = new Set((existingProds || []).map((r: { id: number }) => r.id))
+        const missing = prodIds.filter((id: number) => !existingSet.has(id))
+        if (missing.length > 0) {
+          logger.error("PATCH items: product_ids missing from tenant's produits table", { orderId: id, missing })
+          throw new Error(`23503: Foreign key violation — products [${missing.join(", ")}] do not exist`)
+        }
         const { error: insErr } = await sb.from("order_items").insert(
           items.map((i: { product_id: number; product_name: string; size: string; sauce: number | null; quantity: number; unit_price: number }) => ({
             order_id: id,
             product_id: i.product_id,
             product_name: i.product_name,
             size: i.size,
-            sauce: i.sauce,
+            sauce: i.sauce != null ? String(i.sauce) : null,
             quantity: i.quantity,
             unit_price: i.unit_price,
             subtotal: i.unit_price * i.quantity,

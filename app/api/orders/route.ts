@@ -242,20 +242,27 @@ export async function POST(req: NextRequest) {
       throw new Error("Order was inserted but could not be read back (RLS or replication delay)")
     }
 
+    // ── Validate product_ids exist in tenant ────────────
+    const prodIds = [...new Set(items.map((i: { product_id: number }) => i.product_id))] as number[]
+    const { data: existingProds } = await (sb.from("produits")).select("id").in("id", prodIds)
+    const existingSet = new Set((existingProds || []).map((r: { id: number }) => r.id))
+    const missing = prodIds.filter((id: number) => !existingSet.has(id))
+    if (missing.length > 0) {
+      logger.error("FK violation would occur: product_ids missing from tenant's produits table", { missing })
+      throw new Error(`23503: Foreign key violation — products [${missing.join(", ")}] do not exist in tenant database. These IDs may be stale from localStorage or the produits table was re-seeded.`)
+    }
+
     // ── Insert items ────────────────────────────────────
     const orderItems = items.map((i: { product_id: number; product_name: string; size: string; sauce: number | null; quantity: number; unit_price: number }) => ({
       order_id: order.id,
       product_id: i.product_id,
       product_name: i.product_name,
       size: i.size,
-      sauce: i.sauce,
+      sauce: i.sauce != null ? String(i.sauce) : null,
       quantity: i.quantity,
       unit_price: i.unit_price,
       subtotal: i.unit_price * i.quantity,
     }))
-
-    const { error: ie } = await (sb.from("order_items")).insert(orderItems)
-    if (ie) throw new Error(classifyPgError(ie.message || JSON.stringify(ie)))
 
     const elapsed = Date.now() - startTime
     logger.info("Order created", { id: order.id, total, orderNumber, elapsedMs: elapsed })
