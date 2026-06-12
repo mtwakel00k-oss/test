@@ -4,6 +4,7 @@ import { useState, useCallback } from "react"
 import type { PosOrder } from "@/lib/pos-types"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/lib/use-translation"
+import { toast } from "@/hooks/use-toast"
 
 interface CheckoutPanelProps {
   order: PosOrder
@@ -51,6 +52,10 @@ export function CheckoutPanel({ order, onClose, onComplete, hasDriverAssigned = 
   }, [canComplete, onComplete, order.id, cashAmount, change])
 
   const handleDeliveryConfirm = useCallback(() => {
+    if (!selectedDriverId) {
+      toast({ title: "يرجى اختيار سائق", variant: "destructive" })
+      return
+    }
     setIsProcessing(true)
     onComplete(order.id, order.total, 0, () => setIsProcessing(false), selectedDriverId)
   }, [onComplete, order.id, order.total, selectedDriverId])
@@ -63,7 +68,6 @@ export function CheckoutPanel({ order, onClose, onComplete, hasDriverAssigned = 
   ].filter((v, i, a) => a.indexOf(v) === i).slice(0, 4)
 
   const availableDrivers = drivers.filter(d => !d.isBusy)
-  const canConfirmDelivery = selectedDriverId && !isProcessing
 
   return (
     <div className="flex flex-col h-full bg-card">
@@ -146,7 +150,7 @@ export function CheckoutPanel({ order, onClose, onComplete, hasDriverAssigned = 
           )}
 
           <button onClick={handleDeliveryConfirm}
-            disabled={!canConfirmDelivery}
+            disabled={isProcessing}
             className="w-full rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white py-3.5 text-sm font-bold hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]">
             {isProcessing ? (
               <span className="flex items-center justify-center gap-2">
