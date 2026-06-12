@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { getAllowedRolesForRoute, extractSlug } from '@/lib/auth-server'
+import { decryptSession, encryptSession } from '@/lib/session-crypto'
+import { logger } from '@/lib/logger'
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -38,6 +40,10 @@ const PROTECTED_ROUTES = new Set(["admin", "pos", "kitchen"])
 function parseSession(cookie?: string): Session | null {
   if (!cookie) return null
   try {
+    const decrypted = decryptSession(cookie)
+    if (decrypted) return decrypted
+  } catch {}
+  try {
     return JSON.parse(cookie)
   } catch {
     return null
@@ -56,10 +62,34 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
 
+  const SECURE = process.env.NODE_ENV === 'production'
+  const hasEncryptionKey = !!process.env.SESSION_ENCRYPTION_KEY
+
   function securedNext() {
     const reqH = new Headers(request.headers)
     reqH.set('x-nonce', nonce)
+
+    const rawCookie = request.cookies.get('session')?.value
+    const isPlaintext = rawCookie?.startsWith('{')
+
     const res = NextResponse.next({ request: { headers: reqH } })
+
+    // Auto-migrate plaintext session cookie to encrypted format
+    if (isPlaintext && hasEncryptionKey && rawCookie) {
+      try {
+        const session = JSON.parse(rawCookie)
+        if (session.role) {
+          res.cookies.set('session', encryptSession(session), {
+            httpOnly: true,
+            secure: SECURE,
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 24 * 7,
+            path: '/',
+          })
+        }
+      } catch {}
+    }
+
     addSecurityHeaders(res, nonce)
     return res
   }

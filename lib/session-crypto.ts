@@ -4,11 +4,11 @@ const ALGORITHM = "aes-256-gcm"
 const IV_LENGTH = 16
 const TAG_LENGTH = 16
 
-function getKey(): Buffer {
+function getKey(): Buffer | null {
   const raw = process.env.SESSION_ENCRYPTION_KEY
-  if (!raw) throw new Error("SESSION_ENCRYPTION_KEY env var not set")
+  if (!raw) return null
   const key = Buffer.from(raw, "hex")
-  if (key.length !== 32) throw new Error("SESSION_ENCRYPTION_KEY must be 32 bytes (64 hex chars)")
+  if (key.length !== 32) return null
   return key
 }
 
@@ -20,6 +20,7 @@ export interface SessionData {
 
 export function encryptSession(data: SessionData): string {
   const key = getKey()
+  if (!key) return JSON.stringify(data)
   const iv = randomBytes(IV_LENGTH)
   const cipher = createCipheriv(ALGORITHM, key, iv)
   const plain = Buffer.from(JSON.stringify(data), "utf-8")
@@ -29,8 +30,9 @@ export function encryptSession(data: SessionData): string {
 }
 
 export function decryptSession(token: string): SessionData | null {
+  const key = getKey()
+  if (!key) return null
   try {
-    const key = getKey()
     const raw = Buffer.from(token, "base64url")
     const iv = raw.subarray(0, IV_LENGTH)
     const tag = raw.subarray(IV_LENGTH, IV_LENGTH + TAG_LENGTH)
