@@ -49,6 +49,7 @@ export default function AdminPage() {
   const currency = lang === "ar" ? "د.ج" : "DA"
 
   const [period, setPeriod] = useState<Period>("30d")
+  const [loadingStats, setLoadingStats] = useState(true)
   const [totalRevenue, setTotalRevenue] = useState(0)
   const [totalOrders, setTotalOrders] = useState(0)
   const [avgOrderValue, setAvgOrderValue] = useState(0)
@@ -90,11 +91,12 @@ export default function AdminPage() {
   }
 
   const fetchStats = useCallback(async () => {
+    setLoadingStats(true)
     try {
       const res = await fetchApi(`/api/admin/stats?period=${period}`)
       if (!res.ok) return null
       return await res.json()
-    } catch { return null }
+    } catch { return null } finally { setLoadingStats(false) }
   }, [period])
 
   useEffect(() => { fetchStats().then(setStatsFromResult) }, [fetchStats])
@@ -150,11 +152,28 @@ export default function AdminPage() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-          <StatCard icon={<DollarSign className="w-4 h-4" />} title={t("admin.totalRevenue")} value={`${fmtNum(totalRevenue)} ${currency}`} change={0} trend="up" />
-          <StatCard icon={<ShoppingBag className="w-4 h-4" />} title={t("admin.totalOrders")} value={totalOrders.toString()} change={0} trend="up" />
-          <StatCard icon={<TrendingUp className="w-4 h-4" />} title={t("admin.avgOrder")} value={`${fmtNum(avgOrderValue)} ${currency}`} change={0} trend="up" />
-          <StatCard icon={<Star className="w-4 h-4" />} title={t("admin.avgRating")} value={avgRating.toFixed(1)} change={0} trend="up" />
-          <StatCard icon={<CalendarClock className="w-4 h-4" />} title={t("admin.dailyRevenue")} value={`${fmtNum(dailyRevenue)} ${currency}`} change={0} trend="up" />
+          {loadingStats ? (
+            <>
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="bg-card border border-border rounded-xl p-4 space-y-3 animate-pulse">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-muted" />
+                    <div className="h-3 w-20 rounded bg-muted" />
+                  </div>
+                  <div className="h-6 w-28 rounded bg-muted" />
+                  <div className="h-3 w-16 rounded bg-muted/60" />
+                </div>
+              ))}
+            </>
+          ) : (
+            <>
+              <StatCard icon={<DollarSign className="w-4 h-4" />} title={t("admin.totalRevenue")} value={`${fmtNum(totalRevenue)} ${currency}`} change={0} trend="up" />
+              <StatCard icon={<ShoppingBag className="w-4 h-4" />} title={t("admin.totalOrders")} value={totalOrders.toString()} change={0} trend="up" />
+              <StatCard icon={<TrendingUp className="w-4 h-4" />} title={t("admin.avgOrder")} value={`${fmtNum(avgOrderValue)} ${currency}`} change={0} trend="up" />
+              <StatCard icon={<Star className="w-4 h-4" />} title={t("admin.avgRating")} value={avgRating.toFixed(1)} change={0} trend="up" />
+              <StatCard icon={<CalendarClock className="w-4 h-4" />} title={t("admin.dailyRevenue")} value={`${fmtNum(dailyRevenue)} ${currency}`} change={0} trend="up" />
+            </>
+          )}
         </div>
 
         {driverStats.length > 0 && (

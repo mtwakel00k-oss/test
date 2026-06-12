@@ -9,11 +9,12 @@ interface CheckoutPanelProps {
   order: PosOrder
   onClose: () => void
   onComplete: (orderId: string | number, paid: number, change: number, onError: () => void) => void
+  hasDriverAssigned?: boolean
 }
 
 const fmt = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
-export function CheckoutPanel({ order, onClose, onComplete }: CheckoutPanelProps) {
+export function CheckoutPanel({ order, onClose, onComplete, hasDriverAssigned = true }: CheckoutPanelProps) {
   const { t, lang } = useTranslation()
   const [cashReceived, setCashReceived] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
@@ -88,18 +89,29 @@ export function CheckoutPanel({ order, onClose, onComplete }: CheckoutPanelProps
             <p className="mt-2 text-2xl font-black text-primary tabular-nums">{order.total.toLocaleString()} {cur}</p>
             <p className="mt-2 text-xs text-muted-foreground max-w-xs">{t("pos.deliveryNote")}</p>
           </div>
-          <button onClick={() => onComplete(order.id, order.total, 0, () => {})}
+          {!hasDriverAssigned && (
+            <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/30 text-amber-700 dark:text-amber-300 text-sm w-full max-w-xs animate-fade-in">
+              <span className="text-lg shrink-0">⚠️</span>
+              <span className="leading-relaxed">لم يُعيَّن سائق بعد</span>
+            </div>
+          )}
+          <button onClick={() => { setIsProcessing(true); onComplete(order.id, order.total, 0, () => setIsProcessing(false)) }}
             disabled={isProcessing}
-            className="w-full max-w-xs btn-primary py-3">
+            className="w-full max-w-xs rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white py-3.5 text-sm font-bold hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]">
             {isProcessing ? (
-              <span className="flex items-center gap-2">
+              <span className="flex items-center justify-center gap-2">
                 <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
                 {t("common.processing")}
               </span>
-            ) : t("pos.confirmDelivery")}
+            ) : (
+              <span className="flex items-center justify-center gap-2">
+                <span>✅</span>
+                {t("pos.confirmDelivery")}
+              </span>
+            )}
           </button>
         </div>
       ) : (
@@ -167,7 +179,7 @@ export function CheckoutPanel({ order, onClose, onComplete }: CheckoutPanelProps
               </button>
               <button onClick={handleComplete} disabled={!canComplete || isProcessing}
                 className={cn("h-11 rounded-lg text-sm font-semibold transition-all active:scale-95",
-                  !canComplete || isProcessing ? "bg-muted text-muted-foreground cursor-not-allowed" : "btn-primary")}>
+                  !canComplete || isProcessing ? "bg-muted text-muted-foreground cursor-not-allowed" : "bg-primary text-primary-foreground hover:brightness-110")}>
                 {isProcessing ? (
                   <span className="flex items-center justify-center gap-1.5">
                     <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">

@@ -227,20 +227,40 @@ html[data-locale="fr"] body {
   animation: skeleton-pulse 1.5s ease-in-out infinite;
 }
 
-@keyframes deliveryBounce {
-  0%,100% { transform: translateY(0) rotate(-3deg); }
-  50% { transform: translateY(-10px) rotate(3deg); }
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
-@media print {
-  body * { visibility: hidden; }
-  #receipt-print, #receipt-print * { visibility: visible; }
-  #receipt-print {
-    position: fixed; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    background: white; color: black;
-  }
-  @page { margin: 0; size: 80mm auto; }
+.focus-ring {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+}
+
+@keyframes border-pulse {
+  0%, 100% { border-color: oklch(0.62 0.18 145 / 0.3); }
+  50% { border-color: oklch(0.62 0.18 145 / 0.6); }
+}
+.animate-border-pulse {
+  animation: border-pulse 2s ease-in-out infinite;
+}
+
+@keyframes sidebar-slide-in {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+.animate-sidebar-slide-in {
+  animation: sidebar-slide-in 0.25s ease-out both;
+}
+
+@keyframes badge-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(0.62 0.18 145 / 0.4); }
+  50% { box-shadow: 0 0 0 6px oklch(0.62 0.18 145 / 0); }
+}
+.animate-badge-pulse {
+  animation: badge-pulse 2s ease-in-out infinite;
 }
 
 .glass {

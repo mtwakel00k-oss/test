@@ -46,10 +46,29 @@ export async function GET(req: NextRequest) {
   }
 
   const drivers: Driver[] = Array.isArray(data?.drivers) ? data.drivers : []
-  if (session.role === "cashier") {
-    return NextResponse.json(drivers.map(({ token: _t, ...d }) => d))
+
+  // Check busy status from active orders
+  let busyIds = new Set<string>()
+  try {
+    const { data: busyDrivers } = await masterClient
+      .from("orders")
+      .select("driver_id")
+      .eq("status", "out_for_delivery")
+      .not("driver_id", "is", null)
+    busyIds = new Set((busyDrivers || []).map((o: { driver_id: string }) => o.driver_id))
+  } catch {
+    logger.warn("Drivers GET: could not query busy status")
   }
-  return NextResponse.json(drivers)
+
+  const driversWithStatus = drivers.map(d => ({
+    ...d,
+    is_busy: busyIds.has(d.id),
+  }))
+
+  if (session.role === "cashier") {
+    return NextResponse.json(driversWithStatus.map(({ token: _t, ...d }) => d))
+  }
+  return NextResponse.json(driversWithStatus)
 }
 
 export async function POST(req: NextRequest) {

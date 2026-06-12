@@ -130,6 +130,7 @@ export const T: Dict = {
   "kitchen.preparingOrders": { ar: "قيد التحضير", en: "In Preparation", fr: "En préparation" },
   "kitchen.orderHash": { ar: "طلب #", en: "Order #", fr: "Commande #" },
   "kitchen.posLink": { ar: "نقطة البيع", en: "Point of Sale", fr: "Point de vente" },
+  "kitchen.nextUp": { ar: "التالي", en: "Next Up", fr: "Suivant" },
 
   // ── Time ───────────────────────────────────────────
   "time.justNow": { ar: "الآن", en: "Just now", fr: "Maintenant" },

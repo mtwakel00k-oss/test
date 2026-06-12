@@ -50,7 +50,7 @@ interface RawOrderItem {
 }
 
 const ACTIVE_STATUSES = ["pending", "preparing"]
-const TERMINAL_STATUSES = ["completed", "delivered", "cancelled"]
+const TERMINAL_STATUSES = ["completed", "cancelled"]
 
 export default function KitchenPage() {
   const slug = useSlug()
@@ -212,22 +212,22 @@ export default function KitchenPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center gap-3">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                <Bell className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-                <span className="text-sm text-white/70">
-                  <span className="font-bold text-amber-400">{pendingOrders.length}</span>
-                  <span className="hidden lg:inline"> {t("kitchen.new")}</span>
-                </span>
+              <div className="hidden md:flex items-center gap-3">
+                <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 shadow-sm shadow-amber-500/5">
+                  <Bell className="w-4 h-4 text-amber-400 animate-pulse" />
+                  <span className="text-sm text-white/70">
+                    <span className="font-bold text-amber-400 text-base">{pendingOrders.length}</span>
+                    <span className="hidden lg:inline"> {t("kitchen.new")}</span>
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-500/10 border border-sky-500/20 shadow-sm shadow-sky-500/5">
+                  <Timer className="w-4 h-4 text-sky-400" />
+                  <span className="text-sm text-white/70">
+                    <span className="font-bold text-sky-400 text-base">{preparingOrders.length}</span>
+                    <span className="hidden lg:inline"> {t("kitchen.preparing")}</span>
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-sky-500/10 border border-sky-500/20">
-                <Timer className="w-3.5 h-3.5 text-sky-400" />
-                <span className="text-sm text-white/70">
-                  <span className="font-bold text-sky-400">{preparingOrders.length}</span>
-                  <span className="hidden lg:inline"> {t("kitchen.preparing")}</span>
-                </span>
-              </div>
-            </div>
 
             <div className="flex items-center gap-1.5">
               <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/5 text-white/40 text-[10px] font-mono tabular-nums border border-white/5">
@@ -238,17 +238,17 @@ export default function KitchenPage() {
                 {countdown}s
               </div>
               <button onClick={() => setSoundOn(!soundOn)}
-                className="flex items-center justify-center h-9 w-9 rounded-lg text-white/40 hover:text-amber-400 hover:bg-amber-500/10 transition-all">
-                {soundOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                className="flex items-center justify-center h-11 w-11 rounded-xl text-white/40 hover:text-amber-400 hover:bg-amber-500/10 transition-all active:scale-90 min-w-[44px] min-h-[44px]">
+                {soundOn ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
               </button>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/5 text-white/50 text-xs font-mono tabular-nums">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/5 text-white/50 text-xs font-mono tabular-nums min-h-[44px]">
                 <span>{currentTime}</span>
               </div>
               <ThemeToggle />
               <LanguageSwitcher />
               <Link href={`/${slug}/pos`} title={t("kitchen.posLink")}
-                className="flex items-center justify-center h-9 w-9 rounded-lg text-white/40 hover:text-amber-400 hover:bg-amber-500/10 transition-all">
-                <ExternalLink className="h-4 w-4" />
+                className="flex items-center justify-center h-11 w-11 rounded-xl text-white/40 hover:text-amber-400 hover:bg-amber-500/10 transition-all active:scale-90 min-w-[44px] min-h-[44px]">
+                <ExternalLink className="h-5 w-5" />
               </Link>
             </div>
           </div>
@@ -307,6 +307,18 @@ export default function KitchenPage() {
               </section>
             )}
 
+            {pendingOrders.length > 0 && preparingOrders.length > 0 && (
+              <div className="relative my-10">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-white/5" />
+                </div>
+                <div className="relative flex justify-center">
+                  <span className="px-4 text-[10px] font-bold uppercase tracking-widest text-white/20 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
+                    {t("kitchen.nextUp")}
+                  </span>
+                </div>
+              </div>
+            )}
             {preparingOrders.length > 0 && (
               <section>
                 <div className="flex items-center gap-3 mb-4 px-1">

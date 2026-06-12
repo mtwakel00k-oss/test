@@ -34,6 +34,7 @@ export default function DriverPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [delivering, setDelivering] = useState<string | null>(null)
+  const [confirmId, setConfirmId] = useState<string | null>(null)
   const [locationActive, setLocationActive] = useState(false)
   const [locationError, setLocationError] = useState<string | null>(null)
   const watchIdRef = useRef<number | null>(null)
@@ -295,8 +296,8 @@ export default function DriverPage() {
                     )}
                   </div>
 
-                  <button onClick={() => markDelivered(order.id)} disabled={isDelivering}
-                    className="flex items-center justify-center w-full gap-2 py-5 text-base font-black transition-all rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] shadow-lg shadow-emerald-500/20">
+                  <button onClick={() => setConfirmId(order.id)} disabled={isDelivering}
+                    className="flex items-center justify-center w-full gap-2 py-5 text-base font-black transition-all rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] shadow-lg shadow-emerald-500/20 min-h-[56px]">
                     {isDelivering ? (
                       <>
                         <div className="w-5 h-5 border-2 rounded-full border-white border-t-transparent animate-spin" />
@@ -315,6 +316,32 @@ export default function DriverPage() {
           })
         )}
       </div>
+      {/* Confirmation Dialog */}
+      {confirmId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setConfirmId(null)}>
+          <div className="w-full max-w-sm bg-zinc-900 border border-white/10 rounded-2xl p-6 shadow-2xl animate-scale-in" onClick={e => e.stopPropagation()}>
+            <div className="text-center space-y-3">
+              <div className="flex items-center justify-center w-16 h-16 mx-auto rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                <span className="text-3xl">✅</span>
+              </div>
+              <div>
+                <p className="text-lg font-bold text-white">{t("driver.confirmTitle", LANG)}</p>
+                <p className="text-sm text-white/50 mt-1">{t("driver.confirmSub", LANG)}</p>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => setConfirmId(null)} autoFocus
+                className="flex-1 py-3.5 rounded-xl text-sm font-semibold bg-white/5 text-white hover:bg-white/10 transition-all active:scale-[0.98]">
+                {t("driver.cancel", LANG) || "إلغاء"}
+              </button>
+              <button onClick={() => { setConfirmId(null); markDelivered(confirmId) }}
+                className="flex-1 py-3.5 rounded-xl text-sm font-bold bg-gradient-to-br from-emerald-500 to-emerald-600 text-white hover:brightness-110 transition-all active:scale-[0.98] shadow-lg shadow-emerald-500/20">
+                {t("driver.confirmDeliver", LANG) || "تأكيد"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

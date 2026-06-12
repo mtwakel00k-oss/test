@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { createClient } from "@supabase/supabase-js"
 import { supabaseForRequest, isTenantMismatch } from "@/lib/tenant"
 import { createClientForRouteHandler } from "@/lib/supabase-server"
 import { findOrderAcrossTenants } from "@/lib/order-tracking"
@@ -151,6 +152,34 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     }
     if (status && !ALLOWED_STATUSES.includes(status)) {
       return NextResponse.json({ error: "Invalid status" }, { status: 400 })
+    }
+
+    // When assigning a driver, verify they are not already busy
+    if (driver_id) {
+      const slug =
+        req.headers.get("x-tenant-slug") ||
+        (() => {
+          const referer = req.headers.get("referer") || ""
+          const m = referer.match(/\/([^/]+)\/(?:pos|admin|menu|kitchen)\b/)
+          return m ? m[1] : ""
+        })()
+
+      const masterUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+      const masterKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+      if (masterUrl && masterKey) {
+        const masterSb = createClient(masterUrl, masterKey)
+
+        const { data: busyOrder } = await masterSb
+          .from("orders")
+          .select("id")
+          .eq("driver_id", driver_id)
+          .eq("status", "out_for_delivery")
+          .maybeSingle()
+
+        if (busyOrder) {
+          return NextResponse.json({ error: "هذا السائق مشغول حالياً بأمر توصيل آخر" }, { status: 409 })
+        }
+      }
     }
 
     const STATUS_FALLBACKS = ["on_the_way"] as const

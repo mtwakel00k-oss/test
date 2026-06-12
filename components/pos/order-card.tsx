@@ -39,10 +39,10 @@ export function OrderCard({ order, isSelected, onSelect, onStatusChange, onCance
   const cur = lang === "ar" ? "د.ج" : "DA"
 
   const orderTypeInfo = {
-    delivery: { icon: "🛵", label: t("pos.delivery") },
-    takeaway: { icon: "🥡", label: t("pos.takeaway") },
-    dine_in: { icon: order.tableNumber ? "🪑" : "🍽️", label: order.tableNumber ? `${t("pos.table")} ${order.tableNumber}` : t("pos.dineIn") },
-  }[order.orderType] || { icon: "🍽️", label: t("pos.dineIn") }
+    delivery: { icon: "🛵", label: t("pos.delivery"), badge: "bg-violet-500/10 text-violet-600 dark:text-violet-300 border-violet-500/20" },
+    takeaway: { icon: "🥡", label: t("pos.takeaway"), badge: "bg-orange-500/10 text-orange-600 dark:text-orange-300 border-orange-500/20" },
+    dine_in: { icon: order.tableNumber ? "🪑" : "🍽️", label: order.tableNumber ? `${t("pos.table")} ${order.tableNumber}` : t("pos.dineIn"), badge: "bg-blue-500/10 text-blue-600 dark:text-blue-300 border-blue-500/20" },
+  }[order.orderType] || { icon: "🍽️", label: t("pos.dineIn"), badge: "bg-blue-500/10 text-blue-600 dark:text-blue-300 border-blue-500/20" }
 
   useEffect(() => {
     const interval = setInterval(() => setTimeAgo(formatTimeAgo(order.createdAt, t)), 30000)
@@ -92,10 +92,17 @@ export function OrderCard({ order, isSelected, onSelect, onStatusChange, onCance
               )}>
                 {order.paymentStatus === "paid" ? t("pos.paid") : t("pos.unpaid")}
               </span>
+              {order.orderType === "delivery" && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold bg-violet-100 text-violet-700 dark:bg-violet-900/20 dark:text-violet-300">
+                  🛵 {t("pos.delivery")}
+                </span>
+              )}
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-lg font-bold text-foreground">{orderTypeInfo.icon} {orderTypeInfo.label}</span>
+              <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border", orderTypeInfo.badge)}>
+                {orderTypeInfo.icon} {orderTypeInfo.label}
+              </span>
               <span className="text-xs text-muted-foreground font-mono">#{order.orderNumber}</span>
               {order.status === "pending" && (
                 <span className="relative flex h-2 w-2">
@@ -127,13 +134,13 @@ export function OrderCard({ order, isSelected, onSelect, onStatusChange, onCance
           <div className="flex items-center gap-2">
             {getNextStatus() && (
               <button onClick={handleAdvanceStatus}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-bold bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-all active:scale-95">
+                className="inline-flex items-center gap-1 px-4 py-2 rounded-xl text-xs font-bold bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-all active:scale-95 min-h-[44px]">
                 {t(`pos.${STATUS_STYLES[getNextStatus()!].label}`)}
               </button>
             )}
             {order.status === "pending" && (
               <button onClick={(e) => { e.stopPropagation(); onCancel(order.id) }}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-all">
+                className="inline-flex items-center gap-1 px-4 py-2 rounded-xl text-xs font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-all min-h-[44px]">
                 {t("common.cancel")}
               </button>
             )}

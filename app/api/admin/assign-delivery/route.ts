@@ -27,8 +27,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 })
     }
 
-    if (order.status !== "ready") {
-      return NextResponse.json({ error: "Order must be in 'ready' status to assign delivery" }, { status: 400 })
+    if (!["ready", "preparing"].includes(order.status)) {
+      return NextResponse.json({ error: "الطلب يجب أن يكون جاهزاً أو قيد التحضير" }, { status: 400 })
     }
 
     const { data: man, error: manErr } = await sb.from("delivery_men")

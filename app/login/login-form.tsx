@@ -6,6 +6,7 @@ import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useTranslation } from "@/lib/use-translation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -29,11 +30,11 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
   const router = useRouter()
   const { t } = useTranslation()
 
-  const ROLE_LABELS: Record<PageRole, { icon: string; label: string }> = {
-    cashier: { icon: "💳", label: t("login.cashier") },
-    chef: { icon: "👨‍🍳", label: t("login.chef") },
-    admin: { icon: "⚙️", label: t("login.admin") },
-    owner: { icon: "👑", label: t("login.owner") },
+  const ROLE_LABELS: Record<PageRole, { icon: string; label: string; activeColor: string; inactiveBg: string; gradient: string }> = {
+    cashier: { icon: "💳", label: t("login.cashier"), activeColor: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400", inactiveBg: "hover:bg-emerald-500/5", gradient: "from-emerald-500 to-emerald-600" },
+    chef: { icon: "👨‍🍳", label: t("login.chef"), activeColor: "bg-sky-500/10 text-sky-600 dark:text-sky-400", inactiveBg: "hover:bg-sky-500/5", gradient: "from-sky-500 to-sky-600" },
+    admin: { icon: "⚙️", label: t("login.admin"), activeColor: "bg-amber-500/10 text-amber-600 dark:text-amber-400", inactiveBg: "hover:bg-amber-500/5", gradient: "from-amber-500 to-orange-600" },
+    owner: { icon: "👑", label: t("login.owner"), activeColor: "bg-violet-500/10 text-violet-600 dark:text-violet-400", inactiveBg: "hover:bg-violet-500/5", gradient: "from-violet-500 to-purple-600" },
   }
 
   const handleLogin = async () => {
@@ -52,7 +53,7 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
         setError(msg)
         toast({ title: msg, variant: "destructive" })
         setShaking(true)
-        setTimeout(() => setShaking(false), 300)
+        setTimeout(() => setShaking(false), 400)
         return
       }
       // Store session expiry for admin session-extend modal
@@ -72,7 +73,7 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
       setError(msg)
       toast({ title: msg, variant: "destructive" })
       setShaking(true)
-      setTimeout(() => setShaking(false), 300)
+      setTimeout(() => setShaking(false), 400)
     } finally { setLoading(false) }
   }
 
@@ -99,15 +100,21 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
             <h1 className="text-lg font-bold text-foreground">{t("login.pickRestaurant")}</h1>
             <p className="mt-1 text-sm text-muted-foreground">{t("login.pickRestaurantSub")}</p>
           </div>
-          <div className="space-y-2">
-            {tenants.map((tenant) => (
+          <div className="space-y-2.5">
+            {tenants.map((tenant, i) => (
               <button key={tenant.slug} onClick={() => router.push(`/${tenant.slug}/login`)}
-                className="flex items-center justify-between w-full px-4 py-3.5 text-right transition-all border rounded-xl border-border bg-card text-foreground hover:border-primary/30 hover:shadow-sm group">
-                <div>
-                  <span className="text-sm font-medium">{tenant.name}</span>
-                  <Badge variant="secondary" className="mt-1 text-xs">/{tenant.slug}</Badge>
+                className="flex items-center justify-between w-full px-4 py-4 text-right transition-all border rounded-xl border-border bg-card text-foreground hover:border-primary/30 hover:shadow-md hover:-translate-y-0.5 group animate-fade-in-up"
+                style={{ animationDelay: `${i * 60}ms` }}>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/5 text-lg group-hover:bg-primary/10 transition-colors">
+                    🍽️
+                  </div>
+                  <div>
+                    <span className="text-sm font-semibold">{tenant.name}</span>
+                    <Badge variant="secondary" className="mt-0.5 text-[10px] font-mono">/{tenant.slug}</Badge>
+                  </div>
                 </div>
-                <span className="text-muted-foreground transition-colors group-hover:text-primary">←</span>
+                <span className="text-muted-foreground transition-all group-hover:text-primary group-hover:translate-x-1 ltr:group-hover:-translate-x-1">←</span>
               </button>
             ))}
           </div>
@@ -130,7 +137,13 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
             </div>
           )}
           <CardHeader className="text-center">
-            <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 rounded-xl bg-primary/5">
+            <div className={cn(
+              "flex items-center justify-center w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-br shadow-lg",
+              page === "cashier" ? "from-emerald-500/20 to-emerald-600/10 shadow-emerald-500/10" :
+              page === "chef" ? "from-sky-500/20 to-sky-600/10 shadow-sky-500/10" :
+              page === "owner" ? "from-violet-500/20 to-purple-600/10 shadow-violet-500/10" :
+              "from-amber-500/20 to-orange-600/10 shadow-amber-500/10"
+            )}>
               <span className="text-2xl">{activeRole.icon}</span>
             </div>
             <CardTitle>{activeRole.label}</CardTitle>
@@ -141,10 +154,12 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
               <div className="flex gap-1.5 p-1 mb-5 rounded-lg bg-muted/50">
                 {tabs.map(tab => (
                   <button key={tab.key} onClick={() => { setPage(tab.key); setError("") }}
-                    className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${
-                      page === tab.key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                    className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${
+                      page === tab.key
+                        ? `${tab.activeColor} shadow-sm border border-border/30`
+                        : `text-muted-foreground ${tab.inactiveBg} hover:text-foreground`
                     }`}>
-                    {tab.icon} {tab.label}
+                    <span className="text-sm">{tab.icon}</span> {tab.label}
                   </button>
                 ))}
               </div>

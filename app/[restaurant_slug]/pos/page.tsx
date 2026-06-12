@@ -59,7 +59,7 @@ interface RawOrderItem {
 
   const statusMap = DB_STATUS_TO_POS
 
-function toPosOrder(raw: RawOrder, items: RawOrderItem[], dailyIndex?: number, allDrivers?: Driver[]): PosOrder {
+function toPosOrder(raw: RawOrder, items: RawOrderItem[], dailyIndex?: number, allDrivers?: { id: string; name: string; phone: string }[]): PosOrder {
   const orderType = (["dine_in","takeaway","delivery"].includes(raw.order_type)
     ? raw.order_type : "dine_in") as PosOrder["orderType"]
   const driver = allDrivers?.find(d => d.id === raw.driver_id)
@@ -121,6 +121,14 @@ interface DeliveryMan {
   is_busy: boolean
 }
 
+type UnifiedDriver = {
+  id: string
+  name: string
+  phone: string
+  isBusy: boolean
+  source: "tenant" | "delivery_men"
+}
+
 export default function POSPage() {
   const router = useRouter()
   const slug = useSlug()
@@ -135,7 +143,7 @@ export default function POSPage() {
   const [showReceipt, setShowReceipt] = useState(false)
   const [receiptData, setReceiptData] = useState<{ paid: number; change: number } | null>(null)
   const [editingItems, setEditingItems] = useState(false)
-  const [editQuantities, setEditQuantities] = useState<Record<number, number>>({})
+  const [editQuantities, setEditQuantities] = useState<Record<string, number>>({})
   const [showNewOrder, setShowNewOrder] = useState(false)
   const [cancelTargetId, setCancelTargetId] = useState<string | null>(null)
   const [newName, setNewName] = useState("")
@@ -150,8 +158,6 @@ export default function POSPage() {
   const [assigningDriver, setAssigningDriver] = useState(false)
   const [pendingDriverId, setPendingDriverId] = useState<string | null>(null)
   const [deliveryMen, setDeliveryMen] = useState<DeliveryMan[]>([])
-  const [assigningDeliveryMan, setAssigningDeliveryMan] = useState(false)
-  const [pendingDeliveryManId, setPendingDeliveryManId] = useState<string | null>(null)
   const [cashier, setCashier] = useState<{ email: string; role: string; name?: string } | null>(null)
   const { activeStaff } = useStaff()
   const features = useFeatures()
@@ -166,6 +172,20 @@ export default function POSPage() {
       .then(data => setDeliveryMen(Array.isArray(data) ? data : []))
       .catch(() => {})
   }, [])
+
+  const allDrivers = useMemo<UnifiedDriver[]>(() => {
+    const map = new Map<string, UnifiedDriver>()
+    // tenant drivers (lower priority)
+    for (const d of drivers) {
+      const phone = (d as { phone?: string; is_busy?: boolean }).phone || ""
+      map.set(phone, { id: d.id, name: d.name, phone, isBusy: !!(d as { is_busy?: boolean }).is_busy, source: "tenant" })
+    }
+    // delivery_men (higher priority — overwrites by phone)
+    for (const dm of deliveryMen) {
+      map.set(dm.whatsapp_number, { id: dm.id, name: dm.name, phone: dm.whatsapp_number, isBusy: dm.is_busy, source: "delivery_men" })
+    }
+    return Array.from(map.values()).filter(d => d.phone)
+  }, [drivers, deliveryMen])
 
   useEffect(() => {
     fetchApi("/api/me")
@@ -204,11 +224,11 @@ export default function POSPage() {
     }
     const posOrders = rawOrders
       .map((o) => {
-        return toPosOrder(o, itemsByOrder[o.id] || [], dailyIndex.get(o.id), drivers)
+        return toPosOrder(o, itemsByOrder[o.id] || [], dailyIndex.get(o.id), allDrivers)
       })
       .filter((o: PosOrder) => !cancelledIds.has(o.id))
     return posOrders
-  }, [drivers])
+  }, [allDrivers])
 
   useEffect(() => { fetchOrders().then(setOrders) }, [fetchOrders])
 
@@ -322,13 +342,13 @@ export default function POSPage() {
     setSavingItems(true)
 
     const keptItems = order.items
-      .filter(i => (editQuantities[i.id as number] ?? i.quantity) > 0)
+      .filter(i => (editQuantities[i.id] ?? i.quantity) > 0)
       .map(i => ({
         product_id: i.productId,
         product_name: i.name.replace(/\s*\([^)]*\)\s*$/, ''),
         size: i.size || "UNIQUE",
         sauce: i.sauce,
-        quantity: editQuantities[i.id as number] ?? i.quantity,
+        quantity: editQuantities[i.id] ?? i.quantity,
         unit_price: i.price,
       }))
     const newTotal = keptItems.reduce((s, i) => s + i.unit_price * i.quantity, 0)
@@ -348,68 +368,59 @@ export default function POSPage() {
     }
   }, [orders, editQuantities, fetchOrders])
 
-  const assignDriver = useCallback(async (orderId: string | number, driver: Driver | null) => {
+  const assignDriver = useCallback(async (orderId: string | number, driver: UnifiedDriver | null) => {
     setAssigningDriver(true)
-    const res = await fetchApi(`/api/orders/${orderId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        driver_id: driver?.id ?? null,
-        ...(driver ? { status: POS_STATUS_TO_DB["out_for_delivery"] } : {}),
-      }),
-    })
-    if (res.ok) {
-      setOrders(prev => prev.map(o => o.id === orderId ? {
-        ...o,
-        driverId: driver?.id ?? null,
-        driverName: driver?.name ?? null,
-        driverPhone: driver?.phone ?? null,
-        ...(driver ? { status: "out_for_delivery" as PosOrderStatus } : {}),
-      } : o))
-      setSelectedOrder(prev => prev?.id === orderId ? {
-        ...prev,
-        driverId: driver?.id ?? null,
-        driverName: driver?.name ?? null,
-        driverPhone: driver?.phone ?? null,
-        ...(driver ? { status: "out_for_delivery" as PosOrderStatus } : {}),
-      } : prev)
+
+    const selectedDriver = driver ? allDrivers.find(d => d.id === driver.id) : null
+    if (driver && !selectedDriver) {
+      toast({ title: "اختر سائقاً من القائمة", variant: "destructive" })
+      setAssigningDriver(false)
+      return
+    }
+    if (driver && selectedDriver?.isBusy) {
+      toast({ title: `السائق ${selectedDriver.name} مشغول حالياً، اختر سائقاً آخر`, variant: "destructive" })
+      setAssigningDriver(false)
+      return
+    }
+
+    if (driver?.source === "delivery_men") {
+      const res = await fetchApi("/api/admin/assign-delivery", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order_id: String(orderId), delivery_man_id: driver.id, slug }),
+      })
+      if (res.ok) {
+        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, driverId: driver.id, driverName: driver.name, driverPhone: driver.phone, status: "out_for_delivery" as PosOrderStatus } : o))
+        setSelectedOrder(prev => prev?.id === orderId ? { ...prev, driverId: driver.id, driverName: driver.name, driverPhone: driver.phone, status: "out_for_delivery" as PosOrderStatus } : prev)
+        setDeliveryMen(prev => prev.map(d => d.id === driver.id ? { ...d, is_busy: true } : d))
+        fetchApi("/api/delivery-men").then(r => r.ok ? r.json() : []).then(data => setDeliveryMen(Array.isArray(data) ? data : [])).catch(() => {})
+        fetchApi("/api/tenant/drivers").then(r => r.ok ? r.json() : []).then(data => setDrivers(Array.isArray(data) ? data : [])).catch(() => {})
+      } else {
+        const err = await res.json().catch(() => ({ error: "فشل تعيين السائق" }))
+        toast({ title: err.error || "فشل تعيين السائق", variant: "destructive" })
+      }
     } else {
-      toast({ title: "فشل تعيين السائق", variant: "destructive" })
+      const res = await fetchApi(`/api/orders/${orderId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          driver_id: driver?.id ?? null,
+          ...(driver ? { status: POS_STATUS_TO_DB["out_for_delivery"] } : {}),
+        }),
+      })
+      if (res.ok) {
+        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, driverId: driver?.id ?? null, driverName: driver?.name ?? null, driverPhone: driver?.phone ?? null, ...(driver ? { status: "out_for_delivery" as PosOrderStatus } : {}) } : o))
+        setSelectedOrder(prev => prev?.id === orderId ? { ...prev, driverId: driver?.id ?? null, driverName: driver?.name ?? null, driverPhone: driver?.phone ?? null, ...(driver ? { status: "out_for_delivery" as PosOrderStatus } : {}) } : prev)
+        fetchApi("/api/tenant/drivers").then(r => r.ok ? r.json() : []).then(data => setDrivers(Array.isArray(data) ? data : [])).catch(() => {})
+        fetchApi("/api/delivery-men").then(r => r.ok ? r.json() : []).then(data => setDeliveryMen(Array.isArray(data) ? data : [])).catch(() => {})
+      } else {
+        const err = await res.json().catch(() => ({ error: "فشل تعيين السائق" }))
+        toast({ title: err.error || "فشل تعيين السائق", variant: "destructive" })
+      }
     }
     setAssigningDriver(false)
-  }, [])
-
-  const assignDeliveryMan = useCallback(async (orderId: string | number, deliveryManId: string | null) => {
-    if (!deliveryManId) return
-    setAssigningDeliveryMan(true)
-    const res = await fetchApi("/api/admin/assign-delivery", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ order_id: String(orderId), delivery_man_id: deliveryManId }),
-    })
-    if (res.ok) {
-      setOrders(prev => prev.map(o => o.id === orderId ? {
-        ...o,
-        driverId: deliveryManId,
-        driverName: deliveryMen.find(d => d.id === deliveryManId)?.name ?? null,
-        driverPhone: deliveryMen.find(d => d.id === deliveryManId)?.whatsapp_number ?? null,
-        status: "out_for_delivery" as PosOrderStatus,
-      } : o))
-      setSelectedOrder(prev => prev?.id === orderId ? {
-        ...prev,
-        driverId: deliveryManId,
-        driverName: deliveryMen.find(d => d.id === deliveryManId)?.name ?? null,
-        driverPhone: deliveryMen.find(d => d.id === deliveryManId)?.whatsapp_number ?? null,
-        status: "out_for_delivery" as PosOrderStatus,
-      } : prev)
-      setDeliveryMen(prev => prev.map(d => d.id === deliveryManId ? { ...d, is_busy: true } : d))
-    } else {
-      const err = await res.json().catch(() => ({ error: "Unknown error" }))
-      toast({ title: err.error || "فشل تعيين السائق", variant: "destructive" })
-    }
-    setAssigningDeliveryMan(false)
-    setPendingDeliveryManId(null)
-  }, [deliveryMen])
+    setPendingDriverId(null)
+  }, [allDrivers, slug])
 
   const handleCreateOrder = useCallback(async () => {
     if (!newName || newOrderItems.length === 0) return
@@ -494,7 +505,7 @@ export default function POSPage() {
     } finally {
       setCreatingOrder(false)
     }
-  }, [newName, newTable, newPhone, newOrderItems, newOrderType, t])
+  }, [newName, newTable, newPhone, newOrderItems, newOrderType, t, cashier, activeStaff])
 
   const activeOrders = orders.filter(o => o.status !== "completed" && o.status !== "cancelled")
   const completedOrders = orders.filter(o => o.status === "completed")
@@ -591,12 +602,15 @@ export default function POSPage() {
               />
             </div>
           ) : filteredOrders.length === 0 && !showNewOrder ? (
-            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-              <svg className="w-16 h-16 mb-4 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-              <p className="text-lg font-medium">{activeTab === "active" ? t("pos.noActiveOrders") : t("pos.noCompletedOrders")}</p>
-              <p className="text-sm mt-1">{activeTab === "active" ? t("pos.newOrdersHere") : t("pos.completedOrdersHere")}</p>
+            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground animate-fade-in-up">
+              <div className="relative mb-6">
+                <svg className="w-20 h-20 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={0.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <span className="absolute -bottom-1 -end-1 text-lg">📋</span>
+              </div>
+              <p className="text-lg font-medium text-foreground/60">{activeTab === "active" ? t("pos.noActiveOrders") : t("pos.noCompletedOrders")}</p>
+              <p className="text-sm mt-1 text-muted-foreground/70">{activeTab === "active" ? t("pos.newOrdersHere") : t("pos.completedOrdersHere")}</p>
             </div>
           ) : (
             filteredOrders.map(order => (
@@ -608,7 +622,10 @@ export default function POSPage() {
           )}
           {activeTab === "active" && !showNewOrder && (
             <button onClick={() => { setShowNewOrder(true); setSelectedOrder(null); setNewOrderError("") }}
-              className="w-full py-3 rounded-xl border-2 border-dashed border-border text-muted-foreground hover:border-primary/40 hover:text-primary hover:bg-primary/5 transition-all duration-200 text-sm font-medium">
+              className="group w-full py-4 rounded-xl border-2 border-dashed border-border/60 text-muted-foreground/70 hover:border-primary/40 hover:text-primary hover:bg-primary/5 transition-all duration-300 text-sm font-medium flex items-center justify-center gap-2">
+              <svg className="w-4 h-4 transition-transform group-hover:rotate-90 duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
               {t("pos.newOrder")}
             </button>
           )}
@@ -632,10 +649,20 @@ export default function POSPage() {
                   <button onClick={handlePrint}
                     className="px-3 py-1.5 rounded-lg text-sm font-medium border border-border text-muted-foreground hover:bg-secondary transition-colors"
                   >{t("common.print")}</button>
-                  <button onClick={() => setShowCheckout(true)}
-                    disabled={selectedOrder.status !== "completed"}
-                    className="px-3 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed"
-                  >{selectedOrder.status === "completed" ? t("pos.paymentCash") : "غير جاهز"}</button>
+                  <div className="relative group">
+                    <button onClick={() => setShowCheckout(true)}
+                      disabled={selectedOrder.status !== "completed"}
+                      className="px-3 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >{selectedOrder.status === "completed" ? t("pos.paymentCash") : "غير جاهز"}</button>
+                    {selectedOrder.status !== "completed" && (
+                      <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
+                        <div className="bg-foreground text-background text-[11px] font-medium px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap">
+                          الطلب لم يكتمل بعد — انتظر حتى يصبح جاهزاً
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-foreground" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   <button onClick={() => { setSelectedOrder(null); setShowCheckout(false) }}
                     className="p-1.5 rounded-lg hover:bg-muted transition-colors"
                   >
@@ -647,7 +674,7 @@ export default function POSPage() {
               </div>
 
               {showCheckout ? (
-                <CheckoutPanel order={selectedOrder} onClose={() => setShowCheckout(false)} onComplete={handleComplete} />
+                <CheckoutPanel order={selectedOrder} onClose={() => setShowCheckout(false)} onComplete={handleComplete} hasDriverAssigned={!!selectedOrder.driverId} />
               ) : showReceipt && receiptData ? (
                 <div id="receipt" className="flex-1 overflow-y-auto p-4 space-y-3">
                   <div className="text-center pb-3 border-b border-border">
@@ -693,14 +720,14 @@ export default function POSPage() {
                       <div className="flex-1">
                         <p className="text-sm font-medium text-foreground">{item.name}</p>
                         <div className="flex items-center gap-2 mt-1">
-                          <button onClick={() => setEditQuantities(p => ({ ...p, [Number(item.id)]: Math.max(0, (p[Number(item.id)] ?? item.quantity) - 1) }))}
+                          <button onClick={() => setEditQuantities(p => ({ ...p, [item.id]: Math.max(0, (p[item.id] ?? item.quantity) - 1) }))}
                             className="h-7 w-7 rounded-md bg-secondary hover:bg-secondary/80 flex items-center justify-center text-sm font-medium">−</button>
-                          <span className="text-sm font-semibold w-6 text-center">{editQuantities[Number(item.id)] ?? item.quantity}</span>
-                          <button onClick={() => setEditQuantities(p => ({ ...p, [Number(item.id)]: (p[Number(item.id)] ?? item.quantity) + 1 }))}
+                          <span className="text-sm font-semibold w-6 text-center">{editQuantities[item.id] ?? item.quantity}</span>
+                          <button onClick={() => setEditQuantities(p => ({ ...p, [item.id]: (p[item.id] ?? item.quantity) + 1 }))}
                             className="h-7 w-7 rounded-md bg-secondary hover:bg-secondary/80 flex items-center justify-center text-sm font-medium">+</button>
                         </div>
                       </div>
-                      <span className="text-sm font-medium text-foreground">{(editQuantities[Number(item.id)] ?? item.quantity) * item.price} {cur}</span>
+                      <span className="text-sm font-medium text-foreground">{(editQuantities[item.id] ?? item.quantity) * item.price} {cur}</span>
                     </div>
                   ))}
                   <div className="pt-3 border-t border-border flex gap-2">
@@ -744,99 +771,128 @@ export default function POSPage() {
                       <span className="text-xl font-bold text-foreground">{selectedOrder.total} {cur}</span>
                     </div>
                   </div>
-                  {selectedOrder.orderType === "delivery" && features?.hasDelivery !== false && (
+                  {selectedOrder.orderType === "delivery" && (selectedOrder.status === "ready" || selectedOrder.status === "preparing") && !selectedOrder.driverId && features?.hasDelivery !== false && (
                     <div className="border-t border-border/50 pt-3 space-y-2">
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">السائق</p>
-                      {selectedOrder.driverId ? (
-                        <div className="space-y-2">
-                          {(() => {
-                            const assignedDriver = drivers.find(d => d.id === selectedOrder.driverId)
-                            if (!assignedDriver) return (
-                              <p className="text-sm text-muted-foreground py-2">—</p>
-                            )
-                            return (
-                              <>
-                                <div className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2">
-                                  <span className="text-sm font-medium text-foreground">{assignedDriver.name}</span>
-                                  <span className="text-xs text-muted-foreground">{assignedDriver.phone}</span>
-                                </div>
-                                <div className="flex gap-2">
-                                  <a href={`tel:${assignedDriver.phone.replace(/[^0-9]/g, "")}`}
-                                    className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-green-600 text-white py-2.5 text-sm font-semibold hover:bg-green-700 transition-colors">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                    </svg>
-                                    اتصال
-                                  </a>
-                                  <button onClick={async () => { await assignDriver(selectedOrder.id, null); setPendingDriverId(null) }}
-                                    disabled={assigningDriver}
-                                    className="flex-1 rounded-lg border border-destructive/30 text-destructive py-2.5 text-sm font-medium hover:bg-destructive/5 transition-colors disabled:opacity-50">
-                                    إلغاء
-                                  </button>
-                                </div>
-                              </>
-                            )
-                          })()}
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          <select value={pendingDriverId ?? ""} onChange={e => setPendingDriverId(e.target.value || null)}
-                            disabled={assigningDriver || drivers.length === 0}
-                            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed">
-                            <option value="">{drivers.length === 0 ? "لا يوجد سائقون — أضف من الإعدادات" : "اختر سائقاً..."}</option>
-                            {drivers.filter(d => d.is_active).map(driver => {
-                              const isBusy = orders.some(o => o.driverId === driver.id && o.status === "out_for_delivery")
-                              return (
-                                <option key={driver.id} value={driver.id} disabled={isBusy}>
-                                  {driver.name} {isBusy ? "🔴 مشغول" : "🟢 متاح"}
-                                </option>
-                              )
-                            })}
-                          </select>
-                          {pendingDriverId && (
-                            <div className="flex gap-2">
-                              <button onClick={async () => { const d = drivers.find(x => x.id === pendingDriverId); if (d) { await assignDriver(selectedOrder.id, d); setPendingDriverId(null) } }}
-                                className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-primary text-primary-foreground py-2.5 text-sm font-semibold hover:brightness-110 transition-all">
-                                تأكيد السائق
-                              </button>
-                              <button onClick={() => setPendingDriverId(null)}
-                                className="rounded-lg border border-border px-4 py-2.5 text-sm text-muted-foreground hover:bg-secondary transition-colors">
-                                إلغاء
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {selectedOrder.status === "ready" && selectedOrder.orderType === "delivery" && !selectedOrder.driverId && features?.hasDelivery !== false && (
-                    <div className="border-t border-border/50 pt-3 space-y-2">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">نظام السائقين الجديد</p>
                       <div className="space-y-2">
-                        <select value={pendingDeliveryManId ?? ""} onChange={e => setPendingDeliveryManId(e.target.value || null)}
-                          disabled={assigningDeliveryMan || deliveryMen.length === 0}
-                          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed">
-                          <option value="">{deliveryMen.length === 0 ? "لا يوجد سائقون — أضف من الإعدادات" : "اختر سائقاً..."}</option>
-                          {deliveryMen.map(dm => (
-                            <option key={dm.id} value={dm.id} disabled={dm.is_busy}>
-                              {dm.name} {dm.is_busy ? "🔴 مشغول" : "🟢 متاح"} — {dm.whatsapp_number}
-                            </option>
-                          ))}
-                        </select>
-                        {pendingDeliveryManId && (
-                          <div className="flex gap-2">
-                            <button onClick={async () => { await assignDeliveryMan(selectedOrder.id, pendingDeliveryManId) }}
-                              disabled={assigningDeliveryMan}
-                              className="flex-1 rounded-lg bg-primary text-primary-foreground py-2.5 text-sm font-semibold hover:brightness-110 transition-all disabled:opacity-50">
-                              {assigningDeliveryMan ? "جاري التعيين..." : "تعيين السائق"}
+                        {allDrivers.length === 0 ? (
+                          <div className="flex flex-col items-center gap-2 py-6 text-muted-foreground">
+                            <span className="text-3xl">🛵</span>
+                            <p className="text-xs text-center">لا يوجد سائقون — أضف من الإعدادات</p>
+                          </div>
+                        ) : (
+                          <div className="grid gap-2 max-h-48 overflow-y-auto pe-1">
+                            <button onClick={() => setPendingDriverId(null)}
+                              className={cn(
+                                "flex items-center gap-3 w-full rounded-xl border px-3.5 py-3 text-right transition-all",
+                                !pendingDriverId
+                                  ? "border-primary/40 bg-primary/5 shadow-sm"
+                                  : "border-border/50 bg-card hover:border-border hover:bg-muted/30"
+                              )}>
+                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-foreground">إلغاء التحديد</p>
+                                <p className="text-[11px] text-muted-foreground">اختيار سائق لاحقاً</p>
+                              </div>
                             </button>
-                            <button onClick={() => setPendingDeliveryManId(null)}
+                            {allDrivers.map(driver => (
+                              <button key={driver.id} onClick={() => { if (!driver.isBusy) setPendingDriverId(driver.id) }}
+                                disabled={driver.isBusy}
+                                className={cn(
+                                  "flex items-center gap-3 w-full rounded-xl border px-3.5 py-3 text-right transition-all",
+                                  pendingDriverId === driver.id
+                                    ? "border-primary/40 bg-primary/5 shadow-sm ring-1 ring-primary/20"
+                                    : driver.isBusy
+                                      ? "border-border/30 bg-muted/20 opacity-60 cursor-not-allowed"
+                                      : "border-border/50 bg-card hover:border-border hover:bg-muted/30"
+                                )}>
+                                <div className={cn(
+                                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-bold",
+                                  driver.isBusy ? "bg-rose-500/10 text-rose-500" : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                )}>
+                                  {driver.name.charAt(0)}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <p className="text-sm font-medium text-foreground">{driver.name}</p>
+                                    {driver.source === "delivery_men" && (
+                                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-semibold">جديد</span>
+                                    )}
+                                  </div>
+                                  <p className="text-[11px] text-muted-foreground font-mono dir-ltr text-left">{driver.phone}</p>
+                                </div>
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  <span className={cn(
+                                    "w-2 h-2 rounded-full",
+                                    driver.isBusy ? "bg-rose-500" : "bg-emerald-500"
+                                  )} />
+                                  <span className="text-[11px] font-semibold whitespace-nowrap"
+                                    style={{ color: driver.isBusy ? "oklch(0.64 0.23 25)" : "oklch(0.55 0.18 145)" }}>
+                                    {driver.isBusy ? "مشغول" : "متاح"}
+                                  </span>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        {pendingDriverId && (
+                          <div className="flex gap-2">
+                            <button onClick={async () => { const d = allDrivers.find(x => x.id === pendingDriverId); if (d) { await assignDriver(selectedOrder.id, d) } }}
+                              disabled={assigningDriver}
+                              className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-primary text-primary-foreground py-2.5 text-sm font-semibold hover:brightness-110 transition-all disabled:opacity-50">
+                              {assigningDriver ? "جاري التعيين..." : "تأكيد السائق"}
+                            </button>
+                            <button onClick={() => setPendingDriverId(null)}
                               className="rounded-lg border border-border px-4 py-2.5 text-sm text-muted-foreground hover:bg-secondary transition-colors">
                               إلغاء
                             </button>
                           </div>
                         )}
                       </div>
+                    </div>
+                  )}
+                  {selectedOrder.orderType === "delivery" && selectedOrder.driverId && (
+                    <div className="border-t border-border/50 pt-3 space-y-2">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">السائق</p>
+                      {(() => {
+                        const assignedDriver = allDrivers.find(d => d.id === selectedOrder.driverId)
+                        if (!assignedDriver) return <p className="text-sm text-muted-foreground py-2">—</p>
+                        return (
+                          <>
+                            <div className="flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary text-base font-bold">
+                                {assignedDriver.name.charAt(0)}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-foreground">{assignedDriver.name}</p>
+                                <p className="text-xs text-muted-foreground font-mono dir-ltr text-left">{assignedDriver.phone}</p>
+                              </div>
+                              <span className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold whitespace-nowrap">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                {t("pos.assigned")}
+                              </span>
+                            </div>
+                            <div className="flex gap-2">
+                              <a href={`tel:${assignedDriver.phone.replace(/[^0-9]/g, "")}`}
+                                className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-emerald-600 text-white py-2.5 text-sm font-semibold hover:bg-emerald-700 active:scale-[0.98] transition-all">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                </svg>
+                                اتصال
+                              </a>
+                              <button onClick={async () => { await assignDriver(selectedOrder.id, null); setPendingDriverId(null) }}
+                                disabled={assigningDriver}
+                                className="flex-1 rounded-lg border border-destructive/30 text-destructive py-2.5 text-sm font-medium hover:bg-destructive/5 active:scale-[0.98] transition-all disabled:opacity-50">
+                                إلغاء التعيين
+                              </button>
+                            </div>
+                          </>
+                        )
+                      })()}
                     </div>
                   )}
                   {selectedOrder.status !== "completed" && selectedOrder.status !== "cancelled" && (
