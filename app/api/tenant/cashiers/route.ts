@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
   if (!username || !password) {
     return NextResponse.json({ error: "Missing username or password" }, { status: 400 })
   }
-  if (password.length < 8) {
+  if (!password || password.length < 8) {
     return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 })
   }
   if (!/[A-Z]/.test(password)) {

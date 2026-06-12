@@ -75,8 +75,7 @@ export async function PATCH(req: NextRequest) {
     const supabase = getSupabase()
     if (!supabase) return NextResponse.json({ error: "Server config error" }, { status: 500 })
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await (supabase.from("tenants") as any).update(updates).eq("slug", slug)
+    const { error } = await (supabase.from("tenants") as unknown as { update: (u: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<{ error: { message: string } | null }> } }).update(updates).eq("slug", slug)
     if (error) {
       logger.error("Tenant PATCH failed", error)
       return NextResponse.json({ error: error.message }, { status: 500 })
@@ -118,8 +117,7 @@ export async function POST(req: NextRequest) {
     const { data: { publicUrl } } = supabase.storage.from("logos").getPublicUrl(fileName)
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: updateErr } = await (supabase.from("tenants") as any).update({ logo_url: publicUrl }).eq("slug", slug)
+      const { error: updateErr } = await (supabase.from("tenants") as unknown as { update: (u: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<{ error: { message: string } | null }> } }).update({ logo_url: publicUrl }).eq("slug", slug)
       if (updateErr) logger.warn("DB persist skipped: " + updateErr.message)
     } catch (e) {
       logger.warn("DB persist exception", e)

@@ -29,7 +29,8 @@ export async function GET(
     }
 
     const hasLiveTracking = await checkFeatureAccess(tenant.id, "hasLiveTracking")
-    return NextResponse.json({ hasLiveTracking })
+    const hasRatings = await checkFeatureAccess(tenant.id, "hasRatings")
+    return NextResponse.json({ hasLiveTracking, hasRatings })
   } catch (e) {
     logger.error("tracking-access failed", e)
     return NextResponse.json({ hasLiveTracking: false })

@@ -3,6 +3,7 @@ import { createBrowserClient } from "@supabase/ssr"
 import { NextResponse } from "next/server"
 import { cache } from "react"
 import { logger } from "@/lib/logger"
+import { decryptSession as cryptoDecrypt } from "@/lib/session-crypto"
 
 export interface TenantConfig {
   id: string
@@ -129,7 +130,7 @@ async function getTenantServiceKey(slug: string): Promise<string | null> {
       .maybeSingle()
     if (error) {
       // Column doesn't exist yet
-      if (error.message?.includes("does not exist") || (error as any)?.code === "42703") {
+      if (error.message?.includes("does not exist") || (error as unknown as { code?: string })?.code === "42703") {
         _svcKeyCache.set(slug, { key: "", expiry: Date.now() + SVC_KEY_TTL })
         return null
       }
@@ -313,7 +314,12 @@ export function parseSession(cookieHeader: string): {
   const match = cookieHeader.match(/(?:^|;\s*)session=([^;]*)/)
   if (!match) return {}
   try {
-    return JSON.parse(decodeURIComponent(match[1]))
+    const raw = decodeURIComponent(match[1])
+    // Try encrypted format first
+    const decrypted = cryptoDecrypt(raw)
+    if (decrypted) return decrypted
+    // Fall back to plaintext JSON
+    return JSON.parse(raw)
   } catch (e) {
     logger.error("Failed to parse session from cookie header", e)
     return {}

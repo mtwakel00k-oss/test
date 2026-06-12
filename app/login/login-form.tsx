@@ -53,6 +53,9 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
         setTimeout(() => setShaking(false), 300)
         return
       }
+      // Store session expiry for admin session-extend modal
+      localStorage.setItem("sessionExpiresAt", String(Date.now() + 7 * 24 * 60 * 60 * 1000))
+
       const targetSlug = data.slug || slugProp
       if (page === "owner") {
         window.location.href = "/admin"

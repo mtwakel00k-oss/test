@@ -11,7 +11,7 @@ import { logger } from "@/lib/logger"
 import type { Order, OrderItem } from "@/lib/types"
 import { OrderStatusTracker } from "@/components/order-status-tracker"
 import { OrderDetails } from "@/components/order-details"
-import RatingWidget from "@/components/RatingWidget"
+const RatingWidget = dynamic(() => import("@/components/RatingWidget"), { ssr: false })
 import { CheckCircle, Clock, ChefHat, Bike, Sparkles } from "lucide-react"
 
 const LiveDriverMap = dynamic(() => import("@/components/live-driver-map"), { ssr: false })
@@ -54,6 +54,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
   const [driverLng, setDriverLng] = useState<number | null>(null)
   const [deliveryCoords, setDeliveryCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [hasLiveTracking, setHasLiveTracking] = useState(false)
+  const [hasRatings, setHasRatings] = useState(false)
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const planType = useMemo(() => {
@@ -144,6 +145,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
         if (!cancelled && trackingRes.ok) {
           const trackingData = await trackingRes.json()
           setHasLiveTracking(trackingData.hasLiveTracking === true)
+          setHasRatings(trackingData.hasRatings === true)
         }
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e)
@@ -313,7 +315,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
           </div>
         )}
 
-        {isReady && (
+        {isReady && hasRatings && (
           <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
             <div className="bg-gradient-to-r from-amber-500/10 to-transparent px-5 py-4 border-b border-white/5">
               <div className="flex items-center gap-2">

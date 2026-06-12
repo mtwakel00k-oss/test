@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
 const DEV_ROOT_PASSWORD = process.env.DEV_ROOT_PASSWORD
 
 export async function POST(req: NextRequest) {
   try {
+    const rl = checkRateLimit(`setup-root:${getClientIp(req)}`, { max: 5, windowMs: 900_000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     if (!serviceKey) {
       return NextResponse.json({ error: "Missing SUPABASE_SERVICE_ROLE_KEY" }, { status: 500 })

@@ -61,13 +61,17 @@ function MapLoading() {
   )
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type LeafletAny = any
+
 export default function LiveDriverMap(props: LiveMapProps) {
   const { driverLat, driverLng, customerLat, customerLng, lastUpdated } = props
   const mapRef = useRef<HTMLDivElement>(null)
-  const mapInstanceRef = useRef<L.Map | null>(null)
-  const driverMarkerRef = useRef<L.Marker | null>(null)
-  const customerMarkerRef = useRef<L.Marker | null>(null)
-  const polylineRef = useRef<L.Polyline | null>(null)
+  const mapInstanceRef = useRef<LeafletAny>(null)
+  const driverMarkerRef = useRef<LeafletAny>(null)
+  const customerMarkerRef = useRef<LeafletAny>(null)
+  const polylineRef = useRef<LeafletAny>(null)
+  const leafletRef = useRef<LeafletAny>(null)
 
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return
@@ -75,11 +79,12 @@ export default function LiveDriverMap(props: LiveMapProps) {
 
     async function init() {
       const L = (await import("leaflet")).default
+      leafletRef.current = L
       await import("leaflet/dist/leaflet.css")
 
       if (!mapRef.current) return
 
-      delete (L.Icon.Default.prototype as any)._getIconUrl
+      delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
         iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
@@ -145,7 +150,7 @@ export default function LiveDriverMap(props: LiveMapProps) {
       if (driverMarkerRef.current) {
         driverMarkerRef.current.setLatLng([driverLat, driverLng])
       } else {
-        const L = (window as any).L
+        const L = leafletRef.current
         if (L && mapInstanceRef.current) {
           const icon = L.divIcon({
             html: `<div style="font-size:24px;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.3))">🛵</div>`,

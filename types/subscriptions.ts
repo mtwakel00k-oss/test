@@ -10,6 +10,7 @@ export interface TierFeatures {
   hasDelivery: boolean
   hasCustomTheme: boolean
   hasLiveTracking: boolean
+  hasRatings: boolean
   maxBranches: number
 }
 
@@ -24,6 +25,7 @@ export const TIER_FEATURES: Record<SubscriptionTier, TierFeatures> = {
     hasDelivery: false,
     hasCustomTheme: false,
     hasLiveTracking: false,
+    hasRatings: true,
     maxBranches: 1,
   },
   Pro: {
@@ -36,6 +38,7 @@ export const TIER_FEATURES: Record<SubscriptionTier, TierFeatures> = {
     hasDelivery: true,
     hasCustomTheme: false,
     hasLiveTracking: false,
+    hasRatings: true,
     maxBranches: 1,
   },
   Elite: {
@@ -48,6 +51,7 @@ export const TIER_FEATURES: Record<SubscriptionTier, TierFeatures> = {
     hasDelivery: true,
     hasCustomTheme: true,
     hasLiveTracking: true,
+    hasRatings: true,
     maxBranches: 999,
   },
 }

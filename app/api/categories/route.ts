@@ -6,11 +6,9 @@ export async function GET(req: NextRequest) {
   try {
     const sb = await supabaseForRequest(req)
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const qb = sb.from("categories") as any
-    const { data: cats, error } = await qb
+    const { data: cats, error } = await (sb.from("categories"))
       .select("id, nom, description")
-      .order("id")
+      .order("id") as unknown as { data: { id: number; nom: string; description: string | null }[] | null; error: unknown }
 
     if (!error && cats !== null) {
       return NextResponse.json(cats)

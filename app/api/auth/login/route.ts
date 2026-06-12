@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { createClientForRouteHandlerWithResponse, createClientForRouteHandler } from "@/lib/supabase-server"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
+import { encryptSession, constantTimeCompare } from "@/lib/session-crypto"
 import { logger } from "@/lib/logger"
 
 const VALID_ROLES = ["cashier", "chef", "admin", "owner"]
@@ -45,6 +46,12 @@ export async function POST(req: NextRequest) {
     logger.info("[login] POST received", { username, slug: reqSlug, hasPassword: !!password })
 
     if (!username || !password) return NextResponse.json({ error: "Missing credentials" }, { status: 400 })
+
+    // Per-email rate-limit (5 attempts / 15 min per email)
+    const emailRl = checkRateLimit(`login:email:${username.toLowerCase().trim()}`, { max: 5, windowMs: 900_000 })
+    if (!emailRl.allowed) return rateLimitResponse(emailRl.resetAt)
+
+    if (!username || !password) return NextResponse.json({ error: "Missing credentials" }, { status: 400 })
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return NextResponse.json({ error: "Server config error" }, { status: 500 })
 
     const masterSb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY)
@@ -63,7 +70,7 @@ export async function POST(req: NextRequest) {
       const role = data.user?.user_metadata?.role
       if (role !== "owner") return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
 
-      res.cookies.set("session", JSON.stringify({ email, role: "owner", slug: "" }), {
+      res.cookies.set("session", encryptSession({ email, role: "owner", slug: "" }), {
         httpOnly: true, secure: SECURE, sameSite: "lax", maxAge: 60 * 60 * 24 * 7, path: "/",
       })
       logger.info("[login] Owner login successful:", { email })
@@ -191,8 +198,8 @@ export async function POST(req: NextRequest) {
 
     logger.info("[login] Membership verified:", { role: membership.role })
 
-    // ── Set session cookie ─────────────────────────────────────
-    res.cookies.set("session", JSON.stringify({
+    // ── Set session cookie (encrypted) ────────────────────────
+    res.cookies.set("session", encryptSession({
       email: data.user?.email,
       role: membership.role,
       slug: tenantSlug,

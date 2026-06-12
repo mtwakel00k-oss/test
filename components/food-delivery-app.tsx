@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, Component, type ReactNode } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback, Component, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
 import { logger } from "@/lib/logger";
@@ -44,9 +44,9 @@ class ErrorBoundary extends Component<
   }
 }
 
-export function FoodDeliveryApp() {
+export function FoodDeliveryApp({ initialProducts, slug: propSlug }: { initialProducts?: MenuProduct[]; slug?: string }) {
   const router = useRouter();
-  const [products, setProducts] = useState<MenuProduct[]>([]);
+  const [products, setProducts] = useState<MenuProduct[]>(initialProducts || []);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sizes, setSizes] = useState<Record<number, string>>({});
@@ -54,15 +54,39 @@ export function FoodDeliveryApp() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const { items, addItem, updateQuantity, itemCount, clear, total } = useCart();
 
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const debouncedAdd = useCallback((fn: () => void) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(fn, 300)
+  }, [])
+
   const slug = useMemo(() => {
+    if (propSlug) return propSlug
     if (typeof window === "undefined") return ""
     const el = document.getElementById("tenant-config")
     try { if (el?.textContent) return JSON.parse(el.textContent).slug || "" } catch {}
     try { return ((window as unknown as Record<string, unknown>).__TENANT_CONFIG__ as { slug?: string })?.slug || "" } catch {}
     return ""
-  }, [])
+  }, [propSlug])
 
   useEffect(() => {
+    if (initialProducts && initialProducts.length > 0) {
+      setCategories([...new Set(initialProducts.map(p => p.category).filter(Boolean))] as string[])
+      const initSauces: Record<number, number | null> = {};
+      initialProducts.forEach(p => { initSauces[p.id] = p.has_white_sauce ? 1 : null });
+      setSauces(initSauces);
+      const initSizes: Record<number, string> = {};
+      initialProducts.forEach(p => {
+        const avSizes = p.prices ? Object.keys(p.prices).filter(s => {
+          const sp = p.prices[s];
+          return sp.sauce_tomate != null || sp.creme_fraiche != null || sp.standard != null;
+        }) : [];
+        initSizes[p.id] = avSizes[0] || "L";
+      });
+      setSizes(initSizes);
+      return
+    }
     fetchApi("/api/products").then(r => {
       if (!r.ok) throw new Error(`Products API returned ${r.status}`)
       return r.json()
@@ -121,7 +145,7 @@ export function FoodDeliveryApp() {
                   quantity={cartQuantities[k] || 0}
                   onSizeChange={(s) => setSizes(prev => ({ ...prev, [p.id]: s }))}
                   onSauceChange={(s) => setSauces(prev => ({ ...prev, [p.id]: s }))}
-                  onAdd={() => { addItem(p, sizes[p.id] || "L", sauces[p.id] ?? null); logger.info("Added", { name: p.name }); }}
+                  onAdd={() => debouncedAdd(() => { addItem(p, sizes[p.id] || "L", sauces[p.id] ?? null); logger.info("Added", { name: p.name }); })}
                   onUpdateQuantity={(d) => { updateQuantity(p.id, sizes[p.id] || "L", sauces[p.id] ?? null, d); }}
                 />
               );

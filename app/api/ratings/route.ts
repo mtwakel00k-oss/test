@@ -1,7 +1,19 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabaseForRequest, isTenantMismatch } from "@/lib/tenant"
+import { supabaseForRequest, isTenantMismatch, parseSession } from "@/lib/tenant"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
+import { checkFeature } from "@/lib/check-feature"
 import { logger } from "@/lib/logger"
+
+async function featureGate(req: NextRequest): Promise<NextResponse | null> {
+  const session = parseSession(req.headers.get("cookie") || "")
+  const slug = session.slug || ""
+  if (!slug) return null
+  const hasFeature = await checkFeature(slug, "hasRatings")
+  if (!hasFeature) {
+    return NextResponse.json({ error: "This feature is not available on your current plan" }, { status: 403 })
+  }
+  return null
+}
 
 function isAdmin(req: NextRequest): boolean {
   const sessionCookie = req.cookies.get("session")
@@ -35,6 +47,9 @@ export async function DELETE(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const gate = await featureGate(req)
+    if (gate) return gate
+
     const { product_id, order_id, rating, comment } = await req.json()
     if (!product_id || !rating || rating < 1 || rating > 5) {
       return NextResponse.json({ error: "Invalid product_id or rating" }, { status: 400 })
