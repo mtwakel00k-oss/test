@@ -246,14 +246,28 @@ export async function POST(req: NextRequest) {
     const prodIds = [...new Set(items.map((i: { product_id: number }) => i.product_id))] as number[]
     const { data: existingProds } = await (sb.from("produits")).select("id").in("id", prodIds)
     const existingSet = new Set((existingProds || []).map((r: { id: number }) => r.id))
-    const missing = prodIds.filter((id: number) => !existingSet.has(id))
-    if (missing.length > 0) {
-      logger.error("FK violation would occur: product_ids missing from tenant's produits table", { missing })
-      throw new Error(`23503: Foreign key violation — products [${missing.join(", ")}] do not exist in tenant database. These IDs may be stale from localStorage or the produits table was re-seeded.`)
+    const removedProductIds: number[] = []
+    const validItems = items.filter((i: { product_id: number }) => {
+      if (existingSet.has(i.product_id)) return true
+      removedProductIds.push(i.product_id)
+      return false
+    })
+    if (removedProductIds.length > 0) {
+      logger.warn("Products missing from tenant DB — removed from order", { removedProductIds })
+      if (validItems.length === 0) {
+        throw new Error("All products in this order no longer exist in the menu. Please clear your cart and try again.")
+      }
+    }
+
+    // ── Recalculate total after filtering ────────────────
+    const finalTotal = validItems.reduce((s: number, i: { unit_price: number; quantity: number }) => s + i.unit_price * i.quantity, 0)
+    if (finalTotal !== total) {
+      const { error: updTotal } = await (sb.from("orders")).update({ total: finalTotal }).eq("id", order.id)
+      if (updTotal) logger.warn("Failed to update order total after item filtering", updTotal)
     }
 
     // ── Insert items ────────────────────────────────────
-    const orderItems = items.map((i: { product_id: number; product_name: string; size: string; sauce: number | null; quantity: number; unit_price: number }) => ({
+    const orderItems = validItems.map((i: { product_id: number; product_name: string; size: string; sauce: number | null; quantity: number; unit_price: number }) => ({
       order_id: order.id,
       product_id: i.product_id,
       product_name: i.product_name,
@@ -265,8 +279,12 @@ export async function POST(req: NextRequest) {
     }))
 
     const elapsed = Date.now() - startTime
-    logger.info("Order created", { id: order.id, total, orderNumber, elapsedMs: elapsed })
-    return NextResponse.json({ id: order.id, orderNumber })
+    logger.info("Order created", { id: order.id, total: finalTotal, removedCount: removedProductIds.length, orderNumber, elapsedMs: elapsed })
+    return NextResponse.json({
+      id: order.id,
+      orderNumber,
+      ...(removedProductIds.length > 0 ? { removed_product_ids: removedProductIds } : {}),
+    })
   } catch (e) {
     const mismatch = isTenantMismatch(e)
     if (mismatch) return mismatch

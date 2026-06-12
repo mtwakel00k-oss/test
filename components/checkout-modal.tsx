@@ -17,6 +17,7 @@ interface CheckoutModalProps {
   /** Called with (orderId, slug, orderNumber) */
   onSuccess: (orderId: string, slug: string, orderNumber?: number) => void
   onClear: () => void
+  onRemoveProduct?: (productId: number) => void
   slug: string
   initialOrderType?: OrderType
   initialDeliveryPhone?: string
@@ -50,6 +51,7 @@ export function CheckoutModal({
   onClose,
   onSuccess,
   onClear,
+  onRemoveProduct,
   slug,
   initialOrderType = "dine_in",
   initialDeliveryPhone = "",
@@ -70,6 +72,7 @@ export function CheckoutModal({
   const [submitted, setSubmitted] = useState(false)
   const [orderNumber, setOrderNumber] = useState<number | undefined>(undefined)
   const [orderId, setOrderId] = useState<string | undefined>(undefined)
+  const [removedNames, setRemovedNames] = useState<string[]>([])
 
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(initialCoords)
   const [geoStatus, setGeoStatus] = useState<"idle" | "loading" | "success" | "error">(
@@ -185,6 +188,14 @@ export function CheckoutModal({
             }
             throw new Error(data.error === "Table is occupied" ? t("pos.tableOccupied") : (data.error || t("menu.orderFailed")))
           }
+          const removedPids: number[] = data.removed_product_ids
+          if (removedPids?.length > 0) {
+            setRemovedNames(removedPids.map((pid: number) => {
+              const item = items.find(i => i.product.id === pid)
+              if (item) { onRemoveProduct?.(pid); return item.product.name }
+              return `#${pid}`
+            }))
+          }
           onClear()
           setOrderId(data.id)
           setOrderNumber(data.orderNumber)
@@ -222,7 +233,13 @@ export function CheckoutModal({
           </div>
           <h2 className="text-xl font-bold text-foreground mb-2">{t("menu.orderConfirmed")}</h2>
           <p className="text-muted-foreground mb-1">{t("menu.orderNumber")} <span className="font-bold text-foreground text-lg">#{orderNumber}</span></p>
-          <p className="text-sm text-muted-foreground mb-6">{t("menu.willPrepare")}</p>
+          <p className="text-sm text-muted-foreground mb-3">{t("menu.willPrepare")}</p>
+          {removedNames.length > 0 && (
+            <div className="mb-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3 text-sm text-right">
+              <p className="font-semibold text-amber-800 dark:text-amber-200 mb-1">⚠️ بعض المنتجات غير متوفرة حالياً</p>
+              <p className="text-amber-700 dark:text-amber-300 text-xs">تم إزالة: {removedNames.join("، ")}</p>
+            </div>
+          )}
           <button onClick={() => { if (orderId) onSuccess(orderId, slug, orderNumber) }}
             className="w-full rounded-lg bg-primary text-primary-foreground py-2.5 text-sm font-semibold hover:bg-primary/90 transition-colors">
             {t("menu.trackOrder")}

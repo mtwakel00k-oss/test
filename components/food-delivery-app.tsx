@@ -52,7 +52,7 @@ export function FoodDeliveryApp({ initialProducts, slug: propSlug }: { initialPr
   const [sizes, setSizes] = useState<Record<number, string>>({});
   const [sauces, setSauces] = useState<Record<number, number | null>>({});
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const { items, addItem, updateQuantity, itemCount, clear, total } = useCart();
+  const { items, addItem, updateQuantity, itemCount, clear, total, removeProduct } = useCart();
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -163,6 +163,7 @@ export function FoodDeliveryApp({ initialProducts, slug: propSlug }: { initialPr
             onClose={() => setCheckoutOpen(false)}
             onSuccess={(orderId) => { setCheckoutOpen(false); router.push(getOrderTrackingUrl(slug, orderId)) }}
             onClear={clear}
+            onRemoveProduct={removeProduct}
           />
         )}
       </div>
