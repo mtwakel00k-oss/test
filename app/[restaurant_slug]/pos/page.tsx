@@ -26,6 +26,7 @@ import { ProductGrid } from "@/components/pos/product-grid"
 import { CartSidebar } from "@/components/pos/cart-sidebar"
 import { useTranslation } from "@/lib/use-translation"
 import { useStaff } from "@/context/StaffContext"
+import { useFeatures } from "@/lib/use-features"
 
 interface RawOrder {
   id: string
@@ -153,6 +154,7 @@ export default function POSPage() {
   const [pendingDeliveryManId, setPendingDeliveryManId] = useState<string | null>(null)
   const [cashier, setCashier] = useState<{ email: string; role: string; name?: string } | null>(null)
   const { activeStaff } = useStaff()
+  const features = useFeatures()
 
   useEffect(() => {
     fetchApi("/api/tenant/drivers")
@@ -577,6 +579,7 @@ export default function POSPage() {
                 onOrderTypeChange={setNewOrderType}
                 tableNumber={newTable}
                 onTableNumberChange={setNewTable}
+                hasDelivery={features?.hasDelivery !== false}
                 onCancel={() => {
                   setShowNewOrder(false)
                   setNewName("")
@@ -741,7 +744,7 @@ export default function POSPage() {
                       <span className="text-xl font-bold text-foreground">{selectedOrder.total} {cur}</span>
                     </div>
                   </div>
-                  {selectedOrder.orderType === "delivery" && (
+                  {selectedOrder.orderType === "delivery" && features?.hasDelivery !== false && (
                     <div className="border-t border-border/50 pt-3 space-y-2">
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">السائق</p>
                       {selectedOrder.driverId ? (
@@ -806,7 +809,7 @@ export default function POSPage() {
                       )}
                     </div>
                   )}
-                  {selectedOrder.status === "ready" && selectedOrder.orderType === "delivery" && !selectedOrder.driverId && (
+                  {selectedOrder.status === "ready" && selectedOrder.orderType === "delivery" && !selectedOrder.driverId && features?.hasDelivery !== false && (
                     <div className="border-t border-border/50 pt-3 space-y-2">
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">نظام السائقين الجديد</p>
                       <div className="space-y-2">

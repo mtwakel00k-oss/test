@@ -2,19 +2,12 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { createClientForRouteHandlerWithResponse, createClientForRouteHandler } from "@/lib/supabase-server"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
-import { encryptSession, constantTimeCompare } from "@/lib/session-crypto"
+import { encryptSession } from "@/lib/session-crypto"
 import { logger } from "@/lib/logger"
 
 const VALID_ROLES = ["cashier", "chef", "admin", "owner"]
 
 const SECURE = process.env.NODE_ENV === "production"
-
-function validatePassword(password: string): string | null {
-  if (password.length < 8) return "Password must be at least 8 characters"
-  if (!/[A-Z]/.test(password)) return "Password must contain at least one uppercase letter"
-  if (!/[0-9]/.test(password)) return "Password must contain at least one number"
-  return null
-}
 
 export async function GET(req: NextRequest) {
   const sessionCookie = req.cookies.get("session")
@@ -96,68 +89,8 @@ export async function POST(req: NextRequest) {
       tenantId = tenant.id
       logger.info("[login] Found tenant by slug:", { id: tenantId, slug: tenant.slug })
     } else {
-      // No slug provided — try to find tenant from email address
-      if (!username.includes("@")) {
-        logger.info("[login] No slug and username is not an email — cannot resolve tenant")
-        return NextResponse.json({ error: "Provide a restaurant slug or use your email" }, { status: 400 })
-      }
-
-      const email = username.toLowerCase().trim()
-      logger.info("[login] No slug provided; looking up tenant by email:", email)
-
-      await masterSb
-        .from("restaurant_users")
-        .select("restaurant_id, role")
-        .eq("user_id", email)
-        .maybeSingle()
-
-      // restaurant_users is usually keyed by UUID, so fall back to searching auth.users
-      let resolvedUserId: string | null = null
-      const { data: authUsers, error: authListError } = await masterSb.auth.admin.listUsers()
-      if (!authListError && authUsers) {
-        const foundUser = authUsers.users.find(u => u.email === email)
-        if (foundUser) {
-          resolvedUserId = foundUser.id
-          logger.info("[login] Found auth user by email:", { id: resolvedUserId })
-        }
-      }
-
-      if (!resolvedUserId) {
-        logger.info("[login] No auth user found with email:", email)
-        return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
-      }
-
-      const { data: membership } = await masterSb
-        .from("restaurant_users")
-        .select("restaurant_id, role")
-        .eq("user_id", resolvedUserId)
-        .maybeSingle()
-
-      if (!membership) {
-        logger.info("[login] User not linked to any tenant:", resolvedUserId)
-        return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
-      }
-
-      tenantId = membership.restaurant_id
-      logger.info("[login] Found tenant ID from membership:", tenantId)
-
-      // Now get the slug
-      const { data: tenant } = await masterSb
-        .from("tenants")
-        .select("slug")
-        .eq("id", tenantId)
-        .single()
-
-      if (!tenant) {
-        logger.info("[login] Tenant not found by ID:", tenantId)
-        return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
-      }
-      tenantSlug = tenant.slug
-      logger.info("[login] Resolved tenant slug:", tenantSlug)
+      return NextResponse.json({ error: "Provide a restaurant slug" }, { status: 400 })
     }
-
-    const pwdError = validatePassword(password)
-    if (pwdError) return NextResponse.json({ error: pwdError }, { status: 400 })
 
     const isEmail = username.includes("@")
     const normalizedSlug = tenantSlug!.replace(/-/g, "")

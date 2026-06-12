@@ -13,6 +13,7 @@ import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useSlug } from "@/lib/use-slug"
 import { useTranslation } from "@/lib/use-translation"
+import { useFeatures } from "@/lib/use-features"
 import { playNewOrderSound, initAudio } from "@/lib/sound"
 
 interface KitchenItem {
@@ -55,6 +56,13 @@ export default function KitchenPage() {
   const slug = useSlug()
   const router = useRouter()
   const { t, lang } = useTranslation()
+  const features = useFeatures()
+
+  useEffect(() => {
+    if (features && !features.hasKDS) {
+      router.push(`/${slug}/pos`)
+    }
+  }, [features, slug, router])
 
   useEffect(() => {
     fetchApi("/api/me").then(r => r.ok ? r.json() : null).then(data => {

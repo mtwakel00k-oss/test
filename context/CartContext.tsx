@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react"
+import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from "react"
 import type { MenuProduct, CartItem } from "@/lib/types"
 import { getPrice } from "@/lib/types"
 
@@ -26,7 +26,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (typeof window === "undefined") return []
     try { const s = localStorage.getItem("cart"); return s ? JSON.parse(s) : [] } catch { return [] }
   })
-  useEffect(() => { localStorage.setItem("cart", JSON.stringify(items)) }, [items])
+  const persistRef = useRef(items)
+  persistRef.current = items
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      localStorage.setItem("cart", JSON.stringify(persistRef.current))
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [items])
 
   const addItem = useCallback((product: MenuProduct, size: string, sauceId: number | null) => {
     if (product.is_available === false) {

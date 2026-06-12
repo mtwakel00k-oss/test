@@ -2,16 +2,15 @@
 
 import { useState, useEffect, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
-import { supabase } from "@/lib/tenant"
 import { useSlug } from "@/lib/use-slug"
 
 const pageRoleMap: Record<string, string[]> = {
-  pos: ["cashier", "admin"],
+  pos: ["cashier", "admin", "owner"],
   admin: ["admin", "owner"],
-  chef: ["chef", "admin"],
+  kitchen: ["chef", "admin", "owner"],
 }
 
-export default function AuthGuard({ children, page }: { children: ReactNode; page: "pos" | "admin" | "chef" }) {
+export default function AuthGuard({ children, page }: { children: ReactNode; page: "pos" | "admin" | "kitchen" }) {
   const [status, setStatus] = useState<"loading" | "ok" | "denied" | "forbidden">("loading")
   const router = useRouter()
   const slug = useSlug()
@@ -34,8 +33,7 @@ export default function AuthGuard({ children, page }: { children: ReactNode; pag
           setStatus(allowed.includes(role) ? "ok" : "forbidden")
           return
         }
-        const { data: { user } } = await supabase().auth.getUser()
-        setStatus(user ? "ok" : "denied")
+        setStatus("denied")
       } catch {
         setStatus("denied")
       }

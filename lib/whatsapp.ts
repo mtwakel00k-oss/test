@@ -72,7 +72,7 @@ export async function notifyDriverAssigned(
 
     const { data: tenant, error } = await masterSb
       .from("tenants")
-      .select("drivers")
+      .select("supabase_url, supabase_anon_key")
       .eq("slug", slug)
       .single()
 
@@ -81,14 +81,21 @@ export async function notifyDriverAssigned(
       return
     }
 
-    const drivers: DriverRecord[] = Array.isArray(tenant.drivers) ? tenant.drivers : []
-    const d = drivers.find((dr) => dr.id === driverId && dr.is_active)
+    const tenantSb = createClient(tenant.supabase_url, tenant.supabase_anon_key)
 
-    if (!d) {
-      logger.warn("notifyDriverAssigned: driver not found in tenant drivers JSON", { slug, driverId })
+    const { data: driver, error: driverError } = await tenantSb
+      .from("drivers")
+      .select("*")
+      .eq("id", driverId)
+      .maybeSingle()
+
+    if (driverError || !driver || !driver.is_active) {
+      logger.warn("notifyDriverAssigned: driver not found or inactive", { slug, driverId, driverError })
       return
     }
-    const link   = `${origin}/${slug}/driver/${d.token}`
+
+    const d = driver as DriverRecord
+    const link = `${origin}/${slug}/driver/${d.token || driverId}`
     const message = [
       `🛵 *${d.name}*`,
       ``,

@@ -85,7 +85,7 @@ export function useRealtime(options: UseRealtimeOptions) {
       supabase().removeChannel(channel)
       channelRef.current = null
     }
-  }, [channelName])
+  }, [channelName, pollInterval])
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 

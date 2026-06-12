@@ -38,11 +38,12 @@ interface CartSidebarProps {
   tableNumber: string
   onTableNumberChange: (table: string) => void
   onCancel?: () => void
+  hasDelivery?: boolean
 }
 
 export function CartSidebar({
   orderItems, customerName, onCustomerNameChange, customerPhone, onCustomerPhoneChange, onUpdateQuantity, onRemoveItem, onSubmit,
-  submitting, disabled, error, orderType, onOrderTypeChange, tableNumber, onTableNumberChange, onCancel,
+  submitting, disabled, error, orderType, onOrderTypeChange, tableNumber, onTableNumberChange, onCancel, hasDelivery = true,
 }: CartSidebarProps) {
   const { t, lang } = useTranslation()
   const cur = lang === "ar" ? "د.ج" : "DA"
@@ -98,14 +99,16 @@ export function CartSidebar({
                 <Store className="w-3 h-3" />
                 {t("pos.takeaway")}
               </button>
-              <button onClick={() => onOrderTypeChange("delivery")}
-                className={cn("flex-1 rounded-lg px-2 py-2 text-[11px] font-medium transition-all border flex items-center justify-center gap-1",
-                  orderType === "delivery"
-                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                    : "bg-background text-muted-foreground border-border hover:border-primary/30 hover:text-foreground")}>
-                <Truck className="w-3 h-3" />
-                {t("pos.delivery")}
-              </button>
+              {hasDelivery && (
+                <button onClick={() => onOrderTypeChange("delivery")}
+                  className={cn("flex-1 rounded-lg px-2 py-2 text-[11px] font-medium transition-all border flex items-center justify-center gap-1",
+                    orderType === "delivery"
+                      ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                      : "bg-background text-muted-foreground border-border hover:border-primary/30 hover:text-foreground")}>
+                  <Truck className="w-3 h-3" />
+                  {t("pos.delivery")}
+                </button>
+              )}
             </div>
 
             {orderType === "dine_in" && (
