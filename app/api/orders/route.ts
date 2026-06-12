@@ -255,7 +255,7 @@ export async function POST(req: NextRequest) {
     if (removedProductIds.length > 0) {
       logger.warn("Products missing from tenant DB — removed from order", { removedProductIds })
       if (validItems.length === 0) {
-        throw new Error("All products in this order no longer exist in the menu. Please clear your cart and try again.")
+        return NextResponse.json({ error: "All products in this order no longer exist in the menu. Please clear your cart and try again.", code: "ALL_PRODUCTS_STALE" }, { status: 400 })
       }
     }
 

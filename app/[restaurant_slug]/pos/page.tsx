@@ -450,6 +450,7 @@ export default function POSPage() {
       })
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
+        if (body.code === "ALL_PRODUCTS_STALE") { setNewOrderItems([]); setNewOrderError(""); setCreatingOrder(false); return }
         setNewOrderError(body.error === "Table is occupied" ? t("pos.tableOccupied") : (body.error || t("pos.orderError")))
         playErrorSound()
         return

@@ -50,7 +50,9 @@ export async function POST(req: NextRequest) {
     const gate = await featureGate(req)
     if (gate) return gate
 
-    const { product_id, order_id, rating, comment } = await req.json()
+    const body = await req.json()
+    const { product_id, rating, comment } = body
+    let { order_id } = body
     if (!product_id || !rating || rating < 1 || rating > 5) {
       return NextResponse.json({ error: "Invalid product_id or rating" }, { status: 400 })
     }
@@ -62,6 +64,20 @@ export async function POST(req: NextRequest) {
     if (!rl.allowed) return rateLimitResponse(rl.resetAt)
 
     const sb2 = await supabaseForRequest(req)
+
+    // Validate product_id exists (FK safety)
+    const { data: prod } = await (sb2.from("produits")).select("id").eq("id", product_id).maybeSingle()
+    if (!prod) {
+      return NextResponse.json({ error: "Product no longer exists" }, { status: 400 })
+    }
+    if (order_id) {
+      const { data: ord } = await (sb2.from("orders")).select("id").eq("id", order_id).maybeSingle()
+      if (!ord) {
+        logger.warn("Rating submitted with non-existent order_id, dropping it", { order_id, product_id })
+        order_id = undefined
+      }
+    }
+
     const payload: Record<string, unknown> = { product_id, rating, comment: comment?.slice(0, 1000) || null }
     if (order_id) payload.order_id = order_id
     const { error } = await (sb2.from("ratings")).insert(payload)

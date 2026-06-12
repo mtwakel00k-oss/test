@@ -186,6 +186,9 @@ export function CheckoutModal({
             if (res.status === 403) {
               throw new Error(t("menu.forbiddenError") || "عذراً، حدث خطأ في التحقق من الصلاحية. يرجى المحاولة مرة أخرى.")
             }
+            if (data.code === "ALL_PRODUCTS_STALE") {
+              onClear(); onClose(); return
+            }
             throw new Error(data.error === "Table is occupied" ? t("pos.tableOccupied") : (data.error || t("menu.orderFailed")))
           }
           const removedPids: number[] = data.removed_product_ids

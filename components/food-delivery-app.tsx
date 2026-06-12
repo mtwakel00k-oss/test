@@ -71,7 +71,9 @@ export function FoodDeliveryApp({ initialProducts, slug: propSlug }: { initialPr
   }, [propSlug])
 
   useEffect(() => {
+    let currentProducts: MenuProduct[] = []
     if (initialProducts && initialProducts.length > 0) {
+      currentProducts = initialProducts
       setCategories([...new Set(initialProducts.map(p => p.category).filter(Boolean))] as string[])
       const initSauces: Record<number, number | null> = {};
       initialProducts.forEach(p => { initSauces[p.id] = p.has_white_sauce ? 1 : null });
@@ -85,33 +87,48 @@ export function FoodDeliveryApp({ initialProducts, slug: propSlug }: { initialPr
         initSizes[p.id] = avSizes[0] || "L";
       });
       setSizes(initSizes);
-      return
-    }
-    fetchApi("/api/products").then(r => {
-      if (!r.ok) throw new Error(`Products API returned ${r.status}`)
-      return r.json()
-    }).then(data => {
-      if (!Array.isArray(data)) return
-      const available = data.filter((p: { is_available?: boolean }) => p.is_available !== false) as MenuProduct[]
-      setProducts(available);
-      const cats = [...new Set(available.map(p => p.category).filter(Boolean))] as string[];
-      setCategories(cats);
-      const initSauces: Record<number, number | null> = {};
-      available.forEach(p => { initSauces[p.id] = p.has_white_sauce ? 1 : null });
-      setSauces(initSauces);
-      const initSizes: Record<number, string> = {};
-      available.forEach(p => {
-        const avSizes = p.prices ? Object.keys(p.prices).filter(s => {
-          const sp = p.prices[s];
-          return sp.sauce_tomate != null || sp.creme_fraiche != null || sp.standard != null;
-        }) : [];
-        initSizes[p.id] = avSizes[0] || "L";
+    } else {
+      fetchApi("/api/products").then(r => {
+        if (!r.ok) throw new Error(`Products API returned ${r.status}`)
+        return r.json()
+      }).then(data => {
+        if (!Array.isArray(data)) return
+        const available = data.filter((p: { is_available?: boolean }) => p.is_available !== false) as MenuProduct[]
+        currentProducts = available
+        setProducts(available);
+        const cats = [...new Set(available.map(p => p.category).filter(Boolean))] as string[];
+        setCategories(cats);
+        const initSauces: Record<number, number | null> = {};
+        available.forEach(p => { initSauces[p.id] = p.has_white_sauce ? 1 : null });
+        setSauces(initSauces);
+        const initSizes: Record<number, string> = {};
+        available.forEach(p => {
+          const avSizes = p.prices ? Object.keys(p.prices).filter(s => {
+            const sp = p.prices[s];
+            return sp.sauce_tomate != null || sp.creme_fraiche != null || sp.standard != null;
+          }) : [];
+          initSizes[p.id] = avSizes[0] || "L";
+        });
+        setSizes(initSizes);
+      }).catch(e => {
+        logger.error("Failed to fetch products", e)
       });
-      setSizes(initSizes);
-    }).catch(e => {
-      logger.error("Failed to fetch products", e)
-    });
+    }
+
   }, []);
+
+  // ── Auto-clean stale localStorage cart items ────────
+  useEffect(() => {
+    if (products.length === 0) return
+    const validIds = new Set(products.map(p => p.id))
+    const stale = items.filter(i => !validIds.has(i.product.id))
+    if (stale.length > 0) {
+      logger.warn("Removing stale items from cart that no longer exist in menu", {
+        removed: stale.map(i => ({ id: i.product.id, name: i.product.name })),
+      })
+      for (const s of stale) removeProduct(s.product.id)
+    }
+  }, [products]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filtered = selectedCategory === "All"
     ? products

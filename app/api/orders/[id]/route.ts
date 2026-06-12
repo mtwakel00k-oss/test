@@ -118,7 +118,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         if (removedCount > 0) {
           logger.warn("PATCH items: some products no longer exist, filtering them out", { orderId: id, removedCount })
           if (validItems.length === 0) {
-            throw new Error("None of the submitted products exist in the current menu.")
+            return NextResponse.json({ error: "None of the submitted products exist in the current menu.", code: "ALL_PRODUCTS_STALE" }, { status: 400 })
           }
         }
         const { error: insErr } = await sb.from("order_items").insert(
