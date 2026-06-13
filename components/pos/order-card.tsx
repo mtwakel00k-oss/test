@@ -5,22 +5,12 @@ import type { PosOrder, PosOrderStatus } from "@/lib/pos-types"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/lib/use-translation"
 
-interface DriverCard {
-  id: string
-  name: string
-  phone: string
-  isBusy: boolean
-}
-
 interface OrderCardProps {
   order: PosOrder
   isSelected: boolean
   onSelect: () => void
   onStatusChange: (orderId: string | number, status: PosOrderStatus) => void
   onCancel: (orderId: string | number) => void
-  drivers?: DriverCard[]
-  assigningDriver?: boolean
-  onAssignDriver?: (orderId: string | number, driverId: string) => void
 }
 
 function formatTimeAgo(date: Date, t: (key: string) => string): string {
@@ -42,7 +32,7 @@ const STATUS_STYLES = {
   cancelled: { label: "statusCancelled", badge: "badge-rose", dot: "bg-rose-500", bar: "bg-rose-500", shadow: "" },
 } as const
 
-export function OrderCard({ order, isSelected, onSelect, onStatusChange, onCancel, drivers = [], assigningDriver, onAssignDriver }: OrderCardProps) {
+export function OrderCard({ order, isSelected, onSelect, onStatusChange, onCancel }: OrderCardProps) {
   const { t, lang } = useTranslation()
   const [timeAgo, setTimeAgo] = useState(() => formatTimeAgo(order.createdAt, t))
   const s = STATUS_STYLES[order.status]
@@ -140,60 +130,24 @@ export function OrderCard({ order, isSelected, onSelect, onStatusChange, onCance
           </div>
         </div>
 
-        {order.orderType === "delivery" && order.status !== "completed" && order.status !== "cancelled" && (
+        {order.orderType === "delivery" && order.status === "out_for_delivery" && order.driverId && (
           <div className="mt-3 pt-3 border-t border-border/30">
-            {order.driverId ? (
-              <div className="flex items-center justify-between rounded-lg border border-border/50 bg-card px-3 py-2">
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary text-xs font-bold">
-                    {order.driverName?.charAt(0) || "?"}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-foreground truncate">{order.driverName || "—"}</p>
-                    <p className="text-[10px] text-muted-foreground font-mono dir-ltr text-left truncate">{order.driverPhone || ""}</p>
-                  </div>
+            <div className="flex items-center justify-between rounded-lg border border-border/50 bg-card px-3 py-2">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary text-xs font-bold">
+                  {order.driverName?.charAt(0) || "?"}
                 </div>
-                <a href={`https://wa.me/${(order.driverPhone || "").replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer"
-                  onClick={e => e.stopPropagation()}
-                  className="flex items-center justify-center h-7 w-7 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 transition-all">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-                </a>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-foreground truncate">{order.driverName || "—"}</p>
+                  <p className="text-[10px] text-muted-foreground font-mono dir-ltr text-left truncate">{order.driverPhone || ""}</p>
+                </div>
               </div>
-            ) : drivers.length > 0 && onAssignDriver ? (
-              <>
-                {drivers.filter(d => !d.isBusy).length === 0 ? (
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-[11px]">
-                    <span>⚠️</span>
-                    <span>كل السائقين مشغولون حالياً</span>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-1 max-h-28 overflow-y-auto">
-                    {drivers.filter(d => !d.isBusy).map(driver => (
-                      <button key={driver.id} onClick={e => { e.stopPropagation(); onAssignDriver(order.id, driver.id) }}
-                        disabled={assigningDriver}
-                        className="flex items-center gap-2 w-full rounded-md border border-border/50 bg-card px-2.5 py-2 text-right hover:border-primary/30 hover:bg-primary/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed group">
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold group-hover:bg-emerald-500/20 transition-colors">
-                          {driver.name.charAt(0)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-foreground">{driver.name}</p>
-                          <p className="text-[10px] text-muted-foreground font-mono dir-ltr text-left">{driver.phone}</p>
-                        </div>
-                        <span className="flex items-center gap-1 shrink-0">
-                          <span className="w-1 h-1 rounded-full bg-emerald-500" />
-                          <span className="text-[9px] font-semibold text-emerald-600 dark:text-emerald-400">متاح</span>
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/30 text-muted-foreground text-[11px]">
-                <span>🛵</span>
-                <span>لا يوجد سائقون — أضف من الإعدادات</span>
-              </div>
-            )}
+              <a href={`tel:${order.driverPhone || ""}`}
+                onClick={e => e.stopPropagation()}
+                className="flex items-center justify-center h-7 w-7 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 transition-all">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+              </a>
+            </div>
           </div>
         )}
 
