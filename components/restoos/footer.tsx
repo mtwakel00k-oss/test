@@ -1,6 +1,6 @@
 import { Logo } from './logo'
 import { Separator } from '@/components/ui/separator'
-import { Github, Twitter, Linkedin, Facebook, Mail, Phone } from 'lucide-react'
+import { Globe, Hash, Link2, MessageSquareText, Phone, Mail } from 'lucide-react'
 
 const columns = [
   { 
@@ -44,10 +44,10 @@ export function Footer() {
             </p>
             <div className="mt-6 flex gap-3">
               {[
-                { icon: Facebook, label: 'فيسبوك' },
-                { icon: Twitter, label: 'تويتر' },
-                { icon: Linkedin, label: 'لينكد إن' },
-                { icon: Github, label: 'جيت هاب' }
+                { icon: MessageSquareText, label: 'فيسبوك' },
+                { icon: Hash, label: 'تويتر' },
+                { icon: Link2, label: 'لينكد إن' },
+                { icon: Globe, label: 'جيت هاب' }
               ].map((s, i) => (
                 <a
                   key={i}
