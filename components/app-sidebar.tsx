@@ -6,6 +6,7 @@ import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel, SidebarGroupContent,
   SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarRail,
 } from "@/components/blocks/sidebar"
+import { cn } from "@/lib/utils"
 import { resetTenantClient } from "@/lib/tenant"
 
 const nav = [
