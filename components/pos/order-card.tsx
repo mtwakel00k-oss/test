@@ -79,64 +79,56 @@ export function OrderCard({ order, isSelected, onSelect, onStatusChange, onCance
     <div
       onClick={onSelect}
       className={cn(
-        "relative bg-card rounded-2xl border border-border/50 overflow-hidden cursor-pointer",
-        "transition-all duration-200 hover:shadow-lg hover:border-border/80 active:scale-[0.99]",
-        isSelected && "ring-2 ring-primary/30 border-primary/30 shadow-xl",
+        "group relative bg-card rounded-[2rem] border border-border/50 overflow-hidden cursor-pointer",
+        "transition-all duration-300 hover:shadow-2xl hover:border-primary/20 hover:-translate-y-1 active:scale-[0.98]",
+        isSelected ? "ring-4 ring-primary/20 border-primary/40 shadow-2xl bg-primary/[0.02]" : "shadow-sm",
       )}
     >
-      {/* Top status bar */}
-      <div className={cn("h-1.5 w-full", s.bar)} />
-
-      <div className="p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 min-w-0 space-y-2">
+      <div className="p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 min-w-0 space-y-4">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold", s.badge)}>
-                <span className={cn("w-1.5 h-1.5 rounded-full", s.dot)} />
+              <span className={cn("inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest", s.badge)}>
+                <span className={cn("size-2 rounded-full", s.dot, order.status === "pending" && "animate-pulse")} />
                 {t(`pos.${s.label}`)}
               </span>
-              <span className={cn("inline-flex px-2 py-1 rounded-lg text-[11px] font-semibold",
+              <span className={cn("inline-flex px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest",
                 order.paymentStatus === "paid"
-                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
-                  : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                  ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+                  : "bg-amber-500/10 text-amber-600 border border-amber-500/20"
               )}>
                 {order.paymentStatus === "paid" ? t("pos.paid") : t("pos.unpaid")}
               </span>
-              {order.orderType === "delivery" && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold bg-violet-100 text-violet-700 dark:bg-violet-900/20 dark:text-violet-300">
-                  🛵 {t("pos.delivery")}
-                </span>
-              )}
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border", orderTypeInfo.badge)}>
-                {orderTypeInfo.icon} {orderTypeInfo.label}
-              </span>
-              <span className="text-xs text-muted-foreground font-mono">#{order.orderNumber}</span>
-              {order.status === "pending" && (
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
-                </span>
-              )}
+            <div className="flex items-center gap-3">
+              <div className={cn("flex items-center justify-center size-10 rounded-2xl text-xl shadow-inner border border-border/50", orderTypeInfo.badge.split(' ')[0])}>
+                {orderTypeInfo.icon}
+              </div>
+              <div className="flex flex-col">
+                <h3 className="text-base font-black text-foreground leading-none mb-1">{orderTypeInfo.label}</h3>
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">#{order.orderNumber}</span>
+              </div>
             </div>
 
             <div className="flex items-center gap-1.5 flex-wrap">
-              {order.items.slice(0, 4).map((item) => (
-                <span key={item.id} className="text-xs text-muted-foreground bg-muted/50 rounded-lg px-2 py-1">
-                  {item.quantity}× {item.name}
+              {order.items.slice(0, 3).map((item) => (
+                <span key={item.id} className="text-[11px] font-bold text-muted-foreground bg-muted/50 border border-border/50 rounded-xl px-2.5 py-1">
+                  <span className="text-primary font-black">x{item.quantity}</span> {item.name}
                 </span>
               ))}
-              {order.items.length > 4 && (
-                <span className="text-xs text-muted-foreground font-semibold">+{order.items.length - 4}</span>
+              {order.items.length > 3 && (
+                <span className="text-[10px] font-black text-primary bg-primary/10 rounded-xl px-2 py-1">+{order.items.length - 3}</span>
               )}
             </div>
           </div>
 
           <div className="flex flex-col items-end gap-1 shrink-0">
-            <span className="text-lg font-black text-foreground tabular-nums">{order.total.toLocaleString()} {cur}</span>
-            <span className="text-[10px] text-muted-foreground whitespace-nowrap">{timeAgo}</span>
+            <span className="text-2xl font-black text-foreground tabular-nums leading-none mb-1">{order.total.toLocaleString()} <span className="text-xs opacity-60 font-bold">{cur}</span></span>
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-muted/50 border border-border/50">
+              <span className="size-1.5 rounded-full bg-muted-foreground/30" />
+              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-tighter">{timeAgo}</span>
+            </div>
           </div>
         </div>
 
@@ -198,22 +190,24 @@ export function OrderCard({ order, isSelected, onSelect, onStatusChange, onCance
           </div>
         )}
 
-        <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/30">
+        <div className="flex items-center justify-between mt-6 pt-5 border-t border-border/50">
           <div className="flex items-center gap-2">
             {getNextStatus() && (
               <button onClick={handleAdvanceStatus}
-                className="inline-flex items-center gap-1 px-4 py-2 rounded-xl text-xs font-bold bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-all active:scale-95 min-h-[44px]">
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest bg-primary text-primary-foreground shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
                 {t(`pos.${STATUS_STYLES[getNextStatus()!].label}`)}
               </button>
             )}
             {order.status === "pending" && (
               <button onClick={(e) => { e.stopPropagation(); onCancel(order.id) }}
-                className="inline-flex items-center gap-1 px-4 py-2 rounded-xl text-xs font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-all min-h-[44px]">
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black uppercase tracking-widest text-rose-500 hover:bg-rose-500/10 transition-all">
                 {t("common.cancel")}
               </button>
             )}
           </div>
-          <span className="text-[10px] text-muted-foreground font-medium">{t("pos.viewDetails")}</span>
+          <div className="size-10 rounded-2xl bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </div>
         </div>
       </div>
     </div>

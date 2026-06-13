@@ -21,31 +21,31 @@ export function TopProducts({ data }: TopProductsProps) {
   const maxQty = items.length ? Math.max(...items.map((d) => d.quantity), 1) : 1
 
   return (
-    <Card className="border-border/50 bg-card h-full">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-lg font-semibold text-foreground">{t("admin.topProducts")}</CardTitle>
-        <p className="text-sm text-muted-foreground mt-1">{t("admin.topProductsSub")}</p>
+    <Card className="border-border/50 bg-card/50 backdrop-blur-xl h-full rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden">
+      <CardHeader className="p-8 pb-4">
+        <CardTitle className="text-xl font-black text-foreground tracking-tight">{t("admin.topProducts")}</CardTitle>
+        <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mt-1">{t("admin.topProductsSub")}</p>
       </CardHeader>
-      <CardContent className="pt-0">
-        <div className="space-y-4">
+      <CardContent className="p-8 pt-0">
+        <div className="space-y-6">
           {items.map((item, i) => (
-            <div key={item.name} className="flex items-center gap-4">
+            <div key={item.name} className="flex items-center gap-6 group">
               <div
                 className={cn(
-                  "w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0",
+                  "size-10 rounded-2xl flex items-center justify-center text-white text-sm font-black shrink-0 shadow-lg transition-transform group-hover:scale-110",
                   bgColors[i % bgColors.length],
                 )}
               >
                 {i + 1}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-foreground truncate">{item.name}</span>
-                  <span className="text-sm text-muted-foreground shrink-0 ms-2">{item.quantity} {t("admin.sold")}</span>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-black text-foreground truncate group-hover:text-primary transition-colors">{item.name}</span>
+                  <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest shrink-0 ms-2">{item.quantity} {t("admin.sold")}</span>
                 </div>
-                <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                <div className="h-3 bg-muted/50 rounded-full overflow-hidden border border-border/50 p-0.5">
                   <div
-                    className={cn("h-full rounded-full transition-all duration-500", bgColors[i % bgColors.length])}
+                    className={cn("h-full rounded-full transition-all duration-1000 ease-out", bgColors[i % bgColors.length])}
                     style={{ width: `${(item.quantity / maxQty) * 100}%` }}
                   />
                 </div>

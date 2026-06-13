@@ -16,9 +16,14 @@ const ease = [0.22, 1, 0.36, 1] as const
 export function Hero() {
   return (
     <section className="hero-gradient relative overflow-hidden pb-28 pt-40 md:pt-48">
-      <div className="animate-orb pointer-events-none absolute -left-24 top-20 size-96 rounded-full bg-primary/20 blur-[120px]" />
-      <div className="animate-orb pointer-events-none absolute -right-24 top-40 size-80 rounded-full bg-accent/20 blur-[120px]" style={{ animationDelay: '6s' }} />
-      <div className="absolute inset-0 bg-[radial-gradient(oklch(0.52_0.18_145/0.03)_1px,transparent_1px)] bg-[length:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,black,transparent)]" />
+      {/* Background Mesh Gradient */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <svg className="absolute -top-[10%] left-[5%] h-[70%] w-[90%] opacity-20 blur-[120px]" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="200" cy="200" r="400" fill="oklch(0.52 0.18 145)" />
+          <circle cx="800" cy="500" r="300" fill="oklch(0.65 0.25 180)" />
+        </svg>
+      </div>
+      <div className="absolute inset-0 bg-[radial-gradient(oklch(0.52_0.18_145/0.05)_1.5px,transparent_1.5px)] bg-[length:32px_32px] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_0%,black,transparent)]" />
 
       <div className="relative mx-auto max-w-6xl px-5 text-center">
         <motion.div
@@ -39,10 +44,10 @@ export function Hero() {
         >
           <SparklesText
             text="نظام نقاط البيع الذكي"
-            colors={{ first: '#22c55e', second: '#06b6d4' }}
+            colors={{ first: 'oklch(0.52 0.18 145)', second: 'oklch(0.65 0.25 180)' }}
             className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl"
           />
-          <span className="mt-3 block text-foreground/80">للمطاعم متعددة الفروع</span>
+          <span className="mt-3 block bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">للمطاعم متعددة الفروع</span>
         </motion.h1>
 
         <motion.p

@@ -1,11 +1,35 @@
 import { Logo } from './logo'
 import { Separator } from '@/components/ui/separator'
+import { Github, Twitter, Linkedin, Facebook, Mail, Phone } from 'lucide-react'
 
 const columns = [
-  { title: 'المنتج', links: ['الميزات', 'التسعير', 'شاشة المطبخ', 'نقطة البيع'] },
-  { title: 'الشركة', links: ['من نحن', 'المدونة', 'الوظائف', 'الشركاء'] },
-  { title: 'الدعم', links: ['مركز المساعدة', 'التوثيق', 'حالة النظام', 'تواصل معنا'] },
-  { title: 'القانوني', links: ['الخصوصية', 'الشروط', 'ملفات الكوكيز'] },
+  { 
+    title: 'المنتج', 
+    links: [
+      { label: 'الميزات', href: '#features' },
+      { label: 'كيف يعمل', href: '#how' },
+      { label: 'التسعير', href: '#pricing' },
+      { label: 'الأسئلة الشائعة', href: '#faq' }
+    ] 
+  },
+  { 
+    title: 'الشركة', 
+    links: [
+      { label: 'من نحن', href: '#' },
+      { label: 'المدونة', href: '#' },
+      { label: 'الوظائف', href: '#' },
+      { label: 'الشركاء', href: '#' }
+    ] 
+  },
+  { 
+    title: 'الدعم', 
+    links: [
+      { label: 'مركز المساعدة', href: '#' },
+      { label: 'التوثيق', href: '#' },
+      { label: 'حالة النظام', href: '#' },
+      { label: 'تواصل معنا', href: '#cta' }
+    ] 
+  },
 ]
 
 export function Footer() {
@@ -18,15 +42,20 @@ export function Footer() {
             <p className="mt-4 max-w-xs leading-relaxed text-muted-foreground">
               نظام نقاط البيع الذكي والمتكامل لإدارة مطعمك من مكان واحد.
             </p>
-            <div className="mt-5 flex gap-3">
-              {['f', 'in', 'x'].map((s) => (
+            <div className="mt-6 flex gap-3">
+              {[
+                { icon: Facebook, label: 'فيسبوك' },
+                { icon: Twitter, label: 'تويتر' },
+                { icon: Linkedin, label: 'لينكد إن' },
+                { icon: Github, label: 'جيت هاب' }
+              ].map((s, i) => (
                 <a
-                  key={s}
+                  key={i}
                   href="#"
-                  aria-label={`رابط ${s}`}
-                  className="grid size-9 place-items-center rounded-full border border-border text-sm font-bold text-muted-foreground transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground"
+                  aria-label={s.label}
+                  className="grid size-10 place-items-center rounded-xl border border-border/50 bg-muted/30 text-muted-foreground transition-all hover:border-primary/30 hover:bg-primary/10 hover:text-primary hover:-translate-y-1"
                 >
-                  {s}
+                  <s.icon size={18} />
                 </a>
               ))}
             </div>
@@ -34,23 +63,41 @@ export function Footer() {
 
           {columns.map((c) => (
             <div key={c.title}>
-              <h4 className="mb-4 font-bold text-foreground">{c.title}</h4>
-              <ul className="flex flex-col gap-2.5">
+              <h4 className="mb-5 font-bold text-foreground">{c.title}</h4>
+              <ul className="flex flex-col gap-3">
                 {c.links.map((l) => (
-                  <li key={l}>
-                    <a href="#" className="text-sm text-muted-foreground transition-colors hover:text-primary">
-                      {l}
+                  <li key={l.label}>
+                    <a href={l.href} className="text-sm text-muted-foreground transition-colors hover:text-primary">
+                      {l.label}
                     </a>
                   </li>
                 ))}
               </ul>
             </div>
           ))}
+
+          <div>
+            <h4 className="mb-5 font-bold text-foreground">اتصل بنا</h4>
+            <ul className="flex flex-col gap-4">
+              <li className="flex items-center gap-3 text-sm text-muted-foreground">
+                <div className="grid size-8 place-items-center rounded-lg bg-primary/10 text-primary">
+                  <Phone size={14} />
+                </div>
+                <span dir="ltr">+213 555 00 00 00</span>
+              </li>
+              <li className="flex items-center gap-3 text-sm text-muted-foreground">
+                <div className="grid size-8 place-items-center rounded-lg bg-primary/10 text-primary">
+                  <Mail size={14} />
+                </div>
+                <span>contact@restoos.dz</span>
+              </li>
+            </ul>
+          </div>
         </div>
 
         <Separator className="my-8" />
         <div className="text-center text-sm text-muted-foreground">
-          © 2026 RestoOS — جميع الحقوق محفوظة
+          © {new Date().getFullYear()} RestoOS — جميع الحقوق محفوظة
         </div>
       </div>
     </footer>

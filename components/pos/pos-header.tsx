@@ -58,15 +58,18 @@ export function POSHeader({ totalOrders, activeOrders, todayRevenue, onNewOrder,
   }, [])
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur-xl">
-      <div className="flex items-center justify-between gap-2 px-4 lg:px-6 py-2.5">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-sm">
-            <Receipt className="w-4 h-4" />
+    <header className="sticky top-0 z-30 border-b border-border/50 bg-background/80 backdrop-blur-2xl shadow-sm">
+      <div className="flex items-center justify-between gap-4 px-6 py-3">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center justify-center size-11 rounded-2xl bg-primary text-primary-foreground shadow-xl shadow-primary/20">
+            <Receipt className="w-5 h-5" />
           </div>
-          <div>
-            <h1 className="text-sm font-bold text-foreground leading-tight">{t("pos.title")}</h1>
-            <p className="text-[10px] text-muted-foreground leading-tight">{t("pos.subtitle")}</p>
+          <div className="flex flex-col">
+            <h1 className="text-base font-black text-foreground tracking-tight leading-none mb-1">{t("pos.title")}</h1>
+            <div className="flex items-center gap-1.5">
+              <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t("pos.subtitle")}</p>
+            </div>
           </div>
         </div>
 
@@ -80,31 +83,28 @@ export function POSHeader({ totalOrders, activeOrders, todayRevenue, onNewOrder,
             </div>
           )}
 
-          <div className="hidden md:flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 border border-border/40">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-              </span>
-              <span className="text-xs text-muted-foreground tabular-nums">
-                <span className="font-bold text-foreground">{activeOrders}</span>
-                <span className="hidden lg:inline text-muted-foreground"> {t("pos.activeOrders")}</span>
+          <div className="hidden md:flex items-center gap-3">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-muted/50 border border-border/50">
+              <div className="relative size-2">
+                <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75" />
+                <span className="relative block size-2 rounded-full bg-emerald-500" />
+              </div>
+              <span className="text-xs font-black text-foreground tabular-nums">
+                {activeOrders} <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold ms-1">{t("pos.activeOrders")}</span>
               </span>
             </div>
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/60 border border-border/40">
-              <Receipt className="w-3 h-3 text-muted-foreground" />
-              <span className="text-xs tabular-nums font-semibold text-foreground">{totalOrders}</span>
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              <span className="text-xs text-primary font-bold tabular-nums">{todayRevenue.toLocaleString()} {cur}</span>
+            
+            <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-primary/10 border border-primary/20 shadow-inner">
+              <span className="text-xs font-black text-primary tabular-nums">
+                {todayRevenue.toLocaleString()} <span className="text-[10px] opacity-70 ms-0.5">{cur}</span>
+              </span>
             </div>
           </div>
 
           {onNewOrder && (
             <button onClick={onNewOrder}
-              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-all active:scale-95 shadow-sm">
-              <Plus className="w-3.5 h-3.5" />
+              className="inline-flex items-center gap-2 h-11 px-5 rounded-2xl bg-primary text-primary-foreground text-sm font-black hover:scale-105 active:scale-95 transition-all shadow-xl shadow-primary/20">
+              <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">{t("pos.newOrder")}</span>
             </button>
           )}

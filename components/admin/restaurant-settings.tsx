@@ -219,71 +219,71 @@ export function RestaurantSettings() {
   }
 
   return (<>
-    <Card className="border-border/50" dir={dir}>
-      <CardHeader className="pb-4">
-        <CardTitle className="text-lg font-semibold">
+    <Card className="border-border/50 bg-card/50 backdrop-blur-xl rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden" dir={dir}>
+      <CardHeader className="p-8 pb-4">
+        <CardTitle className="text-xl font-black text-foreground tracking-tight">
           {T(lang, "إعدادات المطعم", "Restaurant Settings", "Paramètres du restaurant")}
         </CardTitle>
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mt-1">
           {T(lang, "تحديث اسم المطعم وشعاره", "Update name & logo", "Modifier le nom et le logo")}
         </p>
       </CardHeader>
-      <CardContent className="space-y-5">
+      <CardContent className="p-8 space-y-8">
         {isLoading ? (
-          <div className="flex items-center gap-4">
-            <Skeleton className="h-16 w-16 rounded-full" />
-            <div className="space-y-2"><Skeleton className="h-5 w-40" /><Skeleton className="h-4 w-24" /></div>
+          <div className="flex items-center gap-6">
+            <Skeleton className="size-20 rounded-[2rem]" />
+            <div className="space-y-3"><Skeleton className="h-6 w-48" /><Skeleton className="h-4 w-32" /></div>
           </div>
         ) : (
           <>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-6 group">
               <div
-                className="relative h-16 w-16 rounded-full bg-muted flex items-center justify-center overflow-hidden cursor-pointer group border-2 border-border hover:border-primary/50 transition-colors shrink-0"
+                className="relative size-24 rounded-[2rem] bg-muted/50 flex items-center justify-center overflow-hidden cursor-pointer group border border-border/50 hover:border-primary/50 hover:shadow-2xl transition-all duration-500 shrink-0 shadow-inner"
                 onClick={pickFile} role="button" tabIndex={0}
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") pickFile() }}
               >
                 {isUploading ? (
-                  <div className="animate-spin h-6 w-6 border-[3px] border-primary border-t-transparent rounded-full" />
+                  <div className="size-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
                 ) : logoUrl ? (
                   <>
-                    <Image src={logoUrl} alt="" fill className="object-cover block" onError={() => console.error("Logo load failed")} unoptimized />
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
-                      <Camera className="h-5 w-5 text-white" />
+                    <Image src={logoUrl} alt="" fill className="object-cover block transition-transform duration-700 group-hover:scale-110" onError={() => console.error("Logo load failed")} unoptimized />
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500">
+                      <Camera className="size-8 text-white" />
                     </div>
                   </>
                 ) : (
                   <>
-                    <Store className="h-7 w-7 text-muted-foreground" />
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
-                      <Camera className="h-5 w-5 text-white" />
+                    <Store className="size-10 text-muted-foreground/40" />
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500">
+                      <Camera className="size-8 text-white" />
                     </div>
                   </>
                 )}
               </div>
-              <div>
-                <p className="text-sm font-medium text-foreground">{T(lang, "شعار المطعم", "Restaurant Logo", "Logo du restaurant")}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{T(lang, "انقر لتغيير الشعار", "Click to change", "Cliquez pour changer")}</p>
+              <div className="space-y-1">
+                <p className="text-sm font-black text-foreground tracking-tight">{T(lang, "شعار المطعم", "Restaurant Logo", "Logo du restaurant")}</p>
+                <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">{T(lang, "انقر لتغيير الشعار", "Click to change", "Cliquez pour changer")}</p>
               </div>
               <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleFile} />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">{T(lang, "اسم المطعم", "Restaurant Name", "Nom du restaurant")}</label>
+            <div className="space-y-4">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 px-1">{T(lang, "اسم المطعم", "Restaurant Name", "Nom du restaurant")}</label>
               {editingName ? (
-                <div className="flex items-center gap-2">
-                  <Input ref={nameRef} value={newName} onChange={(e) => setNewName(e.target.value)} onKeyDown={onKey} className="flex-1" maxLength={60} />
-                  <Button size="sm" onClick={saveName} disabled={isSaving} className="shrink-0">
-                    {isSaving ? <span className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <Check className="h-4 w-4" />}
+                <div className="flex items-center gap-3">
+                  <Input ref={nameRef} value={newName} onChange={(e) => setNewName(e.target.value)} onKeyDown={onKey} className="h-14 px-6 rounded-2xl border-border/50 bg-muted/30 text-sm font-bold focus:ring-2 focus:ring-primary/20 transition-all" maxLength={60} />
+                  <Button onClick={saveName} disabled={isSaving} className="size-14 rounded-2xl shrink-0 shadow-xl shadow-primary/20">
+                    {isSaving ? <span className="size-5 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <Check className="size-5" />}
                   </Button>
-                  <Button size="sm" variant="outline" onClick={cancelEdit} className="shrink-0">
-                    <X className="h-4 w-4" />
+                  <Button variant="outline" onClick={cancelEdit} className="size-14 rounded-2xl shrink-0 border-border/50 hover:bg-rose-500/10 hover:text-rose-600 transition-all">
+                    <X className="size-5" />
                   </Button>
                 </div>
               ) : (
-                <div className="flex items-center gap-2">
-                  <span className="text-base text-foreground">{name}</span>
-                  <button onClick={startEdit} className="h-7 w-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary flex items-center justify-center transition-colors">
-                    <Pencil className="h-3.5 w-3.5" />
+                <div className="flex items-center justify-between p-6 rounded-[1.5rem] bg-muted/30 border border-border/50 group hover:border-primary/20 transition-all">
+                  <span className="text-lg font-black text-foreground tracking-tight">{name}</span>
+                  <button onClick={startEdit} className="size-10 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 flex items-center justify-center transition-all shadow-sm">
+                    <Pencil className="size-4" />
                   </button>
                 </div>
               )}

@@ -51,8 +51,8 @@ export function ClearData({ onCleared }: ClearDataProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="destructive" size="sm">
-          <Trash2 className="h-4 w-4" />
+        <Button className="h-12 px-5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-rose-500 bg-rose-500/5 hover:bg-rose-500 hover:text-white transition-all duration-300 flex items-center gap-2 border border-rose-500/10">
+          <Trash2 className="size-4" />
           {t("admin.clearData")}
         </Button>
       </DialogTrigger>

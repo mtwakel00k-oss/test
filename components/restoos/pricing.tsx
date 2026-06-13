@@ -73,20 +73,36 @@ function Check({ on }: { on: boolean }) {
 }
 
 export function Pricing() {
+  const [isYearly, setIsYearly] = useState(false)
+
   return (
-    <section id="pricing" className="relative py-28">
+    <section id="pricing" className="relative py-28 overflow-hidden">
       <div className="absolute inset-0 bg-muted/30" />
       <div className="relative mx-auto max-w-6xl px-5">
-        <div className="mx-auto mb-16 max-w-2xl text-center">
+        <div className="mx-auto mb-12 max-w-2xl text-center">
           <Badge variant="outline" className="mb-5 px-5 py-2 text-sm font-medium rounded-xl border-primary/20 bg-primary/5 text-primary">
             التسعير
           </Badge>
           <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl md:text-5xl">
             اختر الخطة المناسبة لمطعمك
           </h2>
-          <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
-            ابدأ مجاناً وارتقِ بخطتك عندما ينمو مطعمك.
-          </p>
+          
+          {/* Billing Toggle */}
+          <div className="mt-10 flex items-center justify-center gap-4">
+            <span className={cn("text-sm font-medium", !isYearly ? "text-foreground" : "text-muted-foreground")}>شهري</span>
+            <button
+              onClick={() => setIsYearly(!isYearly)}
+              className="relative h-7 w-12 rounded-full bg-muted border border-border p-1 transition-colors hover:border-primary/50"
+            >
+              <motion.div
+                animate={{ x: isYearly ? 20 : 0 }}
+                className="h-4.5 w-4.5 rounded-full bg-primary shadow-sm"
+              />
+            </button>
+            <span className={cn("text-sm font-medium", isYearly ? "text-foreground" : "text-muted-foreground")}>
+              سنوي <Badge variant="secondary" className="bg-primary/10 text-primary border-none ml-1 text-[10px] py-0 px-1.5">خصم 20%</Badge>
+            </span>
+          </div>
         </div>
 
         <div className="grid items-stretch gap-8 md:grid-cols-3">
@@ -106,7 +122,7 @@ export function Pricing() {
               }`}
             >
               {p.highlight && (
-                <span className="absolute -top-3.5 right-8 rounded-full bg-gradient-to-r from-primary to-primary/80 px-5 py-1.5 text-xs font-bold text-primary-foreground shadow-lg shadow-primary/30">
+                <span className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-primary to-primary/80 px-6 py-1.5 text-xs font-black uppercase tracking-wider text-primary-foreground shadow-xl shadow-primary/30">
                   الأكثر طلباً
                 </span>
               )}
@@ -120,9 +136,16 @@ export function Pricing() {
                 </span>
               </div>
 
-              <p className={`mt-4 text-3xl font-black ${p.highlight ? 'text-primary' : p.dark ? 'text-white' : 'text-foreground'}`}>
-                {p.price}
-              </p>
+              <div className="mt-6 flex items-baseline gap-1">
+                <span className={`text-4xl font-black ${p.highlight ? 'text-primary' : p.dark ? 'text-white' : 'text-foreground'}`}>
+                  {p.price}
+                </span>
+                {p.price !== 'تواصل معنا' && (
+                  <span className={`text-sm font-medium ${p.dark ? 'text-white/40' : 'text-muted-foreground'}`}>
+                    / {isYearly ? 'سنوياً' : 'شهرياً'}
+                  </span>
+                )}
+              </div>
 
               <ul className="mt-8 flex flex-1 flex-col gap-3.5">
                 {p.features.map((f) => (

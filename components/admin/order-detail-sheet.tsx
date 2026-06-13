@@ -178,82 +178,106 @@ function OrderDetailPanel({ orderId, onOrderUpdated }: { orderId: string | null;
 
   return (
     <>
-      <SheetHeader className="px-4 pt-4 pb-3 border-b border-border">
-        <div className="flex items-center justify-between">
+      <SheetHeader className="px-8 pt-8 pb-6 border-b border-border/50 bg-muted/5">
+        <div className="flex items-center justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <SheetTitle className="text-lg font-semibold">
+            <SheetTitle className="text-xl font-black text-foreground tracking-tight leading-none mb-2">
               {order
                 ? String(order.order_type ?? "").toLowerCase() === "takeaway"
                   ? t("order.type.takeaway")
                   : `${t("pos.table")} ${order.table_number ?? "—"}`
                 : ""}
             </SheetTitle>
-            <SheetDescription className="text-xs text-muted-foreground mt-0.5">
+            <SheetDescription className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">
               {order
                 ? `#${order.order_number ?? "—"}${order.customer_name ? " · " + order.customer_name : ""}`
                 : ""}
             </SheetDescription>
           </div>
           {order && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Button
-                variant="ghost"
-                size="icon-sm"
+                variant="outline"
+                size="icon"
                 onClick={handlePrint}
-                className="text-muted-foreground hover:text-foreground"
+                className="size-10 rounded-xl border-border/50 hover:bg-primary/10 hover:text-primary transition-all"
               >
-                <Printer className="h-4 w-4" />
+                <Printer className="size-4" />
               </Button>
             </div>
           )}
         </div>
       </SheetHeader>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-8 space-y-8 bg-background/50 backdrop-blur-xl">
         {!orderId ? (
-          <p className="text-sm text-muted-foreground text-center py-12">—</p>
+          <div className="flex flex-col items-center justify-center py-24 text-muted-foreground/30">
+            <span className="text-4xl mb-4">🔍</span>
+            <p className="text-xs font-black uppercase tracking-widest">—</p>
+          </div>
         ) : loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <div className="flex flex-col items-center justify-center py-24">
+            <div className="size-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-4" />
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">{t("common.loading") || "جاري التحميل..."}</p>
           </div>
         ) : !order ? (
-          <p className="text-sm text-muted-foreground text-center py-12">—</p>
+          <div className="flex flex-col items-center justify-center py-24 text-muted-foreground/30">
+            <span className="text-4xl mb-4">❌</span>
+            <p className="text-xs font-black uppercase tracking-widest">—</p>
+          </div>
         ) : (
           <>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-muted/30 border border-border/50">
               {(() => {
                 const { label, color } = resolveOrderStatus(orderStatus, orderPaymentStatus, t)
                 return (
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${colorMap[color]}`}>
+                  <span className={`inline-flex items-center px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border shadow-sm ${colorMap[color]}`}>
                     {label}
                   </span>
                 )
               })()}
-              <span className="text-xs text-muted-foreground">
-                {formatDateTime(order.created_at)}
-              </span>
+              <div className="flex items-center gap-1.5 text-muted-foreground/60">
+                <svg className="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-[10px] font-bold uppercase tracking-widest">
+                  {formatDateTime(order.created_at)}
+                </span>
+              </div>
             </div>
 
-            <div className="space-y-1.5">
-              {(order.items || []).map((item) => (
-                <div key={item.id} className="flex justify-between items-center py-2 border-b border-border/30 last:border-0">
-                  <span className="text-sm text-foreground/80">
-                    <span className="text-muted-foreground">{item.quantity}x</span>{" "}
-                    {item.product_name}
-                    {item.size && item.size !== "UNIQUE" ? ` (${item.size})` : ""}
-                  </span>
-                  <span className="text-sm text-foreground font-medium">
-                    {fmtNum(Number(item.unit_price) * item.quantity)} {currency}
-                  </span>
-                </div>
-              ))}
+            <div className="space-y-4">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 px-1">{t("pos.items") || "الأصناف"}</label>
+              <div className="space-y-3">
+                {(order.items || []).map((item) => (
+                  <div key={item.id} className="flex justify-between items-center p-4 rounded-2xl bg-muted/20 border border-border/30 hover:border-primary/20 transition-all group">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm font-black text-foreground leading-tight">
+                        {item.product_name}
+                        {item.size && item.size !== "UNIQUE" ? (
+                          <span className="ms-2 text-[9px] font-black uppercase tracking-widest bg-primary/10 text-primary px-2 py-0.5 rounded-lg">{item.size}</span>
+                        ) : ""}
+                      </span>
+                      <span className="text-[10px] font-bold text-muted-foreground/60">
+                        {item.quantity}x {fmtNum(Number(item.unit_price))} {currency}
+                      </span>
+                    </div>
+                    <span className="text-sm font-black text-foreground tabular-nums">
+                      {fmtNum(Number(item.unit_price) * item.quantity)} <span className="text-[10px] opacity-40">{currency}</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div className="pt-2 border-t border-border">
+            <div className="p-6 rounded-[2rem] bg-primary/5 border border-primary/10 shadow-inner">
               <div className="flex justify-between items-center">
-                <span className="text-base font-semibold text-foreground">{t("track.total")}</span>
-                <span className="text-xl font-bold text-foreground">
-                  {fmtNum(Number(order.total) || 0)} {currency}
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60 mb-1">{t("track.total")}</span>
+                  <span className="text-[10px] font-bold text-muted-foreground/40">{order.items?.length || 0} {t("pos.items") || "أصناف"}</span>
+                </div>
+                <span className="text-3xl font-black text-foreground tracking-tighter">
+                  {fmtNum(Number(order.total) || 0)} <span className="text-xs opacity-40">{currency}</span>
                 </span>
               </div>
             </div>
@@ -262,26 +286,26 @@ function OrderDetailPanel({ orderId, onOrderUpdated }: { orderId: string | null;
       </div>
 
       {order && (
-        <div className="p-4 border-t border-border space-y-2">
-          <Button variant="outline" className="w-full" onClick={handlePrint}>
-            <Printer className="h-4 w-4 ms-2" />
+        <div className="p-8 border-t border-border/50 bg-background/50 backdrop-blur-xl space-y-4">
+          <Button variant="outline" className="w-full h-14 rounded-2xl border-border/50 text-xs font-black uppercase tracking-widest hover:bg-primary/10 hover:text-primary transition-all shadow-sm" onClick={handlePrint}>
+            <Printer className="size-4 ms-3" />
             {t("common.print")}
           </Button>
           {isActive && (
             <Button
               variant="destructive"
-              className="w-full"
+              className="w-full h-14 rounded-2xl text-xs font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-rose-500/20"
               onClick={handleCancel}
               disabled={cancelling}
             >
               {cancelling ? (
                 <span className="flex items-center justify-center gap-2">
-                  <span className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  <span className="size-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                   {t("order.cancelling")}
                 </span>
               ) : (
                 <>
-                  <XCircle className="h-4 w-4 ms-2" />
+                  <XCircle className="size-4 ms-3" />
                   {t("pos.cancelOrder")}
                 </>
               )}

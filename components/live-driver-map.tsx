@@ -35,18 +35,23 @@ function EtaBanner({
   }
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-l from-emerald-600 to-emerald-500 rounded-t-2xl text-white">
-      <div className="flex items-center gap-2">
-        <span className="text-xl animate-bounce">🛵</span>
+    <div className="flex items-center justify-between p-6 bg-emerald-500 text-white">
+      <div className="flex items-center gap-4">
+        <div className="size-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl animate-bounce">
+          🛵
+        </div>
         <div>
-          <p className="text-sm font-bold">السائق في الطريق</p>
-          {eta && <p className="text-xs opacity-90">يصل خلال {eta}</p>}
+          <p className="text-sm font-black uppercase tracking-widest leading-none mb-1">السائق في الطريق</p>
+          {eta && <p className="text-[10px] font-bold opacity-80 uppercase tracking-widest">يصل خلال {eta}</p>}
         </div>
       </div>
       {lastUpdated && (
-        <p className="text-[10px] opacity-70">
-          آخر تحديث: {new Date(lastUpdated).toLocaleTimeString("ar")}
-        </p>
+        <div className="text-left">
+          <p className="text-[10px] font-black uppercase tracking-widest opacity-60 leading-none mb-1">آخر تحديث</p>
+          <p className="text-[10px] font-bold tabular-nums">
+            {new Date(lastUpdated).toLocaleTimeString("ar")}
+          </p>
+        </div>
       )}
     </div>
   )
@@ -54,9 +59,14 @@ function EtaBanner({
 
 function MapLoading() {
   return (
-    <div className="h-64 rounded-2xl bg-muted/30 flex flex-col items-center justify-center gap-3 border border-border">
-      <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      <p className="text-sm text-muted-foreground">جاري تحديد موقع السائق...</p>
+    <div className="h-80 rounded-[2.5rem] bg-card/50 backdrop-blur-3xl border border-border/50 flex flex-col items-center justify-center gap-6 shadow-2xl">
+      <div className="size-16 rounded-[1.5rem] bg-primary/10 flex items-center justify-center">
+        <div className="size-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+      <div className="text-center">
+        <p className="text-sm font-black tracking-tight">جاري تحديد موقع السائق</p>
+        <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest mt-1">يرجى الانتظار قليلاً</p>
+      </div>
     </div>
   )
 }
@@ -177,9 +187,9 @@ export default function LiveDriverMap(props: LiveMapProps) {
   }
 
   return (
-    <div className="rounded-2xl overflow-hidden border border-border shadow-[0_0_20px_rgba(34,197,94,0.08)]">
+    <div className="rounded-[2.5rem] overflow-hidden border border-border/50 shadow-2xl bg-card/50 backdrop-blur-3xl">
       <EtaBanner driverLat={driverLat} driverLng={driverLng} customerLat={customerLat} customerLng={customerLng} lastUpdated={lastUpdated} />
-      <div ref={mapRef} className="w-full h-64 rounded-b-2xl" />
+      <div ref={mapRef} className="w-full h-80" />
     </div>
   )
 }

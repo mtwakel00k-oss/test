@@ -29,20 +29,20 @@ export function CtaBanner() {
 
   return (
     <section id="cta" className="px-5 py-28">
-      <div className="relative mx-auto max-w-5xl overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 px-8 py-20 text-center shadow-2xl shadow-primary/30">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(oklch(1_0_0/0.1)_1px,transparent_1px)] bg-[length:32px_32px]" />
+      <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[3rem] bg-gradient-to-br from-primary via-primary to-emerald-600 px-8 py-24 text-center shadow-[0_32px_64px_-16px_rgba(34,197,94,0.3)]">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(oklch(1_0_0/0.15)_1.5px,transparent_1.5px)] bg-[length:32px_32px]" />
         <div className="pointer-events-none absolute inset-0">
-          {Array.from({ length: 20 }).map((_, i) => (
+          {Array.from({ length: 30 }).map((_, i) => (
             <motion.span
               key={i}
-              className="absolute bottom-0 size-2.5 rounded-full bg-white/30"
-              style={{ left: `${(i * 5 + 3) % 100}%` }}
+              className="absolute bottom-0 size-3 rounded-full bg-white/40 blur-[1px]"
+              style={{ left: `${(i * 3.33 + 2) % 100}%` }}
               initial={{ y: 0, opacity: 0 }}
-              animate={{ y: '-250%', opacity: [0, 0.6, 0] }}
+              animate={{ y: '-350%', opacity: [0, 0.7, 0] }}
               transition={{
-                duration: 4 + (i % 4),
+                duration: 5 + (i % 5),
                 repeat: Infinity,
-                delay: i * 0.35,
+                delay: i * 0.2,
                 ease: 'easeInOut',
               }}
             />
@@ -55,7 +55,7 @@ export function CtaBanner() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-balance text-4xl font-extrabold leading-tight text-white sm:text-5xl"
+            className="text-balance text-4xl font-black leading-tight text-white sm:text-6xl"
           >
             جاهز لتحويل مطعمك رقمياً؟
           </motion.h2>
@@ -104,9 +104,9 @@ export function CtaBanner() {
               <button
                 type="submit"
                 disabled={status === 'sending'}
-                className="shrink-0 rounded-2xl bg-white px-8 py-4 text-base font-bold text-primary shadow-xl transition-all hover:-translate-y-0.5 hover:shadow-2xl disabled:opacity-70"
+                className="shrink-0 rounded-2xl bg-white px-8 py-4 text-base font-black text-primary shadow-[0_12px_24px_-8px_rgba(255,255,255,0.4)] transition-all hover:-translate-y-1 hover:shadow-[0_20px_40px_-12px_rgba(255,255,255,0.5)] active:scale-95 disabled:opacity-70"
               >
-                {status === 'sending' ? '...' : 'تواصل معنا'}
+                {status === 'sending' ? '...' : 'تواصل معنا ←'}
               </button>
             </motion.form>
           )}

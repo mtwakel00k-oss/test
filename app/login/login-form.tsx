@@ -124,76 +124,87 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
   }
 
   return (
-    <div className="relative flex items-center justify-center min-h-screen p-4 bg-background">
+    <div className="relative flex items-center justify-center min-h-screen p-8 bg-background selection:bg-primary/10">
       {topBar}
-      <div className={`w-full max-w-sm ${shaking ? "animate-shake" : ""}`}>
-        <Card className="border-border shadow-sm">
+      <div className={`w-full max-w-lg ${shaking ? "animate-shake" : ""}`}>
+        <div className="bg-card/50 backdrop-blur-3xl border border-border/50 rounded-[3rem] shadow-2xl overflow-hidden">
           {slugProp && (
-            <div className="px-6 pt-4">
+            <div className="px-10 pt-8">
               <button onClick={() => router.push("/login")}
-                className="flex items-center gap-1 text-xs transition-colors text-muted-foreground hover:text-foreground">
+                className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all text-muted-foreground/40 hover:text-foreground">
                 <span>←</span> {t("login.changeRestaurant")}
               </button>
             </div>
           )}
-          <CardHeader className="text-center">
+          <CardHeader className="text-center p-10 pb-6">
             <div className={cn(
-              "flex items-center justify-center w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-br shadow-lg",
-              page === "cashier" ? "from-emerald-500/20 to-emerald-600/10 shadow-emerald-500/10" :
-              page === "chef" ? "from-sky-500/20 to-sky-600/10 shadow-sky-500/10" :
-              page === "owner" ? "from-violet-500/20 to-purple-600/10 shadow-violet-500/10" :
-              "from-amber-500/20 to-orange-600/10 shadow-amber-500/10"
+              "size-20 mx-auto mb-6 rounded-[1.75rem] flex items-center justify-center text-3xl shadow-2xl transition-all duration-500 hover:scale-110",
+              page === "cashier" ? "bg-emerald-500/10 text-emerald-600 shadow-emerald-500/10" :
+              page === "chef" ? "bg-sky-500/10 text-sky-600 shadow-sky-500/10" :
+              page === "owner" ? "bg-violet-500/10 text-violet-600 shadow-violet-500/10" :
+              "bg-amber-500/10 text-amber-600 shadow-amber-500/10"
             )}>
-              <span className="text-2xl">{activeRole.icon}</span>
+              {activeRole.icon}
             </div>
-            <CardTitle>{activeRole.label}</CardTitle>
-            <CardDescription>{t("login.subtitle")}</CardDescription>
+            <CardTitle className="text-3xl font-black tracking-tight leading-none mb-2">{activeRole.label}</CardTitle>
+            <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">{t("login.subtitle")}</p>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-10 pt-0">
             {tabs.length > 1 && (
-              <div className="flex gap-1.5 p-1 mb-5 rounded-lg bg-muted/50">
+              <div className="flex gap-2 p-2 mb-8 rounded-[1.5rem] bg-muted/50 border border-border/50 shadow-inner">
                 {tabs.map(tab => (
                   <button key={tab.key} onClick={() => { setPage(tab.key); setError("") }}
-                    className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${
+                    className={`flex-1 py-3 rounded-xl transition-all flex items-center justify-center gap-2 ${
                       page === tab.key
-                        ? `${tab.activeColor} shadow-sm border border-border/30`
-                        : `text-muted-foreground ${tab.inactiveBg} hover:text-foreground`
+                        ? "bg-background text-primary shadow-xl shadow-primary/5 border border-border/50"
+                        : "text-muted-foreground/60 hover:text-foreground"
                     }`}>
-                    <span className="text-sm">{tab.icon}</span> {tab.label}
+                    <span className="text-lg">{tab.icon}</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest">{tab.label}</span>
                   </button>
                 ))}
               </div>
             )}
 
-            <div className="space-y-3">
-              <Input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                placeholder={t("login.usernamePlaceholder")}
-                className={error ? "border-destructive focus-visible:ring-destructive/20" : ""}
-                autoFocus
-              />
-              <Input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                placeholder={t("login.passwordPlaceholder")}
-                className={error ? "border-destructive focus-visible:ring-destructive/20" : ""}
-              />
+            <div className="space-y-4">
+              <div className="relative group">
+                <Input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                  placeholder={t("login.usernamePlaceholder")}
+                  className={cn(
+                    "h-14 rounded-2xl border border-border/50 bg-muted/30 px-6 text-sm font-bold text-foreground placeholder:text-muted-foreground/40 focus-visible:ring-4 focus-visible:ring-primary/10 focus-visible:bg-background transition-all",
+                    error && "border-rose-500 focus-visible:ring-rose-500/10"
+                  )}
+                  autoFocus
+                />
+              </div>
+              <div className="relative group">
+                <Input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                  placeholder={t("login.passwordPlaceholder")}
+                  className={cn(
+                    "h-14 rounded-2xl border border-border/50 bg-muted/30 px-6 text-sm font-bold text-foreground placeholder:text-muted-foreground/40 focus-visible:ring-4 focus-visible:ring-primary/10 focus-visible:bg-background transition-all",
+                    error && "border-rose-500 focus-visible:ring-rose-500/10"
+                  )}
+                />
+              </div>
 
-              {error && <p className="text-xs font-medium text-center text-destructive">{error}</p>}
+              {error && <p className="text-[10px] font-black uppercase tracking-widest text-center text-rose-500 py-2">{error}</p>}
 
               <Button
                 onClick={handleLogin}
                 disabled={loading || !username || !password}
-                className="w-full"
+                className="w-full h-14 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-2xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
               >
                 {loading ? (
-                  <span className="flex items-center justify-center gap-1.5">
-                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <span className="flex items-center justify-center gap-3">
+                    <svg className="size-4 animate-spin" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
@@ -203,7 +214,7 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
               </Button>
             </div>
           </CardContent>
-        </Card>
+        </div>
       </div>
     </div>
   )

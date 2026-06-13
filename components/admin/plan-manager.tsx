@@ -176,17 +176,17 @@ export function PlanManager() {
   const dir = lang === "ar" ? "rtl" : "ltr"
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>{t("admin.plans") || "Subscription Plans"}</CardTitle>
-            <CardDescription>{t("admin.plansSub") || "Manage tenant subscription plans"}</CardDescription>
+    <Card className="border-border/50 bg-card/50 backdrop-blur-xl rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden">
+      <CardHeader className="p-8 pb-4">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="space-y-1">
+            <CardTitle className="text-xl font-black text-foreground tracking-tight">{t("admin.plans") || "Subscription Plans"}</CardTitle>
+            <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">{t("admin.plansSub") || "Manage tenant subscription plans"}</p>
           </div>
           <Dialog open={addOpen} onOpenChange={setAddOpen}>
             <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="h-4 w-4" />
+              <Button className="h-12 px-6 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                <Plus className="size-4 ms-2" />
                 {t("admin.addTenant") || "Add Restaurant"}
               </Button>
             </DialogTrigger>
@@ -262,66 +262,66 @@ export function PlanManager() {
             {t("admin.noTenants") || "No tenants found"}
           </p>
         ) : (
-          <div className="overflow-x-auto" dir={dir}>
+          <div className="overflow-x-auto rounded-[1.5rem] border border-border/50 shadow-inner bg-muted/10" dir={dir}>
             <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-start pb-3 font-medium text-muted-foreground">
+              <thead className="bg-muted/30">
+                <tr>
+                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 text-start">
                     {t("admin.tenantName") || "Restaurant"}
                   </th>
-                  <th className="text-start pb-3 font-medium text-muted-foreground hidden sm:table-cell">
+                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 text-start hidden sm:table-cell">
                     {t("admin.slug") || "Slug"}
                   </th>
-                  <th className="text-start pb-3 font-medium text-muted-foreground">
+                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 text-start">
                     {t("admin.currentPlan") || "Plan"}
                   </th>
-                  <th className="text-start pb-3 font-medium text-muted-foreground hidden md:table-cell">
+                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 text-start hidden md:table-cell">
                     {t("admin.status") || "Status"}
                   </th>
-                  <th className="text-start pb-3 font-medium text-muted-foreground">
+                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 text-start">
                     {t("admin.changePlan") || "Change"}
                   </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-border/50 bg-transparent">
                 {tenants.map((tenant) => (
-                  <tr key={tenant.id} className="border-b border-border/50 last:border-0">
-                    <td className="py-3 text-foreground font-medium">{tenant.name}</td>
-                    <td className="py-3 text-muted-foreground hidden sm:table-cell">
-                      <code className="rounded bg-muted px-1.5 py-0.5 text-xs">{tenant.slug}</code>
+                  <tr key={tenant.id} className="group hover:bg-primary/[0.02] transition-all duration-300">
+                    <td className="px-8 py-6 text-sm font-black text-foreground tracking-tight">{tenant.name}</td>
+                    <td className="px-8 py-6 text-muted-foreground hidden sm:table-cell">
+                      <code className="rounded-xl bg-muted/50 border border-border/50 px-3 py-1 text-[10px] font-bold">{tenant.slug}</code>
                     </td>
-                    <td className="py-3">
+                    <td className="px-8 py-6">
                       <PlanBadge plan={tenant.plan_type} />
                     </td>
-                    <td className="py-3 hidden md:table-cell">
+                    <td className="px-8 py-6 hidden md:table-cell">
                       <button
                         onClick={() => handleToggleActive(tenant.slug, tenant.is_active)}
                         disabled={updating[tenant.slug]}
-                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                        className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all border shadow-sm ${
                           tenant.is_active
-                            ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300"
-                            : "bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-300"
+                            ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20"
+                            : "bg-rose-500/10 text-rose-600 border-rose-500/20 hover:bg-rose-500/20"
                         }`}
                       >
                         {updating[tenant.slug] ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
+                          <Loader2 className="size-3 animate-spin" />
                         ) : (
-                          <span className={`h-2 w-2 rounded-full ${tenant.is_active ? "bg-emerald-500" : "bg-red-500"}`} />
+                          <span className={`size-1.5 rounded-full ${tenant.is_active ? "bg-emerald-500 animate-pulse" : "bg-rose-500"}`} />
                         )}
                         {tenant.is_active
                           ? t("admin.active") || "Active"
                           : t("admin.inactive") || "Inactive"}
                       </button>
                     </td>
-                    <td className="py-3">
+                    <td className="px-8 py-6">
                       {updating[tenant.slug] ? (
-                        <Loader2 className="h-4 w-4 animate-spin text-orange-500" />
+                        <Loader2 className="size-5 animate-spin text-primary" />
                       ) : (
                         <Select
                           value={tenant.plan_type || ""}
                           onChange={(val) => handlePlanChange(tenant.slug, val)}
                           options={PLANS}
-                          className="w-28 border-orange-200 focus:border-orange-400 dark:border-orange-800"
+                          className="w-32 h-10 rounded-xl border-border/50 bg-background/50 text-[10px] font-black uppercase tracking-widest focus:ring-2 focus:ring-primary/20"
                         />
                       )}
                     </td>

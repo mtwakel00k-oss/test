@@ -607,35 +607,35 @@ export function ProductManager() {
   // ─── Render ──────────────────────────────────────────────
 
   return (
-    <Card className="border-border/50 col-span-full" dir={dir}>
-      <CardHeader className="pb-4 flex-row items-center justify-between">
-        <div>
-          <CardTitle className="text-lg font-semibold">{lbl("products.title")}</CardTitle>
-          <p className="text-sm text-muted-foreground mt-1">{lbl("products.subtitle")}</p>
+    <Card className="border-border/50 bg-card/50 backdrop-blur-xl col-span-full rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden" dir={dir}>
+      <CardHeader className="p-8 pb-4 flex-row items-center justify-between flex-wrap gap-4">
+        <div className="space-y-1">
+          <CardTitle className="text-xl font-black text-foreground tracking-tight">{lbl("products.title")}</CardTitle>
+          <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">{lbl("products.subtitle")}</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => { setCatForm({ nom: "", description: "" }); setCatModalOpen(true) }}>
-            <Plus className="h-4 w-4" />
+        <div className="flex items-center gap-3">
+          <Button variant="outline" onClick={() => { setCatForm({ nom: "", description: "" }); setCatModalOpen(true) }} className="h-12 px-6 rounded-2xl border-border/50 text-xs font-black uppercase tracking-widest hover:bg-primary/10 hover:text-primary transition-all">
+            <Plus className="size-4 ms-2" />
             {lbl("products.addCategory")}
           </Button>
-          <Button variant="default" size="sm" onClick={openAdd}>
-            <Plus className="h-4 w-4" />
+          <Button onClick={openAdd} className="h-12 px-6 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+            <Plus className="size-4 ms-2" />
             {lbl("products.addProduct")}
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="pt-0">
+      <CardContent className="p-8 pt-0">
         <Alert alert={alert} onDismiss={dismissAlert} />
-        <div className="w-full overflow-x-auto rounded-xl border border-border shadow-sm bg-card">
-          <table className="min-w-full divide-y divide-border">
-            <thead className="bg-muted/50">
+        <div className="w-full overflow-x-auto rounded-[1.5rem] border border-border/50 shadow-inner bg-muted/10">
+          <table className="min-w-full divide-y divide-border/50">
+            <thead className="bg-muted/30">
               <tr>
                 {COLUMNS.map((col) => (
                   <th
                     key={col.key}
                     scope="col"
                     className={cn(
-                      "px-6 py-4 text-sm font-semibold text-foreground tracking-wider",
+                      "px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50",
                       (col.key === "actions" || col.key === "status") ? "text-center" : "text-start",
                     )}
                   >
@@ -644,7 +644,7 @@ export function ProductManager() {
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-border bg-card">
+            <tbody className="divide-y divide-border/50 bg-transparent">
               {products.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-sm text-muted-foreground">
@@ -653,62 +653,79 @@ export function ProductManager() {
                 </tr>
               )}
               {products.map((product) => (
-                <tr key={product.id} className="hover:bg-muted/30 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-3" style={{ flexDirection: dir === "rtl" ? "row-reverse" : "row" }}>
-                      {product.image_url && (
-                        <Image src={product.image_url} alt={product.name} width={40} height={40} className="w-10 h-10 rounded-lg object-cover" unoptimized />
+                <tr key={product.id} className="group hover:bg-primary/[0.02] transition-all duration-300">
+                  <td className="px-8 py-6 whitespace-nowrap">
+                    <div className="flex items-center gap-4" style={{ flexDirection: dir === "rtl" ? "row-reverse" : "row" }}>
+                      {product.image_url ? (
+                        <div className="size-14 rounded-2xl overflow-hidden border border-border/50 shadow-sm group-hover:scale-110 transition-transform duration-500">
+                          <Image src={product.image_url} alt={product.name} width={56} height={56} className="size-full object-cover" unoptimized />
+                        </div>
+                      ) : (
+                        <div className="size-14 rounded-2xl bg-muted/50 border border-border/30 flex items-center justify-center text-muted-foreground/30">
+                          <Store className="size-6" />
+                        </div>
                       )}
-                      <span
-                        className={cn(
-                          "text-sm font-medium text-foreground truncate max-w-[200px] block",
-                          product.is_available === false && "line-through text-muted-foreground",
+                      <div className="flex flex-col gap-0.5">
+                        <span
+                          className={cn(
+                            "text-sm font-black text-foreground tracking-tight group-hover:text-primary transition-colors",
+                            product.is_available === false && "line-through text-muted-foreground/50",
+                          )}
+                        >
+                          {product.name || "—"}
+                        </span>
+                        {product.description && (
+                          <span className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest truncate max-w-[150px]">
+                            {product.description}
+                          </span>
                         )}
-                      >
-                        {product.name || "—"}
-                      </span>
+                      </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                    {product.category || "—"}
+                  <td className="px-8 py-6 whitespace-nowrap">
+                    <span className="px-3 py-1 rounded-xl bg-muted/50 border border-border/50 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
+                      {product.category || "—"}
+                    </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-foreground">
-                    {priceRange(product.prices, lang)}
+                  <td className="px-8 py-6 whitespace-nowrap">
+                    <span className="text-sm font-black text-foreground tabular-nums">
+                      {priceRange(product.prices, lang)}
+                    </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                  <td className="px-8 py-6 whitespace-nowrap text-center">
                     <button
                       onClick={() => toggle(product.id, product.is_available ?? true)}
                       disabled={loadingId === product.id}
                       className={cn(
-                        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors disabled:opacity-50",
+                        "inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all disabled:opacity-50 shadow-sm",
                         product.is_available !== false
-                          ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 hover:bg-green-200 dark:hover:bg-green-900/50"
-                          : "bg-muted text-muted-foreground border-border hover:bg-muted/80",
+                          ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20"
+                          : "bg-muted text-muted-foreground/60 border-border/50 hover:bg-muted/80",
                       )}
                     >
                       {loadingId === product.id ? (
-                        <span className="h-3 w-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        <span className="size-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
                       ) : product.is_available !== false ? (
-                        <ToggleRight className="h-3.5 w-3.5" />
+                        <ToggleRight className="size-4" />
                       ) : (
-                        <ToggleLeft className="h-3.5 w-3.5" />
+                        <ToggleLeft className="size-4" />
                       )}
                       {product.is_available !== false ? lbl("products.available") : lbl("products.unavailable")}
                     </button>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-center font-medium">
+                  <td className="px-8 py-6 whitespace-nowrap text-center font-medium">
                     <div className="flex justify-center items-center gap-3">
                       <button
                         onClick={() => openEdit(product)}
-                        className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 p-1.5 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-md transition-colors"
+                        className="size-10 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all shadow-sm flex items-center justify-center"
                       >
-                        <Pencil className="h-4 w-4" />
+                        <Pencil className="size-4" />
                       </button>
                       <button
                         onClick={() => startDelete(product.id, product.name)}
-                        className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 p-1.5 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-md transition-colors"
+                        className="size-10 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm flex items-center justify-center"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="size-4" />
                       </button>
                     </div>
                   </td>

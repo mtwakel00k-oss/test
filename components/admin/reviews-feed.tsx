@@ -67,27 +67,27 @@ export function ReviewsFeed({ reviews }: ReviewsFeedProps) {
   }
 
   return (
-    <Card className="border-border/50 bg-card h-full flex flex-col">
-      <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
+    <Card className="border-border/50 bg-card/50 backdrop-blur-xl h-full flex flex-col rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden">
+      <CardHeader className="p-8 pb-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="space-y-1">
+            <CardTitle className="text-xl font-black text-foreground tracking-tight flex items-center gap-2">
               {t("admin.reviews")}
               {items.length > 0 && (
-                <span className="flex items-center gap-1">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-xs text-emerald-500 font-medium">{t("common.live")}</span>
+                <span className="flex items-center gap-1.5 bg-emerald-500/10 px-2 py-1 rounded-lg">
+                  <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[9px] text-emerald-600 font-black uppercase tracking-widest">{t("common.live")}</span>
                 </span>
               )}
             </CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">{t("admin.latestReviews")}</p>
+            <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">{t("admin.latestReviews")}</p>
           </div>
-          <div className="text-end">
-            <div className="flex items-center gap-1 justify-end">
-              <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-              <span className="text-lg font-bold text-foreground">{averageRating.toFixed(1)}</span>
+          <div className="flex flex-col items-end gap-1">
+            <div className="flex items-center gap-2 bg-amber-400/10 px-3 py-1.5 rounded-xl border border-amber-400/20">
+              <Star className="size-4 fill-amber-400 text-amber-400" />
+              <span className="text-lg font-black text-amber-600 tabular-nums">{averageRating.toFixed(1)}</span>
             </div>
-            <p className="text-xs text-muted-foreground">{items.length} {t("admin.review")}</p>
+            <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">{items.length} {t("admin.review")}</p>
           </div>
         </div>
       </CardHeader>
@@ -100,17 +100,17 @@ export function ReviewsFeed({ reviews }: ReviewsFeedProps) {
               <p className="text-xs mt-1">{t("admin.reviewsHere")}</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4 px-2">
               {items.map((review) => (
-                <div key={review.id} className="p-4 rounded-lg border border-border/50 bg-secondary/30 space-y-3">
+                <div key={review.id} className="p-6 rounded-[1.5rem] border border-border/50 bg-muted/30 hover:bg-background hover:shadow-xl hover:border-primary/20 transition-all duration-300 space-y-4">
                   <div className="flex items-start justify-between gap-2">
                     <StarRating rating={review.rating} />
+                    <div className="flex items-center gap-1.5 text-muted-foreground/50">
+                      <Clock className="size-3" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest">{formatTimeAgo(review.timestamp)}</span>
+                    </div>
                   </div>
-                  {review.text && <p className="text-sm text-foreground/90 leading-relaxed">&ldquo;{review.text}&rdquo;</p>}
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Clock className="h-3 w-3" />
-                    <span className="text-xs">{formatTimeAgo(review.timestamp)}</span>
-                  </div>
+                  {review.text && <p className="text-sm font-medium text-foreground/80 leading-relaxed">&ldquo;{review.text}&rdquo;</p>}
                 </div>
               ))}
             </div>

@@ -26,22 +26,22 @@ export function SalesChart({ data, period, onPeriodChange }: SalesChartProps) {
   const currency = lang === "ar" ? "د.ج" : "DA"
 
   return (
-    <Card className="border-border/50 bg-card h-full">
-      <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-lg font-semibold text-foreground">{t("admin.revenueTrend")}</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">{t("admin.revenueTrendSub")}</p>
+    <Card className="border-border/50 bg-card/50 backdrop-blur-xl h-full rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden">
+      <CardHeader className="p-8 pb-4">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="space-y-1">
+            <CardTitle className="text-xl font-black text-foreground tracking-tight">{t("admin.revenueTrend")}</CardTitle>
+            <p className="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest">{t("admin.revenueTrendSub")}</p>
           </div>
-          <div className="flex gap-1 bg-secondary rounded-lg p-1">
+          <div className="flex gap-1.5 bg-muted/50 p-1.5 rounded-2xl border border-border/50">
             {periods.map(({ key, label }) => (
               <button
                 key={key}
                 onClick={() => onPeriodChange(key)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-300 ${
                   period === key
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.05]"
+                    : "text-muted-foreground hover:text-foreground hover:bg-background"
                 }`}
               >
                 {label}
@@ -101,12 +101,19 @@ export function SalesChart({ data, period, onPeriodChange }: SalesChartProps) {
           </ResponsiveContainer>
         </div>
 
-        <div className="mt-6 pt-6 border-t border-border">
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">{t("admin.totalRevenue")} ({period === "7d" ? t("admin.week") : period === "30d" ? t("admin.month") : period === "6m" ? t("admin.sixMonths") : t("admin.year")})</p>
-            <p className="text-2xl font-bold text-foreground">
-              {fmtNum(data.reduce((s, d) => s + d.revenue, 0))} {currency}
-            </p>
+        <div className="mt-8 p-6 rounded-[1.5rem] bg-primary/5 border border-primary/10 mx-2 mb-2">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-[10px] font-black uppercase tracking-widest text-primary/60">{t("admin.totalRevenue")} ({period === "7d" ? t("admin.week") : period === "30d" ? t("admin.month") : period === "6m" ? t("admin.sixMonths") : t("admin.year")})</p>
+              <p className="text-3xl font-black text-foreground tracking-tighter">
+                {fmtNum(data.reduce((s, d) => s + d.revenue, 0))} <span className="text-sm opacity-40">{currency}</span>
+              </p>
+            </div>
+            <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+              <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+            </div>
           </div>
         </div>
       </CardContent>

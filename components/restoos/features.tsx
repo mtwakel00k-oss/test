@@ -53,18 +53,45 @@ export function Features() {
           viewport={{ once: true, margin: '-60px' }}
           className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
         >
-          {features.map((f) => (
-            <motion.div key={f.title} variants={item}>
-              <Card className="group relative overflow-hidden border-border/50 bg-card/50 backdrop-blur transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 hover:-translate-y-1">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/0 to-primary/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                <CardHeader>
-                  <div className="mb-3 grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 text-2xl ring-1 ring-primary/10">
-                    {f.icon}
+          {features.map((f, i) => (
+            <motion.div 
+              key={f.title} 
+              variants={item}
+              className={cn(
+                "group relative",
+                i === 0 || i === 1 ? "lg:col-span-2" : "col-span-1"
+              )}
+            >
+              <Card className={cn(
+                "h-full overflow-hidden border-border/50 bg-card/50 backdrop-blur transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/30",
+                (i === 0 || i === 1) && "border-primary/10 bg-gradient-to-br from-primary/5 to-transparent"
+              )}>
+                {/* Animated Border for highlighted cards */}
+                {(i === 0 || i === 1) && (
+                  <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary/20 via-transparent to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 animate-pulse" />
+                )}
+                
+                <CardHeader className="relative">
+                  <div className="mb-4 flex items-center justify-between">
+                    <div className="grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 text-3xl ring-1 ring-primary/20 shadow-inner transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3">
+                      {f.icon}
+                    </div>
+                    {(i === 0 || i === 1) && (
+                      <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">ميزة رئيسية</Badge>
+                    )}
                   </div>
-                  <CardTitle className="text-lg">{f.title}</CardTitle>
+                  <CardTitle className="text-xl font-bold">{f.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="leading-relaxed text-base">{f.desc}</CardDescription>
+                  <CardDescription className="leading-relaxed text-lg text-muted-foreground/90">
+                    {f.desc}
+                  </CardDescription>
+                  
+                  {/* Hover detail */}
+                  <div className="mt-6 flex items-center gap-2 text-sm font-medium text-primary opacity-0 -translate-x-2 transition-all duration-500 group-hover:opacity-100 group-hover:translate-x-0">
+                    اكتشف المزيد
+                    <svg className="size-4 rtl:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>

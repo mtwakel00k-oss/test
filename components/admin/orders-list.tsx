@@ -253,38 +253,40 @@ export function OrdersList({ onViewOrder }: OrdersListProps) {
   }, [])
 
   return (
-    <Card className="border-border/50 bg-card col-span-full">
+    <Card className="border-border/50 bg-card/50 backdrop-blur-xl col-span-full rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden">
       <CardHeader
-        className="pb-0 flex-row items-center justify-between cursor-pointer select-none"
+        className="p-8 pb-4 flex-row items-center justify-between cursor-pointer select-none"
         onClick={() => setIsOrdersExpanded((v) => !v)}
       >
-        <div className="flex items-center gap-2">
-          {isOrdersExpanded ? (
-            <ChevronUp className="h-4 w-4 text-muted-foreground" />
-          ) : (
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-          )}
-          <div>
-            <CardTitle className="text-lg font-semibold text-foreground">
-              {t("order.ordersWithCount")} ({totalExcludingCancelled})
+        <div className="flex items-center gap-4">
+          <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner border border-primary/10">
+            {isOrdersExpanded ? (
+              <ChevronUp className="size-6" />
+            ) : (
+              <ChevronDown className="size-6" />
+            )}
+          </div>
+          <div className="space-y-1">
+            <CardTitle className="text-xl font-black text-foreground tracking-tight">
+              {t("order.ordersWithCount")} <span className="text-primary opacity-40 ms-1">({totalExcludingCancelled})</span>
             </CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">
               {completedOrders.length} {t("order.completedActive")} · {activeOrders.length} {t("pos.activeOrders")} · {fmtNum(todayRevenue)} {currency}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
+        <div className="flex items-center gap-4">
+          <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/50 cursor-pointer select-none hover:text-primary transition-colors">
             <input
               type="checkbox"
               checked={showCancelled}
               onChange={() => setShowCancelled((v) => !v)}
-              className="rounded border-border"
+              className="size-4 rounded-lg border-border/50 bg-muted/50 text-primary focus:ring-primary/20"
             />
             {t("order.showCancelled")}
           </label>
-          <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); fetchOrders().then(setOrders) }}>
-            <RefreshCw className="h-4 w-4" />
+          <Button variant="outline" size="icon" onClick={(e) => { e.stopPropagation(); fetchOrders().then(setOrders) }} className="size-10 rounded-xl border-border/50 hover:bg-primary/10 hover:text-primary transition-all">
+            <RefreshCw className="size-4" />
           </Button>
         </div>
       </CardHeader>
@@ -300,15 +302,15 @@ export function OrdersList({ onViewOrder }: OrdersListProps) {
           ) : visibleOrders.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">{t("order.allCancelled")}</p>
           ) : (
-            <div className="w-full overflow-x-auto rounded-xl border border-border shadow-sm bg-card" dir="rtl">
-              <table className="min-w-full divide-y divide-border table-fixed">
-                <thead className="bg-muted/50">
+            <div className="w-full overflow-x-auto rounded-[1.5rem] border border-border/50 shadow-inner bg-muted/10 mx-2 mb-2" dir="rtl">
+              <table className="min-w-full divide-y divide-border/50 table-fixed">
+                <thead className="bg-muted/30">
                   <tr>
                     {columns.map((col) => (
                       <th
                         key={col.key}
                         scope="col"
-                        className={`px-4 py-4 text-sm font-semibold text-muted-foreground tracking-wider ${
+                        className={`px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 ${
                           col.key === "actions" ? "text-center" : "text-start"
                         }`}
                       >
@@ -317,7 +319,7 @@ export function OrdersList({ onViewOrder }: OrdersListProps) {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="bg-card divide-y divide-border">
+                <tbody className="bg-transparent divide-y divide-border/50">
                   {visibleOrders.map((order) => {
                     const rawType = order?.order_type ?? "dine_in"
                     const cleanType = String(rawType).toLowerCase().trim()

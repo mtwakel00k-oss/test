@@ -4,9 +4,9 @@ import { motion } from 'framer-motion'
 import { Badge } from '@/components/ui/badge'
 
 const steps = [
-  { num: '1', title: 'أنشئ حساب المالك', desc: 'سجّل حساب المالك (Owner) الذي يدير كل المطاعم.' },
-  { num: '2', title: 'أضف مطعمك', desc: 'أنشئ مطعماً بقاعدة بيانات مستقلة وأضف الموظفين.' },
-  { num: '3', title: 'ابدأ البيع', desc: 'جهّز القائمة، شغّل الكاشير والمطبخ، وتابع أرباحك.' },
+  { num: '1', title: 'أنشئ حساب المالك', desc: 'سجّل حساب المالك (Owner) الذي يدير كل المطاعم.', icon: '🔑' },
+  { num: '2', title: 'أضف مطعمك', desc: 'أنشئ مطعماً بقاعدة بيانات مستقلة وأضف الموظفين.', icon: '🏠' },
+  { num: '3', title: 'ابدأ البيع', desc: 'جهّز القائمة، شغّل الكاشير والمطبخ، وتابع أرباحك.', icon: '🚀' },
 ]
 
 export function HowItWorks() {
@@ -25,13 +25,13 @@ export function HowItWorks() {
           </p>
         </div>
 
-        <div className="relative grid gap-12 md:grid-cols-3">
+        <div className="relative grid gap-10 md:grid-cols-3">
           <motion.div
             initial={{ scaleX: 0 }}
             whileInView={{ scaleX: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 1.4, ease: 'easeInOut' }}
-            className="absolute right-[16%] top-10 hidden h-0.5 w-[68%] origin-right bg-gradient-to-l from-transparent via-primary/30 to-transparent md:block"
+            className="absolute right-[16%] top-14 hidden h-0.5 w-[68%] origin-right bg-gradient-to-l from-transparent via-primary/40 to-transparent md:block"
           />
 
           {steps.map((s, i) => (
@@ -41,13 +41,18 @@ export function HowItWorks() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: i * 0.2 }}
-              className="relative text-center"
+              className="group relative rounded-3xl border border-border/50 bg-card/50 p-8 text-center backdrop-blur transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5 hover:border-primary/20"
             >
-              <div className="relative z-10 mx-auto grid size-16 place-items-center rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-2xl font-extrabold text-white shadow-xl shadow-primary/30 ring-4 ring-background">
-                {s.num}
+              <div className="relative z-10 mx-auto mb-8">
+                <div className="mx-auto grid size-20 place-items-center rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-3xl font-black text-white shadow-2xl shadow-primary/30 ring-4 ring-background transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-3">
+                  {s.icon}
+                </div>
+                <div className="absolute -bottom-2 -right-2 grid size-8 place-items-center rounded-full bg-background border-2 border-primary text-xs font-bold text-primary">
+                  {s.num}
+                </div>
               </div>
-              <h3 className="mt-6 text-xl font-bold text-foreground">{s.title}</h3>
-              <p className="mt-2 leading-relaxed text-muted-foreground">{s.desc}</p>
+              <h3 className="mb-4 text-2xl font-extrabold text-foreground">{s.title}</h3>
+              <p className="text-lg leading-relaxed text-muted-foreground/90">{s.desc}</p>
             </motion.div>
           ))}
         </div>
