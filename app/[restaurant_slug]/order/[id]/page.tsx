@@ -56,6 +56,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
   const [hasLiveTracking, setHasLiveTracking] = useState(false)
   const [hasRatings, setHasRatings] = useState(false)
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const refreshRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const planType = useMemo(() => {
     const config = readTenantConfig()
@@ -204,6 +205,31 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
     }, 8000)
     return () => { if (pollingRef.current) clearInterval(pollingRef.current) }
   }, [id, slug, hasLiveTracking])
+
+  useEffect(() => {
+    if (refreshRef.current) clearInterval(refreshRef.current)
+    refreshRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/orders/${id}?public=true`, {
+          headers: { "x-tenant-slug": slug },
+        })
+        if (!res.ok) return
+        const data = await res.json()
+        const o: Order = data.order || data
+        if (!o || !o.id) return
+        setOrder(o)
+        setItems(o.items || [])
+        if (o.delivery_lat != null && o.delivery_lng != null) {
+          setDeliveryCoords({ lat: o.delivery_lat, lng: o.delivery_lng })
+        }
+        if (o.driver_lat != null && o.driver_lng != null) {
+          setDriverLat(Number(o.driver_lat))
+          setDriverLng(Number(o.driver_lng))
+        }
+      } catch {}
+    }, 60000)
+    return () => { if (refreshRef.current) clearInterval(refreshRef.current) }
+  }, [id, slug])
 
   const getStage = (status: string, orderType: string): number => {
     if (orderType === "delivery") {
