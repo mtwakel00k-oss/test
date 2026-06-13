@@ -623,6 +623,11 @@ export default function POSPage() {
               <OrderCard key={order.id} order={order} isSelected={selectedOrder?.id === order.id}
                 onSelect={() => { setSelectedOrder(order); setShowCheckout(false) }}
                 onStatusChange={handleStatusChange} onCancel={(id) => setCancelTargetId(String(id))}
+                drivers={allDrivers} assigningDriver={assigningDriver}
+                onAssignDriver={(orderId, driverId) => {
+                  const driver = allDrivers.find(d => d.id === driverId)
+                  if (driver) assignDriver(orderId, driver)
+                }}
               />
             ))
           )}

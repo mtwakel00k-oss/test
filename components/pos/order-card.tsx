@@ -5,12 +5,22 @@ import type { PosOrder, PosOrderStatus } from "@/lib/pos-types"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/lib/use-translation"
 
+interface DriverCard {
+  id: string
+  name: string
+  phone: string
+  isBusy: boolean
+}
+
 interface OrderCardProps {
   order: PosOrder
   isSelected: boolean
   onSelect: () => void
   onStatusChange: (orderId: string | number, status: PosOrderStatus) => void
   onCancel: (orderId: string | number) => void
+  drivers?: DriverCard[]
+  assigningDriver?: boolean
+  onAssignDriver?: (orderId: string | number, driverId: string) => void
 }
 
 function formatTimeAgo(date: Date, t: (key: string) => string): string {
@@ -32,7 +42,7 @@ const STATUS_STYLES = {
   cancelled: { label: "statusCancelled", badge: "badge-rose", dot: "bg-rose-500", bar: "bg-rose-500", shadow: "" },
 } as const
 
-export function OrderCard({ order, isSelected, onSelect, onStatusChange, onCancel }: OrderCardProps) {
+export function OrderCard({ order, isSelected, onSelect, onStatusChange, onCancel, drivers = [], assigningDriver, onAssignDriver }: OrderCardProps) {
   const { t, lang } = useTranslation()
   const [timeAgo, setTimeAgo] = useState(() => formatTimeAgo(order.createdAt, t))
   const s = STATUS_STYLES[order.status]
@@ -129,6 +139,43 @@ export function OrderCard({ order, isSelected, onSelect, onStatusChange, onCance
             <span className="text-[10px] text-muted-foreground whitespace-nowrap">{timeAgo}</span>
           </div>
         </div>
+
+        {order.orderType === "delivery" && order.status === "ready" && !order.driverId && onAssignDriver && (
+          <div className="mt-3 pt-3 border-t border-border/30 space-y-1.5">
+            <p className="text-[11px] font-semibold text-muted-foreground/70 ms-1">اختر سائقاً للتوصيل:</p>
+            {drivers.filter(d => !d.isBusy).length === 0 ? (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-[11px]">
+                <span>⚠️</span>
+                <span>كل السائقين مشغولون حالياً</span>
+              </div>
+            ) : drivers.length === 0 ? (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/30 text-muted-foreground text-[11px]">
+                <span>🛵</span>
+                <span>لا يوجد سائقون — أضف من الإعدادات</span>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-1 max-h-28 overflow-y-auto">
+                {drivers.filter(d => !d.isBusy).map(driver => (
+                  <button key={driver.id} onClick={e => { e.stopPropagation(); onAssignDriver(order.id, driver.id) }}
+                    disabled={assigningDriver}
+                    className="flex items-center gap-2 w-full rounded-md border border-border/50 bg-card px-2.5 py-2 text-right hover:border-primary/30 hover:bg-primary/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed group">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold group-hover:bg-emerald-500/20 transition-colors">
+                      {driver.name.charAt(0)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-foreground">{driver.name}</p>
+                      <p className="text-[10px] text-muted-foreground font-mono dir-ltr text-left">{driver.phone}</p>
+                    </div>
+                    <span className="flex items-center gap-1 shrink-0">
+                      <span className="w-1 h-1 rounded-full bg-emerald-500" />
+                      <span className="text-[9px] font-semibold text-emerald-600 dark:text-emerald-400">متاح</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {order.orderType === "delivery" && order.status === "out_for_delivery" && order.driverId && (
           <div className="mt-3 pt-3 border-t border-border/30">
