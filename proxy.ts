@@ -3,7 +3,6 @@ import type { NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { getAllowedRolesForRoute, extractSlug } from '@/lib/auth-server'
 import { decryptSession, encryptSession } from '@/lib/session-crypto'
-import { logger } from '@/lib/logger'
 
 const isDev = process.env.NODE_ENV === 'development'
 

@@ -5,6 +5,7 @@ import { use } from "react"
 import Link from "next/link"
 import dynamic from "next/dynamic"
 import { supabase } from "@/lib/tenant"
+import { REALTIME_LISTEN_TYPES, REALTIME_POSTGRES_CHANGES_LISTEN_EVENT } from "@supabase/realtime-js"
 import { useSlug, readTenantConfig } from "@/lib/use-slug"
 import { useTranslation } from "@/lib/use-translation"
 import { logger } from "@/lib/logger"
@@ -166,8 +167,8 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
     if (!hasLiveTracking) return
 
     const sub = supabase().channel(`order:${id}`)
-      .on("postgres_changes" as any,
-        { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${id}` },
+      .on(REALTIME_LISTEN_TYPES.POSTGRES_CHANGES,
+        { event: REALTIME_POSTGRES_CHANGES_LISTEN_EVENT.UPDATE, schema: "public", table: "orders", filter: `id=eq.${id}` },
         (payload: { new?: Record<string, unknown> }) => {
           if (payload.new) {
             const updated = payload.new as unknown as Order

@@ -8,7 +8,7 @@ import { PanelLeft } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
+
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -225,8 +225,9 @@ const SidebarMenuBadge = React.forwardRef<HTMLDivElement, React.ComponentProps<"
 ))
 SidebarMenuBadge.displayName = "SidebarMenuBadge"
 
+const widths = ["50%", "60%", "70%", "75%", "80%", "65%", "55%"]
 const SidebarMenuSkeleton = React.forwardRef<HTMLDivElement, React.ComponentProps<"div"> & { showIcon?: boolean }>(({ className, showIcon = false, ...props }, ref) => {
-  const width = React.useMemo(() => `${Math.floor(Math.random() * 40) + 50}%`, [])
+  const [width] = React.useState(() => widths[Math.floor(Math.random() * widths.length)])
   return (<div ref={ref} data-sidebar="menu-skeleton" className={cn("rounded-md h-8 flex gap-2 px-2 items-center", className)} {...props}>{showIcon && <Skeleton className="size-4 rounded-md" data-sidebar="menu-skeleton-icon" />}<Skeleton className="h-4 flex-1 max-w-[--skeleton-width]" data-sidebar="menu-skeleton-text" style={{ "--skeleton-width": width } as React.CSSProperties} /></div>)
 })
 SidebarMenuSkeleton.displayName = "SidebarMenuSkeleton"

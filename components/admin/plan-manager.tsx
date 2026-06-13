@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
-import { Loader2, CheckCircle2, XCircle, Plus } from "lucide-react"
+import { useEffect, useState, useCallback, startTransition } from "react"
+import { Loader2, Plus } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -48,10 +48,6 @@ function PlanBadge({ plan }: { plan: string | null }) {
   }
 }
 
-function StatusIcon({ active }: { active: boolean }) {
-  if (active) return <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-  return <XCircle className="h-4 w-4 text-destructive" />
-}
 
 export function PlanManager() {
   const { t, lang } = useTranslation()
@@ -69,23 +65,20 @@ export function PlanManager() {
   const [addSuccess, setAddSuccess] = useState<string | null>(null)
 
   const fetchTenants = useCallback(async () => {
-    setLoading(true)
-    setError(null)
+    startTransition(() => { setLoading(true); setError(null) })
     try {
       const res = await fetchApi("/api/admin/plans")
       if (!res.ok) {
-        setError("Failed to load tenants")
-        setTenants([])
+        startTransition(() => { setError("Failed to load tenants"); setTenants([]) })
         return
       }
       const data = await res.json()
-      setTenants(data.tenants || [])
+      startTransition(() => setTenants(data.tenants || []))
     } catch (e) {
       logger.error("Failed to fetch tenants", e)
-      setError("Network error")
-      setTenants([])
+      startTransition(() => { setError("Network error"); setTenants([]) })
     } finally {
-      setLoading(false)
+      startTransition(() => setLoading(false))
     }
   }, [])
 

@@ -1,7 +1,6 @@
 "use client"
 
-import { useEffect, useState, useRef, useCallback, useMemo } from "react"
-import { use } from "react"
+import { useEffect, useState, useRef, useCallback, useMemo, use, startTransition } from "react"
 import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
 import { logger } from "@/lib/logger"
@@ -50,13 +49,11 @@ export default function DriverManagePage({ params }: { params: Promise<{ order_i
   const fetchOrder = useCallback(async () => {
     try {
       const res = await fetch(`/api/delivery/manage/${orderIdRef.current}`)
-      if (!res.ok) { setError("Order not found"); setLoading(false); return }
+      if (!res.ok) { startTransition(() => { setError("Order not found"); setLoading(false) }); return }
       const data = await res.json()
-      setOrder(data)
-      setLoading(false)
-    } catch (e) {
-      setError("Connection error")
-      setLoading(false)
+      startTransition(() => { setOrder(data); setLoading(false) })
+    } catch {
+      startTransition(() => { setError("Connection error"); setLoading(false) })
     }
   }, [])
 
@@ -80,16 +77,16 @@ export default function DriverManagePage({ params }: { params: Promise<{ order_i
     if (!order || order.status === "completed" || order.status === "cancelled") return
 
     if (!isElite) {
-      setLocationStatus("📍 GPS tracking requires Elite plan")
+      startTransition(() => setLocationStatus("📍 GPS tracking requires Elite plan"))
       return
     }
 
     if (!navigator.geolocation) {
-      setLocationStatus("📍 GPS not available")
+      startTransition(() => setLocationStatus("📍 GPS not available"))
       return
     }
 
-    setLocationStatus("📍 Live tracking active")
+    startTransition(() => setLocationStatus("📍 Live tracking active"))
 
     watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
@@ -106,7 +103,7 @@ export default function DriverManagePage({ params }: { params: Promise<{ order_i
         navigator.geolocation.clearWatch(watchIdRef.current)
       }
     }
-  }, [order?.status, sendLocation, isElite])
+  }, [order, sendLocation, isElite])
 
   const handleDelivered = async () => {
     setConfirming(true)

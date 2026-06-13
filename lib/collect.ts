@@ -1,4 +1,3 @@
-import { createClient } from "@supabase/supabase-js"
 import { supabaseForSlug } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 

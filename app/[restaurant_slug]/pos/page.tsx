@@ -156,7 +156,6 @@ export default function POSPage() {
   const [savingItems, setSavingItems] = useState(false)
   const [drivers, setDrivers] = useState<Driver[]>([])
   const [assigningDriver, setAssigningDriver] = useState(false)
-  const [pendingDriverId, setPendingDriverId] = useState<string | null>(null)
   const [deliveryMen, setDeliveryMen] = useState<DeliveryMan[]>([])
   const [cashier, setCashier] = useState<{ email: string; role: string; name?: string } | null>(null)
   const { activeStaff } = useStaff()
@@ -425,7 +424,6 @@ export default function POSPage() {
       }
     }
     setAssigningDriver(false)
-    setPendingDriverId(null)
   }, [allDrivers, slug])
 
   const handleCreateOrder = useCallback(async () => {

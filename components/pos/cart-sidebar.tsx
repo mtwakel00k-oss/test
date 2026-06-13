@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ShoppingCart, Minus, Plus, Table2, X, Store, UtensilsCrossed, Truck } from "lucide-react"
+import { ShoppingCart, Minus, Plus, Table2, X, ShoppingBag, UtensilsCrossed, Truck } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { MenuProduct } from "@/lib/types"
 import { getPrice } from "@/lib/types"
@@ -42,12 +42,12 @@ interface CartSidebarProps {
 }
 
 export function CartSidebar({
-  orderItems, customerName, onCustomerNameChange, customerPhone, onCustomerPhoneChange, onUpdateQuantity, onRemoveItem, onSubmit,
+  orderItems, customerName, onCustomerNameChange, customerPhone, onCustomerPhoneChange, onUpdateQuantity, onSubmit,
   submitting, disabled, error, orderType, onOrderTypeChange, tableNumber, onTableNumberChange, onCancel, hasDelivery = true,
 }: CartSidebarProps) {
   const { t, lang } = useTranslation()
   const cur = lang === "ar" ? "د.ج" : "DA"
-  const [expanded, setExpanded] = useState(true)
+  const [expanded] = useState(true)
   const total = orderItems.reduce((s, i) => s + getPrice(i.product, i.size, i.sauceId) * i.quantity, 0)
   const itemCount = orderItems.reduce((s, i) => s + i.quantity, 0)
 
@@ -104,7 +104,7 @@ export function CartSidebar({
                     orderType === "takeaway"
                       ? "bg-primary text-primary-foreground border-primary shadow-xl shadow-primary/20 scale-[1.05]"
                       : "bg-muted/30 text-muted-foreground border-border/50 hover:border-primary/30 hover:text-foreground")}>
-                  <Store className="size-4" />
+                  <ShoppingBag className="size-4" />
                   {t("pos.takeaway")}
                 </button>
                 {hasDelivery && (

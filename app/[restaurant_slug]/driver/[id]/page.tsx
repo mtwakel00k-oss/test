@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback, useRef } from "react"
+import { useEffect, useState, useCallback, useRef, startTransition } from "react"
 import { useParams } from "next/navigation"
 import { t, type Lang } from "@/lib/translations"
 
@@ -45,15 +45,15 @@ export default function DriverPage() {
       const res = await fetch(`/api/driver/${token}`)
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: t("driver.unknownError", LANG) }))
-        setError(err.error || t("driver.invalidLink", LANG))
+        startTransition(() => setError(err.error || t("driver.invalidLink", LANG)))
         return
       }
       const json = await res.json()
-      setData(json)
+      startTransition(() => setData(json))
     } catch {
-      setError(t("driver.connectionError", LANG))
+      startTransition(() => setError(t("driver.connectionError", LANG)))
     } finally {
-      setLoading(false)
+      startTransition(() => setLoading(false))
     }
   }, [token])
 
@@ -69,7 +69,7 @@ export default function DriverPage() {
     if (!activeOrders.length) return
 
     if (!navigator.geolocation) {
-      setLocationError(t("driver.noGps", LANG))
+      startTransition(() => setLocationError(t("driver.noGps", LANG)))
       return
     }
 

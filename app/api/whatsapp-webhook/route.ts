@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     if (btnResponse?.selectedButtonId) {
       const parts = btnResponse.selectedButtonId.split("|")
       if (parts[0] === "collect" && parts[1] && parts[2]) {
-        const [_, orderId, slug] = parts
+        const [_action, orderId, slug] = parts
         const result = await markOrderAsCollected(orderId, slug)
         if (result.success) {
           logger.info("Collected via webhook", { orderId, slug })

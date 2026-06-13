@@ -1,12 +1,5 @@
-import { createClient } from "@supabase/supabase-js"
 import { getTenantConfig } from "@/lib/tenant"
 import { TIER_FEATURES, type SubscriptionTier, type TierFeatures } from "@/types/subscriptions"
-
-const FEATURE_KEYS: (keyof TierFeatures)[] = [
-  "hasPOS", "hasQROrdering", "hasOrderTracking", "hasRoleManagement",
-  "hasReports", "hasKDS", "hasDelivery", "hasCustomTheme",
-  "hasLiveTracking", "hasRatings",
-]
 
 /**
  * Check whether a tenant's current subscription plan includes a given feature.

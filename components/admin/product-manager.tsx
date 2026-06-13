@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { AlertCircle, CheckCircle, Plus, Trash2, Pencil, X, Upload, ChevronDown, ToggleLeft, ToggleRight } from "lucide-react"
+import { AlertCircle, CheckCircle, Plus, Trash2, Pencil, X, Upload, ChevronDown, ToggleLeft, ToggleRight, ShoppingBag } from "lucide-react"
 import { ConfirmDeleteModal } from "./confirm-delete-modal"
 import { logger } from "@/lib/logger"
 import { cn } from "@/lib/utils"
@@ -662,7 +662,7 @@ export function ProductManager() {
                         </div>
                       ) : (
                         <div className="size-14 rounded-2xl bg-muted/50 border border-border/30 flex items-center justify-center text-muted-foreground/30">
-                          <Store className="size-6" />
+                          <ShoppingBag className="size-6" />
                         </div>
                       )}
                       <div className="flex flex-col gap-0.5">

@@ -156,14 +156,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     // When assigning a driver, verify they are not already busy
     if (driver_id) {
-      const slug =
-        req.headers.get("x-tenant-slug") ||
-        (() => {
-          const referer = req.headers.get("referer") || ""
-          const m = referer.match(/\/([^/]+)\/(?:pos|admin|menu|kitchen)\b/)
-          return m ? m[1] : ""
-        })()
-
       const masterUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
       const masterKey = process.env.SUPABASE_SERVICE_ROLE_KEY
       if (masterUrl && masterKey) {

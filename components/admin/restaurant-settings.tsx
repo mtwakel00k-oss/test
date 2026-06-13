@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import { Store, Camera, Pencil, Check, X } from "lucide-react";
+import { ShoppingBag, Camera, Pencil, Check, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -253,7 +253,7 @@ export function RestaurantSettings() {
                   </>
                 ) : (
                   <>
-                    <Store className="size-10 text-muted-foreground/40" />
+                    <ShoppingBag className="size-10 text-muted-foreground/40" />
                     <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500">
                       <Camera className="size-8 text-white" />
                     </div>

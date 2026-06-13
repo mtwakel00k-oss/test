@@ -27,10 +27,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     try { const s = localStorage.getItem("cart"); return s ? JSON.parse(s) : [] } catch { return [] }
   })
   const persistRef = useRef(items)
-  persistRef.current = items
   useEffect(() => {
+    persistRef.current = items
     const timer = setTimeout(() => {
-      localStorage.setItem("cart", JSON.stringify(persistRef.current))
+      localStorage.setItem("cart", JSON.stringify(items))
     }, 300)
     return () => clearTimeout(timer)
   }, [items])

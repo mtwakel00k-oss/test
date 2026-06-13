@@ -4,7 +4,7 @@ import { logger } from "@/lib/logger"
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  _params: { params: Promise<{ id: string }> },
 ) {
   try {
     const slug = req.headers.get("x-tenant-slug") || ""

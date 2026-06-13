@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
-import { getTenantConfig, createTenantSupabaseClient, type TenantConfig } from "@/lib/tenant"
+import { getTenantConfig, createTenantSupabaseClient } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 
 const MASTER_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!

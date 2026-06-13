@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
       return res
     }
 
-    let tenantSlug = reqSlug
+    const tenantSlug = reqSlug
     let tenantId: string | null = null
 
     // ── Determine tenant ────────────────────────────────────────

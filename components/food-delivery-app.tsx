@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useRef, useCallback, Component, type ReactNode } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback, startTransition, Component, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
 import { logger } from "@/lib/logger";
@@ -74,19 +74,21 @@ export function FoodDeliveryApp({ initialProducts, slug: propSlug }: { initialPr
     let currentProducts: MenuProduct[] = []
     if (initialProducts && initialProducts.length > 0) {
       currentProducts = initialProducts
-      setCategories([...new Set(initialProducts.map(p => p.category).filter(Boolean))] as string[])
-      const initSauces: Record<number, number | null> = {};
-      initialProducts.forEach(p => { initSauces[p.id] = p.has_white_sauce ? 1 : null });
-      setSauces(initSauces);
-      const initSizes: Record<number, string> = {};
-      initialProducts.forEach(p => {
-        const avSizes = p.prices ? Object.keys(p.prices).filter(s => {
-          const sp = p.prices[s];
-          return sp.sauce_tomate != null || sp.creme_fraiche != null || sp.standard != null;
-        }) : [];
-        initSizes[p.id] = avSizes[0] || "L";
-      });
-      setSizes(initSizes);
+      startTransition(() => {
+        setCategories([...new Set(initialProducts.map(p => p.category).filter(Boolean))] as string[])
+        const initSauces: Record<number, number | null> = {};
+        initialProducts.forEach(p => { initSauces[p.id] = p.has_white_sauce ? 1 : null });
+        setSauces(initSauces);
+        const initSizes: Record<number, string> = {};
+        initialProducts.forEach(p => {
+          const avSizes = p.prices ? Object.keys(p.prices).filter(s => {
+            const sp = p.prices[s];
+            return sp.sauce_tomate != null || sp.creme_fraiche != null || sp.standard != null;
+          }) : [];
+          initSizes[p.id] = avSizes[0] || "L";
+        });
+        setSizes(initSizes);
+      })
     } else {
       fetchApi("/api/products").then(r => {
         if (!r.ok) throw new Error(`Products API returned ${r.status}`)

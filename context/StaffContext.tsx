@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, useCallback, startTransition, type ReactNode } from "react"
 import { fetchApi } from "@/lib/tenant"
 
 export interface StaffMember {
@@ -27,15 +27,15 @@ export function StaffProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    setLoading(true)
+    startTransition(() => setLoading(true))
     try {
       const saved = localStorage.getItem(STAFF_KEY)
-      if (saved) setActiveStaffState(JSON.parse(saved))
+      if (saved) startTransition(() => setActiveStaffState(JSON.parse(saved)))
     } catch {}
     fetchApi("/api/restaurant-staff")
       .then(r => (r.ok ? r.json() : []))
       .then(data => {
-        setStaffList(Array.isArray(data) ? data.filter((s: StaffMember) => s.is_active !== false) : [])
+        startTransition(() => setStaffList(Array.isArray(data) ? data.filter((s: StaffMember) => s.is_active !== false) : []))
       })
       .catch(() => {})
       .finally(() => setLoading(false))

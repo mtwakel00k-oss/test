@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useRef, useCallback, useMemo } from "react"
+import { useEffect, useState, useRef, useCallback, useMemo, startTransition } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ExternalLink, ChefHat, Timer, Bell, Volume2, VolumeX } from "lucide-react"
@@ -74,10 +74,9 @@ export default function KitchenPage() {
 
   const [orders, setOrders] = useState<KitchenOrder[]>([])
   const [currentTime, setCurrentTime] = useState("")
-  const [currentDate, setCurrentDate] = useState("")
   const [soundOn, setSoundOn] = useState(true)
   const prevOrderIdsRef = useRef<Set<string | number>>(new Set())
-  const [now, setNow] = useState(Date.now())
+  const [now, setNow] = useState(() => Date.now())
   const [countdown, setCountdown] = useState(10)
   const countdownRef = useRef(10)
 
@@ -94,7 +93,6 @@ export default function KitchenPage() {
       const n = new Date()
       const locale = lang === "fr" ? "fr-FR" : "en-US"
       setCurrentTime(n.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" }))
-      setCurrentDate(n.toLocaleDateString(locale, { weekday: "short", month: "short", day: "numeric" }))
       setNow(Date.now())
     }
     updateTime()
@@ -151,7 +149,8 @@ export default function KitchenPage() {
     }
   }, [soundOn])
 
-  useEffect(() => { fetchOrders().then(setOrders) }, [fetchOrders])
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { fetchOrders().then(data => startTransition(() => setOrders(data))) }, [fetchOrders])
 
   const subscriptions = useMemo(() => [
     {

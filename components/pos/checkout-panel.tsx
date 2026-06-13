@@ -67,8 +67,6 @@ export function CheckoutPanel({ order, onClose, onComplete, hasDriverAssigned = 
     100,
   ].filter((v, i, a) => a.indexOf(v) === i).slice(0, 4)
 
-  const availableDrivers = drivers.filter(d => !d.isBusy)
-
   return (
     <div className="flex flex-col h-full bg-background/80 backdrop-blur-2xl">
       <div className="flex items-center justify-between px-6 py-5 border-b border-border/50">

@@ -13,11 +13,6 @@ function generatePassword(): string {
 const MASTER_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-async function getAdmin() {
-  const sb = createClient(MASTER_URL, SERVICE_KEY!)
-  const { data } = await sb.auth.admin.listUsers()
-  return data?.users.find((u) => u.email === "admin@developer.app") || null
-}
 
 export async function POST(req: NextRequest) {
   try {

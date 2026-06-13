@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, startTransition } from "react"
 import { useRouter } from "next/navigation"
 import { DollarSign, TrendingUp, ShoppingBag, Star, CalendarClock, LogOut, ChartNoAxesColumn } from "lucide-react"
 import { supabase, resetTenantClient, fetchApi } from "@/lib/tenant"
@@ -99,7 +99,8 @@ export default function AdminPage() {
     } catch { return null } finally { setLoadingStats(false) }
   }, [period])
 
-  useEffect(() => { fetchStats().then(setStatsFromResult) }, [fetchStats])
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { fetchStats().then(data => startTransition(() => setStatsFromResult(data))) }, [fetchStats])
 
   useEffect(() => {
     const channel = supabase()
@@ -109,6 +110,41 @@ export default function AdminPage() {
     const poll = setInterval(() => fetchStats().then(setStatsFromResult), 15000)
     return () => { supabase().removeChannel(channel); clearInterval(poll) }
   }, [fetchStats])
+
+  if (slug === "developer") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white" dir={dir}>
+        <header className="sticky top-0 z-30 bg-black/40 backdrop-blur-xl border-b border-white/5 px-4 lg:px-6 py-3">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-lg shadow-amber-500/20">
+                <ChartNoAxesColumn className="w-4 h-4" />
+              </div>
+              <div>
+                <h1 className="text-sm font-bold text-white">Developer Panel</h1>
+                <p className="text-[10px] text-white/40">Restaurant Management</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <LanguageSwitcher />
+              <button onClick={async () => {
+                resetTenantClient()
+                await fetch("/api/auth/logout", { method: "POST" })
+                router.push(`/${slug}/login`)
+              }} className="h-8 px-3 rounded-lg text-xs font-bold text-rose-400 hover:bg-rose-500/10 transition-colors flex items-center gap-1.5">
+                <LogOut className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">{t("login.logOut")}</span>
+              </button>
+            </div>
+          </div>
+        </header>
+        <main className="max-w-7xl mx-auto p-4 lg:p-6">
+          <PlanManager />
+        </main>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white" dir={dir}>
@@ -267,7 +303,6 @@ export default function AdminPage() {
 
         <RestaurantSettings />
         <ProductManager />
-        {slug === "developer" && <PlanManager />}
         <OrdersList onViewOrder={handleViewOrder} />
 
         <OrderDetailSheet

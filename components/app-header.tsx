@@ -1,6 +1,6 @@
 "use client";
 
-import { ShoppingBag, Sun, Moon, Store, Languages } from "lucide-react";
+import { ShoppingBag, Sun, Moon, Languages } from "lucide-react";
 import { useTheme } from "@/lib/theme";
 import { useState, useEffect } from "react";
 import { fetchApi } from "@/lib/tenant";
@@ -47,7 +47,7 @@ export function AppHeader({ cartItemCount, onCart }: AppHeaderProps) {
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img src={logoUrl} alt={tenant?.name || "Logo"} className="w-full h-full object-cover block" onError={() => { console.error("Logo load failed", logoUrl) }} />
               ) : (
-                <Store className="w-6 h-6 text-primary" />
+                <ShoppingBag className="w-6 h-6 text-primary" />
               )}
             </div>
             <div className="flex flex-col min-w-0">

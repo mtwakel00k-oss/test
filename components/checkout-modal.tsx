@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect, useMemo } from "react"
+import { useState, useCallback, useEffect, useMemo, startTransition } from "react"
 import { MapPin, Loader2 } from "lucide-react"
 import { getPrice } from "@/lib/types"
 import type { CartItem, OrderType } from "@/lib/types"
@@ -81,10 +81,10 @@ export function CheckoutModal({
 
   const getLocation = useCallback(() => {
     if (!navigator.geolocation) {
-      setGeoStatus("error")
+      startTransition(() => setGeoStatus("error"))
       return
     }
-    setGeoStatus("loading")
+    startTransition(() => setGeoStatus("loading"))
     Promise.race([
       new Promise<GeolocationPosition>((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject, {
@@ -96,8 +96,7 @@ export function CheckoutModal({
     ])
       .then(async (pos) => {
         const { latitude, longitude } = pos.coords
-        setCoords({ lat: latitude, lng: longitude })
-        setGeoStatus("success")
+        startTransition(() => { setCoords({ lat: latitude, lng: longitude }); setGeoStatus("success") })
         try {
           const res = await fetch(
             `${GEOCODE_URL}?format=json&lat=${latitude}&lon=${longitude}&accept-language=${lang === "ar" ? "ar" : lang}`,
@@ -105,14 +104,14 @@ export function CheckoutModal({
           )
           const data = await res.json()
           if (data.display_name) {
-            setForm(f => ({ ...f, deliveryAddress: data.display_name }))
+            startTransition(() => setForm(f => ({ ...f, deliveryAddress: data.display_name })))
           }
         } catch {
           // reverse geocode failed — coordinates are enough
         }
       })
       .catch(() => {
-        setGeoStatus("error")
+        startTransition(() => setGeoStatus("error"))
       })
   }, [lang])
 

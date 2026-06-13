@@ -1,6 +1,6 @@
 "use client"
 
-export function FakeMapBackground({ orderId, status }: { orderId: string; status: string }) {
+export function FakeMapBackground({ orderId: _orderId, status: _status }: { orderId: string; status: string }) {
   return (
     <div
       className="relative overflow-hidden"

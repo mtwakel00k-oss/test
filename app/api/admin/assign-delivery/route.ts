@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabaseForRequest, isTenantMismatch, getTenantConfig } from "@/lib/tenant"
+import { supabaseForRequest, isTenantMismatch } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 import { sendDriverWhatsApp } from "@/lib/whatsapp"
 

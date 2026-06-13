@@ -1,5 +1,3 @@
-import { Badge } from '@/components/ui/badge'
-
 const brands = ['مطعم الأصالة', 'بيتزا نوفا', 'برغر هاوس', 'كافيه دلال', 'مشاوي السلطان', 'سوشي بار']
 
 export function LogosBar() {
