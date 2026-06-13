@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
-import { checkFeatureAccess } from "@/lib/subscription"
+import { checkFeature } from "@/lib/check-feature"
 import { logger } from "@/lib/logger"
 
 export async function GET(
@@ -13,23 +12,8 @@ export async function GET(
       return NextResponse.json({ hasLiveTracking: false })
     }
 
-    const masterSb = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY || "",
-    )
-
-    const { data: tenant } = await masterSb
-      .from("tenants")
-      .select("id")
-      .eq("slug", slug)
-      .single()
-
-    if (!tenant) {
-      return NextResponse.json({ hasLiveTracking: false })
-    }
-
-    const hasLiveTracking = await checkFeatureAccess(tenant.id, "hasLiveTracking")
-    const hasRatings = await checkFeatureAccess(tenant.id, "hasRatings")
+    const hasLiveTracking = await checkFeature(slug, "hasLiveTracking")
+    const hasRatings = await checkFeature(slug, "hasRatings")
     return NextResponse.json({ hasLiveTracking, hasRatings })
   } catch (e) {
     logger.error("tracking-access failed", e)
