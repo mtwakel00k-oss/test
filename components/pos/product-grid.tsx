@@ -56,7 +56,7 @@ function ProductCard({ product, curSize, curSauce, count, price, sizes, showSauc
 }) {
   const { t } = useTranslation()
   return (
-    <div className="group relative bg-card rounded-[2rem] border border-border/50 overflow-hidden shadow-sm hover:shadow-2xl hover:border-primary/20 hover:-translate-y-1 transition-all duration-300">
+    <div data-testid="product-card" className="group relative bg-card rounded-[2rem] border border-border/50 overflow-hidden shadow-sm hover:shadow-2xl hover:border-primary/20 hover:-translate-y-1 transition-all duration-300">
       <div className="aspect-[4/3] bg-muted/50 flex items-center justify-center overflow-hidden relative">
         {product.image_url ? (
           <Image src={product.image_url} alt={product.name} width={200} height={150}
@@ -119,7 +119,7 @@ function ProductCard({ product, curSize, curSauce, count, price, sizes, showSauc
               </button>
             </div>
           ) : (
-            <button onClick={() => onAddItem({ product, size: curSize, sauceId: curSauce, quantity: 1 })}
+            <button data-testid="add-to-order" onClick={() => onAddItem({ product, size: curSize, sauceId: curSauce, quantity: 1 })}
               className="inline-flex items-center gap-2 h-10 px-4 rounded-2xl bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-all active:scale-95 shadow-sm">
               <Plus className="size-3.5" /> {t("pos.add")}
             </button>

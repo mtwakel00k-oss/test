@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { supabaseForRequest, isTenantMismatch, parseSession } from "@/lib/tenant"
 import { requireStaff, resolveTenantSlug, isErrorResponse } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
+import { logAudit } from "@/lib/audit"
 import { sendDriverWhatsApp } from "@/lib/whatsapp"
 
 export async function POST(req: NextRequest) {
@@ -94,6 +95,7 @@ export async function POST(req: NextRequest) {
     })
 
     logger.info("Delivery assigned", { order_id, delivery_man_id })
+    logAudit(sb, req, { table_name: "orders", record_id: order_id, operation: "UPDATE", new_data: { delivery_man_id, driver_id: delivery_man_id, status: "out_for_delivery", payment_status: "paid" } })
     return NextResponse.json({ success: true })
   } catch (e) {
     const mismatch = isTenantMismatch(e)

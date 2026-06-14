@@ -230,7 +230,7 @@ export function CheckoutPanel({ order, onClose, onComplete, hasDriverAssigned = 
                 className="h-14 rounded-2xl text-xs font-black uppercase tracking-widest bg-muted text-muted-foreground hover:bg-rose-500/10 hover:text-rose-600 transition-all active:scale-95 disabled:opacity-30">
                 {t("pos.clear")}
               </button>
-              <button onClick={handleComplete} disabled={!canComplete || isProcessing}
+              <button data-testid="complete-payment" onClick={handleComplete} disabled={!canComplete || isProcessing}
                 className={cn("h-14 rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 shadow-xl",
                   !canComplete || isProcessing ? "bg-muted text-muted-foreground cursor-not-allowed shadow-none" : "bg-primary text-primary-foreground shadow-primary/20 hover:scale-[1.02]")}>
                 {isProcessing ? (

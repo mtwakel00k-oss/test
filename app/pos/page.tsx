@@ -11,8 +11,8 @@ import type { MenuProduct } from "@/lib/types"
 import { getPrice, getAvailableSizes } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { DB_STATUS_TO_POS, POS_STATUS_TO_DB } from "@/lib/constants"
-import { ReceiptPrint } from "@/components/pos/receipt-print"
 import { toast } from "@/hooks/use-toast"
+import { printReceipt } from "@/lib/print-receipt"
 import { POSHeader } from "@/components/pos/pos-header"
 import { OrderTabs } from "@/components/pos/order-tabs"
 import { OrderFilters } from "@/components/pos/order-filters"
@@ -256,7 +256,7 @@ export default function POSPage() {
     setReceiptData({ paid, change })
     setShowCheckout(false)
     setShowReceipt(true)
-    setTimeout(() => window.print(), 500)
+    setTimeout(() => printReceipt(orderId, { paid, change }), 500)
   }, [orders, t])
 
   const handleCancel = useCallback(async (orderId: string | number) => {
@@ -421,8 +421,9 @@ export default function POSPage() {
   }
 
   const handlePrint = useCallback(() => {
-    window.print()
-  }, [])
+    if (!selectedOrder) return
+    printReceipt(selectedOrder.id)
+  }, [selectedOrder])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
@@ -624,7 +625,7 @@ export default function POSPage() {
                   </div>
                   <p className="text-center text-xs text-muted-foreground pt-2">{t("pos.thanks")}</p>
                   <div className="flex gap-2 pt-3 print:hidden">
-                    <button onClick={() => window.print()}
+                    <button onClick={() => printReceipt(selectedOrder.id, { paid: receiptData.paid, change: receiptData.change })}
                       className="flex-1 rounded-lg bg-primary text-primary-foreground py-2.5 text-sm font-semibold hover:bg-primary/90">{t("common.print")}</button>
                     <button onClick={() => { setShowReceipt(false); setSelectedOrder(null); setReceiptData(null) }}
                       className="flex-1 rounded-lg border border-border py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary">{t("common.close")}</button>
@@ -725,11 +726,6 @@ export default function POSPage() {
         onCancel={() => setCancelTargetId(null)}
       />
 
-      <ReceiptPrint
-        order={showReceipt ? selectedOrder : null}
-        paid={receiptData?.paid ?? 0}
-        change={receiptData?.change ?? 0}
-      />
     </div>
   )
 }

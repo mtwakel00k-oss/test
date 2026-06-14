@@ -229,26 +229,7 @@ export function OrdersList({ onViewOrder }: OrdersListProps) {
 
   const handlePrint = useCallback(async (id: string | number) => {
     setPrintingId(id)
-    try {
-      const res = await fetchApi(`/api/orders/${id}`)
-      if (!res.ok) return
-      const order = await res.json()
-      const items: { name: string; quantity: number; price: number }[] = (order.items || []).map((i: OrderItem) => ({
-        name: i.product_name + (i.size && i.size !== "UNIQUE" ? ` (${i.size})` : ""),
-        quantity: i.quantity,
-        price: Number(i.unit_price),
-      }))
-      printReceipt({
-        items,
-        total: Number(order.total),
-        orderNumber: order.order_number,
-        orderType: order.order_type,
-        tableNumber: order.table_number,
-        createdAt: order.created_at,
-      })
-    } catch {
-      logger.error("Print failed")
-    }
+    printReceipt(id)
     setPrintingId(null)
   }, [])
 

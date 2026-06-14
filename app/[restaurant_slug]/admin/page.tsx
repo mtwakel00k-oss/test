@@ -9,9 +9,11 @@ import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useSlug } from "@/lib/use-slug"
 import { useTranslation } from "@/lib/use-translation"
+import { motion } from "framer-motion"
 import { StatCard } from "@/components/admin/stat-card"
 import { ReviewsFeed } from "@/components/admin/reviews-feed"
 import { TopProducts } from "@/components/admin/top-products"
+import { staggerContainer, fadeInUp } from "@/components/page-transition"
 
 const SalesChart = dynamic(() => import("@/components/admin/sales-chart").then(m => ({ default: m.SalesChart })), {
   loading: () => <div className="h-72 rounded-2xl bg-white/5 animate-pulse" />,
@@ -31,6 +33,9 @@ const OrdersList = dynamic(() => import("@/components/admin/orders-list").then(m
 const OrderDetailSheet = dynamic(() => import("@/components/admin/order-detail-sheet").then(m => ({ default: m.OrderDetailSheet })))
 const ClearData = dynamic(() => import("@/components/admin/clear-data").then(m => ({ default: m.ClearData })))
 const PlanManager = dynamic(() => import("@/components/admin/plan-manager").then(m => ({ default: m.PlanManager })))
+const AuditLog = dynamic(() => import("@/components/admin/audit-log").then(m => ({ default: m.AuditLog })), {
+  loading: () => <div className="h-96 rounded-2xl bg-white/5 animate-pulse" />,
+})
 
 type Period = "7d" | "30d" | "6m" | "12m"
 
@@ -75,7 +80,7 @@ export default function AdminPage() {
   const [cashierStats, setCashierStats] = useState<{ id: string; name: string; orders: number; revenue: number }[]>([])
   const [sheetOrderId, setSheetOrderId] = useState<string | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
-  const [adminTab, setAdminTab] = useState<"overview" | "products" | "orders">("overview")
+  const [adminTab, setAdminTab] = useState<"overview" | "products" | "orders" | "audit">("overview")
 
   const handleViewOrder = useCallback((orderId: string) => {
     setSheetOrderId(orderId)
@@ -190,12 +195,12 @@ export default function AdminPage() {
 
       <main className="max-w-7xl mx-auto p-4 lg:p-6 space-y-6">
         <div className="flex items-center gap-1.5 bg-white/5 p-0.5 rounded-lg w-fit border border-white/5">
-          {(["overview", "products", "orders"] as const).map((tab) => (
+          {(["overview", "products", "orders", "audit"] as const).map((tab) => (
             <button key={tab} onClick={() => setAdminTab(tab)}
               className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
                 adminTab === tab ? "bg-white/10 text-white shadow-sm" : "text-white/40 hover:text-white/70"
               }`}>
-              {tab === "overview" ? t("admin.overview") : tab === "products" ? t("admin.products") : t("admin.orders")}
+              {tab === "overview" ? t("admin.overview") : tab === "products" ? t("admin.products") : tab === "orders" ? t("admin.orders") : t("admin.audit")}
             </button>
           ))}
         </div>
@@ -213,30 +218,30 @@ export default function AdminPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        <motion.div variants={staggerContainer} initial="initial" animate="animate" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
           {loadingStats ? (
             <>
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="bg-card border border-border rounded-xl p-4 space-y-3 animate-pulse">
+                <motion.div key={i} variants={fadeInUp(i * 0.04)} className="bg-card border border-border rounded-xl p-4 space-y-3 animate-pulse">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-muted" />
                     <div className="h-3 w-20 rounded bg-muted" />
                   </div>
                   <div className="h-6 w-28 rounded bg-muted" />
                   <div className="h-3 w-16 rounded bg-muted/60" />
-                </div>
+                </motion.div>
               ))}
             </>
           ) : (
             <>
-              <StatCard icon={<DollarSign className="w-4 h-4" />} title={t("admin.totalRevenue")} value={`${fmtNum(totalRevenue)} ${currency}`} change={0} trend="up" />
-              <StatCard icon={<ShoppingBag className="w-4 h-4" />} title={t("admin.totalOrders")} value={totalOrders.toString()} change={0} trend="up" />
-              <StatCard icon={<TrendingUp className="w-4 h-4" />} title={t("admin.avgOrder")} value={`${fmtNum(avgOrderValue)} ${currency}`} change={0} trend="up" />
-              <StatCard icon={<Star className="w-4 h-4" />} title={t("admin.avgRating")} value={avgRating.toFixed(1)} change={0} trend="up" />
-              <StatCard icon={<CalendarClock className="w-4 h-4" />} title={t("admin.dailyRevenue")} value={`${fmtNum(dailyRevenue)} ${currency}`} change={0} trend="up" />
+              <motion.div variants={fadeInUp(0)}><StatCard icon={<DollarSign className="w-4 h-4" />} title={t("admin.totalRevenue")} value={`${fmtNum(totalRevenue)} ${currency}`} change={0} trend="up" /></motion.div>
+              <motion.div variants={fadeInUp(0.04)}><StatCard icon={<ShoppingBag className="w-4 h-4" />} title={t("admin.totalOrders")} value={totalOrders.toString()} change={0} trend="up" /></motion.div>
+              <motion.div variants={fadeInUp(0.08)}><StatCard icon={<TrendingUp className="w-4 h-4" />} title={t("admin.avgOrder")} value={`${fmtNum(avgOrderValue)} ${currency}`} change={0} trend="up" /></motion.div>
+              <motion.div variants={fadeInUp(0.12)}><StatCard icon={<Star className="w-4 h-4" />} title={t("admin.avgRating")} value={avgRating.toFixed(1)} change={0} trend="up" /></motion.div>
+              <motion.div variants={fadeInUp(0.16)}><StatCard icon={<CalendarClock className="w-4 h-4" />} title={t("admin.dailyRevenue")} value={`${fmtNum(dailyRevenue)} ${currency}`} change={0} trend="up" /></motion.div>
             </>
           )}
-        </div>
+        </motion.div>
 
         {adminTab === "overview" && driverStats.length > 0 && (
           <div className="bg-card border border-border rounded-xl overflow-hidden">
@@ -334,6 +339,7 @@ export default function AdminPage() {
         )}
         {adminTab === "products" && <ProductManager />}
         {adminTab === "orders" && <OrdersList onViewOrder={handleViewOrder} />}
+        {adminTab === "audit" && <AuditLog />}
 
         <OrderDetailSheet
           orderId={sheetOpen ? sheetOrderId : null}

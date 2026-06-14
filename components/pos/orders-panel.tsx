@@ -7,6 +7,7 @@ import { useRealtime } from "@/lib/use-realtime"
 import { logger } from "@/lib/logger"
 import { debounce } from "@/lib/debounce"
 import { playNewOrderSound, playSuccessSound, playErrorSound, playPrintSound } from "@/lib/sound"
+import { printReceipt } from "@/lib/print-receipt"
 import type { PosOrder, PosOrderStatus, Driver } from "@/lib/pos-types"
 import { cn } from "@/lib/utils"
 import { DB_STATUS_TO_POS, POS_STATUS_TO_DB } from "@/lib/constants"
@@ -19,7 +20,6 @@ import { useTranslation } from "@/lib/use-translation"
 import { useFeatures } from "@/lib/use-features"
 
 const ConfirmDialog = dynamic(() => import("@/components/confirm-dialog").then(m => ({ default: m.ConfirmDialog })), { ssr: false })
-const ReceiptPrint = dynamic(() => import("@/components/pos/receipt-print").then(m => ({ default: m.ReceiptPrint })), { ssr: false })
 
 interface RawOrder {
   id: string; status: string; order_number: number | null; table_number: number | null
@@ -171,7 +171,7 @@ export function OrdersPanel({ onNewOrder }: { onNewOrder: () => void }) {
       toast({ title: t("guest.orderPaid"), variant: "destructive" }); onError(); return
     }
     playPrintSound(); setReceiptData({ paid, change }); setShowCheckout(false); setShowReceipt(true)
-    setTimeout(() => window.print(), 500)
+    setTimeout(() => printReceipt(orderId, { paid, change }), 500)
   }, [orders, t])
 
   const handleCancel = useCallback(async (orderId: string | number) => {
@@ -237,7 +237,10 @@ export function OrdersPanel({ onNewOrder }: { onNewOrder: () => void }) {
     ready: orders.filter(o => o.status === "ready").length, out_for_delivery: orders.filter(o => o.status === "out_for_delivery").length,
   }
 
-  const handlePrint = useCallback(() => { window.print() }, [])
+  const handlePrint = useCallback(() => {
+    if (!selectedOrder) return
+    printReceipt(selectedOrder.id)
+  }, [selectedOrder])
 
   return (
     <>
@@ -339,7 +342,7 @@ export function OrdersPanel({ onNewOrder }: { onNewOrder: () => void }) {
                   </div>
                   <p className="text-center text-xs text-muted-foreground pt-2">{t("pos.thanks")}</p>
                   <div className="flex gap-2 pt-3 print:hidden">
-                    <button onClick={() => window.print()} className="flex-1 rounded-lg bg-primary text-primary-foreground py-2.5 text-sm font-semibold hover:bg-primary/90">{t("common.print")}</button>
+                    <button onClick={() => printReceipt(selectedOrder.id, receiptData ? { paid: receiptData.paid, change: receiptData.change } : undefined)} className="flex-1 rounded-lg bg-primary text-primary-foreground py-2.5 text-sm font-semibold hover:bg-primary/90">{t("common.print")}</button>
                     <button onClick={() => { setShowReceipt(false); setSelectedOrder(null); setReceiptData(null) }}
                       className="flex-1 rounded-lg border border-border py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary">{t("common.close")}</button>
                   </div>
@@ -445,7 +448,6 @@ export function OrdersPanel({ onNewOrder }: { onNewOrder: () => void }) {
         onConfirm={() => { if (cancelTargetId !== null) handleCancel(cancelTargetId); setCancelTargetId(null) }}
         onCancel={() => setCancelTargetId(null)} />
 
-      {showReceipt && <ReceiptPrint order={selectedOrder} paid={receiptData?.paid ?? 0} change={receiptData?.change ?? 0} />}
     </>
   )
 }

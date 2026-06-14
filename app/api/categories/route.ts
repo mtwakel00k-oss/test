@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabaseForRequest, isTenantMismatch, parseSession } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
+import { logAudit } from "@/lib/audit"
 
 export async function GET(req: NextRequest) {
   try {
@@ -71,6 +72,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ id: -(Math.abs(nom.trim().length * 997) % 1000 + 100), nom: nom.trim(), description: description?.trim() || null })
     }
 
+    logAudit(sb2, req, { table_name: "categories", record_id: data?.id ?? 0, operation: "INSERT", new_data: payload })
     return NextResponse.json(data)
   } catch (e) {
     const mismatch = isTenantMismatch(e)
@@ -109,6 +111,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    logAudit(sb2, req, { table_name: "categories", record_id: id, operation: "DELETE" })
     return NextResponse.json({ ok: true })
   } catch (e) {
     const mismatch = isTenantMismatch(e)

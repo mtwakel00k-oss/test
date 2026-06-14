@@ -83,7 +83,7 @@ export function CartSidebar({
           <div className="p-6 space-y-6">
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 px-1">{t("pos.customerInfo") || "بيانات الزبون"}</label>
-              <input value={customerName} onChange={e => onCustomerNameChange(e.target.value)}
+              <input data-testid="customer-name-input" value={customerName} onChange={e => onCustomerNameChange(e.target.value)}
                 placeholder={t("pos.customerName")}
                 className="w-full h-12 rounded-2xl border border-border/50 bg-muted/30 px-4 text-sm font-bold text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all" />
             </div>
@@ -91,7 +91,7 @@ export function CartSidebar({
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 px-1">{t("pos.orderType") || "نوع الطلب"}</label>
               <div className="grid grid-cols-3 gap-2">
-                <button onClick={() => onOrderTypeChange("dine_in")}
+                <button data-testid="order-type-dine-in" onClick={() => onOrderTypeChange("dine_in")}
                   className={cn("h-14 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border flex flex-col items-center justify-center gap-1.5",
                     orderType === "dine_in"
                       ? "bg-primary text-primary-foreground border-primary shadow-xl shadow-primary/20 scale-[1.05]"
@@ -205,7 +205,7 @@ export function CartSidebar({
                 {t("common.cancel")}
               </Button>
             )}
-            <Button onClick={onSubmit} disabled={disabled || submitting} className="flex-1 h-14 rounded-2xl text-sm font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+            <Button data-testid="create-order" onClick={onSubmit} disabled={disabled || submitting} className="flex-1 h-14 rounded-2xl text-sm font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
               {submitting ? (
                 <span className="flex items-center gap-2">
                   <svg className="size-4 animate-spin" fill="none" viewBox="0 0 24 24">

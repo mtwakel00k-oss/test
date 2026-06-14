@@ -281,6 +281,22 @@ export const T: Dict = {
   "admin.cashierPerformance": { ar: "أداء الكاشير", en: "Cashier Performance", fr: "Performance du caissier" },
   "admin.cashier": { ar: "الكاشير", en: "Cashier", fr: "Caissier" },
 
+  // ── Audit Log ──────────────────────────────────────
+  "admin.auditLog": { ar: "سجل التدقيق", en: "Audit Log", fr: "Journal d'audit" },
+  "admin.auditLogSub": { ar: "جميع التغييرات التي تم إجراؤها على النظام", en: "All changes made to the system", fr: "Tous les changements effectués sur le système" },
+  "admin.noAuditLogs": { ar: "لا توجد أحداث تسجيل حتى الآن", en: "No audit log entries yet", fr: "Aucune entrée de journal d'audit" },
+  "admin.time": { ar: "الوقت", en: "Time", fr: "Heure" },
+  "admin.table": { ar: "الجدول", en: "Table", fr: "Table" },
+  "admin.operation": { ar: "العملية", en: "Operation", fr: "Opération" },
+  "admin.user": { ar: "المستخدم", en: "User", fr: "Utilisateur" },
+  "admin.details": { ar: "التفاصيل", en: "Details", fr: "Détails" },
+  "admin.auditDetails": { ar: "تفاصيل سجل التدقيق", en: "Audit Details", fr: "Détails d'audit" },
+  "admin.recordId": { ar: "معرف السجل", en: "Record ID", fr: "ID d'enregistrement" },
+  "admin.ipAddress": { ar: "عنوان IP", en: "IP Address", fr: "Adresse IP" },
+  "admin.newValues": { ar: "القيم الجديدة", en: "New Values", fr: "Nouvelles valeurs" },
+  "admin.oldValues": { ar: "القيم القديمة", en: "Old Values", fr: "Anciennes valeurs" },
+  "admin.audit": { ar: "سجل التدقيق", en: "Audit Log", fr: "Journal d'audit" },
+
   // ── Order Tracking Map ──────────────────────────────
   "track.mapTitle": { ar: "تتبع الطلب", en: "Order Tracking", fr: "Suivi de commande" },
   "track.distance": { ar: "المسافة", en: "Distance", fr: "Distance" },

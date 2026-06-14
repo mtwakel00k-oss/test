@@ -102,7 +102,7 @@ export function POSHeader({ totalOrders, activeOrders, todayRevenue, onNewOrder,
           </div>
 
           {onNewOrder && (
-            <button onClick={onNewOrder}
+            <button data-testid="new-order-tab" onClick={onNewOrder}
               className="inline-flex items-center gap-2 h-11 px-5 rounded-2xl bg-primary text-primary-foreground text-sm font-black hover:scale-105 active:scale-95 transition-all shadow-xl shadow-primary/20">
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">{t("pos.newOrder")}</span>

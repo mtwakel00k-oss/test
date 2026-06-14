@@ -82,7 +82,7 @@ const OrderCardInner = memo(function OrderCardInner({
   }
 
   return (
-    <div
+    <div data-testid="order-card"
       onClick={onSelect}
       className={cn(
         "group relative bg-card rounded-[2rem] border border-border/50 overflow-hidden cursor-pointer",
@@ -199,7 +199,7 @@ const OrderCardInner = memo(function OrderCardInner({
         <div className="flex items-center justify-between mt-6 pt-5 border-t border-border/50">
           <div className="flex items-center gap-2">
             {getNextStatus() && (
-              <button onClick={handleAdvanceStatus}
+              <button data-testid="advance-status" onClick={handleAdvanceStatus}
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest bg-primary text-primary-foreground shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
                 {t(`pos.${STATUS_STYLES[getNextStatus()!].label}`)}
               </button>

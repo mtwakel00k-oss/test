@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { supabaseForRequest, isTenantMismatch, parseSession, getTenantConfig } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
+import { logAudit } from "@/lib/audit"
 import { getAllImageUrls, setImageUrl, deleteImageUrl } from "@/lib/image-store"
 
 function getMasterServiceClient() {
@@ -164,6 +165,7 @@ export async function POST(req: NextRequest) {
       }
 
       logger.info("Product updated", { id, sizesCount: sizes?.length, tenantSlug })
+      logAudit(sb2, req, { table_name: "produits", record_id: id, operation: "UPDATE", new_data: { nom, categorie_id, description, image_url, sizesCount: sizes?.length } })
       return NextResponse.json({ success: true })
     }
 
@@ -236,6 +238,7 @@ export async function POST(req: NextRequest) {
       if (image_url) setImageUrl(tenantSlug, data.id, image_url)
 
       logger.info("Product created", { id: data.id, nom, sizesCount: sizes?.length, tenantSlug })
+      logAudit(sb3, req, { table_name: "produits", record_id: data.id, operation: "INSERT", new_data: { nom, categorie_id, description, image_url, sizesCount: sizes?.length } })
       return NextResponse.json(data)
     }
 
@@ -253,6 +256,7 @@ export async function POST(req: NextRequest) {
       throw new Error(error.message || JSON.stringify(error))
     }
 
+    logAudit(pxt, req, { table_name: "produits", record_id: id, operation: "UPDATE", new_data: { is_available: next }, old_data: { is_available: !next } })
     return NextResponse.json({ success: true })
   } catch (e) {
     const mismatch = isTenantMismatch(e)
@@ -307,6 +311,7 @@ export async function DELETE(req: NextRequest) {
 
     deleteImageUrl(sessionDel.slug || "", Number(id))
     logger.info("Product deleted", { id })
+    logAudit(pxDel, req, { table_name: "produits", record_id: id, operation: "DELETE" })
     return NextResponse.json({ success: true })
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Delete failed"

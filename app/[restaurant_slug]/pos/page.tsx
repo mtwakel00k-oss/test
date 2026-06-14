@@ -10,6 +10,7 @@ import { useSlug } from "@/lib/use-slug"
 import { useTranslation } from "@/lib/use-translation"
 import { useStaff } from "@/context/StaffContext"
 import { POSHeader } from "@/components/pos/pos-header"
+import { PageTransition } from "@/components/page-transition"
 
 const OrdersPanel = dynamic(() => import("@/components/pos/orders-panel").then(m => ({ default: m.OrdersPanel })), {
   ssr: false,
@@ -54,16 +55,18 @@ export default function POSPage() {
         userName={cashier?.email?.split("@")[0]} userRole={cashier?.role}
       />
 
-      {pageTab === "orders" ? (
-        <OrdersPanel onNewOrder={() => setPageTab("new")} />
-      ) : (
-        <NewOrderPanel
-          products={products}
-          onOrderCreated={handleOrderCreated}
-          onCancel={() => setPageTab("orders")}
-          hasDelivery={true}
-        />
-      )}
+      <PageTransition>
+        {pageTab === "orders" ? (
+          <OrdersPanel onNewOrder={() => setPageTab("new")} />
+        ) : (
+          <NewOrderPanel
+            products={products}
+            onOrderCreated={handleOrderCreated}
+            onCancel={() => setPageTab("orders")}
+            hasDelivery={true}
+          />
+        )}
+      </PageTransition>
     </div>
   )
 }

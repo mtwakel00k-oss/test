@@ -13,6 +13,7 @@ import { logger } from "@/lib/logger"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useSlug } from "@/lib/use-slug"
+import { PageTransition } from "@/components/page-transition"
 import { useTranslation } from "@/lib/use-translation"
 import { useFeatures } from "@/lib/use-features"
 import { playNewOrderSound, initAudio } from "@/lib/sound"
@@ -271,9 +272,9 @@ export default function KitchenPage() {
         </div>
       </header>
 
-      <main className="p-3 lg:p-5">
+      <PageTransition><main className="p-3 lg:p-5">
         {orders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-white/30">
+          <div data-testid="kitchen-empty" className="flex flex-col items-center justify-center py-20 text-white/30">
             <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white/5 mb-6">
               <ChefHat className="w-12 h-12" />
             </div>
@@ -293,7 +294,7 @@ export default function KitchenPage() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
                   {pendingOrders.map(order => (
-                    <div key={order.id} className="group relative bg-gradient-to-br from-amber-500/10 to-transparent border-2 border-amber-500/30 rounded-2xl p-5 shadow-xl shadow-amber-500/5 hover:shadow-amber-500/15 hover:border-amber-500/50 transition-all">
+                    <div data-testid="kds-order-card" key={order.id} className="group relative bg-gradient-to-br from-amber-500/10 to-transparent border-2 border-amber-500/30 rounded-2xl p-5 shadow-xl shadow-amber-500/5 hover:shadow-amber-500/15 hover:border-amber-500/50 transition-all">
                       <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
                       <div className="flex justify-between items-start w-full mb-4 relative">
                         <div>
@@ -390,7 +391,7 @@ export default function KitchenPage() {
             )}
           </>
         )}
-      </main>
+      </main></PageTransition>
     </div>
   )
 }

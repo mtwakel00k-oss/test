@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { AlertCircle, CheckCircle, Plus, Trash2, Pencil, X, Upload, ChevronDown, ToggleLeft, ToggleRight, ShoppingBag } from "lucide-react"
+import { AlertCircle, CheckCircle, Plus, Trash2, Pencil, X, Upload, ChevronDown, ToggleLeft, ToggleRight, ShoppingBag, Layers } from "lucide-react"
 import { ConfirmDeleteModal } from "./confirm-delete-modal"
+import { BulkOperations } from "./bulk-operations"
 import { logger } from "@/lib/logger"
 import { cn } from "@/lib/utils"
 import { fetchApi } from "@/lib/tenant"
@@ -51,6 +52,7 @@ type TranslationKey =
   | "products.addProduct"
   | "products.editProduct"
   | "products.createProduct"
+  | "products.bulk"
   | "products.productImage"
   | "products.uploadImage"
   | "products.uploading"
@@ -102,6 +104,7 @@ const TRANSLATIONS: Record<TranslationKey, { ar: string; en: string; fr: string 
   "products.subtitle": { ar: "إدارة قائمة الطعام والأسعار", en: "Manage menu and prices", fr: "Gérer le menu et les prix" },
   "products.addCategory": { ar: "إضافة تصنيف", en: "Add Category", fr: "Ajouter une catégorie" },
   "products.addProduct": { ar: "إضافة منتج", en: "Add Product", fr: "Ajouter un produit" },
+  "products.bulk": { ar: "عمليات جماعية", en: "Bulk", fr: "Groupé" },
   "products.editProduct": { ar: "تعديل المنتج", en: "Edit Product", fr: "Modifier le produit" },
   "products.createProduct": { ar: "إضافة منتج", en: "Add Product", fr: "Ajouter un produit" },
   "products.productImage": { ar: "صورة المنتج", en: "Product Image", fr: "Image du produit" },
@@ -273,6 +276,7 @@ export function ProductManager() {
   const [catModalOpen, setCatModalOpen] = useState(false)
   const [catForm, setCatForm] = useState({ nom: "", description: "" })
   const [catSubmitting, setCatSubmitting] = useState(false)
+  const [bulkOpen, setBulkOpen] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const catInputRef = useRef<HTMLInputElement>(null)
   const catDropdownRef = useRef<HTMLDivElement>(null)
@@ -617,6 +621,10 @@ export function ProductManager() {
           <Button variant="outline" onClick={() => { setCatForm({ nom: "", description: "" }); setCatModalOpen(true) }} className="h-12 px-6 rounded-2xl border-border/50 text-xs font-black uppercase tracking-widest hover:bg-primary/10 hover:text-primary transition-all">
             <Plus className="size-4 ms-2" />
             {lbl("products.addCategory")}
+          </Button>
+          <Button variant="secondary" onClick={() => setBulkOpen(true)} className="h-12 px-6 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+            <Layers className="size-4 ms-2" />
+            {lbl("products.bulk")}
           </Button>
           <Button onClick={openAdd} className="h-12 px-6 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
             <Plus className="size-4 ms-2" />
@@ -974,6 +982,12 @@ export function ProductManager() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <BulkOperations
+        open={bulkOpen}
+        onClose={() => setBulkOpen(false)}
+        onComplete={() => { setBulkOpen(false); fetchProducts() }}
+      />
     </Card>
   )
 }

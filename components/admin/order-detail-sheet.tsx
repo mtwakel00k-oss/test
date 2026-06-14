@@ -133,19 +133,7 @@ function OrderDetailPanel({ orderId, onOrderUpdated }: { orderId: string | null;
 
   const handlePrint = () => {
     if (!order) return
-    const items = (order.items || []).map((i) => ({
-      name: i.product_name + (i.size && i.size !== "UNIQUE" ? ` (${i.size})` : ""),
-      quantity: i.quantity,
-      price: Number(i.unit_price),
-    }))
-    printReceipt({
-      items,
-      total: Number(order.total),
-      orderNumber: order.order_number,
-      orderType: order.order_type ?? "",
-      tableNumber: order.table_number,
-      createdAt: order.created_at ?? undefined,
-    })
+    printReceipt(order.id)
   }
 
   const handleCancel = async () => {

@@ -153,7 +153,7 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
             {tabs.length > 1 && (
               <div className="flex gap-2 p-2 mb-8 rounded-[1.5rem] bg-muted/50 border border-border/50 shadow-inner">
                 {tabs.map(tab => (
-                  <button key={tab.key} onClick={() => { setPage(tab.key); setError("") }}
+                  <button key={tab.key} data-testid={`role-tab-${tab.key}`} onClick={() => { setPage(tab.key); setError("") }}
                     className={`flex-1 py-3 rounded-xl transition-all flex items-center justify-center gap-2 ${
                       page === tab.key
                         ? "bg-background text-primary shadow-xl shadow-primary/5 border border-border/50"
@@ -169,6 +169,7 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
             <div className="space-y-4">
               <div className="relative group">
                 <Input
+                  data-testid="username-input"
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -183,6 +184,7 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
               </div>
               <div className="relative group">
                 <Input
+                  data-testid="password-input"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -195,9 +197,10 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
                 />
               </div>
 
-              {error && <p className="text-[10px] font-black uppercase tracking-widest text-center text-rose-500 py-2">{error}</p>}
+              {error && <p data-testid="login-error" className="text-[10px] font-black uppercase tracking-widest text-center text-rose-500 py-2">{error}</p>}
 
               <Button
+                data-testid="login-submit"
                 onClick={handleLogin}
                 disabled={loading || !username || !password}
                 className="w-full h-14 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-2xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
