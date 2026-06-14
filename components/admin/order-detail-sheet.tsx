@@ -235,7 +235,7 @@ function OrderDetailPanel({ orderId, onOrderUpdated }: { orderId: string | null;
             </div>
 
             <div className="space-y-4">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 px-1">{t("pos.items") || "الأصناف"}</label>
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 px-1">{t("pos.items")}</label>
               <div className="space-y-3">
                 {(order.items || []).map((item) => (
                   <div key={item.id} className="flex justify-between items-center p-4 rounded-2xl bg-muted/20 border border-border/30 hover:border-primary/20 transition-all group">
@@ -262,7 +262,7 @@ function OrderDetailPanel({ orderId, onOrderUpdated }: { orderId: string | null;
               <div className="flex justify-between items-center">
                 <div className="flex flex-col">
                   <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60 mb-1">{t("track.total")}</span>
-                  <span className="text-[10px] font-bold text-muted-foreground/40">{order.items?.length || 0} {t("pos.items") || "أصناف"}</span>
+                  <span className="text-[10px] font-bold text-muted-foreground/40">{order.items?.length || 0} {t("pos.items")}</span>
                 </div>
                 <span className="text-3xl font-black text-foreground tracking-tighter">
                   {fmtNum(Number(order.total) || 0)} <span className="text-xs opacity-40">{currency}</span>

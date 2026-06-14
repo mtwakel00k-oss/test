@@ -124,10 +124,13 @@
   html {
     @apply font-sans antialiased;
     scroll-behavior: smooth;
+    background-color: var(--background);
+    transition: background-color 0.3s ease-in-out;
   }
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "cv02", "cv03", "cv04", "cv09", "cv11";
+    transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out, border-color 0.3s ease-in-out;
   }
   ::selection {
     background: oklch(0.52 0.18 145 / 0.2);

@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { getScope, getScopedCookieLang, setScopedCookieLang } from "@/lib/i18n-scope"
+import { useRouter } from "next/navigation"
+import { getScope, setScopedCookieLang, getScopedCookieLang } from "@/lib/i18n-scope"
 import type { Lang } from "@/lib/translations"
 
 const LANGS: { code: Lang; flag: string; label: string }[] = [
@@ -10,15 +11,22 @@ const LANGS: { code: Lang; flag: string; label: string }[] = [
   { code: "fr", flag: "🇫🇷", label: "Français" },
 ]
 
+const DIR: Record<Lang, "rtl" | "ltr"> = { ar: "rtl", en: "ltr", fr: "ltr" }
+
 export function LanguageSwitcher() {
   const [open, setOpen] = useState(false)
-  const [current] = useState<Lang>(() => getScopedCookieLang(getScope()) || "ar")
+  const router = useRouter()
+  const [current, setCurrent] = useState<Lang>(() => getScopedCookieLang(getScope()) || "ar")
 
   const switchLang = useCallback((lang: Lang) => {
     setScopedCookieLang(lang, getScope())
+    setCurrent(lang)
     setOpen(false)
-    window.location.reload()
-  }, [])
+    document.documentElement.lang = lang
+    document.documentElement.dir = DIR[lang]
+    document.documentElement.dataset.locale = lang
+    router.refresh()
+  }, [router])
 
   const active = LANGS.find((l) => l.code === current) || LANGS[0]
 

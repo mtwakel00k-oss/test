@@ -190,7 +190,7 @@ export function ProductGrid({ products, orderItems, onAddItem, onUpdateQuantity 
             placeholder={t("pos.search")}
             className="w-full h-10 bg-muted/50 border-border/50 rounded-xl pr-10 text-xs font-bold focus:ring-2 focus:ring-primary/20 transition-all" />
         </div>
-        <p className="px-3 mb-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">{t("pos.categories") || "الأصناف"}</p>
+        <p className="px-3 mb-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">{t("pos.categories")}</p>
         {categories.map((cat) => (
           <button key={cat} onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
             className={cn("w-full text-right px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-tight transition-all duration-300",

@@ -179,11 +179,11 @@ export function OrdersPanel({ onNewOrder }: { onNewOrder: () => void }) {
     addCancelledId(orderId); setOrders(prev => prev.filter(o => o.id !== orderId)); setSelectedOrder(null)
     try {
       const res = await fetchApi(`/api/orders/${orderId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "cancelled" }) })
-      if (!res.ok) { removeCancelledId(orderId); setOrders(snapshot); if (cancelledOrder) setSelectedOrder(cancelledOrder); toast({ variant: "destructive", title: t("pos.cancelFailed") || "فشل إلغاء الطلب" }); playErrorSound() }
+      if (!res.ok) { removeCancelledId(orderId); setOrders(snapshot); if (cancelledOrder) setSelectedOrder(cancelledOrder); toast({ variant: "destructive", title: t("pos.cancelFailed") }); playErrorSound() }
     } catch (e) {
       removeCancelledId(orderId); setOrders(snapshot); if (cancelledOrder) setSelectedOrder(cancelledOrder)
       logger.error("Cancel update failed: " + (e instanceof Error ? e.message : "Unknown"))
-      toast({ variant: "destructive", title: t("pos.cancelFailed") || "فشل إلغاء الطلب" }); playErrorSound()
+      toast({ variant: "destructive", title: t("pos.cancelFailed") }); playErrorSound()
     }
   }, [orders, t])
 
@@ -434,7 +434,7 @@ export function OrdersPanel({ onNewOrder }: { onNewOrder: () => void }) {
                   </div>
                   {selectedOrder.status !== "completed" && selectedOrder.status !== "cancelled" && (
                     <button onClick={() => setCancelTargetId(String(selectedOrder.id))}
-                      className="w-full rounded-lg border border-destructive/30 text-destructive py-2.5 text-sm font-medium hover:bg-destructive/5 transition-colors">{t("pos.cancelButton") || t("pos.cancelOrder")}</button>
+                      className="w-full rounded-lg border border-destructive/30 text-destructive py-2.5 text-sm font-medium hover:bg-destructive/5 transition-colors">{t("pos.cancelButton")}</button>
                   )}
                 </div>
               )}

@@ -65,7 +65,7 @@ export function CartSidebar({
             <h2 className="text-sm font-black text-foreground tracking-tight leading-none mb-1">{t("pos.newOrderTitle")}</h2>
             <div className="flex items-center gap-1.5">
               <span className="size-1.5 rounded-full bg-primary animate-pulse" />
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{itemCount} {t("pos.items") || "أصناف"}</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{itemCount} {t("pos.items")}</p>
             </div>
           </div>
         </div>
@@ -82,14 +82,14 @@ export function CartSidebar({
         <ScrollArea className="flex-1">
           <div className="p-6 space-y-6">
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 px-1">{t("pos.customerInfo") || "بيانات الزبون"}</label>
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 px-1">{t("pos.customerInfo")}</label>
               <input data-testid="customer-name-input" value={customerName} onChange={e => onCustomerNameChange(e.target.value)}
                 placeholder={t("pos.customerName")}
                 className="w-full h-12 rounded-2xl border border-border/50 bg-muted/30 px-4 text-sm font-bold text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all" />
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 px-1">{t("pos.orderType") || "نوع الطلب"}</label>
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 px-1">{t("pos.orderType")}</label>
               <div className="grid grid-cols-3 gap-2">
                 <button data-testid="order-type-dine-in" onClick={() => onOrderTypeChange("dine_in")}
                   className={cn("h-14 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border flex flex-col items-center justify-center gap-1.5",
@@ -140,7 +140,7 @@ export function CartSidebar({
             )}
 
             <div className="space-y-4">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 px-1">{t("pos.items") || "الأصناف المختارة"}</label>
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 px-1">{t("pos.items")}</label>
               {orderItems.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 rounded-[2rem] border-2 border-dashed border-border/50 bg-muted/10">
                   <div className="size-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
@@ -194,8 +194,8 @@ export function CartSidebar({
         <div className="p-8 border-t border-border/50 bg-background/50 backdrop-blur-xl space-y-6">
           <div className="flex items-center justify-between px-2">
             <div className="flex flex-col">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 leading-none mb-1">{t("pos.totalAmount") || "إجمالي المبلغ"}</span>
-              <span className="text-xs font-bold text-muted-foreground">{itemCount} {t("pos.items") || "أصناف"}</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 leading-none mb-1">{t("pos.totalAmount")}</span>
+              <span className="text-xs font-bold text-muted-foreground">{itemCount} {t("pos.items")}</span>
             </div>
             <span className="text-3xl font-black text-foreground tabular-nums tracking-tighter">{total.toLocaleString()} <span className="text-xs opacity-40">{cur}</span></span>
           </div>

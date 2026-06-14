@@ -275,7 +275,7 @@ export default function POSPage() {
         removeCancelledId(orderId)
         setOrders(snapshot)
         if (cancelledOrder) setSelectedOrder(cancelledOrder)
-        toast({ variant: "destructive", title: t("pos.cancelFailed") || "فشل إلغاء الطلب" })
+        toast({ variant: "destructive", title: t("pos.cancelFailed") })
         playErrorSound()
       }
     } catch (e) {
@@ -283,7 +283,7 @@ export default function POSPage() {
       setOrders(snapshot)
       if (cancelledOrder) setSelectedOrder(cancelledOrder)
       logger.error("Cancel update failed: " + (e instanceof Error ? e.message : "Unknown"))
-      toast({ variant: "destructive", title: t("pos.cancelFailed") || "فشل إلغاء الطلب" })
+      toast({ variant: "destructive", title: t("pos.cancelFailed") })
       playErrorSound()
     }
   }, [orders, t])
