@@ -16,6 +16,7 @@ const nextConfig: NextConfig = {
       "recharts",
       "framer-motion",
       "@radix-ui/react-icons",
+      "@tanstack/react-virtual",
     ],
   },
 };

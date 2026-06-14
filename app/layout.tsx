@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/lib/theme"
 import { Geist, Tajawal } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { scopeFromPath, scopedCookieKey } from "@/lib/i18n-scope";
+import { OfflineDetector } from "@/components/offline-detector"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 const tajawal = Tajawal({
@@ -48,12 +49,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html suppressHydrationWarning lang={lang} dir={dir} data-locale={lang} className={cn(htmlClass, geist.variable, tajawal.variable)}>
-      <head />
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="theme-color" content="#09090b" />
+      </head>
       <body className="antialiased bg-background text-foreground font-sans">
         <LangProvider lang={lang}>
           <ThemeProvider>
             {children}
             <Toaster />
+            <OfflineDetector />
           </ThemeProvider>
         </LangProvider>
       </body>

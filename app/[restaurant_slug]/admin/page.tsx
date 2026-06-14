@@ -19,9 +19,15 @@ const SalesChart = dynamic(() => import("@/components/admin/sales-chart").then(m
 const PeakHoursChart = dynamic(() => import("@/components/admin/peak-hours-chart").then(m => ({ default: m.PeakHoursChart })), {
   loading: () => <div className="h-72 rounded-2xl bg-white/5 animate-pulse" />,
 })
-const RestaurantSettings = dynamic(() => import("@/components/admin/restaurant-settings").then(m => ({ default: m.RestaurantSettings })))
-const ProductManager = dynamic(() => import("@/components/admin/product-manager").then(m => ({ default: m.ProductManager })))
-const OrdersList = dynamic(() => import("@/components/admin/orders-list").then(m => ({ default: m.OrdersList })))
+const RestaurantSettings = dynamic(() => import("@/components/admin/restaurant-settings").then(m => ({ default: m.RestaurantSettings })), { ssr: false })
+const ProductManager = dynamic(() => import("@/components/admin/product-manager").then(m => ({ default: m.ProductManager })), {
+  ssr: false,
+  loading: () => <div className="h-96 rounded-2xl bg-white/5 animate-pulse" />,
+})
+const OrdersList = dynamic(() => import("@/components/admin/orders-list").then(m => ({ default: m.OrdersList })), {
+  ssr: false,
+  loading: () => <div className="h-96 rounded-2xl bg-white/5 animate-pulse" />,
+})
 const OrderDetailSheet = dynamic(() => import("@/components/admin/order-detail-sheet").then(m => ({ default: m.OrderDetailSheet })))
 const ClearData = dynamic(() => import("@/components/admin/clear-data").then(m => ({ default: m.ClearData })))
 const PlanManager = dynamic(() => import("@/components/admin/plan-manager").then(m => ({ default: m.PlanManager })))

@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useRef, useCallback, useEffect } from "react"
+import { useVirtualizer } from "@tanstack/react-virtual"
 import { Search, Plus, Minus, Trash2 } from "lucide-react"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
@@ -129,12 +130,32 @@ function ProductCard({ product, curSize, curSauce, count, price, sizes, showSauc
   )
 }
 
+function useBreakpoint(cols: Record<string, number>): number {
+  const [colsCount, setColsCount] = useState(2)
+  useEffect(() => {
+    const mqls = Object.entries(cols).map(([bp, c]) => {
+      const mql = window.matchMedia(`(min-width: ${bp}px)`)
+      const handler = () => { if (mql.matches) setColsCount(c) }
+      mql.addEventListener("change", handler)
+      handler()
+      return { mql, handler }
+    })
+    return () => mqls.forEach(({ mql, handler }) => mql.removeEventListener("change", handler))
+  }, [cols])
+  return colsCount
+}
+
+const ROW_HEIGHT = 340
+
 export function ProductGrid({ products, orderItems, onAddItem, onUpdateQuantity }: ProductGridProps) {
   const { t } = useTranslation()
   const [search, setSearch] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [sizeMap, setSizeMap] = useState<Record<number, string>>({})
   const [sauceMap, setSauceMap] = useState<Record<number, number | null>>({})
+
+  const cols = useBreakpoint({ 1024: 3, 1280: 4 })
+  const parentRef = useRef<HTMLDivElement>(null)
 
   const categories = useMemo(() => [...new Set(products.map((p) => p.category))], [products])
 
@@ -146,7 +167,19 @@ export function ProductGrid({ products, orderItems, onAddItem, onUpdateQuantity 
     })
   }, [products, selectedCategory, search])
 
+  const rowCount = Math.ceil(filtered.length / Math.max(cols, 1))
+
+  const virtualizer = useVirtualizer({
+    count: rowCount,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => ROW_HEIGHT,
+    overscan: 2,
+  })
+
   const qty = (id: number) => orderItems.find((i) => i.product.id === id)?.quantity || 0
+
+  const handleSizeChange = useCallback((id: number, s: string) => setSizeMap((p) => ({ ...p, [id]: s })), [])
+  const handleSauceChange = useCallback((id: number, s: number | null) => setSauceMap((p) => ({ ...p, [id]: s })), [])
 
   return (
     <div className="flex flex-1 min-h-0 bg-muted/5">
@@ -169,27 +202,45 @@ export function ProductGrid({ products, orderItems, onAddItem, onUpdateQuantity 
         ))}
       </aside>
 
-      <div className="flex-1 overflow-y-auto p-3">
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-          {filtered.map((product) => {
-            const sizes = getAvailableSizes(product)
-            const curSize = sizeMap[product.id] || sizes[0] || "UNIQUE"
-            const defaultSauce = getDefaultSauce(product)
-            const curSauce = sauceMap[product.id] ?? defaultSauce
-            const sauces = getProductSauces(product)
-            const showSauces = sauces.tomato || sauces.cream
-            const price = getPrice(product, curSize, curSauce)
-            const count = qty(product.id)
+      <div ref={parentRef} className="flex-1 overflow-y-auto p-3" style={{ contain: "strict" }}>
+        <div style={{ height: `${virtualizer.getTotalSize()}px`, position: "relative" }}>
+          {virtualizer.getVirtualItems().map((virtualRow) => {
+            const rowIndex = virtualRow.index
+            const startIdx = rowIndex * cols
+            const rowProducts = filtered.slice(startIdx, startIdx + cols)
             return (
-              <div key={product.id} style={{ contentVisibility: "auto" }}>
-                <ProductCard
-                  product={product} curSize={curSize} curSauce={curSauce}
-                  count={count} price={price} sizes={sizes}
-                  showSauces={showSauces} sauces={sauces} SIZE_LABEL={SIZE_LABEL}
-                  onSizeChange={(id, s) => setSizeMap((p) => ({ ...p, [id]: s }))}
-                  onSauceChange={(id, s) => setSauceMap((p) => ({ ...p, [id]: s }))}
-                  onAddItem={onAddItem} onUpdateQuantity={onUpdateQuantity}
-                />
+              <div
+                key={rowIndex}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  transform: `translateY(${virtualRow.start}px)`,
+                  width: "100%",
+                }}
+              >
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                  {rowProducts.map((product) => {
+                    const sizes = getAvailableSizes(product)
+                    const curSize = sizeMap[product.id] || sizes[0] || "UNIQUE"
+                    const defaultSauce = getDefaultSauce(product)
+                    const curSauce = sauceMap[product.id] ?? defaultSauce
+                    const sauces = getProductSauces(product)
+                    const showSauces = sauces.tomato || sauces.cream
+                    const price = getPrice(product, curSize, curSauce)
+                    const count = qty(product.id)
+                    return (
+                      <ProductCard
+                        key={product.id}
+                        product={product} curSize={curSize} curSauce={curSauce}
+                        count={count} price={price} sizes={sizes}
+                        showSauces={showSauces} sauces={sauces} SIZE_LABEL={SIZE_LABEL}
+                        onSizeChange={handleSizeChange}
+                        onSauceChange={handleSauceChange}
+                        onAddItem={onAddItem} onUpdateQuantity={onUpdateQuantity}
+                      />
+                    )
+                  })}
+                </div>
               </div>
             )
           })}
