@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { parseSession } from "@/lib/tenant"
+import { requireRootOwner, isErrorResponse } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
 
 function generatePassword(): string {
@@ -16,10 +16,8 @@ const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 export async function POST(req: NextRequest) {
   try {
-    const session = parseSession(req.headers.get("cookie") || "")
-    if (session.role !== "owner" && session.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const session = requireRootOwner(req)
+    if (isErrorResponse(session)) return session
 
     const body = await req.json()
     const { name, slug, plan_type: planType } = body

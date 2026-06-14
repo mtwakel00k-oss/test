@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from "next/server"
 import { parseSession, getTenantConfig, createTenantSupabaseClient } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 
+const ALLOWED_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"])
+const MAX_SIZE = 5 * 1024 * 1024
+
+const EXT_BY_MIME: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+  "image/gif": "gif",
+}
+
 export async function POST(req: NextRequest) {
   try {
     const session = parseSession(req.headers.get("cookie") || "")
@@ -23,7 +33,22 @@ export async function POST(req: NextRequest) {
     const file = formData.get("file") as File | null
     if (!file) return NextResponse.json({ error: "No file provided" }, { status: 400 })
 
-    const ext = file.name.split(".").pop()?.toLowerCase() || "png"
+    if (!ALLOWED_TYPES.has(file.type)) {
+      return NextResponse.json(
+        { error: "Invalid file type. Allowed: PNG, JPEG, WebP, GIF" },
+        { status: 400 },
+      )
+    }
+
+    if (file.size > MAX_SIZE) {
+      return NextResponse.json({ error: "File too large (max 5MB)" }, { status: 400 })
+    }
+
+    if (file.size === 0) {
+      return NextResponse.json({ error: "Empty file" }, { status: 400 })
+    }
+
+    const ext = EXT_BY_MIME[file.type] ?? "bin"
     const fileName = `${tenantSlug}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
 
     const supabase = createTenantSupabaseClient(tenantConfig.supabase_url, tenantConfig.supabase_anon_key)

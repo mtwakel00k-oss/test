@@ -98,6 +98,14 @@ function addCancelledId(id: string | number) {
   } catch {}
 }
 
+function removeCancelledId(id: string | number) {
+  try {
+    const set = getCancelledSet()
+    set.delete(id)
+    localStorage.setItem("cancelled_orders", JSON.stringify([...set]))
+  } catch {}
+}
+
 export default function POSPage() {
   const router = useRouter()
   const { t, lang } = useTranslation()
@@ -252,19 +260,33 @@ export default function POSPage() {
   }, [orders, t])
 
   const handleCancel = useCallback(async (orderId: string | number) => {
+    const snapshot = orders
+    const cancelledOrder = orders.find(o => o.id === orderId) ?? null
     addCancelledId(orderId)
     setOrders(prev => prev.filter(o => o.id !== orderId))
     setSelectedOrder(null)
     try {
-      await fetchApi(`/api/orders/${orderId}`, {
+      const res = await fetchApi(`/api/orders/${orderId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "cancelled" }),
       })
+      if (!res.ok) {
+        removeCancelledId(orderId)
+        setOrders(snapshot)
+        if (cancelledOrder) setSelectedOrder(cancelledOrder)
+        toast({ variant: "destructive", title: t("pos.cancelFailed") || "فشل إلغاء الطلب" })
+        playErrorSound()
+      }
     } catch (e) {
+      removeCancelledId(orderId)
+      setOrders(snapshot)
+      if (cancelledOrder) setSelectedOrder(cancelledOrder)
       logger.error("Cancel update failed: " + (e instanceof Error ? e.message : "Unknown"))
+      toast({ variant: "destructive", title: t("pos.cancelFailed") || "فشل إلغاء الطلب" })
+      playErrorSound()
     }
-  }, [])
+  }, [orders, t])
 
   const handleSaveItems = useCallback(async (orderId: string | number) => {
     const order = orders.find(o => o.id === orderId)

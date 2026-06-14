@@ -1,6 +1,7 @@
 "use client";
 
 import { ShoppingBag, Sun, Moon, Languages } from "lucide-react";
+import Image from "next/image";
 import { useTheme } from "@/lib/theme";
 import { useState, useEffect } from "react";
 import { fetchApi } from "@/lib/tenant";
@@ -42,10 +43,16 @@ export function AppHeader({ cartItemCount, onCart }: AppHeaderProps) {
       <div className="mx-auto max-w-2xl px-4 py-3.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="size-11 rounded-2xl bg-primary/10 flex items-center justify-center overflow-hidden shrink-0 border border-primary/20 shadow-inner">
+            <div className="size-11 rounded-2xl bg-primary/10 flex items-center justify-center overflow-hidden shrink-0 border border-primary/20 shadow-inner relative">
               {logoUrl ? (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img src={logoUrl} alt={tenant?.name || "Logo"} className="w-full h-full object-cover block" onError={() => { console.error("Logo load failed", logoUrl) }} />
+                <Image
+                  src={logoUrl}
+                  alt={tenant?.name || "Logo"}
+                  fill
+                  sizes="44px"
+                  className="object-cover"
+                  onError={() => setLogoUrl(null)}
+                />
               ) : (
                 <ShoppingBag className="w-6 h-6 text-primary" />
               )}

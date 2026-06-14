@@ -1,19 +1,23 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabaseForRequest, isTenantMismatch } from "@/lib/tenant"
+import { supabaseForRequest, isTenantMismatch, parseSession } from "@/lib/tenant"
+import { requireStaff, resolveTenantSlug, isErrorResponse } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
 import { sendDriverWhatsApp } from "@/lib/whatsapp"
 
 export async function POST(req: NextRequest) {
   try {
+    const session = requireStaff(req)
+    if (isErrorResponse(session)) return session
+
     const body = await req.json()
-    const { order_id, delivery_man_id, slug } = body
+    const { order_id, delivery_man_id, slug: bodySlug } = body
     if (!order_id || !delivery_man_id) {
       return NextResponse.json({ error: "order_id and delivery_man_id required" }, { status: 400 })
     }
 
-    const tenantSlug = slug || req.headers.get("x-tenant-slug") || ""
+    const tenantSlug = resolveTenantSlug(req, session, bodySlug)
     if (!tenantSlug) {
-      return NextResponse.json({ error: "Could not resolve tenant slug" }, { status: 400 })
+      return NextResponse.json({ error: "Tenant mismatch" }, { status: 403 })
     }
 
     const sb = await supabaseForRequest(req)

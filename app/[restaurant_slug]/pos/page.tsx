@@ -1,32 +1,31 @@
 "use client"
 
-import { useEffect, useState, useCallback, useRef, useMemo } from "react"
+import { useEffect, useState, useCallback, useRef, useMemo, startTransition } from "react"
 import { useRouter } from "next/navigation"
+import dynamic from "next/dynamic"
 import { fetchApi } from "@/lib/tenant"
 import { useSlug } from "@/lib/use-slug"
 import { useRealtime } from "@/lib/use-realtime"
 import { useProducts } from "@/lib/use-products"
 import { logger } from "@/lib/logger"
+import { debounce } from "@/lib/debounce"
 import { playNewOrderSound, playSuccessSound, playErrorSound, playPrintSound, initAudio } from "@/lib/sound"
 import type { PosOrder, PosOrderStatus, Driver } from "@/lib/pos-types"
-import type { MenuProduct } from "@/lib/types"
-import type { OrderType } from "@/types/order"
-import { getPrice } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { DB_STATUS_TO_POS, POS_STATUS_TO_DB } from "@/lib/constants"
-import { ReceiptPrint } from "@/components/pos/receipt-print"
 import { toast } from "@/hooks/use-toast"
 import { POSHeader } from "@/components/pos/pos-header"
 import { OrderTabs } from "@/components/pos/order-tabs"
 import { OrderFilters } from "@/components/pos/order-filters"
 import { OrderCard } from "@/components/pos/order-card"
 import { CheckoutPanel } from "@/components/pos/checkout-panel"
-import { ConfirmDialog } from "@/components/confirm-dialog"
-import { ProductGrid } from "@/components/pos/product-grid"
-import { CartSidebar } from "@/components/pos/cart-sidebar"
 import { useTranslation } from "@/lib/use-translation"
 import { useStaff } from "@/context/StaffContext"
 import { useFeatures } from "@/lib/use-features"
+
+const ConfirmDialog = dynamic(() => import("@/components/confirm-dialog").then(m => ({ default: m.ConfirmDialog })), { ssr: false })
+const ReceiptPrint = dynamic(() => import("@/components/pos/receipt-print").then(m => ({ default: m.ReceiptPrint })), { ssr: false })
+const NewOrderPanel = dynamic(() => import("@/components/pos/new-order-panel").then(m => ({ default: m.NewOrderPanel })), { ssr: false })
 
 interface RawOrder {
   id: string
@@ -92,13 +91,6 @@ function toPosOrder(raw: RawOrder, items: RawOrderItem[], dailyIndex?: number, a
   }
 }
 
-interface NewOrderItem {
-  product: MenuProduct
-  size: string
-  sauceId: number | null
-  quantity: number
-}
-
 function getCancelledSet(): Set<string | number> {
   try {
     const stored = localStorage.getItem("cancelled_orders")
@@ -110,6 +102,14 @@ function addCancelledId(id: string | number) {
   try {
     const set = getCancelledSet()
     set.add(id)
+    localStorage.setItem("cancelled_orders", JSON.stringify([...set]))
+  } catch {}
+}
+
+function removeCancelledId(id: string | number) {
+  try {
+    const set = getCancelledSet()
+    set.delete(id)
     localStorage.setItem("cancelled_orders", JSON.stringify([...set]))
   } catch {}
 }
@@ -138,21 +138,14 @@ export default function POSPage() {
   const [activeTab, _setActiveTab] = useState<"active" | "completed">("active")
   const [statusFilter, setStatusFilter] = useState<PosOrderStatus | null>(null)
   const setActiveTab = useCallback((tab: "active" | "completed") => { _setActiveTab(tab); setStatusFilter(null) }, [])
+  const [pageTab, setPageTab] = useState<"orders" | "new">("new")
   const [selectedOrder, setSelectedOrder] = useState<PosOrder | null>(null)
   const [showCheckout, setShowCheckout] = useState(false)
   const [showReceipt, setShowReceipt] = useState(false)
   const [receiptData, setReceiptData] = useState<{ paid: number; change: number } | null>(null)
   const [editingItems, setEditingItems] = useState(false)
   const [editQuantities, setEditQuantities] = useState<Record<string, number>>({})
-  const [showNewOrder, setShowNewOrder] = useState(false)
   const [cancelTargetId, setCancelTargetId] = useState<string | null>(null)
-  const [newName, setNewName] = useState("")
-  const [newTable, setNewTable] = useState("")
-  const [newPhone, setNewPhone] = useState("")
-  const [newOrderItems, setNewOrderItems] = useState<NewOrderItem[]>([])
-  const [newOrderError, setNewOrderError] = useState("")
-  const [newOrderType, setNewOrderType] = useState<OrderType>("dine_in")
-  const [creatingOrder, setCreatingOrder] = useState(false)
   const [savingItems, setSavingItems] = useState(false)
   const [drivers, setDrivers] = useState<Driver[]>([])
   const [assigningDriver, setAssigningDriver] = useState(false)
@@ -229,32 +222,36 @@ export default function POSPage() {
     return posOrders
   }, [allDrivers])
 
-  useEffect(() => { fetchOrders().then(setOrders) }, [fetchOrders])
+  useEffect(() => { fetchOrders().then(data => startTransition(() => setOrders(data))) }, [fetchOrders])
+
+  const debouncedRefresh = useMemo(
+    () => debounce(() => { fetchOrders().then(data => startTransition(() => setOrders(data))) }, 350),
+    [fetchOrders],
+  )
+
+  useEffect(() => () => debouncedRefresh.cancel(), [debouncedRefresh])
 
   const subscriptions = useMemo(() => [
     {
       table: "orders" as const,
       event: "*" as const,
-      handler: () => { fetchOrders().then(setOrders) },
+      handler: () => { debouncedRefresh() },
     },
     {
       table: "order_items" as const,
       event: "*" as const,
-      handler: () => { fetchOrders().then(setOrders) },
+      handler: () => { debouncedRefresh() },
     },
-  ], [fetchOrders])
+  ], [debouncedRefresh])
 
   useRealtime({
     channelName: "pos-orders",
     subscriptions,
     pollInterval: 10000,
-    onPoll: () => { fetchOrders().then(setOrders) },
+    onPoll: () => { fetchOrders().then(data => startTransition(() => setOrders(data))) },
   })
 
   const { products } = useProducts()
-
-  const productIds = useMemo(() => new Set(products.map((p) => p.id)), [products])
-  useEffect(() => { setNewOrderItems((prev) => prev.filter((i) => productIds.has(i.product.id))) }, [productIds]) // eslint-disable-line react-hooks/set-state-in-effect
 
   const prevPendingRef = useRef(0)
   const prevCompletedRef = useRef(0)
@@ -327,19 +324,33 @@ export default function POSPage() {
   }, [orders, t])
 
   const handleCancel = useCallback(async (orderId: string | number) => {
+    const snapshot = orders
+    const cancelledOrder = orders.find(o => o.id === orderId) ?? null
     addCancelledId(orderId)
     setOrders(prev => prev.filter(o => o.id !== orderId))
     setSelectedOrder(null)
     try {
-      await fetchApi(`/api/orders/${orderId}`, {
+      const res = await fetchApi(`/api/orders/${orderId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "cancelled" }),
       })
+      if (!res.ok) {
+        removeCancelledId(orderId)
+        setOrders(snapshot)
+        if (cancelledOrder) setSelectedOrder(cancelledOrder)
+        toast({ variant: "destructive", title: t("pos.cancelFailed") || "فشل إلغاء الطلب" })
+        playErrorSound()
+      }
     } catch (e) {
+      removeCancelledId(orderId)
+      setOrders(snapshot)
+      if (cancelledOrder) setSelectedOrder(cancelledOrder)
       logger.error("Cancel update failed: " + (e instanceof Error ? e.message : "Unknown"))
+      toast({ variant: "destructive", title: t("pos.cancelFailed") || "فشل إلغاء الطلب" })
+      playErrorSound()
     }
-  }, [])
+  }, [orders, t])
 
   const handleSaveItems = useCallback(async (orderId: string | number) => {
     const order = orders.find(o => o.id === orderId)
@@ -426,101 +437,32 @@ export default function POSPage() {
     setAssigningDriver(false)
   }, [allDrivers, slug])
 
-  const handleCreateOrder = useCallback(async () => {
-    if (!newName || newOrderItems.length === 0) return
-    const tableNum = parseInt(newTable, 10)
-    if (newTable && (isNaN(tableNum) || tableNum < 1)) return
-    setCreatingOrder(true)
-    setNewOrderError("")
+  const handleOrderCreated = useCallback(() => {
+    debouncedRefresh()
+    setPageTab("orders")
+  }, [debouncedRefresh])
 
-    const availableItems = newOrderItems.filter(i => i.product.is_available !== false)
-    if (availableItems.length === 0) {
-      setNewOrderError(t("pos.orderError"))
-      playErrorSound()
-      setCreatingOrder(false)
-      return
-    }
+  const activeOrders = useMemo(
+    () => orders.filter(o => o.status !== "completed" && o.status !== "cancelled"),
+    [orders],
+  )
+  const completedOrders = useMemo(
+    () => orders.filter(o => o.status === "completed"),
+    [orders],
+  )
+  const todayRevenue = useMemo(() => {
+    const start = new Date()
+    start.setHours(0, 0, 0, 0)
+    return orders
+      .filter(o => o.status === "completed" && o.createdAt >= start)
+      .reduce((sum, o) => sum + o.total, 0)
+  }, [orders])
 
-    try {
-      const bodyObj = {
-        customer_name: newName,
-        customer_phone: newOrderType === "delivery" ? newPhone || null : null,
-        table_number: newOrderType === "dine_in" && newTable ? tableNum : null,
-        order_type: newOrderType,
-        cashier_id: cashier?.email || null,
-        cashier_name: cashier?.email?.split("@")[0] || null,
-        processed_by_staff_id: activeStaff?.id || null,
-        processed_by_staff_name: activeStaff?.name || null,
-        items: availableItems.map(i => ({
-          product_id: i.product.id,
-          product_name: i.product.name,
-          size: i.size,
-          sauce: i.sauceId,
-          quantity: i.quantity,
-          unit_price: getPrice(i.product, i.size, i.sauceId),
-        })),
-      }
-      const res = await fetchApi("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bodyObj),
-      })
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
-        if (body.code === "ALL_PRODUCTS_STALE") { setNewOrderItems([]); setNewOrderError(""); setCreatingOrder(false); return }
-        setNewOrderError(body.error === "Table is occupied" ? t("pos.tableOccupied") : (body.error || t("pos.orderError")))
-        playErrorSound()
-        return
-      }
-      const data = await res.json()
-      const newOrder: PosOrder = {
-        id: data.id,
-        orderNumber: data.orderNumber,
-        tableNumber: newOrderType === "dine_in" && newTable ? tableNum : null,
-        orderType: newOrderType,
-        status: "pending",
-        paymentStatus: "unpaid",
-        serverName: newName,
-        customerPhone: newPhone,
-        items: availableItems.map(i => ({
-          id: Math.random(),
-          name: i.product.name + (i.size && i.size !== "UNIQUE" ? ` (${i.size})` : ""),
-          quantity: i.quantity,
-          price: getPrice(i.product, i.size, i.sauceId),
-          productId: i.product.id,
-          size: i.size,
-          sauce: i.sauceId,
-        })),
-        total: availableItems.reduce((s, i) => s + getPrice(i.product, i.size, i.sauceId) * i.quantity, 0),
-        createdAt: new Date(),
-      }
-      setOrders(prev => [newOrder, ...prev])
-      setNewOrderError("")
-      playSuccessSound()
-      setShowNewOrder(false)
-      setNewName("")
-      setNewTable("")
-      setNewPhone("")
-      setNewOrderItems([])
-      setNewOrderType("dine_in")
-    } catch (e) {
-      setNewOrderError(t("pos.orderError"))
-      logger.error("Create order error: " + (e instanceof Error ? e.message : "Unknown"))
-    } finally {
-      setCreatingOrder(false)
-    }
-  }, [newName, newTable, newPhone, newOrderItems, newOrderType, t, cashier, activeStaff])
-
-  const activeOrders = orders.filter(o => o.status !== "completed" && o.status !== "cancelled")
-  const completedOrders = orders.filter(o => o.status === "completed")
-  const todayStart = new Date()
-  todayStart.setHours(0, 0, 0, 0)
-  const todayRevenue = orders
-    .filter(o => o.status === "completed" && o.createdAt >= todayStart)
-    .reduce((sum, o) => sum + o.total, 0)
-
-  const filteredOrders = (activeTab === "active" ? activeOrders : completedOrders)
-    .filter(o => !statusFilter || o.status === statusFilter)
+  const filteredOrders = useMemo(
+    () => (activeTab === "active" ? activeOrders : completedOrders)
+      .filter(o => !statusFilter || o.status === statusFilter),
+    [activeTab, activeOrders, completedOrders, statusFilter],
+  )
 
   const counts = {
     active: activeOrders.length,
@@ -539,108 +481,63 @@ export default function POSPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
       <POSHeader totalOrders={orders.length} activeOrders={activeOrders.length} todayRevenue={todayRevenue}
-        onNewOrder={() => { setShowNewOrder(true); setSelectedOrder(null); setNewOrderError("") }}
+        onNewOrder={() => { setPageTab("new"); setSelectedOrder(null) }}
         userName={cashier?.email?.split("@")[0]} userRole={cashier?.role} />
-      <OrderTabs activeTab={activeTab} onTabChange={setActiveTab} counts={counts} />
-      {activeTab === "active" && <OrderFilters activeFilter={statusFilter} onFilterChange={setStatusFilter} counts={counts} />}
 
-      <div className="flex">
-        <div className={cn("flex-1 p-4 lg:p-6 space-y-3", showCheckout ? "hidden lg:block" : "block")}>
-          {showNewOrder ? (
-            <div className="fixed inset-0 z-50 bg-background flex flex-col lg:flex-row lg:static lg:inset-auto lg:z-auto lg:min-h-0">
-              <ProductGrid
-                products={products}
-                orderItems={newOrderItems}
-                onAddItem={(item) => setNewOrderItems(prev => [...prev, item])}
-                onUpdateQuantity={(productId, delta) => {
-                  setNewOrderItems(prev => {
-                    const updated = prev.map(i =>
-                      i.product.id === productId ? { ...i, quantity: Math.max(0, i.quantity + delta) } : i
-                    )
-                    return updated.filter(i => i.quantity > 0)
-                  })
-                }}
-                onClose={() => {
-                  setShowNewOrder(false)
-                  setNewName("")
-                  setNewTable("")
-                  setNewPhone("")
-                  setNewOrderItems([])
-                  setNewOrderType("dine_in")
-                }}
-              />
-              <CartSidebar
-                orderItems={newOrderItems}
-                customerName={newName}
-                onCustomerNameChange={setNewName}
-                customerPhone={newPhone}
-                onCustomerPhoneChange={setNewPhone}
-                onUpdateQuantity={(productId, delta) => {
-                  setNewOrderItems(prev => {
-                    const updated = prev.map(i =>
-                      i.product.id === productId ? { ...i, quantity: Math.max(0, i.quantity + delta) } : i
-                    )
-                    return updated.filter(i => i.quantity > 0)
-                  })
-                }}
-                onRemoveItem={(productId) => {
-                  setNewOrderItems(prev => prev.filter(i => i.product.id !== productId))
-                }}
-                onSubmit={handleCreateOrder}
-                submitting={creatingOrder}
-                disabled={!newName || newOrderItems.length === 0 || (newOrderType === "delivery" && !newPhone)}
-                error={newOrderError}
-                orderType={newOrderType}
-                onOrderTypeChange={setNewOrderType}
-                tableNumber={newTable}
-                onTableNumberChange={setNewTable}
-                hasDelivery={features?.hasDelivery !== false}
-                onCancel={() => {
-                  setShowNewOrder(false)
-                  setNewName("")
-                  setNewTable("")
-                  setNewPhone("")
-                  setNewOrderItems([])
-                  setNewOrderType("dine_in")
-                }}
-              />
-            </div>
-          ) : filteredOrders.length === 0 && !showNewOrder ? (
-            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground animate-fade-in-up">
-              <div className="relative mb-6">
-                <svg className="w-20 h-20 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={0.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-                <span className="absolute -bottom-1 -end-1 text-lg">📋</span>
+      {pageTab === "orders" && (
+        <>
+          <OrderTabs activeTab={activeTab} onTabChange={setActiveTab} counts={counts} />
+          {activeTab === "active" && <OrderFilters activeFilter={statusFilter} onFilterChange={setStatusFilter} counts={counts} />}
+        </>
+      )}
+
+      <div className="flex h-full">
+        {pageTab === "orders" ? (
+          <div className={cn("flex-1 p-4 lg:p-6 space-y-3", showCheckout ? "hidden lg:block" : "block")}>
+            {filteredOrders.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-muted-foreground animate-fade-in-up">
+                <div className="relative mb-6">
+                  <svg className="w-20 h-20 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={0.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  <span className="absolute -bottom-1 -end-1 text-lg">📋</span>
+                </div>
+                <p className="text-lg font-medium text-foreground/60">{activeTab === "active" ? t("pos.noActiveOrders") : t("pos.noCompletedOrders")}</p>
+                <p className="text-sm mt-1 text-muted-foreground/70">{activeTab === "active" ? t("pos.newOrdersHere") : t("pos.completedOrdersHere")}</p>
               </div>
-              <p className="text-lg font-medium text-foreground/60">{activeTab === "active" ? t("pos.noActiveOrders") : t("pos.noCompletedOrders")}</p>
-              <p className="text-sm mt-1 text-muted-foreground/70">{activeTab === "active" ? t("pos.newOrdersHere") : t("pos.completedOrdersHere")}</p>
-            </div>
-          ) : (
-            filteredOrders.map(order => (
-              <OrderCard key={order.id} order={order} isSelected={selectedOrder?.id === order.id}
-                onSelect={() => { setSelectedOrder(order); setShowCheckout(false) }}
-                onStatusChange={handleStatusChange} onCancel={(id) => setCancelTargetId(String(id))}
-                drivers={allDrivers} assigningDriver={assigningDriver}
-                onAssignDriver={(orderId, driverId) => {
-                  const driver = allDrivers.find(d => d.id === driverId)
-                  if (driver) assignDriver(orderId, driver)
-                }}
-              />
-            ))
-          )}
-          {activeTab === "active" && !showNewOrder && (
-            <button onClick={() => { setShowNewOrder(true); setSelectedOrder(null); setNewOrderError("") }}
-              className="group w-full py-4 rounded-xl border-2 border-dashed border-border/60 text-muted-foreground/70 hover:border-primary/40 hover:text-primary hover:bg-primary/5 transition-all duration-300 text-sm font-medium flex items-center justify-center gap-2">
-              <svg className="w-4 h-4 transition-transform group-hover:rotate-90 duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              {t("pos.newOrder")}
-            </button>
-          )}
-        </div>
+            ) : (
+              filteredOrders.map(order => (
+                <OrderCard key={order.id} order={order} isSelected={selectedOrder?.id === order.id}
+                  onSelect={() => { setSelectedOrder(order); setShowCheckout(false) }}
+                  onStatusChange={handleStatusChange} onCancel={(id) => setCancelTargetId(String(id))}
+                  drivers={allDrivers} assigningDriver={assigningDriver}
+                  onAssignDriver={(orderId, driverId) => {
+                    const driver = allDrivers.find(d => d.id === driverId)
+                    if (driver) assignDriver(orderId, driver)
+                  }}
+                />
+              ))
+            )}
+            {activeTab === "active" && (
+              <button onClick={() => setPageTab("new")}
+                className="group w-full py-4 rounded-xl border-2 border-dashed border-border/60 text-muted-foreground/70 hover:border-primary/40 hover:text-primary hover:bg-primary/5 transition-all duration-300 text-sm font-medium flex items-center justify-center gap-2">
+                <svg className="w-4 h-4 transition-transform group-hover:rotate-90 duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                {t("pos.newOrder")}
+              </button>
+            )}
+          </div>
+        ) : (
+          <NewOrderPanel
+            products={products}
+            onOrderCreated={handleOrderCreated}
+            onCancel={() => setPageTab("orders")}
+            hasDelivery={features?.hasDelivery !== false}
+          />
+        )}
 
-        {!showNewOrder && (selectedOrder) && (
+        {pageTab === "orders" && selectedOrder && (
           <div className={cn(
             "w-full lg:w-96 border-l border-border bg-card",
             showCheckout ? "block" : "hidden lg:block"
@@ -875,11 +772,13 @@ export default function POSPage() {
         onCancel={() => setCancelTargetId(null)}
       />
 
-      <ReceiptPrint
-        order={showReceipt ? selectedOrder : null}
-        paid={receiptData?.paid ?? 0}
-        change={receiptData?.change ?? 0}
-      />
+      {showReceipt && (
+        <ReceiptPrint
+          order={selectedOrder}
+          paid={receiptData?.paid ?? 0}
+          change={receiptData?.change ?? 0}
+        />
+      )}
     </div>
   )
 }

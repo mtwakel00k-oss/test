@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, memo } from "react"
 import type { PosOrder, PosOrderStatus } from "@/lib/pos-types"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/lib/use-translation"
@@ -42,7 +42,13 @@ const STATUS_STYLES = {
   cancelled: { label: "statusCancelled", badge: "badge-rose", dot: "bg-rose-500", bar: "bg-rose-500", shadow: "" },
 } as const
 
-export function OrderCard({ order, isSelected, onSelect, onStatusChange, onCancel, drivers = [], assigningDriver, onAssignDriver }: OrderCardProps) {
+export function OrderCard(props: OrderCardProps) {
+  return <OrderCardInner {...props} />
+}
+
+const OrderCardInner = memo(function OrderCardInner({
+  order, isSelected, onSelect, onStatusChange, onCancel, drivers = [], assigningDriver, onAssignDriver,
+}: OrderCardProps) {
   const { t, lang } = useTranslation()
   const [timeAgo, setTimeAgo] = useState(() => formatTimeAgo(order.createdAt, t))
   const s = STATUS_STYLES[order.status]
@@ -212,4 +218,13 @@ export function OrderCard({ order, isSelected, onSelect, onStatusChange, onCance
       </div>
     </div>
   )
-}
+}, (prev, next) =>
+  prev.order.id === next.order.id &&
+  prev.order.status === next.order.status &&
+  prev.order.paymentStatus === next.order.paymentStatus &&
+  prev.order.total === next.order.total &&
+  prev.order.driverId === next.order.driverId &&
+  prev.isSelected === next.isSelected &&
+  prev.assigningDriver === next.assigningDriver &&
+  prev.order.items.length === next.order.items.length,
+)

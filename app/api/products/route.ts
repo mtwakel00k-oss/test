@@ -26,14 +26,8 @@ async function getTenantServiceClient(slug: string) {
 }
 
 function getAdminRole(req: NextRequest): boolean {
-  const sessionCookie = req.cookies.get("session")
-  if (sessionCookie) {
-    try {
-      const session = JSON.parse(sessionCookie.value)
-      return session.role === "admin" || session.role === "owner"
-    } catch {}
-  }
-  return false
+  const session = parseSession(req.headers.get("cookie") || "")
+  return session.role === "admin" || session.role === "owner"
 }
 
 export async function GET(req: NextRequest) {

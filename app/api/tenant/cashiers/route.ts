@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { parseSession } from "@/lib/tenant"
+import { resolveTenantSlug } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
 
 function getSlug(req: NextRequest): string | null {
-  const header = req.headers.get("x-tenant-slug")
-  if (header) return header
   const session = parseSession(req.headers.get("cookie") || "")
-  return session.slug ?? null
+  return resolveTenantSlug(req, session)
 }
 
 export async function GET(req: NextRequest) {

@@ -83,6 +83,29 @@ DROP POLICY IF EXISTS "produits_admin_all" ON produits; CREATE POLICY "produits_
 DROP POLICY IF EXISTS "produits_public_select" ON produits; CREATE POLICY "produits_public_select" ON produits FOR SELECT USING (true);
 DROP POLICY IF EXISTS "prix_admin_all" ON prix; CREATE POLICY "prix_admin_all" ON prix FOR ALL USING (true) WITH CHECK (true);
 DROP POLICY IF EXISTS "tailles_admin_all" ON tailles; CREATE POLICY "tailles_admin_all" ON tailles FOR ALL USING (true) WITH CHECK (true);
+
+-- 9) Atomic daily order numbers
+CREATE TABLE IF NOT EXISTS daily_order_counters (
+  day DATE PRIMARY KEY,
+  counter INT NOT NULL DEFAULT 0
+);
+
+CREATE OR REPLACE FUNCTION next_order_number()
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  today DATE := CURRENT_DATE;
+  next_num INT;
+BEGIN
+  INSERT INTO daily_order_counters (day, counter)
+  VALUES (today, 1)
+  ON CONFLICT (day) DO UPDATE
+  SET counter = daily_order_counters.counter + 1
+  RETURNING counter INTO next_num;
+  RETURN next_num;
+END;
+$$;
 `
 
 const MASTER_SQL = `
@@ -155,11 +178,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const runSession = parseSession(req.headers.get("cookie") || "")
-  if (runSession.role !== "admin" && runSession.role !== "owner") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  if (runSession.role !== "owner" || runSession.slug) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
   const body = await req.json().catch(() => ({}))
-  const { sql, slug } = body
+  const { slug } = body
 
   if (!slug) {
     return NextResponse.json({ error: "Missing slug" }, { status: 400 })
@@ -183,7 +206,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const tenantSvc = createClient(tenant.supabase_url, tenantServiceKey)
-    const { error } = await tenantSvc.rpc("exec_sql", { query_text: sql || TENANT_MIGRATION })
+    const { error } = await tenantSvc.rpc("exec_sql", { query_text: TENANT_MIGRATION })
     if (error) {
       logger.error("Tenant migration exec_sql failed", error)
       return NextResponse.json({

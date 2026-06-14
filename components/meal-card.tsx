@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react"
+import { useState, memo } from "react"
 import Image from "next/image"
 import { Plus, Minus } from "lucide-react";
 import type { MenuProduct } from "@/lib/types";
@@ -19,7 +19,7 @@ interface MealCardProps {
   onUpdateQuantity: (delta: number) => void;
 }
 
-export function MealCard({
+export const MealCard = memo(function MealCard({
   product,
   size,
   sauceId,
@@ -40,8 +40,9 @@ export function MealCard({
       <div className="relative aspect-[16/9] overflow-hidden bg-muted/50">
         {showImg ? (
           <Image src={product.image_url!} alt={product.name}
-            width={600} height={400}
-            className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+            fill
+            sizes="(max-width: 640px) 100vw, 50vw"
+            className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
             onError={() => setImgFailed(true)} />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -147,4 +148,4 @@ export function MealCard({
       </div>
     </div>
   );
-}
+});

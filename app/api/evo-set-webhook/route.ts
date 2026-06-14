@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
+import { requireRootOwner, isErrorResponse } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
 
 export async function POST(req: NextRequest) {
   try {
+    const session = requireRootOwner(req)
+    if (isErrorResponse(session)) return session
+
     const { webhook_url } = await req.json()
     const url = webhook_url || (process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}/api/whatsapp-webhook`

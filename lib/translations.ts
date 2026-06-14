@@ -145,6 +145,7 @@ export const T: Dict = {
   "admin.dashboard": { ar: "لوحة التحكم", en: "Dashboard", fr: "Tableau de bord" },
   "admin.portal": { ar: "بوابة الإدارة", en: "Admin Portal", fr: "Portail d'administration" },
   "admin.overview": { ar: "نظرة عامة على أداء المطعم", en: "Restaurant performance overview", fr: "Aperçu des performances du restaurant" },
+  "admin.products": { ar: "المنتجات", en: "Products", fr: "Produits" },
   "admin.totalRevenue": { ar: "إجمالي الإيرادات", en: "Total Revenue", fr: "Revenu total" },
   "admin.totalOrders": { ar: "إجمالي الطلبات", en: "Total Orders", fr: "Commandes totales" },
   "admin.avgOrder": { ar: "متوسط الطلب", en: "Avg. Order", fr: "Commande moy." },

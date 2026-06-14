@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js"
 import { createClientForRouteHandlerWithResponse, createClientForRouteHandler } from "@/lib/supabase-server"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 import { encryptSession } from "@/lib/session-crypto"
+import { parseSession } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 
 const VALID_ROLES = ["cashier", "chef", "admin", "owner"]
@@ -10,14 +11,18 @@ const VALID_ROLES = ["cashier", "chef", "admin", "owner"]
 const SECURE = process.env.NODE_ENV === "production"
 
 export async function GET(req: NextRequest) {
+  const session = parseSession(req.headers.get("cookie") || "")
+  if (session.role && VALID_ROLES.includes(session.role)) {
+    return NextResponse.json({
+      authed: true,
+      role: session.role,
+      email: session.email,
+      slug: session.slug,
+    })
+  }
+
   const sessionCookie = req.cookies.get("session")
   if (sessionCookie) {
-    try {
-      const session = JSON.parse(sessionCookie.value)
-      if (session.role && VALID_ROLES.includes(session.role)) {
-        return NextResponse.json({ authed: true, role: session.role, email: session.email, slug: session.slug })
-      }
-    } catch {}
     return NextResponse.json({ authed: false }, { status: 401 })
   }
 
@@ -32,7 +37,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const ip = getClientIp(req)
-    const rl = checkRateLimit(`login:${ip}`, { max: 20, windowMs: 900_000 })
+    const rl = await checkRateLimit(`login:${ip}`, { max: 20, windowMs: 900_000 })
     if (!rl.allowed) return rateLimitResponse(rl.resetAt)
 
     const { username, password, slug: reqSlug } = await req.json()
@@ -41,7 +46,7 @@ export async function POST(req: NextRequest) {
     if (!username || !password) return NextResponse.json({ error: "Missing credentials" }, { status: 400 })
 
     // Per-email rate-limit (5 attempts / 15 min per email)
-    const emailRl = checkRateLimit(`login:email:${username.toLowerCase().trim()}`, { max: 5, windowMs: 900_000 })
+    const emailRl = await checkRateLimit(`login:email:${username.toLowerCase().trim()}`, { max: 5, windowMs: 900_000 })
     if (!emailRl.allowed) return rateLimitResponse(emailRl.resetAt)
 
     if (!username || !password) return NextResponse.json({ error: "Missing credentials" }, { status: 400 })

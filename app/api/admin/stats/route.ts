@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 import { supabaseForRequest, parseSession, isTenantMismatch } from "@/lib/tenant"
+import { requireRootOwner, isErrorResponse } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
 
 type Period = "7d" | "30d" | "6m" | "12m"
@@ -22,6 +23,9 @@ export async function GET(req: NextRequest) {
     const sb = await supabaseForRequest(req)
 
     if (mode === "root") {
+      const denied = requireRootOwner(req)
+      if (isErrorResponse(denied)) return denied
+
       const masterSb = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,

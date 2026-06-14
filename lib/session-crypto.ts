@@ -20,7 +20,12 @@ export interface SessionData {
 
 export function encryptSession(data: SessionData): string {
   const key = getKey()
-  if (!key) return JSON.stringify(data)
+  if (!key) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("SESSION_ENCRYPTION_KEY is required in production")
+    }
+    return JSON.stringify(data)
+  }
   const iv = randomBytes(IV_LENGTH)
   const cipher = createCipheriv(ALGORITHM, key, iv)
   const plain = Buffer.from(JSON.stringify(data), "utf-8")

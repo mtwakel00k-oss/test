@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { revalidatePath } from "next/cache"
-import { parseSession, invalidateTenantConfig } from "@/lib/tenant"
+import { invalidateTenantConfig } from "@/lib/tenant"
+import { requireRootOwner, isErrorResponse } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
 
 const MASTER_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -19,10 +20,8 @@ interface TenantRow {
 
 export async function GET(req: NextRequest) {
   try {
-    const session = parseSession(req.headers.get("cookie") || "")
-    if (session.role !== "owner" && session.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const session = requireRootOwner(req)
+    if (isErrorResponse(session)) return session
 
     const masterSb = createClient(MASTER_URL, MASTER_KEY || FALLBACK_KEY)
 
@@ -47,10 +46,8 @@ const VALID_PLANS = ["starter", "pro", "elite"]
 
 export async function PATCH(req: NextRequest) {
   try {
-    const session = parseSession(req.headers.get("cookie") || "")
-    if (session.role !== "owner" && session.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const session = requireRootOwner(req)
+    if (isErrorResponse(session)) return session
 
     const body = await req.json()
     const { slug, plan_type: planType, is_active } = body

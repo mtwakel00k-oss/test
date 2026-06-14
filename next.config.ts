@@ -8,6 +8,15 @@ const nextConfig: NextConfig = {
         hostname: "*.supabase.co",
       },
     ],
+    formats: ["image/webp"],
+  },
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "recharts",
+      "framer-motion",
+      "@radix-ui/react-icons",
+    ],
   },
 };
 

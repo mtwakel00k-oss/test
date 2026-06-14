@@ -1,16 +1,19 @@
 import type { Metadata } from "next"
 import { cookies, headers } from "next/headers"
 import "./globals.css"
-import { CartProvider } from "@/context/CartContext"
-import { StaffProvider } from "@/context/StaffContext"
+import { LangProvider } from "@/lib/lang-context"
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from "@/lib/theme"
-import { LangProvider } from "@/lib/lang-context"
-import { Geist } from "next/font/google";
+import { Geist, Tajawal } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { scopeFromPath, scopedCookieKey } from "@/lib/i18n-scope";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
+const tajawal = Tajawal({
+  subsets: ["arabic", "latin"],
+  weight: ["400", "500", "700", "800"],
+  variable: "--font-tajawal",
+});
 
 export const metadata: Metadata = {
   title: "Burger House - Order Your Favorites",
@@ -44,12 +47,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   } catch {}
 
   return (
-    <html suppressHydrationWarning lang={lang} dir={dir} data-locale={lang} className={cn(htmlClass, "font-sans", geist.variable)}>
+    <html suppressHydrationWarning lang={lang} dir={dir} data-locale={lang} className={cn(htmlClass, geist.variable, tajawal.variable)}>
       <head />
-      <body className="antialiased bg-background text-foreground">
+      <body className="antialiased bg-background text-foreground font-sans">
         <LangProvider lang={lang}>
           <ThemeProvider>
-            <StaffProvider><CartProvider>{children}</CartProvider></StaffProvider>
+            {children}
             <Toaster />
           </ThemeProvider>
         </LangProvider>

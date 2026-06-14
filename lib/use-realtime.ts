@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useCallback, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { supabase } from "@/lib/tenant"
 import type { RealtimePostgresChangesPayload, RealtimeChannel } from "@supabase/supabase-js"
 
@@ -28,10 +28,6 @@ export function useRealtime(options: UseRealtimeOptions) {
   const channelRef = useRef<RealtimeChannel | null>(null)
   const [connected, setConnected] = useState(false)
 
-  const refresh = useCallback(() => {
-    setConnected((c) => c)
-  }, [])
-
   const stableOnPoll = useRef(options.onPoll)
   const subscriptionsRef = useRef(subscriptions)
 
@@ -48,14 +44,19 @@ export function useRealtime(options: UseRealtimeOptions) {
 
     const channel = supabase().channel(channelName)
 
-    for (const sub of subscriptionsRef.current) {
+    for (const sub of subscriptions) {
       const event = sub.event || "*"
+      const table = sub.table
       channel.on(
         "postgres_changes",
-        { event, schema: "public", table: sub.table },
+        { event, schema: "public", table },
         (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
-          if (sub.filter && !sub.filter(payload)) return
-          sub.handler(payload)
+          const current = subscriptionsRef.current.find(
+            (s) => s.table === table && (s.event || "*") === event,
+          )
+          if (!current) return
+          if (current.filter && !current.filter(payload)) return
+          current.handler(payload)
         },
       )
     }
@@ -68,6 +69,7 @@ export function useRealtime(options: UseRealtimeOptions) {
         setConnected(false)
         retriesRef.current++
         if (retriesRef.current <= maxRetries) {
+          supabase().removeChannel(channel)
           const delay = Math.min(1000 * 2 ** retriesRef.current, 30000)
           setTimeout(() => { channel.subscribe() }, delay)
         }
@@ -85,19 +87,18 @@ export function useRealtime(options: UseRealtimeOptions) {
       supabase().removeChannel(channel)
       channelRef.current = null
     }
-  }, [channelName, pollInterval])
+  }, [channelName, subscriptions])
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
     pollRef.current = setInterval(() => {
-      refresh()
       stableOnPoll.current?.()
     }, pollInterval)
     return () => {
       if (pollRef.current) clearInterval(pollRef.current)
     }
-  }, [refresh, pollInterval])
+  }, [pollInterval])
 
-  return { refresh, connected }
+  return { connected }
 }

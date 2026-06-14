@@ -173,7 +173,9 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
           if (payload.new) {
             const updated = payload.new as unknown as Order
             logger.info(`[OrderTracking] Realtime update for order ${id}`, { status: updated.status })
-            setOrder(updated)
+            setOrder((prev) =>
+              prev ? { ...prev, ...updated, items: prev.items } : updated,
+            )
             if (updated.driver_lat != null && updated.driver_lng != null) {
               setDriverLat(Number(updated.driver_lat))
               setDriverLng(Number(updated.driver_lng))
@@ -208,6 +210,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
   }, [id, slug, hasLiveTracking])
 
   useEffect(() => {
+    if (hasLiveTracking) return
     if (refreshRef.current) clearInterval(refreshRef.current)
     refreshRef.current = setInterval(async () => {
       try {
@@ -230,7 +233,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
       } catch {}
     }, 60000)
     return () => { if (refreshRef.current) clearInterval(refreshRef.current) }
-  }, [id, slug])
+  }, [id, slug, hasLiveTracking])
 
   const getStage = (status: string, orderType: string): number => {
     if (orderType === "delivery") {

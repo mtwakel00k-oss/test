@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabaseForRequest, supabaseForRequestAdmin, isTenantMismatch, parseSession } from "@/lib/tenant"
+import { supabaseForRequest, isTenantMismatch, parseSession } from "@/lib/tenant"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 import { logger } from "@/lib/logger"
-import type { OrderType } from "@/lib/types"
+import type { OrderType, MenuProduct } from "@/lib/types"
+import { getPrice } from "@/lib/types"
 import { DB_STATUS_TO_POS } from "@/lib/constants"
 import { phoneRegex } from "@/lib/validations"
 
@@ -137,12 +138,77 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const rl = checkRateLimit(`orders:${getClientIp(req)}`, { max: 20, windowMs: 60_000 })
+    const rl = await checkRateLimit(`orders:${getClientIp(req)}`, { max: 20, windowMs: 60_000 })
     if (!rl.allowed) return rateLimitResponse(rl.resetAt)
 
-    const sb = await supabaseForRequestAdmin(req)
+    const sb = await supabaseForRequest(req)
 
-    const total = items.reduce((s: number, i: { unit_price: number; quantity: number }) => s + i.unit_price * i.quantity, 0)
+    // ── Validate products & compute server-side prices ──
+    const prodIds = [...new Set(items.map((i: { product_id: number }) => i.product_id))] as number[]
+    const { data: rawProducts } = await sb.from("v_products_flat").select("*").in("id", prodIds)
+    const productMap = new Map<number, MenuProduct>()
+    for (const p of rawProducts || []) {
+      productMap.set(p.id as number, p as MenuProduct)
+    }
+
+    const removedProductIds: number[] = []
+    const validItems: Array<{
+      product_id: number
+      product_name: string
+      size: string
+      sauce: number | null
+      quantity: number
+      unit_price: number
+    }> = []
+
+    for (const i of items as Array<{
+      product_id: number
+      product_name: string
+      size: string
+      sauce: number | null
+      quantity: number
+      unit_price: number
+    }>) {
+      const product = productMap.get(i.product_id)
+      if (!product) {
+        removedProductIds.push(i.product_id)
+        continue
+      }
+      const serverPrice = getPrice(product, i.size, i.sauce)
+      if (serverPrice <= 0) {
+        return NextResponse.json(
+          { error: `Invalid price for product ${i.product_id}`, code: "INVALID_PRICE" },
+          { status: 400 },
+        )
+      }
+      if (Math.abs(serverPrice - i.unit_price) > 0.01) {
+        logger.warn("Client price mismatch — using server price", {
+          product_id: i.product_id,
+          client: i.unit_price,
+          server: serverPrice,
+        })
+      }
+      validItems.push({
+        product_id: i.product_id,
+        product_name: product.name || i.product_name,
+        size: i.size,
+        sauce: i.sauce,
+        quantity: i.quantity,
+        unit_price: serverPrice,
+      })
+    }
+
+    if (removedProductIds.length > 0) {
+      logger.warn("Products missing from tenant DB — removed from order", { removedProductIds })
+      if (validItems.length === 0) {
+        return NextResponse.json(
+          { error: "All products in this order no longer exist in the menu. Please clear your cart and try again.", code: "ALL_PRODUCTS_STALE" },
+          { status: 400 },
+        )
+      }
+    }
+
+    const total = validItems.reduce((s, i) => s + i.unit_price * i.quantity, 0)
 
     const today = new Date().toISOString().slice(0, 10)
     const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10)
@@ -206,21 +272,25 @@ export async function POST(req: NextRequest) {
       return null
     }
 
-    // ── Order number ────────────────────────────────────
+    // ── Order number (atomic RPC with count fallback) ───
     let orderNumber: number | undefined
     let order: Record<string, unknown> | null = null
 
-    for (let n = 1; n <= 30; n++) {
-      let candidate: number
-      if (n === 1) {
-        // First attempt: count today's orders + 1
+    async function nextOrderNumberCandidate(attempt: number): Promise<number> {
+      if (attempt === 1) {
+        const { data: rpcNum, error: rpcErr } = await sb.rpc("next_order_number")
+        if (!rpcErr && rpcNum != null) return Number(rpcNum)
+
         const { count } = await (sb.from("orders"))
           .select("*", { count: "exact", head: true })
           .gte("created_at", today).lt("created_at", tomorrow)
-        candidate = (count || 0) + 1
-      } else {
-        candidate = n
+        return (count || 0) + 1
       }
+      return attempt
+    }
+
+    for (let n = 1; n <= 30; n++) {
+      const candidate = await nextOrderNumberCandidate(n)
       payload.order_number = candidate
       order = await tryInsert(payload)
       if (order) { orderNumber = candidate; break }
@@ -242,32 +312,8 @@ export async function POST(req: NextRequest) {
       throw new Error("Order was inserted but could not be read back (RLS or replication delay)")
     }
 
-    // ── Validate product_ids exist in tenant ────────────
-    const prodIds = [...new Set(items.map((i: { product_id: number }) => i.product_id))] as number[]
-    const { data: existingProds } = await (sb.from("produits")).select("id").in("id", prodIds)
-    const existingSet = new Set((existingProds || []).map((r: { id: number }) => r.id))
-    const removedProductIds: number[] = []
-    const validItems = items.filter((i: { product_id: number }) => {
-      if (existingSet.has(i.product_id)) return true
-      removedProductIds.push(i.product_id)
-      return false
-    })
-    if (removedProductIds.length > 0) {
-      logger.warn("Products missing from tenant DB — removed from order", { removedProductIds })
-      if (validItems.length === 0) {
-        return NextResponse.json({ error: "All products in this order no longer exist in the menu. Please clear your cart and try again.", code: "ALL_PRODUCTS_STALE" }, { status: 400 })
-      }
-    }
-
-    // ── Recalculate total after filtering ────────────────
-    const finalTotal = validItems.reduce((s: number, i: { unit_price: number; quantity: number }) => s + i.unit_price * i.quantity, 0)
-    if (finalTotal !== total) {
-      const { error: updTotal } = await (sb.from("orders")).update({ total: finalTotal }).eq("id", order.id)
-      if (updTotal) logger.warn("Failed to update order total after item filtering", updTotal)
-    }
-
     // ── Insert items ────────────────────────────────────
-    const orderItems = validItems.map((i: { product_id: number; product_name: string; size: string; sauce: number | null; quantity: number; unit_price: number }) => ({
+    const orderItems = validItems.map((i) => ({
       order_id: order.id,
       product_id: i.product_id,
       product_name: i.product_name,
@@ -278,8 +324,15 @@ export async function POST(req: NextRequest) {
       subtotal: i.unit_price * i.quantity,
     }))
 
+    const { error: itemsErr } = await sb.from("order_items").insert(orderItems)
+    if (itemsErr) {
+      await sb.from("orders").delete().eq("id", order.id)
+      throw new Error(`Failed to insert order items: ${itemsErr.message}`)
+    }
+
+    const finalTotal = total
     const elapsed = Date.now() - startTime
-    logger.info("Order created", { id: order.id, total: finalTotal, removedCount: removedProductIds.length, orderNumber, elapsedMs: elapsed })
+    logger.info("Order created", { id: order.id, total: finalTotal, itemCount: orderItems.length, removedCount: removedProductIds.length, orderNumber, elapsedMs: elapsed })
     return NextResponse.json({
       id: order.id,
       orderNumber,

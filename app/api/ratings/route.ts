@@ -6,8 +6,8 @@ import { logger } from "@/lib/logger"
 
 async function featureGate(req: NextRequest): Promise<NextResponse | null> {
   const session = parseSession(req.headers.get("cookie") || "")
-  const slug = session.slug || ""
-  if (!slug) return null
+  const slug = session.slug || req.headers.get("x-tenant-slug") || ""
+  if (!slug) return NextResponse.json({ error: "No tenant" }, { status: 400 })
   const hasFeature = await checkFeature(slug, "hasRatings")
   if (!hasFeature) {
     return NextResponse.json({ error: "This feature is not available on your current plan" }, { status: 403 })
@@ -16,14 +16,8 @@ async function featureGate(req: NextRequest): Promise<NextResponse | null> {
 }
 
 function isAdmin(req: NextRequest): boolean {
-  const sessionCookie = req.cookies.get("session")
-  if (!sessionCookie) return false
-  try {
-    const session = JSON.parse(sessionCookie.value)
-    return session.role === "admin" || session.role === "owner"
-  } catch {
-    return false
-  }
+  const session = parseSession(req.headers.get("cookie") || "")
+  return session.role === "admin" || session.role === "owner"
 }
 
 export async function DELETE(req: NextRequest) {
@@ -60,7 +54,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Comment too long" }, { status: 400 })
     }
 
-    const rl = checkRateLimit(`ratings:${getClientIp(req)}`, { max: 10, windowMs: 60_000 })
+    const rl = await checkRateLimit(`ratings:${getClientIp(req)}`, { max: 10, windowMs: 60_000 })
     if (!rl.allowed) return rateLimitResponse(rl.resetAt)
 
     const sb2 = await supabaseForRequest(req)

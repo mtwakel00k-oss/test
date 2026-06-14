@@ -84,8 +84,8 @@ describe("OrderCard", () => {
         onCancel={() => {}}
       />
     )
-    const ping = container.querySelector(".animate-ping")
-    expect(ping).toBeInTheDocument()
+    const pulse = container.querySelector(".animate-pulse")
+    expect(pulse).toBeInTheDocument()
   })
 
   it("does not show pending indicator for non-pending orders", () => {
@@ -98,8 +98,8 @@ describe("OrderCard", () => {
         onCancel={() => {}}
       />
     )
-    const ping = container.querySelector(".animate-ping")
-    expect(ping).not.toBeInTheDocument()
+    const pulse = container.querySelector(".animate-pulse")
+    expect(pulse).not.toBeInTheDocument()
   })
 
   it("shows unpaid badge for unpaid orders", () => {

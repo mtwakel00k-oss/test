@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { supabaseForRequest, isTenantMismatch, parseSession } from "@/lib/tenant"
+import { requireStaff, requireAdmin, resolveTenantSlug, isErrorResponse } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
 
 function masterSb() {
@@ -10,20 +11,20 @@ function masterSb() {
   )
 }
 
-function getSlug(req: NextRequest): string | null {
-  const header = req.headers.get("x-tenant-slug")
-  if (header) return header
-  const session = parseSession(req.headers.get("cookie") || "")
-  return session.slug ?? null
+function getSlug(req: NextRequest, session: ReturnType<typeof parseSession>): string | null {
+  return resolveTenantSlug(req, session)
 }
 
 export async function GET(req: NextRequest) {
   try {
+    const session = requireStaff(req)
+    if (isErrorResponse(session)) return session
+
     const sb = await supabaseForRequest(req)
     const { data, error } = await sb.from("restaurant_staff").select("*").order("name")
     if (error) {
       if (error.message.includes("does not exist") || error.code === "PGRST205") {
-        const slug = getSlug(req)
+        const slug = getSlug(req, session)
         if (!slug) return NextResponse.json([])
         const { data: masterData } = await masterSb().from("restaurant_staff")
           .select("*").eq("tenant_slug", slug).order("name")
@@ -42,6 +43,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const session = requireAdmin(req)
+    if (isErrorResponse(session)) return session
+
     const body = await req.json()
     const { name, role } = body
     if (!name) return NextResponse.json({ error: "name required" }, { status: 400 })
@@ -66,6 +70,9 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
+    const session = requireAdmin(req)
+    if (isErrorResponse(session)) return session
+
     const body = await req.json()
     const { id, name, role, is_active } = body
     if (!id) return NextResponse.json({ error: "id required" }, { status: 400 })
@@ -94,6 +101,9 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    const session = requireAdmin(req)
+    if (isErrorResponse(session)) return session
+
     const { searchParams } = new URL(req.url)
     const id = searchParams.get("id")
     if (!id) return NextResponse.json({ error: "id query param required" }, { status: 400 })

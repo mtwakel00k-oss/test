@@ -6,7 +6,17 @@ const DEV_ROOT_PASSWORD = process.env.DEV_ROOT_PASSWORD
 
 export async function POST(req: NextRequest) {
   try {
-    const rl = checkRateLimit(`setup-root:${getClientIp(req)}`, { max: 5, windowMs: 900_000 })
+    if (process.env.NODE_ENV === "production") {
+      return NextResponse.json({ error: "Not available" }, { status: 404 })
+    }
+
+    const setupSecret = process.env.SETUP_SECRET
+    const authHeader = req.headers.get("authorization")
+    if (setupSecret && authHeader !== `Bearer ${setupSecret}`) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
+    const rl = await checkRateLimit(`setup-root:${getClientIp(req)}`, { max: 5, windowMs: 900_000 })
     if (!rl.allowed) return rateLimitResponse(rl.resetAt)
 
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY

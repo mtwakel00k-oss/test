@@ -3,22 +3,19 @@
 import { useState, useEffect, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
 import { useSlug } from "@/lib/use-slug"
+import { ROUTE_ROLES, type AppPage } from "@/lib/route-roles"
 
-const pageRoleMap: Record<string, string[]> = {
-  pos: ["cashier", "admin", "owner"],
-  admin: ["admin", "owner"],
-  kitchen: ["chef", "admin", "owner"],
-}
-
-export default function AuthGuard({ children, page }: { children: ReactNode; page: "pos" | "admin" | "kitchen" }) {
+export default function AuthGuard({ children, page }: { children: ReactNode; page: AppPage }) {
   const [status, setStatus] = useState<"loading" | "ok" | "denied" | "forbidden">("loading")
   const router = useRouter()
   const slug = useSlug()
 
   useEffect(() => {
+    let cancelled = false
     ;(async () => {
       try {
         const res = await fetch("/api/auth/login")
+        if (cancelled) return
         if (res.ok) {
           const data = await res.json()
           const sessionSlug = data.slug as string | undefined
@@ -29,15 +26,16 @@ export default function AuthGuard({ children, page }: { children: ReactNode; pag
             return
           }
 
-          const allowed = pageRoleMap[page] || []
+          const allowed = ROUTE_ROLES[page] as readonly string[]
           setStatus(allowed.includes(role) ? "ok" : "forbidden")
           return
         }
         setStatus("denied")
       } catch {
-        setStatus("denied")
+        if (!cancelled) setStatus("denied")
       }
     })()
+    return () => { cancelled = true }
   }, [page, slug])
 
   if (status === "loading") return (

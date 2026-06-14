@@ -1,4 +1,5 @@
 import { getTenantConfigRSC } from "@/lib/tenant"
+import { ServiceWorkerRegister } from "@/components/service-worker-register"
 import { notFound } from "next/navigation"
 
 const MASTER_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -49,6 +50,7 @@ export default async function RestaurantLayout({
       {configStr && (
         <script id="tenant-config" type="application/json" dangerouslySetInnerHTML={{ __html: configStr }} />
       )}
+      <ServiceWorkerRegister />
       {children}
     </>
   )

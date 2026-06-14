@@ -32,8 +32,12 @@ export function OrderStatusTracker({
     ? [
         ...baseStages,
         { id: 4, dbStatus: "out_for_delivery", title: t("track.outForDelivery"), subtitle: t("track.outForDeliverySub"), icon: ServingIcon },
+        { id: 5, dbStatus: "completed", title: t("order.status.completed"), subtitle: t("track.readySub"), icon: ServingIcon },
       ]
-    : baseStages
+    : [
+        ...baseStages,
+        { id: 4, dbStatus: "completed", title: t("order.status.completed"), subtitle: t("track.readySub"), icon: ServingIcon },
+      ]
 
   function clampStage(value: number): number {
     if (value < 1) return 1

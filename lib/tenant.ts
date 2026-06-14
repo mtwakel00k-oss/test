@@ -3,7 +3,7 @@ import { createBrowserClient } from "@supabase/ssr"
 import { NextResponse } from "next/server"
 import { cache } from "react"
 import { logger } from "@/lib/logger"
-import { decryptSession as cryptoDecrypt } from "@/lib/session-crypto"
+import { decryptSession as cryptoDecrypt, type SessionData } from "@/lib/session-crypto"
 
 export interface TenantConfig {
   id: string
@@ -85,7 +85,7 @@ const _masterClient: SupabaseClient = createClient(
   MASTER_KEY || FALLBACK_KEY!
 )
 
-const configCache = new Map<string, { data: TenantConfig; expiry: number }>()
+const configCache = new Map<string, { data: TenantConfig | null; expiry: number }>()
 const CACHE_TTL = 10_000
 
 export function invalidateTenantConfig(slug: string): void {
@@ -102,7 +102,7 @@ export async function getTenantConfig(slug: string): Promise<TenantConfig | null
     .maybeSingle()
 
   if (error || !data) {
-    configCache.set(slug, { data: null as unknown as TenantConfig, expiry: Date.now() + 10_000 })
+    configCache.set(slug, { data: null, expiry: Date.now() + 10_000 })
     if (error) logger.error("getTenantConfig query failed", error)
     return null
   }
@@ -190,10 +190,7 @@ export async function supabaseForRequest(req: Request): Promise<SupabaseClient> 
   const requestSlug = getSlugFromHeaderOrReferer(req)
 
   if (session.slug && requestSlug && session.slug !== requestSlug) {
-    logger.warn("supabaseForRequest: session slug differs from request slug, using session slug", {
-      sessionSlug: session.slug,
-      requestSlug,
-    })
+    throw new TenantMismatchError(session.slug, requestSlug)
   }
 
   const slug = session.slug || requestSlug
@@ -307,19 +304,23 @@ export function resetTenantClient() {
   _browserTenantKey = ""
 }
 
-export function parseSession(cookieHeader: string): {
-  role?: string
-  slug?: string
-} {
+export function parseSession(cookieHeader: string): SessionData {
   const match = cookieHeader.match(/(?:^|;\s*)session=([^;]*)/)
   if (!match) return {}
   try {
     const raw = decodeURIComponent(match[1])
-    // Try encrypted format first
-    const decrypted = cryptoDecrypt(raw)
-    if (decrypted) return decrypted
-    // Fall back to plaintext JSON
-    return JSON.parse(raw)
+    const hasKey = !!process.env.SESSION_ENCRYPTION_KEY
+
+    if (hasKey) {
+      const decrypted = cryptoDecrypt(raw)
+      if (!decrypted) {
+        logger.warn("Rejected session cookie: decryption failed")
+        return {}
+      }
+      return decrypted
+    }
+
+    return JSON.parse(raw) as SessionData
   } catch (e) {
     logger.error("Failed to parse session from cookie header", e)
     return {}

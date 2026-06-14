@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { formatPhone } from "@/lib/phone"
+import { requireStaff, isErrorResponse } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
 
 const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL
@@ -15,6 +16,9 @@ function masterSb() {
 
 export async function POST(req: NextRequest) {
   try {
+    const session = requireStaff(req)
+    if (isErrorResponse(session)) return session
+
     const { restaurantId, driverPhone, orderDetails } = await req.json()
 
     if (!restaurantId || !driverPhone || !orderDetails) {

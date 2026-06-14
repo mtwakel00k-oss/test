@@ -25,7 +25,7 @@ describe("StatCard", () => {
     )
     expect(screen.getByText("الإيرادات")).toBeInTheDocument()
     expect(screen.getByText("50,000 د.ج")).toBeInTheDocument()
-    expect(screen.getByText("+12.5%")).toBeInTheDocument()
+    expect(screen.getByText((_, el) => el?.textContent === "↑ 12.5%")).toBeInTheDocument()
   })
 
   it("shows negative change with minus sign", () => {
@@ -38,7 +38,7 @@ describe("StatCard", () => {
         trend="down"
       />
     )
-    expect(screen.getByText("-5%")).toBeInTheDocument()
+    expect(screen.getByText((_, el) => el?.textContent === "↓ 5%")).toBeInTheDocument()
   })
 
   it("shows live indicator when isLive=true", () => {

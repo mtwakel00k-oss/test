@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils"
 import { fetchApi } from "@/lib/tenant"
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js"
 import { useRealtime } from "@/lib/use-realtime"
+import { debounce } from "@/lib/debounce"
 import { logger } from "@/lib/logger"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -152,6 +153,13 @@ export default function KitchenPage() {
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchOrders().then(data => startTransition(() => setOrders(data))) }, [fetchOrders])
 
+  const debouncedRefresh = useMemo(
+    () => debounce(() => { fetchOrders().then(data => startTransition(() => setOrders(data))) }, 350),
+    [fetchOrders],
+  )
+
+  useEffect(() => () => debouncedRefresh.cancel(), [debouncedRefresh])
+
   const subscriptions = useMemo(() => [
     {
       table: "orders" as const, event: "INSERT" as const,
@@ -159,7 +167,7 @@ export default function KitchenPage() {
         const row = p.new as { status?: string }
         return !!(row.status && ACTIVE_STATUSES.includes(row.status))
       },
-      handler: () => { fetchOrders().then(setOrders) },
+      handler: () => { debouncedRefresh() },
     },
     {
       table: "orders" as const, event: "UPDATE" as const,
@@ -169,10 +177,12 @@ export default function KitchenPage() {
         const newStatus = newRow.status
         const orderId = newRow.id || oldRow.id
         if (newStatus && ACTIVE_STATUSES.includes(newStatus)) {
-          fetchOrders().then(setOrders)
+          debouncedRefresh()
         } else if (newStatus && TERMINAL_STATUSES.includes(newStatus)) {
           if (orderId) {
-            setOrders(prev => prev.filter(o => o.id !== orderId))
+            startTransition(() => {
+              setOrders(prev => prev.filter(o => o.id !== orderId))
+            })
             prevOrderIdsRef.current.delete(orderId)
           }
         }
@@ -183,18 +193,25 @@ export default function KitchenPage() {
       handler: (p: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
         const deletedId = (p.old as { id?: string })?.id
         if (deletedId) {
-          setOrders(prev => prev.filter(o => o.id !== deletedId))
+          startTransition(() => {
+            setOrders(prev => prev.filter(o => o.id !== deletedId))
+          })
           prevOrderIdsRef.current.delete(deletedId)
         }
       },
     },
-    { table: "order_items" as const, event: "*" as const, handler: () => { fetchOrders().then(setOrders) } },
-  ], [fetchOrders])
+    { table: "order_items" as const, event: "*" as const, handler: () => { debouncedRefresh() } },
+  ], [debouncedRefresh])
 
-  useRealtime({ channelName: "kitchen", subscriptions, pollInterval: 10000 })
+  useRealtime({
+    channelName: "kitchen",
+    subscriptions,
+    pollInterval: 10000,
+    onPoll: () => { fetchOrders().then(data => startTransition(() => setOrders(data))) },
+  })
 
-  const pendingOrders = orders.filter(o => o.status === "pending")
-  const preparingOrders = orders.filter(o => o.status === "preparing")
+  const pendingOrders = useMemo(() => orders.filter(o => o.status === "pending"), [orders])
+  const preparingOrders = useMemo(() => orders.filter(o => o.status === "preparing"), [orders])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white">
@@ -281,13 +298,21 @@ export default function KitchenPage() {
                       <div className="flex justify-between items-start w-full mb-4 relative">
                         <div>
                           <div className="text-2xl font-black text-white">
-                            {order.orderType === "takeaway" ? t("pos.takeaway") : `${t("pos.table")} ${order.tableNumber}`}
+                            {order.orderType === "takeaway"
+                              ? t("pos.takeaway")
+                              : order.orderType === "delivery"
+                                ? t("pos.delivery")
+                                : `${t("pos.table")} ${order.tableNumber ?? ""}`}
                           </div>
                           <p className="text-sm text-white/40 mt-0.5 font-mono">#{order.orderNumber}</p>
                         </div>
                         <div className="flex flex-col items-end gap-1.5">
                           <span className="inline-flex px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                            {order.orderType === "takeaway" ? t("pos.takeaway") : t("pos.dineIn")}
+                            {order.orderType === "takeaway"
+                              ? t("pos.takeaway")
+                              : order.orderType === "delivery"
+                                ? t("pos.delivery")
+                                : t("pos.dineIn")}
                           </span>
                           <span className="text-sm font-mono text-amber-400/80 tabular-nums">{fmtTime(order.createdAt)}</span>
                         </div>
@@ -331,13 +356,21 @@ export default function KitchenPage() {
                       <div className="flex justify-between items-start w-full mb-4 relative">
                         <div>
                           <div className="text-2xl font-black text-white">
-                            {order.orderType === "takeaway" ? t("pos.takeaway") : `${t("pos.table")} ${order.tableNumber}`}
+                            {order.orderType === "takeaway"
+                              ? t("pos.takeaway")
+                              : order.orderType === "delivery"
+                                ? t("pos.delivery")
+                                : `${t("pos.table")} ${order.tableNumber ?? ""}`}
                           </div>
                           <p className="text-sm text-white/40 mt-0.5 font-mono">#{order.orderNumber}</p>
                         </div>
                         <div className="flex flex-col items-end gap-1.5">
                           <span className="inline-flex px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                            {order.orderType === "takeaway" ? t("pos.takeaway") : t("pos.dineIn")}
+                            {order.orderType === "takeaway"
+                              ? t("pos.takeaway")
+                              : order.orderType === "delivery"
+                                ? t("pos.delivery")
+                                : t("pos.dineIn")}
                           </span>
                           <span className="text-sm font-mono text-sky-400/80 tabular-nums">{fmtTime(order.createdAt)}</span>
                         </div>

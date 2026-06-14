@@ -2,17 +2,22 @@
 
 import { useEffect, useMemo, useState, useRef, useCallback, startTransition, Component, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 
 import { logger } from "@/lib/logger";
 import type { MenuProduct } from "@/lib/types";
 import { fetchApi } from "@/lib/tenant";
 import { getOrderTrackingUrl } from "@/lib/order-tracking";
-import { useCart } from "@/context/CartContext";
+import { CartProvider, useCart } from "@/context/CartContext";
 import { AppHeader } from "./app-header";
 import { CategoryFilter } from "./category-filter";
 import { MealCard } from "./meal-card";
 import { OrderBar } from "./order-bar";
-import { CheckoutModal } from "./checkout-modal";
+
+const CheckoutModal = dynamic(
+  () => import("./checkout-modal").then(m => ({ default: m.CheckoutModal })),
+  { ssr: false },
+);
 
 class ErrorBoundary extends Component<
   { children: ReactNode; fallback?: ReactNode },
@@ -44,7 +49,15 @@ class ErrorBoundary extends Component<
   }
 }
 
-export function FoodDeliveryApp({ initialProducts, slug: propSlug }: { initialProducts?: MenuProduct[]; slug?: string }) {
+export function FoodDeliveryApp(props: { initialProducts?: MenuProduct[]; slug?: string }) {
+  return (
+    <CartProvider>
+      <FoodDeliveryAppInner {...props} />
+    </CartProvider>
+  )
+}
+
+function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProducts?: MenuProduct[]; slug?: string }) {
   const router = useRouter();
   const [products, setProducts] = useState<MenuProduct[]>(initialProducts || []);
   const [categories, setCategories] = useState<string[]>([]);

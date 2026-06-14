@@ -1,15 +1,22 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { constantTimeCompare } from "@/lib/session-crypto"
 import { logger } from "@/lib/logger"
 
 const MASTER_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 
 export async function GET(req: NextRequest) {
   const startTime = Date.now()
-  const secret = new URL(req.url).searchParams.get("secret")
   const expected = process.env.CRON_SECRET
+  const authHeader = req.headers.get("authorization")
+  const querySecret = new URL(req.url).searchParams.get("secret")
 
-  if (!expected || secret !== expected) {
+  const authorized =
+    !!expected &&
+    (authHeader === `Bearer ${expected}` ||
+      (!!querySecret && constantTimeCompare(querySecret, expected)))
+
+  if (!authorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

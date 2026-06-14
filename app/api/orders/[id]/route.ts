@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
-import { supabaseForRequest, isTenantMismatch } from "@/lib/tenant"
+import { supabaseForRequest, isTenantMismatch, parseSession } from "@/lib/tenant"
 import { createClientForRouteHandler } from "@/lib/supabase-server"
 import { findOrderAcrossTenants } from "@/lib/order-tracking"
 import { logger } from "@/lib/logger"
@@ -10,14 +9,25 @@ import { notifyDriverAssigned } from "@/lib/whatsapp"
 const ALLOWED_STATUSES = ["pending", "preparing", "ready", "out_for_delivery", "completed", "cancelled"]
 
 function getRole(req: NextRequest): string | null {
-  const sessionCookie = req.cookies.get("session")
-  if (sessionCookie) {
-    try {
-      const session = JSON.parse(sessionCookie.value)
-      if (session.role) return session.role
-    } catch {}
+  return parseSession(req.headers.get("cookie") || "").role ?? null
+}
+
+function sanitizePublicOrder(order: Record<string, unknown>) {
+  return {
+    id: order.id,
+    status: order.status,
+    order_number: order.order_number,
+    order_type: order.order_type,
+    total: order.total,
+    created_at: order.created_at,
+    table_number: order.table_number,
+    items: (order.items as Array<Record<string, unknown>> | undefined)?.map((i) => ({
+      product_name: i.product_name,
+      quantity: i.quantity,
+      size: i.size,
+      subtotal: i.subtotal,
+    })),
   }
-  return null
 }
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -40,7 +50,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       if (directOrder) {
         logger.info(`[orders GET] Public: found order ${id} via direct lookup`)
         if (directOrder.status) directOrder.status = DB_STATUS_TO_POS[directOrder.status as string] || directOrder.status
-        return NextResponse.json({ order: directOrder })
+        return NextResponse.json({ order: sanitizePublicOrder(directOrder) })
       }
       if (directError) {
         logger.warn(`[orders GET] Public: direct lookup failed`, { error: directError.message })
@@ -51,7 +61,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       const found = await findOrderAcrossTenants(id)
       if (found) {
         if (found.order.status) found.order.status = DB_STATUS_TO_POS[found.order.status as string] || found.order.status
-        return NextResponse.json({ order: found.order, slug: found.slug })
+        return NextResponse.json({ order: sanitizePublicOrder(found.order), slug: found.slug })
       }
 
       logger.warn(`[orders GET] Public: order ${id} not found in any tenant`)
@@ -156,21 +166,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     // When assigning a driver, verify they are not already busy
     if (driver_id) {
-      const masterUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-      const masterKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-      if (masterUrl && masterKey) {
-        const masterSb = createClient(masterUrl, masterKey)
+      const { data: busyOrder } = await sb
+        .from("orders")
+        .select("id")
+        .eq("driver_id", driver_id)
+        .eq("status", "out_for_delivery")
+        .neq("id", id)
+        .maybeSingle()
 
-        const { data: busyOrder } = await masterSb
-          .from("orders")
-          .select("id")
-          .eq("driver_id", driver_id)
-          .eq("status", "out_for_delivery")
-          .maybeSingle()
-
-        if (busyOrder) {
-          return NextResponse.json({ error: "هذا السائق مشغول حالياً بأمر توصيل آخر" }, { status: 409 })
-        }
+      if (busyOrder) {
+        return NextResponse.json({ error: "هذا السائق مشغول حالياً بأمر توصيل آخر" }, { status: 409 })
       }
     }
 

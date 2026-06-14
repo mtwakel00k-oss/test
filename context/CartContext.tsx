@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from "react"
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react"
 import type { MenuProduct, CartItem } from "@/lib/types"
 import { getPrice } from "@/lib/types"
 
@@ -19,21 +19,36 @@ function key(pid: number, size: string, sid: number | null) {
   return `${pid}_${size}_${sid ?? 0}`
 }
 
+function cartStorageKey(): string {
+  if (typeof window === "undefined") return "cart:default"
+  const slug = (window as Window & { __TENANT_CONFIG__?: { slug?: string } }).__TENANT_CONFIG__?.slug ?? "default"
+  return `cart:${slug}`
+}
+
 const CartCtx = createContext<Ctx | null>(null)
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>(() => {
-    if (typeof window === "undefined") return []
-    try { const s = localStorage.getItem("cart"); return s ? JSON.parse(s) : [] } catch { return [] }
-  })
-  const persistRef = useRef(items)
+  const [items, setItems] = useState<CartItem[]>([])
+  const [hydrated, setHydrated] = useState(false)
+
   useEffect(() => {
-    persistRef.current = items
+    try {
+      const saved = localStorage.getItem(cartStorageKey())
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed)) setItems(parsed)
+      }
+    } catch { /* ignore corrupt data */ }
+    setHydrated(true)
+  }, [])
+
+  useEffect(() => {
+    if (!hydrated) return
     const timer = setTimeout(() => {
-      localStorage.setItem("cart", JSON.stringify(items))
+      localStorage.setItem(cartStorageKey(), JSON.stringify(items))
     }, 300)
     return () => clearTimeout(timer)
-  }, [items])
+  }, [items, hydrated])
 
   const addItem = useCallback((product: MenuProduct, size: string, sauceId: number | null) => {
     if (product.is_available === false) {

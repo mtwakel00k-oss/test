@@ -121,3 +121,26 @@ CREATE POLICY "prix_admin_all" ON prix FOR ALL USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "tailles_admin_all" ON tailles;
 CREATE POLICY "tailles_admin_all" ON tailles FOR ALL USING (true) WITH CHECK (true);
+
+-- ── 9) Atomic daily order numbers ──
+CREATE TABLE IF NOT EXISTS daily_order_counters (
+  day DATE PRIMARY KEY,
+  counter INT NOT NULL DEFAULT 0
+);
+
+CREATE OR REPLACE FUNCTION next_order_number()
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  today DATE := CURRENT_DATE;
+  next_num INT;
+BEGIN
+  INSERT INTO daily_order_counters (day, counter)
+  VALUES (today, 1)
+  ON CONFLICT (day) DO UPDATE
+  SET counter = daily_order_counters.counter + 1
+  RETURNING counter INTO next_num;
+  RETURN next_num;
+END;
+$$;

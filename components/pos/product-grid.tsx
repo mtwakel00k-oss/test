@@ -44,6 +44,91 @@ const SIZE_LABEL: Record<string, string> = {
   S: "صغير", M: "وسط", L: "كبير", XL: "كبير جداً", XXL: "خارق",
 }
 
+function ProductCard({ product, curSize, curSauce, count, price, sizes, showSauces, sauces, SIZE_LABEL, onSizeChange, onSauceChange, onAddItem, onUpdateQuantity }: {
+  product: MenuProduct; curSize: string; curSauce: number | null; count: number; price: number
+  sizes: string[]; showSauces: boolean; sauces: { tomato: boolean; cream: boolean }
+  SIZE_LABEL: Record<string, string>
+  onSizeChange: (id: number, size: string) => void
+  onSauceChange: (id: number, sauce: number | null) => void
+  onAddItem: (item: NewOrderItem) => void
+  onUpdateQuantity: (productId: number, delta: number) => void
+}) {
+  const { t } = useTranslation()
+  return (
+    <div className="group relative bg-card rounded-[2rem] border border-border/50 overflow-hidden shadow-sm hover:shadow-2xl hover:border-primary/20 hover:-translate-y-1 transition-all duration-300">
+      <div className="aspect-[4/3] bg-muted/50 flex items-center justify-center overflow-hidden relative">
+        {product.image_url ? (
+          <Image src={product.image_url} alt={product.name} width={200} height={150}
+            className="w-full h-full object-cover transition duration-700 group-hover:scale-110" />
+        ) : (
+          <span className="text-4xl opacity-20 grayscale group-hover:grayscale-0 transition-all duration-500">🍕</span>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      </div>
+      <div className="p-4 space-y-3">
+        <h3 className="text-sm font-black text-foreground leading-tight line-clamp-2 min-h-[2.5rem]">{product.name}</h3>
+        <div className="flex flex-col gap-2">
+          {sizes.length > 0 && (
+            <div className="flex gap-1.5 flex-wrap">
+              {sizes.map((s) => (
+                <button key={s} onClick={() => onSizeChange(product.id, s)}
+                  className={cn("text-[9px] px-2.5 py-1 rounded-xl font-black uppercase tracking-widest transition-all border",
+                    curSize === s
+                      ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20"
+                      : "bg-muted/50 text-muted-foreground border-border/50 hover:border-primary/30 hover:text-foreground")}>
+                  {SIZE_LABEL[s] || s}
+                </button>
+              ))}
+            </div>
+          )}
+          {showSauces && (
+            <div className="flex gap-1.5">
+              {sauces.tomato && (
+                <button onClick={() => onSauceChange(product.id, 1)}
+                  className={cn("text-[9px] px-2.5 py-1 rounded-xl font-black uppercase tracking-widest transition-all border",
+                    curSauce === 1 ? "bg-rose-500 text-white border-rose-500 shadow-lg shadow-rose-500/20" : "bg-muted/50 text-muted-foreground border-border/50 hover:border-rose-300 hover:text-rose-600")}>
+                  {t("pos.redSauce")}
+                </button>
+              )}
+              {sauces.cream && (
+                <button onClick={() => onSauceChange(product.id, 2)}
+                  className={cn("text-[9px] px-2.5 py-1 rounded-xl font-black uppercase tracking-widest transition-all border",
+                    curSauce === 2 ? "bg-amber-400 text-black border-amber-400 shadow-lg shadow-amber-400/20" : "bg-muted/50 text-muted-foreground border-border/50 hover:border-amber-300 hover:text-amber-700")}>
+                  {t("pos.whiteSauce")}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="flex items-center justify-between pt-3 border-t border-border/50">
+          <div className="flex flex-col">
+            <span className="text-sm font-black text-foreground tabular-nums leading-none">{price.toLocaleString()}</span>
+            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{t("pos.currency")}</span>
+          </div>
+          {count > 0 ? (
+            <div className="flex items-center gap-1.5 bg-muted/50 p-1 rounded-2xl border border-border/50">
+              <button onClick={() => onUpdateQuantity(product.id, -1)}
+                className="flex items-center justify-center size-8 rounded-xl bg-background text-foreground hover:bg-rose-500 hover:text-white transition-all active:scale-90 shadow-sm">
+                {count === 1 ? <Trash2 className="size-3.5" /> : <Minus className="size-3.5" />}
+              </button>
+              <span className="w-6 text-center text-sm font-black text-foreground tabular-nums">{count}</span>
+              <button onClick={() => onUpdateQuantity(product.id, 1)}
+                className="flex items-center justify-center size-8 rounded-xl bg-primary text-primary-foreground hover:scale-105 transition-all active:scale-90 shadow-lg shadow-primary/20">
+                <Plus className="size-3.5" />
+              </button>
+            </div>
+          ) : (
+            <button onClick={() => onAddItem({ product, size: curSize, sauceId: curSauce, quantity: 1 })}
+              className="inline-flex items-center gap-2 h-10 px-4 rounded-2xl bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-all active:scale-95 shadow-sm">
+              <Plus className="size-3.5" /> {t("pos.add")}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function ProductGrid({ products, orderItems, onAddItem, onUpdateQuantity }: ProductGridProps) {
   const { t } = useTranslation()
   const [search, setSearch] = useState("")
@@ -95,82 +180,16 @@ export function ProductGrid({ products, orderItems, onAddItem, onUpdateQuantity 
             const showSauces = sauces.tomato || sauces.cream
             const price = getPrice(product, curSize, curSauce)
             const count = qty(product.id)
-
             return (
-              <div key={product.id}
-                className="group relative bg-card rounded-[2rem] border border-border/50 overflow-hidden shadow-sm hover:shadow-2xl hover:border-primary/20 hover:-translate-y-1 transition-all duration-300">
-                <div className="aspect-[4/3] bg-muted/50 flex items-center justify-center overflow-hidden relative">
-                  {product.image_url ? (
-                    <Image src={product.image_url} alt={product.name} width={200} height={150}
-                      className="w-full h-full object-cover transition duration-700 group-hover:scale-110" />
-                  ) : (
-                    <span className="text-4xl opacity-20 grayscale group-hover:grayscale-0 transition-all duration-500">🍕</span>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-                <div className="p-4 space-y-3">
-                  <h3 className="text-sm font-black text-foreground leading-tight line-clamp-2 min-h-[2.5rem]">{product.name}</h3>
-
-                  <div className="flex flex-col gap-2">
-                    {sizes.length > 0 && (
-                      <div className="flex gap-1.5 flex-wrap">
-                        {sizes.map((s) => (
-                          <button key={s} onClick={() => setSizeMap((p) => ({ ...p, [product.id]: s }))}
-                            className={cn("text-[9px] px-2.5 py-1 rounded-xl font-black uppercase tracking-widest transition-all border",
-                              curSize === s
-                                ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20"
-                                : "bg-muted/50 text-muted-foreground border-border/50 hover:border-primary/30 hover:text-foreground")}>
-                            {SIZE_LABEL[s] || s}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-
-                    {showSauces && (
-                      <div className="flex gap-1.5">
-                        {sauces.tomato && (
-                          <button onClick={() => setSauceMap((p) => ({ ...p, [product.id]: 1 }))}
-                            className={cn("text-[9px] px-2.5 py-1 rounded-xl font-black uppercase tracking-widest transition-all border",
-                              curSauce === 1 ? "bg-rose-500 text-white border-rose-500 shadow-lg shadow-rose-500/20" : "bg-muted/50 text-muted-foreground border-border/50 hover:border-rose-300 hover:text-rose-600")}>
-                            {t("pos.redSauce")}
-                          </button>
-                        )}
-                        {sauces.cream && (
-                          <button onClick={() => setSauceMap((p) => ({ ...p, [product.id]: 2 }))}
-                            className={cn("text-[9px] px-2.5 py-1 rounded-xl font-black uppercase tracking-widest transition-all border",
-                              curSauce === 2 ? "bg-amber-400 text-black border-amber-400 shadow-lg shadow-amber-400/20" : "bg-muted/50 text-muted-foreground border-border/50 hover:border-amber-300 hover:text-amber-700")}>
-                            {t("pos.whiteSauce")}
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between pt-3 border-t border-border/50">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-black text-foreground tabular-nums leading-none">{price.toLocaleString()}</span>
-                      <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{t("pos.currency")}</span>
-                    </div>
-                    {count > 0 ? (
-                      <div className="flex items-center gap-1.5 bg-muted/50 p-1 rounded-2xl border border-border/50">
-                        <button onClick={() => onUpdateQuantity(product.id, -1)}
-                          className="flex items-center justify-center size-8 rounded-xl bg-background text-foreground hover:bg-rose-500 hover:text-white transition-all active:scale-90 shadow-sm">
-                          {count === 1 ? <Trash2 className="size-3.5" /> : <Minus className="size-3.5" />}
-                        </button>
-                        <span className="w-6 text-center text-sm font-black text-foreground tabular-nums">{count}</span>
-                        <button onClick={() => onUpdateQuantity(product.id, 1)}
-                          className="flex items-center justify-center size-8 rounded-xl bg-primary text-primary-foreground hover:scale-105 transition-all active:scale-90 shadow-lg shadow-primary/20">
-                          <Plus className="size-3.5" />
-                        </button>
-                      </div>
-                    ) : (
-                      <button onClick={() => onAddItem({ product, size: curSize, sauceId: curSauce, quantity: 1 })}
-                        className="inline-flex items-center gap-2 h-10 px-4 rounded-2xl bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-all active:scale-95 shadow-sm">
-                        <Plus className="size-3.5" /> {t("pos.add")}
-                      </button>
-                    )}
-                  </div>
-                </div>
+              <div key={product.id} style={{ contentVisibility: "auto" }}>
+                <ProductCard
+                  product={product} curSize={curSize} curSauce={curSauce}
+                  count={count} price={price} sizes={sizes}
+                  showSauces={showSauces} sauces={sauces} SIZE_LABEL={SIZE_LABEL}
+                  onSizeChange={(id, s) => setSizeMap((p) => ({ ...p, [id]: s }))}
+                  onSauceChange={(id, s) => setSauceMap((p) => ({ ...p, [id]: s }))}
+                  onAddItem={onAddItem} onUpdateQuantity={onUpdateQuantity}
+                />
               </div>
             )
           })}

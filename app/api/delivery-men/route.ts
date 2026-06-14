@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabaseForRequest, isTenantMismatch } from "@/lib/tenant"
+import { supabaseForRequest, isTenantMismatch, parseSession } from "@/lib/tenant"
+import { requireStaff, requireAdmin, isErrorResponse } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
 
 export async function GET(req: NextRequest) {
   try {
+    const session = requireStaff(req)
+    if (isErrorResponse(session)) return session
+
     const sb = await supabaseForRequest(req)
     const { data, error } = await sb.from("delivery_men").select("*").order("name")
     if (error) {
@@ -23,6 +27,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const session = requireAdmin(req)
+    if (isErrorResponse(session)) return session
+
     const body = await req.json()
     const { name, whatsapp_number } = body
     if (!name || !whatsapp_number) {
@@ -49,6 +56,9 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
+    const session = requireAdmin(req)
+    if (isErrorResponse(session)) return session
+
     const body = await req.json()
     const { id, name, whatsapp_number, is_busy } = body
     if (!id) return NextResponse.json({ error: "id required" }, { status: 400 })
@@ -77,6 +87,9 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    const session = requireAdmin(req)
+    if (isErrorResponse(session)) return session
+
     const { searchParams } = new URL(req.url)
     const id = searchParams.get("id")
     if (!id) return NextResponse.json({ error: "id query param required" }, { status: 400 })

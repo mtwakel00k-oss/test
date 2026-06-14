@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, startTransition } from "react"
 import { useRouter } from "next/navigation"
+import dynamic from "next/dynamic"
 import { DollarSign, TrendingUp, ShoppingBag, Star, CalendarClock, LogOut, ChartNoAxesColumn } from "lucide-react"
 import { supabase, resetTenantClient, fetchApi } from "@/lib/tenant"
 import { LanguageSwitcher } from "@/components/language-switcher"
@@ -9,16 +10,21 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { useSlug } from "@/lib/use-slug"
 import { useTranslation } from "@/lib/use-translation"
 import { StatCard } from "@/components/admin/stat-card"
-import { SalesChart } from "@/components/admin/sales-chart"
 import { ReviewsFeed } from "@/components/admin/reviews-feed"
 import { TopProducts } from "@/components/admin/top-products"
-import { PeakHoursChart } from "@/components/admin/peak-hours-chart"
-import { RestaurantSettings } from "@/components/admin/restaurant-settings"
-import { ProductManager } from "@/components/admin/product-manager"
-import { OrdersList } from "@/components/admin/orders-list"
-import { OrderDetailSheet } from "@/components/admin/order-detail-sheet"
-import { ClearData } from "@/components/admin/clear-data"
-import { PlanManager } from "@/components/admin/plan-manager"
+
+const SalesChart = dynamic(() => import("@/components/admin/sales-chart").then(m => ({ default: m.SalesChart })), {
+  loading: () => <div className="h-72 rounded-2xl bg-white/5 animate-pulse" />,
+})
+const PeakHoursChart = dynamic(() => import("@/components/admin/peak-hours-chart").then(m => ({ default: m.PeakHoursChart })), {
+  loading: () => <div className="h-72 rounded-2xl bg-white/5 animate-pulse" />,
+})
+const RestaurantSettings = dynamic(() => import("@/components/admin/restaurant-settings").then(m => ({ default: m.RestaurantSettings })))
+const ProductManager = dynamic(() => import("@/components/admin/product-manager").then(m => ({ default: m.ProductManager })))
+const OrdersList = dynamic(() => import("@/components/admin/orders-list").then(m => ({ default: m.OrdersList })))
+const OrderDetailSheet = dynamic(() => import("@/components/admin/order-detail-sheet").then(m => ({ default: m.OrderDetailSheet })))
+const ClearData = dynamic(() => import("@/components/admin/clear-data").then(m => ({ default: m.ClearData })))
+const PlanManager = dynamic(() => import("@/components/admin/plan-manager").then(m => ({ default: m.PlanManager })))
 
 type Period = "7d" | "30d" | "6m" | "12m"
 
@@ -63,6 +69,7 @@ export default function AdminPage() {
   const [cashierStats, setCashierStats] = useState<{ id: string; name: string; orders: number; revenue: number }[]>([])
   const [sheetOrderId, setSheetOrderId] = useState<string | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [adminTab, setAdminTab] = useState<"overview" | "products" | "orders">("overview")
 
   const handleViewOrder = useCallback((orderId: string) => {
     setSheetOrderId(orderId)
@@ -177,15 +184,28 @@ export default function AdminPage() {
 
       <main className="max-w-7xl mx-auto p-4 lg:p-6 space-y-6">
         <div className="flex items-center gap-1.5 bg-white/5 p-0.5 rounded-lg w-fit border border-white/5">
-          {(Object.entries(PERIOD_LABELS) as [Period, string][]).map(([key, label]) => (
-            <button key={key} onClick={() => setPeriod(key)}
+          {(["overview", "products", "orders"] as const).map((tab) => (
+            <button key={tab} onClick={() => setAdminTab(tab)}
               className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
-                period === key ? "bg-white/10 text-white shadow-sm" : "text-white/40 hover:text-white/70"
+                adminTab === tab ? "bg-white/10 text-white shadow-sm" : "text-white/40 hover:text-white/70"
               }`}>
-              {label}
+              {tab === "overview" ? t("admin.overview") : tab === "products" ? t("admin.products") : t("admin.orders")}
             </button>
           ))}
         </div>
+
+        {adminTab === "overview" && (
+          <div className="flex items-center gap-1.5 bg-white/5 p-0.5 rounded-lg w-fit border border-white/5">
+            {(Object.entries(PERIOD_LABELS) as [Period, string][]).map(([key, label]) => (
+              <button key={key} onClick={() => setPeriod(key)}
+                className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+                  period === key ? "bg-white/10 text-white shadow-sm" : "text-white/40 hover:text-white/70"
+                }`}>
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
           {loadingStats ? (
@@ -212,7 +232,7 @@ export default function AdminPage() {
           )}
         </div>
 
-        {driverStats.length > 0 && (
+        {adminTab === "overview" && driverStats.length > 0 && (
           <div className="bg-card border border-border rounded-xl overflow-hidden">
             <div className="px-4 py-3 border-b border-border">
               <h3 className="text-sm font-semibold text-foreground">{t("admin.driverPerformance")}</h3>
@@ -255,7 +275,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {cashierStats.length > 0 && (
+        {adminTab === "overview" && cashierStats.length > 0 && (
           <div className="bg-card border border-border rounded-xl overflow-hidden">
             <div className="px-4 py-3 border-b border-border">
               <h3 className="text-sm font-semibold text-foreground">{t("admin.cashierPerformance")}</h3>
@@ -289,24 +309,28 @@ export default function AdminPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          <div className="lg:col-span-2">
-            <SalesChart data={salesData} period={period} onPeriodChange={setPeriod} />
-          </div>
-          <PeakHoursChart data={peakHours} />
-        </div>
+        {adminTab === "overview" && (
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+              <div className="lg:col-span-2">
+                <SalesChart data={salesData} period={period} onPeriodChange={setPeriod} />
+              </div>
+              <PeakHoursChart data={peakHours} />
+            </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <TopProducts data={topProducts} />
-          <ReviewsFeed reviews={reviews} />
-        </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              <TopProducts data={topProducts} />
+              <ReviewsFeed reviews={reviews} />
+            </div>
 
-        <RestaurantSettings />
-        <ProductManager />
-        <OrdersList onViewOrder={handleViewOrder} />
+            <RestaurantSettings />
+          </>
+        )}
+        {adminTab === "products" && <ProductManager />}
+        {adminTab === "orders" && <OrdersList onViewOrder={handleViewOrder} />}
 
         <OrderDetailSheet
-          orderId={sheetOrderId}
+          orderId={sheetOpen ? sheetOrderId : null}
           open={sheetOpen}
           onClose={() => setSheetOpen(false)}
           onOrderUpdated={() => fetchStats().then(setStatsFromResult)}

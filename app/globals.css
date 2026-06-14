@@ -170,12 +170,12 @@
 }
 
 html[data-locale="ar"] body {
-  font-family: "Poppins", "Tajawal", system-ui, sans-serif !important;
+  font-family: var(--font-tajawal), var(--font-sans), system-ui, sans-serif;
 }
 
 html[data-locale="en"] body,
 html[data-locale="fr"] body {
-  font-family: "Poppins", system-ui, sans-serif !important;
+  font-family: var(--font-sans), system-ui, sans-serif;
 }
 
 @keyframes shake {

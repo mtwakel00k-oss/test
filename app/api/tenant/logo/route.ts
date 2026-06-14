@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { invalidateTenantConfig } from "@/lib/tenant"
+import { invalidateTenantConfig, parseSession } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 
 let _supabase: ReturnType<typeof createClient> | null = null
@@ -15,15 +15,9 @@ function getSupabase() {
   return _supabase
 }
 
-async function getSession(req: NextRequest) {
-  const sessionCookie = req.cookies.get("session")
-  if (!sessionCookie) return null
-  try {
-    return JSON.parse(sessionCookie.value) as { role?: string; slug?: string }
-  } catch (e) {
-    logger.error("Failed to parse session cookie in logo route", e)
-    return null
-  }
+function getSession(req: NextRequest) {
+  const session = parseSession(req.headers.get("cookie") || "")
+  return session.role ? session : null
 }
 
 function isAdmin(session: { role?: string } | null): boolean {

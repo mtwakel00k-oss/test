@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabaseForRequest, isTenantMismatch } from "@/lib/tenant"
+import { requireStaff, isErrorResponse } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ order_id: string }> }) {
   try {
+    const session = requireStaff(req)
+    if (isErrorResponse(session)) return session
+
     const { order_id } = await params
     const sb = await supabaseForRequest(req)
     const { data, error } = await sb.from("orders")
@@ -27,6 +31,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ orde
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ order_id: string }> }) {
   try {
+    const session = requireStaff(req)
+    if (isErrorResponse(session)) return session
+
     const { order_id } = await params
     const body = await req.json()
     const sb = await supabaseForRequest(req)

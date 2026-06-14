@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, warn: "no_chat_id" })
     }
 
-    const rl = checkRateLimit(`contact:${getClientIp(req)}`, { max: 5, windowMs: 60_000 })
+    const rl = await checkRateLimit(`contact:${getClientIp(req)}`, { max: 5, windowMs: 60_000 })
     if (!rl.allowed) return rateLimitResponse(rl.resetAt)
 
     const { name, phone } = await req.json()
