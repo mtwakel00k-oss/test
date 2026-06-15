@@ -1,10 +1,11 @@
 "use client";
 
-import { ShoppingBag, Sun, Moon, Languages } from "lucide-react";
+import { ShoppingBag, Sun, Moon } from "lucide-react";
 import Image from "next/image";
 import { useTheme } from "@/lib/theme";
 import { useState, useEffect } from "react";
 import { fetchApi } from "@/lib/tenant";
+import { LanguageSwitcher } from "@/components/language-switcher"
 
 interface TenantData {
   name: string;
@@ -65,12 +66,7 @@ export function AppHeader({ cartItemCount, onCart }: AppHeaderProps) {
             </div>
           </div>
           <div className="flex items-center gap-1.5">
-            <button
-              className="p-2.5 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors text-foreground/70 hover:text-foreground"
-              aria-label="Change language"
-            >
-              <Languages className="w-5 h-5" />
-            </button>
+            <LanguageSwitcher />
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               className="p-2.5 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors text-foreground/70 hover:text-foreground"
