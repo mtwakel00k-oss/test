@@ -6,10 +6,6 @@ import { decryptSession, encryptSession } from '@/lib/session-crypto'
 
 const isDev = process.env.NODE_ENV === 'development'
 
-if (!process.env.SESSION_ENCRYPTION_KEY) {
-  throw new Error("SESSION_ENCRYPTION_KEY must be set in environment variables")
-}
-
 function addSecurityHeaders(res: NextResponse, nonce: string) {
   const csp = [
     "default-src 'self'",
