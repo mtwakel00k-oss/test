@@ -25,6 +25,7 @@ export function LanguageSwitcher() {
     document.documentElement.lang = lang
     document.documentElement.dir = DIR[lang]
     document.documentElement.dataset.locale = lang
+    window.dispatchEvent(new Event("langchange"))
     router.refresh()
   }, [router])
 
