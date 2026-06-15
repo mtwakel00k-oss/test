@@ -44,12 +44,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // Verify is_available column exists — fail fast if schema is outdated
     try {
-      const { data: avail } = await (sb.from("produits")).select("id, is_available").limit(1)
-      if (avail === null) throw new Error("produits table returned null")
+      await (sb.from("produits")).select("id, is_available").limit(1)
     } catch {
-      throw new Error("Database schema is outdated. Run `npm run db:migrate` to apply missing columns.")
+      logger.warn("is_available column missing — defaulting to true")
     }
 
     const session = parseSession(req.headers.get("cookie") || "")

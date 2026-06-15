@@ -199,6 +199,9 @@ export async function supabaseForRequest(req: Request): Promise<SupabaseClient> 
     if (config) {
       return createSafeClient(config.supabase_url, getSafeAnonKey(config), config.slug)
     }
+    logger.warn(`supabaseForRequest: tenant config not found for slug="${slug}", falling back to master`)
+  } else if (session.role !== "owner") {
+    logger.warn(`supabaseForRequest: no tenant slug found for session role="${session.role}", falling back to master`)
   }
 
   return createClient(MASTER_URL, MASTER_KEY || FALLBACK_KEY!)

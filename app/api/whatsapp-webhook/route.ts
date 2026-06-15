@@ -9,14 +9,13 @@ export async function POST(req: NextRequest) {
     const signature = req.headers.get("x-evolution-signature") ?? ""
     const rawBody = await req.text()
 
-    if (secret) {
-      if (!constantTimeCompare(signature, secret)) {
-        logger.warn("Webhook rejected: invalid signature")
-        return NextResponse.json({ error: "Invalid signature" }, { status: 401 })
-      }
-    } else if (process.env.NODE_ENV === "production") {
-      logger.error("WEBHOOK_SECRET not configured in production")
+    if (!secret) {
+      logger.error("WEBHOOK_SECRET not configured")
       return NextResponse.json({ error: "Webhook not configured" }, { status: 503 })
+    }
+    if (!constantTimeCompare(signature, secret)) {
+      logger.warn("Webhook rejected: invalid signature")
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 })
     }
 
     const body = JSON.parse(rawBody)

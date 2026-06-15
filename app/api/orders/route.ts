@@ -272,32 +272,21 @@ export async function POST(req: NextRequest) {
       return null
     }
 
-    // ── Order number (atomic RPC with count fallback) ───
+    // ── Order number: atomic RPC (no fallback race) ───
     let orderNumber: number | undefined
     let order: Record<string, unknown> | null = null
 
-    async function nextOrderNumberCandidate(attempt: number): Promise<number> {
-      if (attempt === 1) {
-        const { data: rpcNum, error: rpcErr } = await sb.rpc("next_order_number")
-        if (!rpcErr && rpcNum != null) return Number(rpcNum)
-
-        const { count } = await (sb.from("orders"))
-          .select("*", { count: "exact", head: true })
-          .gte("created_at", today).lt("created_at", tomorrow)
-        return (count || 0) + 1
-      }
-      return attempt
+    const { data: rpcNum, error: rpcErr } = await sb.rpc("next_order_number")
+    if (rpcErr || rpcNum == null) {
+      logger.error("next_order_number RPC failed — run migration SQL", { error: rpcErr })
+      throw new Error("Order numbering service unavailable. Please contact administrator.")
     }
+    orderNumber = Number(rpcNum)
+    payload.order_number = orderNumber
 
-    for (let n = 1; n <= 30; n++) {
-      const candidate = await nextOrderNumberCandidate(n)
-      payload.order_number = candidate
-      order = await tryInsert(payload)
-      if (order) { orderNumber = candidate; break }
-    }
-
+    order = await tryInsert(payload)
     if (!order) {
-      throw new Error("Failed to create order after exhausting order_number candidates")
+      throw new Error("Failed to create order with atomic order_number")
     }
 
     // ── Verification: re-query the inserted row ──────────

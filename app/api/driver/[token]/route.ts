@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { createTenantSupabaseClient } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
+import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
 const masterClient = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -33,14 +34,28 @@ async function findDriverByToken(token: string): Promise<{ driver: Driver; tenan
   return null
 }
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ token: string }> }
-) {
-  const { token } = await params
+function extractDriverToken(req: NextRequest): string | null {
+  // Priority 1: Authorization header (Bearer token)
+  const auth = req.headers.get("authorization")
+  if (auth?.startsWith("Bearer ")) return auth.slice(7)
+  // Priority 2: x-driver-token header
+  const headerToken = req.headers.get("x-driver-token")
+  if (headerToken) return headerToken
+  // Priority 3: Query param (for backward compat, deprecated)
+  const queryToken = new URL(req.url).searchParams.get("token")
+  if (queryToken) return queryToken
+  return null
+}
+
+export async function GET(req: NextRequest) {
+  const token = extractDriverToken(req)
   if (!token || token.length < 10) {
     return NextResponse.json({ error: "Invalid token" }, { status: 401 })
   }
+
+  // Rate limit: 60 req/min per driver token
+  const rl = await checkRateLimit(`driver:${token}`, { max: 60, windowMs: 60_000 })
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt)
 
   const result = await findDriverByToken(token)
   if (!result) {
@@ -69,14 +84,14 @@ export async function GET(
   })
 }
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ token: string }> }
-) {
-  const { token } = await params
+export async function PATCH(req: NextRequest) {
+  const token = extractDriverToken(req)
   if (!token || token.length < 10) {
     return NextResponse.json({ error: "Invalid token" }, { status: 401 })
   }
+
+  const rl = await checkRateLimit(`driver:${token}`, { max: 60, windowMs: 60_000 })
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt)
 
   const result = await findDriverByToken(token)
   if (!result) {

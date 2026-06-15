@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { parseSession } from "@/lib/tenant"
+import { createHash } from "crypto"
 
 const USERS = [
   { username: "admin",   role: "admin" },
@@ -15,13 +16,19 @@ function generatePassword(): string {
   return pwd + "A1"
 }
 
-const DEV_PASSWORDS: Record<string, Record<string, string>> = (() => {
-  try {
-    return JSON.parse(process.env.DEV_PASSWORDS || "{}")
-  } catch {
-    return {}
+function getDevPassword(username: string, slug: string): string {
+  const hash = process.env.DEV_PASSWORD_HASH
+  if (!hash) return generatePassword()
+  // Use hash as seed for deterministic password per username+slug
+  const seed = createHash("sha256").update(`${username}:${slug}:${hash}`).digest("hex")
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+  let pwd = ""
+  for (let i = 0; i < 12; i++) {
+    const idx = parseInt(seed.slice(i * 2, i * 2 + 2), 16) % chars.length
+    pwd += chars.charAt(idx)
   }
-})()
+  return pwd + "A1"
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -65,7 +72,7 @@ export async function POST(req: NextRequest) {
     const results = await Promise.all(
       USERS.map(async (u) => {
         const email = `${u.username}@${domain}`
-        const password = passwordsInput?.[u.username] || DEV_PASSWORDS[slug]?.[u.username] || generatePassword()
+        const password = passwordsInput?.[u.username] || getDevPassword(u.username, slug)
         const existingId = existingByEmail.get(email)
 
         let userId: string

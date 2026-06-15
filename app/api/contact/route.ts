@@ -5,6 +5,15 @@ import { logger } from "@/lib/logger"
 const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN || ""
 const TELEGRAM_CHAT = process.env.TELEGRAM_CHAT_ID
 
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;")
+}
+
 export async function POST(req: NextRequest) {
   try {
     if (!TELEGRAM_CHAT) {
@@ -20,10 +29,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "رقم الهاتف مطلوب" }, { status: 400 })
     }
 
+    const safeName = escapeHtml(name?.trim() || "بدون الاسم")
     const msg =
       `📩 <b>طلب تواصل جديد</b>\n` +
       `━━━━━━━━━━━━━\n` +
-      `👤 ${name?.trim() || "بدون اسم"}\n` +
+      `👤 ${safeName}\n` +
       `📞 ${phone.trim()}\n` +
       `🕐 ${new Date().toLocaleString("ar-SA")}`
 

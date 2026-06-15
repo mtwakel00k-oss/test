@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { parseSession, getTenantConfig, createTenantSupabaseClient } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
+import { randomUUID } from "crypto"
 
 const ALLOWED_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"])
 const MAX_SIZE = 5 * 1024 * 1024
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest) {
     }
 
     const ext = EXT_BY_MIME[file.type] ?? "bin"
-    const fileName = `${tenantSlug}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+    const fileName = `${tenantSlug}/${randomUUID()}.${ext}`
 
     const supabase = createTenantSupabaseClient(tenantConfig.supabase_url, tenantConfig.supabase_anon_key)
 

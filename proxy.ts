@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { getAllowedRolesForRoute, extractSlug } from '@/lib/auth-server'
 import { decryptSession, encryptSession } from '@/lib/session-crypto'
+import { csrfMiddleware } from '@/lib/csrf'
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -61,12 +62,26 @@ function loginUrl(request: NextRequest, pathname: string): URL {
   return url
 }
 
+const MAX_BODY_SIZE = 10 * 1024 * 1024 // 10MB
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
 
   const SECURE = process.env.NODE_ENV === 'production'
   const hasEncryptionKey = !!process.env.SESSION_ENCRYPTION_KEY
+
+  // Request size limit (except upload endpoint which handles its own)
+  if (!pathname.startsWith("/api/upload") && request.headers.get("content-length")) {
+    const contentLength = parseInt(request.headers.get("content-length") || "0", 10)
+    if (contentLength > MAX_BODY_SIZE) {
+      return NextResponse.json({ error: "Request body too large (max 10MB)" }, { status: 413 })
+    }
+  }
+
+  // CSRF protection for mutating requests
+  const csrfResult = csrfMiddleware(request)
+  if (csrfResult) return csrfResult
 
   function securedNext() {
     const reqH = new Headers(request.headers)

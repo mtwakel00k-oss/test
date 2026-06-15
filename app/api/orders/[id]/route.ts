@@ -6,6 +6,7 @@ import { logger } from "@/lib/logger"
 import { logAudit } from "@/lib/audit"
 import { DB_STATUS_TO_POS } from "@/lib/constants"
 import { notifyDriverAssigned } from "@/lib/whatsapp"
+import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
 const ALLOWED_STATUSES = ["pending", "preparing", "ready", "out_for_delivery", "completed", "cancelled"]
 
@@ -36,10 +37,16 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const { id } = await params
     const { searchParams } = new URL(req.url)
     const isPublic = searchParams.get("public") === "true"
+    const verifyEmail = searchParams.get("email")?.toLowerCase().trim()
+    const verifyPhone = searchParams.get("phone")?.trim()
 
-    // ── Public mode: customer tracking, no session/role required ─────────
+    // ── Public mode: customer tracking, requires email OR phone verification ─────────
     if (isPublic) {
-      logger.info(`[orders GET] Public lookup for order ${id}`)
+      // Rate limit: 30 req/min per IP for public tracking
+      const rl = await checkRateLimit(`order-tracking:${getClientIp(req)}`, { max: 30, windowMs: 60_000 })
+      if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
+      logger.info(`[orders GET] Public lookup for order ${id}`, { hasEmail: !!verifyEmail, hasPhone: !!verifyPhone })
 
       // 1. Try standard lookup first (works if x-tenant-slug header is present)
       const sb = await supabaseForRequest(req)
@@ -49,6 +56,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         .maybeSingle()
 
       if (directOrder) {
+        // Verify ownership: email or phone must match
+        if (verifyEmail && directOrder.customer_email?.toLowerCase() !== verifyEmail) {
+          logger.warn(`[orders GET] Public: email mismatch for order ${id}`)
+          return NextResponse.json({ error: "Order not found" }, { status: 404 })
+        }
+        if (verifyPhone && directOrder.customer_phone !== verifyPhone) {
+          logger.warn(`[orders GET] Public: phone mismatch for order ${id}`)
+          return NextResponse.json({ error: "Order not found" }, { status: 404 })
+        }
         logger.info(`[orders GET] Public: found order ${id} via direct lookup`)
         if (directOrder.status) directOrder.status = DB_STATUS_TO_POS[directOrder.status as string] || directOrder.status
         return NextResponse.json({ order: sanitizePublicOrder(directOrder) })
@@ -57,11 +73,24 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         logger.warn(`[orders GET] Public: direct lookup failed`, { error: directError.message })
       }
 
-      // 2. No slug known → scan all active tenants
+      // 2. No slug known → scan all active tenants ONLY if email/phone provided
+      if (!verifyEmail && !verifyPhone) {
+        logger.warn(`[orders GET] Public: missing verification for cross-tenant lookup`)
+        return NextResponse.json({ error: "Verification required (email or phone)" }, { status: 400 })
+      }
+
       logger.info(`[orders GET] Public: scanning all tenants for order ${id}`)
       const found = await findOrderAcrossTenants(id)
       if (found) {
-        if (found.order.status) found.order.status = DB_STATUS_TO_POS[found.order.status as string] || found.order.status
+        const orderData = found.order as Record<string, unknown> & { customer_email?: string; customer_phone?: string; status?: string }
+        // Verify ownership matches
+        if (verifyEmail && orderData.customer_email?.toLowerCase() !== verifyEmail) {
+          return NextResponse.json({ error: "Order not found" }, { status: 404 })
+        }
+        if (verifyPhone && orderData.customer_phone !== verifyPhone) {
+          return NextResponse.json({ error: "Order not found" }, { status: 404 })
+        }
+        if (orderData.status) orderData.status = DB_STATUS_TO_POS[orderData.status as string] || orderData.status
         return NextResponse.json({ order: sanitizePublicOrder(found.order), slug: found.slug })
       }
 
