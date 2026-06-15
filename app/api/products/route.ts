@@ -44,17 +44,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // Some tenant databases may lack the is_available column — fetch it separately
-    const availability: Record<number, boolean> = {}
+    // Verify is_available column exists — fail fast if schema is outdated
     try {
-      const { data: avail } = await (sb.from("produits")).select("id, is_available")
-      if (avail) {
-        for (const row of avail) {
-          availability[row.id] = row.is_available !== false
-        }
-      }
+      const { data: avail } = await (sb.from("produits")).select("id, is_available").limit(1)
+      if (avail === null) throw new Error("produits table returned null")
     } catch {
-      // Column doesn't exist in this tenant — all products are available
+      throw new Error("Database schema is outdated. Run `npm run db:migrate` to apply missing columns.")
     }
 
     const session = parseSession(req.headers.get("cookie") || "")
@@ -64,7 +59,6 @@ export async function GET(req: NextRequest) {
       if (!item.image_url && memoryUrls[item.id]) {
         item.image_url = memoryUrls[item.id]
       }
-      item.is_available = item.id in availability ? availability[item.id] : true
     }
 
     return NextResponse.json(data)

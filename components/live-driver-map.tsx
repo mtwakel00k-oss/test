@@ -152,6 +152,7 @@ export default function LiveDriverMap(props: LiveMapProps) {
       if (map) map.remove()
       mapInstanceRef.current = null
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {

@@ -4,14 +4,6 @@ import type { OrderItem } from "@/lib/types"
 import { SAUCES } from "@/lib/constants"
 import { useTranslation } from "@/lib/use-translation"
 
-function ItemIcon() {
-  return (
-    <svg className="w-4 h-4 text-muted-foreground/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z" />
-    </svg>
-  )
-}
-
 export function OrderDetails({ items }: { items: OrderItem[] }) {
   const { t, lang } = useTranslation()
   const cur = lang === "ar" ? "د.ج" : "DA"

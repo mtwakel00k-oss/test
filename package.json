@@ -1,5 +1,5 @@
 {
-  "name": "h",
+  "name": "burger-house",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -13,7 +13,8 @@
     "test:e2e:admin": "playwright test --project=admin",
     "test:e2e:cashier": "playwright test --project=cashier",
     "test:e2e:chef": "playwright test --project=chef",
-    "test:e2e:edge": "playwright test --project=edge-cases"
+    "test:e2e:edge": "playwright test --project=edge-cases",
+    "db:migrate": "tsx data/migration-apply.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
@@ -48,7 +49,7 @@
     "leaflet": "^1.9.4",
     "lucide-react": "^1.17.0",
     "next": "16.2.6",
-    "pg": "^8.21.0",
+    "tsx": "^4.19.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "recharts": "^3.8.1",
@@ -69,6 +70,7 @@
     "@types/luxon": "^3.7.1",
     "@types/node": "^20",
     "@types/pg": "^8.20.0",
+    "pg": "^8.21.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/request": "^2.48.13",

@@ -92,8 +92,6 @@ export default function DriverPage() {
       3: t("driver.timeoutError", LANG),
     }
 
-    let highAccuracyAttempt = true
-
     const startWatching = (highAccuracy: boolean) => {
       if (watchIdRef.current !== null) {
         navigator.geolocation.clearWatch(watchIdRef.current)
@@ -108,7 +106,6 @@ export default function DriverPage() {
         (err) => {
           const code = err.code
           if (code === 3 && highAccuracy) {
-            highAccuracyAttempt = false
             startWatching(false)
             return
           }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, startTransition } from "react"
 import { Loader2, Plus } from "lucide-react"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -159,7 +159,7 @@ export function PlanManager() {
       setAddSlug("")
       setAddPlan("starter")
       fetchTenants()
-    } catch (e) {
+    } catch {
       setAddError("Network error")
     } finally {
       setAddLoading(false)

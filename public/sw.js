@@ -23,7 +23,7 @@ self.addEventListener("activate", (e) => {
 })
 
 self.addEventListener("fetch", (e) => {
-  const { pathname, origin } = new URL(e.request.url)
+  const { pathname } = new URL(e.request.url)
 
   if (pathname.endsWith("/sw.js") || pathname.endsWith("/manifest.json")) {
     e.respondWith(networkFirst(e.request))

@@ -86,6 +86,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ orde
 
     const sb = await supabaseForRequest(req)
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: order, error } = await (sb.from("orders") as any)
       .select("*, items:order_items(*)")
       .eq("id", order_id)
@@ -100,7 +101,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ orde
     const restaurantName = tenantConfig?.name || "Restaurant"
 
     const itemsHtml = (order.items || [])
-      .map((i: any) => {
+      .map((i: { product_name: string; size?: string; unit_price: string | number; quantity: number }) => {
         const name = h(i.product_name + (i.size && i.size !== "UNIQUE" ? ` (${i.size})` : ""))
         const subtotal = (Number(i.unit_price) * i.quantity).toFixed(2)
         return `<tr><td style="text-align:left;padding:1px 0">${i.quantity}x ${name}</td><td style="text-align:right;padding:1px 0;white-space:nowrap">${subtotal} DA</td></tr>`

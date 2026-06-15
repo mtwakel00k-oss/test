@@ -127,6 +127,10 @@ ALTER TABLE tenants ADD COLUMN IF NOT EXISTS supabase_service_key TEXT;
 `
 
 export async function GET(req: NextRequest) {
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Not available in production" }, { status: 403 })
+  }
+
   const session = parseSession(req.headers.get("cookie") || "")
   if (session.role !== "admin" && session.role !== "owner") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -177,6 +181,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Not available in production" }, { status: 403 })
+  }
+
   const runSession = parseSession(req.headers.get("cookie") || "")
   if (runSession.role !== "owner" || runSession.slug) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })

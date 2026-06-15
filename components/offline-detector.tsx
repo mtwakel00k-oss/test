@@ -10,8 +10,7 @@ export function OfflineDetector() {
   useEffect(() => {
     const goOffline = () => { setOffline(true); setShow(true) }
     const goOnline = () => { setOffline(false); setTimeout(() => setShow(false), 2000) }
-    setOffline(!navigator.onLine)
-    if (!navigator.onLine) setShow(true)
+    queueMicrotask(() => { setOffline(!navigator.onLine); if (!navigator.onLine) setShow(true) })
     window.addEventListener("online", goOnline)
     window.addEventListener("offline", goOffline)
     return () => {

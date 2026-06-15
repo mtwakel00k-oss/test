@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabaseForRequest, isTenantMismatch, parseSession } from "@/lib/tenant"
+import { supabaseForRequest, isTenantMismatch } from "@/lib/tenant"
 import { requireStaff, requireAdmin, isErrorResponse } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
 

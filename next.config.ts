@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
         hostname: "*.supabase.co",
       },
     ],
-    formats: ["image/webp"],
+    formats: ["image/avif", "image/webp"],
   },
   experimental: {
     optimizePackageImports: [

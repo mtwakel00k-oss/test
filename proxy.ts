@@ -6,11 +6,16 @@ import { decryptSession, encryptSession } from '@/lib/session-crypto'
 
 const isDev = process.env.NODE_ENV === 'development'
 
+if (!process.env.SESSION_ENCRYPTION_KEY) {
+  throw new Error("SESSION_ENCRYPTION_KEY must be set in environment variables")
+}
+
 function addSecurityHeaders(res: NextResponse, nonce: string) {
   const csp = [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ''}`,
-    `style-src 'self' 'unsafe-inline'`,
+    `style-src 'self' 'nonce-${nonce}'`,
+    `style-src-attr 'unsafe-inline'`,
     "img-src 'self' blob: data: https://*.supabase.co",
     "font-src 'self'",
     "object-src 'none'",
@@ -41,10 +46,13 @@ function parseSession(cookie?: string): Session | null {
   try {
     const decrypted = decryptSession(cookie)
     if (decrypted) return decrypted
-  } catch {}
+  } catch (err) {
+    console.error("[proxy] decryptSession error:", err)
+  }
   try {
     return JSON.parse(cookie)
-  } catch {
+  } catch (err) {
+    console.error("[proxy] JSON.parse session error:", err)
     return null
   }
 }
@@ -86,7 +94,9 @@ export async function proxy(request: NextRequest) {
             path: '/',
           })
         }
-      } catch {}
+      } catch (err) {
+        console.error("[proxy] session migration error:", err)
+      }
     }
 
     addSecurityHeaders(res, nonce)

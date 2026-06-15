@@ -36,10 +36,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const saved = localStorage.getItem(cartStorageKey())
       if (saved) {
         const parsed = JSON.parse(saved)
-        if (Array.isArray(parsed)) setItems(parsed)
+        queueMicrotask(() => { if (Array.isArray(parsed)) setItems(parsed) })
       }
     } catch { /* ignore corrupt data */ }
-    setHydrated(true)
+    queueMicrotask(() => setHydrated(true))
   }, [])
 
   useEffect(() => {

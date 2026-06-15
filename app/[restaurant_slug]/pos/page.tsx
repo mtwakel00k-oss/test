@@ -7,8 +7,6 @@ import { fetchApi } from "@/lib/tenant"
 import { useProducts } from "@/lib/use-products"
 import { initAudio } from "@/lib/sound"
 import { useSlug } from "@/lib/use-slug"
-import { useTranslation } from "@/lib/use-translation"
-import { useStaff } from "@/context/StaffContext"
 import { POSHeader } from "@/components/pos/pos-header"
 import { PageTransition } from "@/components/page-transition"
 
@@ -22,10 +20,8 @@ const NewOrderPanel = dynamic(() => import("@/components/pos/new-order-panel").t
 export default function POSPage() {
   const router = useRouter()
   const slug = useSlug()
-  const { t } = useTranslation()
   const [pageTab, setPageTab] = useState<"orders" | "new">("new")
   const [cashier, setCashier] = useState<{ email: string; role: string; name?: string } | null>(null)
-  const { activeStaff } = useStaff()
 
   useEffect(() => {
     fetchApi("/api/me").then(r => r.ok ? r.json() : null).then(data => {

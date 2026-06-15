@@ -154,12 +154,15 @@ export default function KitchenPage() {
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchOrders().then(data => startTransition(() => setOrders(data))) }, [fetchOrders])
 
-  const debouncedRefresh = useMemo(
-    () => debounce(() => { fetchOrders().then(data => startTransition(() => setOrders(data))) }, 350),
-    [fetchOrders],
-  )
+  const debouncedRefreshRef = useRef<ReturnType<typeof debounce> | null>(null)
 
-  useEffect(() => () => debouncedRefresh.cancel(), [debouncedRefresh])
+  useEffect(() => {
+    debouncedRefreshRef.current = debounce(
+      () => { fetchOrders().then(data => startTransition(() => setOrders(data))) },
+      350,
+    )
+    return () => debouncedRefreshRef.current?.cancel()
+  }, [fetchOrders])
 
   const subscriptions = useMemo(() => [
     {
@@ -168,7 +171,7 @@ export default function KitchenPage() {
         const row = p.new as { status?: string }
         return !!(row.status && ACTIVE_STATUSES.includes(row.status))
       },
-      handler: () => { debouncedRefresh() },
+      handler: () => { debouncedRefreshRef.current?.() },
     },
     {
       table: "orders" as const, event: "UPDATE" as const,
@@ -178,7 +181,7 @@ export default function KitchenPage() {
         const newStatus = newRow.status
         const orderId = newRow.id || oldRow.id
         if (newStatus && ACTIVE_STATUSES.includes(newStatus)) {
-          debouncedRefresh()
+          debouncedRefreshRef.current?.()
         } else if (newStatus && TERMINAL_STATUSES.includes(newStatus)) {
           if (orderId) {
             startTransition(() => {
@@ -201,8 +204,8 @@ export default function KitchenPage() {
         }
       },
     },
-    { table: "order_items" as const, event: "*" as const, handler: () => { debouncedRefresh() } },
-  ], [debouncedRefresh])
+    { table: "order_items" as const, event: "*" as const, handler: () => { debouncedRefreshRef.current?.() } },
+  ], [])
 
   useRealtime({
     channelName: "kitchen",

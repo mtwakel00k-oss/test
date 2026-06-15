@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils"
 import { useStaff } from "@/context/StaffContext"
 
 interface POSHeaderProps {
-  totalOrders: number
+  totalOrders?: number
   activeOrders: number
   todayRevenue: number
   onNewOrder?: () => void
@@ -20,7 +20,7 @@ interface POSHeaderProps {
   userRole?: string
 }
 
-export function POSHeader({ totalOrders, activeOrders, todayRevenue, onNewOrder, userName, userRole }: POSHeaderProps) {
+export function POSHeader({ totalOrders: _totalOrders, activeOrders, todayRevenue, onNewOrder, userName, userRole }: POSHeaderProps) {
   const router = useRouter()
   const slug = useSlug()
   const { t, lang } = useTranslation()

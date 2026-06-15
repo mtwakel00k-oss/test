@@ -1,9 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Layers, Package, DollarSign, CheckSquare, Loader2, X } from "lucide-react"
+import { Layers, Loader2 } from "lucide-react"
 import { fetchApi } from "@/lib/tenant"
-import { logger } from "@/lib/logger"
 import {
   Dialog,
   DialogContent,
@@ -95,9 +94,11 @@ export function BulkOperations({ open, onClose, onComplete }: BulkOperationsProp
 
   useEffect(() => {
     if (!open) return
-    setResult(null)
-    setSelectedIds(new Set())
-    setApplying(false)
+    queueMicrotask(() => {
+      setResult(null)
+      setSelectedIds(new Set())
+      setApplying(false)
+    })
     loadProducts().then(setProducts)
     loadCategories().then(setCategories)
   }, [open])

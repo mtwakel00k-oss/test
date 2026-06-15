@@ -84,9 +84,7 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
   }, [propSlug])
 
   useEffect(() => {
-    let currentProducts: MenuProduct[] = []
     if (initialProducts && initialProducts.length > 0) {
-      currentProducts = initialProducts
       startTransition(() => {
         setCategories([...new Set(initialProducts.map(p => p.category).filter(Boolean))] as string[])
         const initSauces: Record<number, number | null> = {};
@@ -109,7 +107,6 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
       }).then(data => {
         if (!Array.isArray(data)) return
         const available = data.filter((p: { is_available?: boolean }) => p.is_available !== false) as MenuProduct[]
-        currentProducts = available
         setProducts(available);
         const cats = [...new Set(available.map(p => p.category).filter(Boolean))] as string[];
         setCategories(cats);
@@ -130,7 +127,7 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
       });
     }
 
-  }, []);
+  }, [initialProducts]);
 
   // ── Auto-clean stale localStorage cart items ────────
   useEffect(() => {

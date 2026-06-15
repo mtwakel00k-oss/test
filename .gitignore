@@ -54,4 +54,5 @@ product-flags.json
 test-*.js
 evolution-api.env
 qr-code*.png
+gh_out.txt
 

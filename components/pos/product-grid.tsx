@@ -169,6 +169,7 @@ export function ProductGrid({ products, orderItems, onAddItem, onUpdateQuantity 
 
   const rowCount = Math.ceil(filtered.length / Math.max(cols, 1))
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const virtualizer = useVirtualizer({
     count: rowCount,
     getScrollElement: () => parentRef.current,

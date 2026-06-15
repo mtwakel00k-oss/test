@@ -30,6 +30,16 @@ export async function POST(req: NextRequest) {
       { auth: { autoRefreshToken: false, persistSession: false } },
     )
 
+    // One-time guard: check if root owner already set up
+    const { data: existingOwners } = await supabaseAdmin
+      .from("profiles")
+      .select("id")
+      .eq("role", "owner")
+      .limit(1)
+    if (existingOwners && existingOwners.length > 0) {
+      return NextResponse.json({ error: "Root admin already set up. This endpoint can only be called once." }, { status: 403 })
+    }
+
     const body = await req.json().catch(() => ({}))
     const username = body?.username || "root"
     const password = body?.password || DEV_ROOT_PASSWORD

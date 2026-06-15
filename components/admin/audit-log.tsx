@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { History, ChevronLeft, ChevronRight, Filter, RefreshCw, Eye } from "lucide-react"
+import { History, ChevronLeft, ChevronRight, RefreshCw, Eye } from "lucide-react"
 import { fetchApi } from "@/lib/tenant"
 import { useTranslation } from "@/lib/use-translation"
 import type { AuditLogRow } from "@/app/api/admin/audit-log/route"
@@ -27,7 +27,7 @@ function formatDateTime(iso: string) {
 }
 
 export function AuditLog() {
-  const { t, lang, dir } = useTranslation()
+  const { t } = useTranslation()
   const [data, setData] = useState<AuditLogRow[]>([])
   const [count, setCount] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -38,7 +38,7 @@ export function AuditLog() {
   const perPage = 50
 
   const fetchLogs = useCallback(async () => {
-    setLoading(true)
+    queueMicrotask(() => setLoading(true))
     try {
       const params = new URLSearchParams({ limit: String(perPage), offset: String(page * perPage) })
       if (tableFilter) params.set("table", tableFilter)
@@ -48,10 +48,10 @@ export function AuditLog() {
       const json = await res.json()
       setData(json.data || [])
       setCount(json.count || 0)
-    } catch {} finally { setLoading(false) }
+    } catch {} finally { queueMicrotask(() => setLoading(false)) }
   }, [page, tableFilter, operationFilter])
 
-  useEffect(() => { fetchLogs() }, [fetchLogs])
+  useEffect(() => { queueMicrotask(() => fetchLogs()) }, [fetchLogs])
 
   const totalPages = Math.ceil(count / perPage)
 

@@ -55,7 +55,6 @@ test.describe("POS — Cashier POS Workflow", () => {
   test("orders panel shows empty state when no orders", async ({ page }) => {
     await page.goto("/burger-house/pos")
     await page.waitForLoadState("networkidle")
-    const ordersTab = page.locator("button:has-text('Orders'), button:has-text('الطلبات'), [data-testid='new-order-tab']")
     const newOrderTab = page.locator('[data-testid="new-order-tab"]')
     if (await newOrderTab.isVisible()) {
     }

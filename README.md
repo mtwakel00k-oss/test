@@ -81,21 +81,29 @@ npm run dev
 
 ### 5. Create Seed Users (one-time)
 
+Set credentials via environment variables before running setup.
+
 ```bash
-curl -X POST http://localhost:3000/api/auth/setup
+# In .env.local, define passwords per tenant:
+# DEV_PASSWORDS={"burger-house":{"admin":"YourAdmin@123","cashier":"Cashier123","chef":"Chef1234"}}
+# Or omit to generate random 12-char passwords for each user.
+
+curl -X POST http://localhost:3000/api/auth/setup \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"burger-house","passwords":{"admin":"YourAdmin@123","cashier":"Cashier123","chef":"Chef1234"}}'
 ```
 
-This creates three accounts:
+This creates three accounts per tenant:
 
-| Username | Password | Role |
-|----------|----------|------|
-| `admin` | `123` | Admin |
-| `cashier` | `123` | Cashier |
-| `chef` | `123` | Chef |
+| Username | Role | Password |
+|----------|------|----------|
+| `admin` | Admin | Set via `DEV_PASSWORDS` env var or request body, else random |
+| `cashier` | Cashier | Same as above |
+| `chef` | Chef | Same as above |
 
 ### 6. Log In
 
-Open `http://localhost:3000/login`, select your role tab, and enter the credentials above.
+Open `http://localhost:3000/login`, select your role tab, and enter the credentials from step 5.
 
 ## Project Structure
 

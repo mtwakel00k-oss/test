@@ -10,8 +10,6 @@ import { fetchApi } from "@/lib/tenant"
 import { playSuccessSound, playErrorSound } from "@/lib/sound"
 import { useTranslation } from "@/lib/use-translation"
 import { useStaff } from "@/context/StaffContext"
-import { toast } from "@/hooks/use-toast"
-
 interface NewOrderPanelProps {
   products: MenuProduct[]
   onOrderCreated: () => void
@@ -101,7 +99,7 @@ export function NewOrderPanel({ products, onOrderCreated, onCancel, hasDelivery 
       setNewPhone("")
       setNewOrderItems([])
       setNewOrderType("dine_in")
-    } catch (e) {
+    } catch {
       setNewOrderError(t("pos.orderError"))
     } finally {
       setCreatingOrder(false)
