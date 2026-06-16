@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, randomBytes, timingSafeEqual } from "crypto"
+import { createCipheriv, createDecipheriv, randomBytes, createHash, timingSafeEqual } from "crypto"
 
 const ALGORITHM = "aes-256-gcm"
 const IV_LENGTH = 16
@@ -7,7 +7,14 @@ const TAG_LENGTH = 16
 function getKey(): Buffer | null {
   const raw = process.env.SESSION_ENCRYPTION_KEY
   if (!raw) return null
-  const key = Buffer.from(raw, "hex")
+  // Accept both hex (64 chars) and base64 (44 chars) formats
+  let key: Buffer
+  if (raw.length === 64 && /^[0-9a-f]+$/i.test(raw)) {
+    key = Buffer.from(raw, "hex")
+  } else {
+    // base64 format
+    key = Buffer.from(raw, "base64")
+  }
   if (key.length !== 32) return null
   return key
 }
@@ -31,17 +38,33 @@ export function encryptSession(data: SessionData): string {
   const plain = Buffer.from(JSON.stringify(data), "utf-8")
   const encrypted = Buffer.concat([cipher.update(plain), cipher.final()])
   const tag = cipher.getAuthTag()
-  return Buffer.concat([iv, tag, encrypted]).toString("base64url")
+  // Format: iv:tag:encrypted (all base64)
+  return [
+    iv.toString("base64"),
+    tag.toString("base64"),
+    encrypted.toString("base64")
+  ].join(":")
 }
 
 export function decryptSession(token: string): SessionData | null {
   const key = getKey()
   if (!key) return null
   try {
-    const raw = Buffer.from(token, "base64url")
-    const iv = raw.subarray(0, IV_LENGTH)
-    const tag = raw.subarray(IV_LENGTH, IV_LENGTH + TAG_LENGTH)
-    const encrypted = raw.subarray(IV_LENGTH + TAG_LENGTH)
+    // Support both formats: new (iv:tag:encrypted) and old (base64url concatenated)
+    let iv: Buffer, tag: Buffer, encrypted: Buffer
+    if (token.includes(":")) {
+      // New format: iv:tag:encrypted
+      const [ivB64, tagB64, encryptedB64] = token.split(":")
+      iv = Buffer.from(ivB64, "base64")
+      tag = Buffer.from(tagB64, "base64")
+      encrypted = Buffer.from(encryptedB64, "base64")
+    } else {
+      // Old format: base64url concatenated [iv][tag][encrypted]
+      const raw = Buffer.from(token, "base64url")
+      iv = raw.subarray(0, IV_LENGTH)
+      tag = raw.subarray(IV_LENGTH, IV_LENGTH + TAG_LENGTH)
+      encrypted = raw.subarray(IV_LENGTH + TAG_LENGTH)
+    }
     const decipher = createDecipheriv(ALGORITHM, key, iv)
     decipher.setAuthTag(tag)
     const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()])
