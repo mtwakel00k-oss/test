@@ -63,7 +63,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ or
       return NextResponse.json({ error: "No fields to update" }, { status: 400 })
     }
 
-    const { error } = await sb.from("orders").update(updates).eq("id", order_id)
+    let { error } = await sb.from("orders").update(updates).eq("id", order_id)
+
+    if (error && (error.message?.includes("does not exist") || error.message?.includes("column"))) {
+      const missing = Object.keys(updates).find((c) => error?.message?.includes(c))
+      if (missing) {
+        delete updates[missing]
+        const retry = await sb.from("orders").update(updates).eq("id", order_id)
+        error = retry.error
+      }
+    }
+
     if (error) throw new Error(error.message)
 
     return NextResponse.json({ success: true })

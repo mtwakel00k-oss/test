@@ -23,6 +23,12 @@ function sanitizePublicOrder(order: Record<string, unknown>) {
     total: order.total,
     created_at: order.created_at,
     table_number: order.table_number,
+    driver_lat: order.driver_lat ?? null,
+    driver_lng: order.driver_lng ?? null,
+    driver_location_updated_at: order.driver_location_updated_at ?? null,
+    delivery_lat: order.delivery_lat ?? null,
+    delivery_lng: order.delivery_lng ?? null,
+    delivery_address: order.delivery_address ?? null,
     items: (order.items as Array<Record<string, unknown>> | undefined)?.map((i) => ({
       product_name: i.product_name,
       quantity: i.quantity,

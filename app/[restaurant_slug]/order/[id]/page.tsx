@@ -199,7 +199,8 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
           headers: { "x-tenant-slug": slug },
         })
         if (!res.ok) return
-        const o: Order = await res.json()
+        const data = await res.json()
+        const o: Order = data.order || data
         if (o.driver_lat != null && o.driver_lng != null) {
           setDriverLat(Number(o.driver_lat))
           setDriverLng(Number(o.driver_lng))

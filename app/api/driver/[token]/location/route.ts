@@ -75,14 +75,25 @@ export async function PATCH(
       return NextResponse.json({ error: "Order is not out for delivery" }, { status: 400 })
     }
 
-    const { error: updateError } = await tenantClient
+    const locationUpdate: Record<string, unknown> = {
+      driver_lat: lat,
+      driver_lng: lng,
+      driver_location_updated_at: new Date().toISOString(),
+    }
+
+    let { error: updateError } = await tenantClient
       .from("orders")
-      .update({
-        driver_lat: lat,
-        driver_lng: lng,
-        driver_location_updated_at: new Date().toISOString(),
-      })
+      .update(locationUpdate)
       .eq("id", order_id)
+
+    if (updateError?.message?.includes("does not exist") || updateError?.message?.includes("column")) {
+      const missing = Object.keys(locationUpdate).find((c) => updateError?.message?.includes(c))
+      if (missing) {
+        delete locationUpdate[missing]
+        const retry = await tenantClient.from("orders").update(locationUpdate).eq("id", order_id)
+        updateError = retry.error
+      }
+    }
 
     if (updateError) {
       logger.error("Failed to update driver location", updateError)
