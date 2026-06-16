@@ -34,7 +34,7 @@ async function findDriverByToken(token: string): Promise<{ driver: Driver; tenan
   return null
 }
 
-function extractDriverToken(req: NextRequest): string | null {
+function extractDriverToken(req: NextRequest, fallback?: string): string | null {
   // Priority 1: Authorization header (Bearer token)
   const auth = req.headers.get("authorization")
   if (auth?.startsWith("Bearer ")) return auth.slice(7)
@@ -44,11 +44,14 @@ function extractDriverToken(req: NextRequest): string | null {
   // Priority 3: Query param (for backward compat, deprecated)
   const queryToken = new URL(req.url).searchParams.get("token")
   if (queryToken) return queryToken
+  // Priority 4: URL path segment (from params)
+  if (fallback && fallback.length >= 10) return fallback
   return null
 }
 
-export async function GET(req: NextRequest) {
-  const token = extractDriverToken(req)
+export async function GET(req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
+  const { token: fallback } = await params
+  const token = extractDriverToken(req, fallback)
   if (!token || token.length < 10) {
     return NextResponse.json({ error: "Invalid token" }, { status: 401 })
   }
@@ -84,8 +87,9 @@ export async function GET(req: NextRequest) {
   })
 }
 
-export async function PATCH(req: NextRequest) {
-  const token = extractDriverToken(req)
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
+  const { token: fallback } = await params
+  const token = extractDriverToken(req, fallback)
   if (!token || token.length < 10) {
     return NextResponse.json({ error: "Invalid token" }, { status: 401 })
   }
