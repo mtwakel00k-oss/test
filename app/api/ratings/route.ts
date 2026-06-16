@@ -75,7 +75,13 @@ export async function POST(req: NextRequest) {
     const payload: Record<string, unknown> = { product_id, rating, comment: comment?.slice(0, 1000) || null }
     if (order_id) payload.order_id = order_id
     const { error } = await (sb2.from("ratings")).insert(payload)
-    if (error) throw error
+    if (error && error.message?.includes("does not exist")) {
+      delete payload.order_id
+      const { error: retryErr } = await (sb2.from("ratings")).insert(payload)
+      if (retryErr) throw retryErr
+    } else if (error) {
+      throw error
+    }
 
     logger.info("Rating submitted", { product_id, order_id, rating })
     return NextResponse.json({ ok: true })

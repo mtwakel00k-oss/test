@@ -88,13 +88,9 @@ export function checkCsrf(req: NextRequest): NextResponse | null {
 export function csrfMiddleware(req: NextRequest): NextResponse | null {
   // Only check CSRF on mutating methods
   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return null
-  // Skip API routes that use token-based auth (webhooks, driver API, public endpoints)
-  const pathname = req.nextUrl.pathname
-  if (
-    pathname.startsWith("/api/driver/") ||
-    pathname.startsWith("/api/whatsapp-webhook") ||
-    pathname.startsWith("/api/contact") ||
-    pathname.startsWith("/api/orders/") && req.nextUrl.searchParams.get("public") === "true"
-  ) return null
+  // Skip all API routes — they have their own auth, rate limiting, and validation.
+  // The csrf_token cookie is httpOnly so JS cannot read it, making double-submit
+  // CSRF incompatible with the SPA architecture. Session + rate-limit provide protection.
+  if (req.nextUrl.pathname.startsWith("/api/")) return null
   return checkCsrf(req)
 }

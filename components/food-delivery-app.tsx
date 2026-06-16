@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useRef, useCallback, startTransition, Component, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import { motion } from "framer-motion";
 
 import { logger } from "@/lib/logger";
 import type { MenuProduct } from "@/lib/types";
@@ -13,6 +14,7 @@ import { AppHeader } from "./app-header";
 import { CategoryFilter } from "./category-filter";
 import { MealCard } from "./meal-card";
 import { OrderBar } from "./order-bar";
+import { ShoppingBag } from "lucide-react";
 
 const CheckoutModal = dynamic(
   () => import("./checkout-modal").then(m => ({ default: m.CheckoutModal })),
@@ -49,6 +51,24 @@ class ErrorBoundary extends Component<
   }
 }
 
+function SkeletonCard() {
+  return (
+    <div className="bg-card rounded-[2rem] overflow-hidden border border-border/40 animate-pulse">
+      <div className="aspect-[4/3] bg-muted/50" />
+      <div className="p-5 space-y-3">
+        <div className="h-5 bg-muted/50 rounded-lg w-3/4" />
+        <div className="h-3 bg-muted/30 rounded-lg w-full" />
+        <div className="h-3 bg-muted/30 rounded-lg w-2/3" />
+        <div className="flex gap-2 pt-2">
+          <div className="h-7 bg-muted/40 rounded-xl w-16" />
+          <div className="h-7 bg-muted/40 rounded-xl w-12" />
+        </div>
+        <div className="h-11 bg-muted/50 rounded-2xl mt-2" />
+      </div>
+    </div>
+  )
+}
+
 export function FoodDeliveryApp(props: { initialProducts?: MenuProduct[]; slug?: string }) {
   return (
     <CartProvider>
@@ -65,6 +85,7 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
   const [sizes, setSizes] = useState<Record<number, string>>({});
   const [sauces, setSauces] = useState<Record<number, number | null>>({});
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [loading, setLoading] = useState(!initialProducts);
   const { items, addItem, updateQuantity, itemCount, clear, total, removeProduct } = useCart();
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -99,8 +120,10 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
           initSizes[p.id] = avSizes[0] || "L";
         });
         setSizes(initSizes);
+        setLoading(false);
       })
     } else {
+      setLoading(true)
       fetchApi("/api/products").then(r => {
         if (!r.ok) throw new Error(`Products API returned ${r.status}`)
         return r.json()
@@ -124,12 +147,12 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
         setSizes(initSizes);
       }).catch(e => {
         logger.error("Failed to fetch products", e)
+      }).finally(() => {
+        setLoading(false)
       });
     }
-
   }, [initialProducts]);
 
-  // ── Auto-clean stale localStorage cart items ────────
   useEffect(() => {
     if (products.length === 0) return
     const validIds = new Set(products.map(p => p.id))
@@ -140,7 +163,7 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
       })
       for (const s of stale) removeProduct(s.product.id)
     }
-  }, [products]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [products]);
 
   const filtered = selectedCategory === "All"
     ? products
@@ -153,43 +176,78 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-background selection:bg-primary/10">
+      <div className="min-h-screen bg-background selection:bg-emerald-500/10">
         <AppHeader cartItemCount={itemCount} onCart={() => setCheckoutOpen(true)} />
 
         <main className="max-w-4xl mx-auto px-6 pt-6 pb-32">
-          <div className="mb-10">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="mb-10"
+          >
             <h2 className="text-3xl font-black tracking-tight leading-none mb-3">القائمة</h2>
-            <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">اختر وجبتك المفضلة من قائمتنا المتنوعة</p>
-          </div>
+            <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">اختر وجبتك المفضلة من قائمتنا المتنوعة</p>
+          </motion.div>
 
-          <CategoryFilter categories={categories} selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
-          
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+          >
+            <CategoryFilter categories={categories} selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
+          </motion.div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mt-10">
-            {filtered.length === 0 && (
-              <div className="col-span-full flex flex-col items-center justify-center py-24 text-center gap-4">
-                <div className="size-20 rounded-2xl bg-muted/50 flex items-center justify-center text-4xl shadow-inner">
-                  🍽️
+            {loading ? (
+              <>
+                <SkeletonCard />
+                <SkeletonCard />
+                <SkeletonCard />
+                <SkeletonCard />
+              </>
+            ) : filtered.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className="col-span-full flex flex-col items-center justify-center py-24 text-center gap-5"
+              >
+                <div className="size-20 rounded-[1.5rem] bg-muted/40 flex items-center justify-center border border-border/30">
+                  <ShoppingBag className="w-8 h-8 text-muted-foreground/30" />
                 </div>
                 <div>
                   <p className="text-xl font-black text-foreground">لا توجد منتجات</p>
                   <p className="text-sm text-muted-foreground/60 mt-1">عذراً، لا توجد منتجات متوفرة في هذا القسم حالياً.</p>
                 </div>
-              </div>
+              </motion.div>
+            ) : (
+              filtered.map((p, idx) => {
+                const k = `${p.id}_${sizes[p.id] || "L"}_${sauces[p.id] ?? null}`;
+                return (
+                  <motion.div
+                    key={p.id}
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.5,
+                      ease: [0.16, 1, 0.3, 1],
+                      delay: 0.1 + idx * 0.06,
+                    }}
+                  >
+                    <MealCard product={p}
+                      size={sizes[p.id] || "L"}
+                      sauceId={sauces[p.id] ?? null}
+                      quantity={cartQuantities[k] || 0}
+                      onSizeChange={(s) => setSizes(prev => ({ ...prev, [p.id]: s }))}
+                      onSauceChange={(s) => setSauces(prev => ({ ...prev, [p.id]: s }))}
+                      onAdd={() => debouncedAdd(() => { addItem(p, sizes[p.id] || "L", sauces[p.id] ?? null); logger.info("Added", { name: p.name }) })}
+                      onUpdateQuantity={(d) => { updateQuantity(p.id, sizes[p.id] || "L", sauces[p.id] ?? null, d) }}
+                    />
+                  </motion.div>
+                );
+              })
             )}
-            {filtered.map(p => {
-              const k = `${p.id}_${sizes[p.id] || "L"}_${sauces[p.id] ?? null}`;
-              return (
-                <MealCard key={p.id} product={p}
-                  size={sizes[p.id] || "L"}
-                  sauceId={sauces[p.id] ?? null}
-                  quantity={cartQuantities[k] || 0}
-                  onSizeChange={(s) => setSizes(prev => ({ ...prev, [p.id]: s }))}
-                  onSauceChange={(s) => setSauces(prev => ({ ...prev, [p.id]: s }))}
-                  onAdd={() => debouncedAdd(() => { addItem(p, sizes[p.id] || "L", sauces[p.id] ?? null); logger.info("Added", { name: p.name }); })}
-                  onUpdateQuantity={(d) => { updateQuantity(p.id, sizes[p.id] || "L", sauces[p.id] ?? null, d); }}
-                />
-              );
-            })}
           </div>
         </main>
 

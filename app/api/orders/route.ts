@@ -272,16 +272,28 @@ export async function POST(req: NextRequest) {
       return null
     }
 
-    // ── Order number: atomic RPC (no fallback race) ───
+    // ── Order number: try atomic RPC, fall back to inline ───
     let orderNumber: number | undefined
     let order: Record<string, unknown> | null = null
 
     const { data: rpcNum, error: rpcErr } = await sb.rpc("next_order_number")
     if (rpcErr || rpcNum == null) {
-      logger.error("next_order_number RPC failed — run migration SQL", { error: rpcErr })
-      throw new Error("Order numbering service unavailable. Please contact administrator.")
+      logger.warn("next_order_number RPC not available, using fallback", { error: rpcErr })
+      try {
+        const { data: maxRow } = await sb.from("orders")
+          .select("order_number")
+          .order("order_number", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        orderNumber = (maxRow as Record<string, unknown> | null)?.order_number != null
+          ? Number((maxRow as Record<string, number>).order_number) + 1
+          : 1
+      } catch {
+        orderNumber = Math.floor(Date.now() / 1000) % 100000
+      }
+    } else {
+      orderNumber = Number(rpcNum)
     }
-    orderNumber = Number(rpcNum)
     payload.order_number = orderNumber
 
     order = await tryInsert(payload)

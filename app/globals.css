@@ -120,12 +120,14 @@
 @layer base {
   *, *::before, *::after {
     @apply border-border outline-ring/50;
+    @apply font-sans;
   }
   html {
-    @apply font-sans antialiased;
+    @apply antialiased;
     scroll-behavior: smooth;
     background-color: var(--background);
     transition: background-color 0.3s ease-in-out;
+    font-family: "Geist Sans", "Helvetica Neue", "SF Pro Display", "Switzer", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
   body {
     @apply bg-background text-foreground;
@@ -147,13 +149,13 @@
     border-radius: 3px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: oklch(0.60 0.01 145);
+    background: oklch(0.52 0.18 145 / 0.2);
   }
   .dark ::-webkit-scrollbar-thumb {
-    background: oklch(0.28 0.005 145);
+    background: oklch(0.62 0.18 145 / 0.2);
   }
   .dark ::-webkit-scrollbar-thumb:hover {
-    background: oklch(0.38 0.005 145);
+    background: oklch(0.72 0.18 145 / 0.3);
   }
   *:focus-visible {
     @apply outline-none ring-2 ring-primary/30 ring-offset-2 ring-offset-background;
@@ -314,8 +316,9 @@ html[data-locale="fr"] body {
   transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .card-hover:hover {
-  box-shadow: 0 8px 32px -8px oklch(0.52 0.18 145 / 0.12), 0 2px 8px -2px rgb(0 0 0 / 0.04);
+  transform: translateY(-1px);
   border-color: oklch(0.52 0.18 145 / 0.2);
+  box-shadow: 0 4px 20px oklch(0.52 0.18 145 / 0.08);
 }
 
 .status-pending { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300; }
