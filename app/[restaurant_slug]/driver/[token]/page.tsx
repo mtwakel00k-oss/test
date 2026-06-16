@@ -1,0 +1,239 @@
+"use client"
+
+import { useEffect, useState, useCallback } from "react"
+import { useParams } from "next/navigation"
+
+interface DriverOrder {
+  id: string
+  order_number: number | null
+  customer_name: string
+  customer_phone: string | null
+  delivery_address: string | null
+  delivery_lat: number | null
+  delivery_lng: number | null
+  status: string
+  total: number
+  created_at: string
+}
+
+interface DriverData {
+  driver: { id: string; name: string }
+  restaurant: string
+  slug: string
+  orders: DriverOrder[]
+}
+
+export default function DriverPage() {
+  const params = useParams()
+  const token = params?.token as string
+
+  const [data, setData] = useState<DriverData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [delivering, setDelivering] = useState<string | null>(null)
+
+  const fetchOrders = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/driver/${token}`)
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "خطأ غير معروف" }))
+        setError(err.error || "رابط غير صالح")
+        return
+      }
+      const json = await res.json()
+      setData(json)
+    } catch {
+      setError("تعذر الاتصال")
+    } finally {
+      setLoading(false)
+    }
+  }, [token])
+
+  useEffect(() => {
+    fetchOrders()
+    const interval = setInterval(fetchOrders, 30_000)
+    return () => clearInterval(interval)
+  }, [fetchOrders])
+
+  const markDelivered = useCallback(async (orderId: string) => {
+    setDelivering(orderId)
+    try {
+      const res = await fetch(`/api/driver/${token}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order_id: orderId }),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        alert(err.error || "فشل تأكيد التوصيل")
+        return
+      }
+      setData(prev => prev ? {
+        ...prev,
+        orders: prev.orders.filter(o => o.id !== orderId)
+      } : prev)
+    } catch {
+      alert("حدث خطأ، حاول مرة أخرى")
+    } finally {
+      setDelivering(null)
+    }
+  }, [token])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-muted-foreground text-sm">جاري التحميل...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !data) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <div className="text-center space-y-4 max-w-xs">
+          <div className="text-6xl">🔒</div>
+          <h1 className="text-xl font-bold text-foreground">رابط غير صالح</h1>
+          <p className="text-sm text-muted-foreground">
+            {error ?? "هذا الرابط غير صالح أو انتهت صلاحيته. تواصل مع صاحب المطعم."}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-background" dir="rtl">
+      <div className="bg-card border-b border-border px-4 py-3 sticky top-0 z-10">
+        <div className="max-w-lg mx-auto flex items-center justify-between">
+          <div>
+            <p className="text-xs text-muted-foreground">{data.restaurant}</p>
+            <h1 className="text-base font-bold text-foreground">🛵 {data.driver.name}</h1>
+          </div>
+          <button onClick={fetchOrders}
+            className="p-2 rounded-lg hover:bg-muted transition-colors" title="تحديث">
+            <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div className="max-w-lg mx-auto p-4 space-y-4">
+        {data.orders.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center gap-4">
+            <span className="text-6xl">✅</span>
+            <div>
+              <p className="text-lg font-bold text-foreground">لا توجد طلبات نشطة</p>
+              <p className="text-sm text-muted-foreground mt-1">سيظهر هنا أي طلب يخصص لك</p>
+            </div>
+          </div>
+        ) : (
+          data.orders.map((order) => {
+            const isDelivering = delivering === order.id
+            const hasCoords = order.delivery_lat != null && order.delivery_lng != null
+            const mapsUrl = hasCoords
+              ? `https://maps.google.com/?q=${order.delivery_lat},${order.delivery_lng}`
+              : null
+            const waUrl = order.customer_phone
+              ? `https://wa.me/${order.customer_phone.replace(/\D/g, "")}?text=${encodeURIComponent(
+                `مرحباً ${order.customer_name}، أنا السائق وأنا في الطريق إليك 🛵`
+              )}`
+              : null
+
+            return (
+              <div key={order.id} className="rounded-2xl border-2 border-border bg-card overflow-hidden">
+                <div className="px-4 py-3 bg-muted/30 flex items-center justify-between border-b border-border">
+                  <div>
+                    <span className="text-sm font-bold text-foreground">{order.customer_name}</span>
+                    {order.order_number && (
+                      <span className="text-xs text-muted-foreground mr-2">#{order.order_number}</span>
+                    )}
+                  </div>
+                  <span className="text-base font-bold text-primary">
+                    {order.total.toLocaleString()} د.ج
+                  </span>
+                </div>
+
+                <div className="p-4 space-y-3">
+                  {order.delivery_address && (
+                    <div className="flex items-start gap-2 text-sm">
+                      <span className="text-lg leading-none">📍</span>
+                      <span className="text-foreground">{order.delivery_address}</span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2 rounded-xl bg-amber-50 dark:bg-amber-950/30
+                    border border-amber-200 dark:border-amber-800 px-3 py-2">
+                    <span className="text-lg">💵</span>
+                    <div>
+                      <p className="text-xs font-bold text-amber-800 dark:text-amber-300">الدفع عند الاستلام</p>
+                      <p className="text-sm font-bold text-amber-900 dark:text-amber-200">
+                        {order.total.toLocaleString()} د.ج
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    {mapsUrl ? (
+                      <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-1.5 rounded-xl
+                          bg-blue-50 dark:bg-blue-950/30 border border-blue-200
+                          dark:border-blue-800 text-blue-700 dark:text-blue-300
+                          py-2.5 text-sm font-semibold hover:bg-blue-100 transition-colors">
+                        🗺️ الموقع
+                      </a>
+                    ) : (
+                      <div className="flex items-center justify-center rounded-xl
+                        bg-muted/50 border border-border text-muted-foreground py-2.5 text-sm opacity-50">
+                        🗺️ لا يوجد موقع
+                      </div>
+                    )}
+
+                    {waUrl ? (
+                      <a href={waUrl} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-1.5 rounded-xl
+                          bg-green-50 dark:bg-green-950/30 border border-green-200
+                          dark:border-green-800 text-green-700 dark:text-green-300
+                          py-2.5 text-sm font-semibold hover:bg-green-100 transition-colors">
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                        </svg>
+                        واتساب
+                      </a>
+                    ) : (
+                      <div className="flex items-center justify-center rounded-xl
+                        bg-muted/50 border border-border text-muted-foreground py-2.5 text-sm opacity-50">
+                        لا يوجد رقم
+                      </div>
+                    )}
+                  </div>
+
+                  <button onClick={() => markDelivered(order.id)}
+                    disabled={isDelivering}
+                    className="w-full rounded-xl bg-primary text-primary-foreground
+                      py-3.5 text-base font-bold hover:bg-primary/90 transition-colors
+                      disabled:opacity-60 disabled:cursor-not-allowed
+                      flex items-center justify-center gap-2">
+                    {isDelivering ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-primary-foreground
+                          border-t-transparent rounded-full animate-spin" />
+                        جاري التأكيد...
+                      </>
+                    ) : (
+                      <>✅ وصّلت وقبضت</>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )
+          })
+        )}
+      </div>
+    </div>
+  )
+}

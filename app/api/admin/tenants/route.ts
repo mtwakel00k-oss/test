@@ -1,0 +1,123 @@
+import { NextRequest, NextResponse } from "next/server"
+import { createClient } from "@supabase/supabase-js"
+import { parseSession } from "@/lib/tenant"
+import { logger } from "@/lib/logger"
+
+const MASTER_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+async function getAdmin() {
+  const sb = createClient(MASTER_URL, SERVICE_KEY!)
+  const { data } = await sb.auth.admin.listUsers()
+  return data?.users.find((u) => u.email === "admin@developer.app") || null
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = parseSession(req.headers.get("cookie") || "")
+    if (session.role !== "owner" && session.role !== "admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const body = await req.json()
+    const { name, slug, plan_type: planType } = body
+
+    if (!name || !slug) {
+      return NextResponse.json({ error: "Missing required fields: name, slug" }, { status: 400 })
+    }
+
+    if (!SERVICE_KEY) {
+      return NextResponse.json({ error: "Missing SUPABASE_SERVICE_ROLE_KEY" }, { status: 500 })
+    }
+
+    const supabaseAdmin = createClient(MASTER_URL, SERVICE_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    })
+
+    const validPlan = ["starter", "pro", "elite"].includes(planType) ? planType : "starter"
+
+    const { data: tenant, error: insertError } = await supabaseAdmin
+      .from("tenants")
+      .insert({
+        slug,
+        name,
+        supabase_url: MASTER_URL,
+        supabase_anon_key: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        plan_type: validPlan,
+        is_active: true,
+      })
+      .select("id, slug, name, plan_type")
+      .single()
+
+    if (insertError) {
+      if (insertError.code === "23505") {
+        return NextResponse.json({ error: "Slug already exists" }, { status: 409 })
+      }
+      logger.error("Failed to create tenant", insertError)
+      return NextResponse.json({ error: insertError.message }, { status: 500 })
+    }
+
+    const USERS = [
+      { username: "admin", role: "admin", password: "Admin123" },
+      { username: "cashier", role: "cashier", password: "Cashier123" },
+      { username: "chef", role: "chef", password: "Chef1234" },
+    ]
+
+    const domain = `${slug}.app`
+    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers()
+    const existingByEmail = new Map((existingUsers?.users || []).map((u) => [u.email, u.id]))
+
+    const userResults = await Promise.all(
+      USERS.map(async (u) => {
+        const email = `${u.username}@${domain}`
+        const existingId = existingByEmail.get(email)
+        let userId: string
+
+        if (existingId) {
+          userId = existingId
+          await supabaseAdmin.auth.admin.updateUserById(existingId, { password: u.password })
+        } else {
+          const { data, error } = await supabaseAdmin.auth.admin.createUser({
+            email,
+            password: u.password,
+            email_confirm: true,
+            user_metadata: { username: u.username, role: u.role },
+          })
+          if (error || !data?.user) {
+            return { username: u.username, status: "error", error: error?.message || "No user" }
+          }
+          userId = data.user.id
+        }
+
+        await supabaseAdmin.from("profiles").upsert({ id: userId, username: u.username, role: u.role })
+
+        const { data: existingLink } = await supabaseAdmin
+          .from("restaurant_users")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("restaurant_id", tenant.id)
+          .maybeSingle()
+
+        if (!existingLink) {
+          await supabaseAdmin.from("restaurant_users").insert({
+            user_id: userId,
+            restaurant_id: tenant.id,
+            role: u.role,
+          })
+        }
+
+        return { username: u.username, email, status: existingId ? "updated" : "created" }
+      }),
+    )
+
+    return NextResponse.json({
+      tenant,
+      users: userResults,
+      adminEmail: `admin@${domain}`,
+      adminPassword: "Admin123",
+    })
+  } catch (e) {
+    logger.error("Unexpected error creating tenant", e)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  }
+}
