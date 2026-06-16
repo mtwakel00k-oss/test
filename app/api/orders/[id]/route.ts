@@ -249,7 +249,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     logger.info("Order updated", { id, status })
     logAudit(sb, req, { table_name: "orders", record_id: id, operation: "UPDATE", new_data: updateData as Record<string, unknown> })
 
-    if (driver_id && result.order_number != null) {
+    if (driver_id) {
       const slug =
         req.headers.get("x-tenant-slug") ||
         (() => {

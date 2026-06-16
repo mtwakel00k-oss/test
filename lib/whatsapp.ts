@@ -72,7 +72,7 @@ export async function notifyDriverAssigned(
 
     const { data: tenant, error } = await masterSb
       .from("tenants")
-      .select("supabase_url, supabase_anon_key")
+      .select("supabase_url, supabase_anon_key, drivers")
       .eq("slug", slug)
       .single()
 
@@ -81,23 +81,34 @@ export async function notifyDriverAssigned(
       return
     }
 
-    const tenantSb = createClient(tenant.supabase_url, tenant.supabase_anon_key)
+    // Try tenant's drivers table first (delivery_men source)
+    let driver: DriverRecord | null = null
+    if (tenant.supabase_url && tenant.supabase_anon_key) {
+      const tenantSb = createClient(tenant.supabase_url, tenant.supabase_anon_key)
+      const { data: tableDriver, error: driverError } = await tenantSb
+        .from("drivers")
+        .select("*")
+        .eq("id", driverId)
+        .maybeSingle()
+      if (!driverError && tableDriver?.is_active) {
+        driver = tableDriver as DriverRecord
+      }
+    }
 
-    const { data: driver, error: driverError } = await tenantSb
-      .from("drivers")
-      .select("*")
-      .eq("id", driverId)
-      .maybeSingle()
+    // Fallback: look up from master DB tenants.drivers JSONB (tenant source)
+    if (!driver && tenant.drivers) {
+      const arr = Array.isArray(tenant.drivers) ? (tenant.drivers as DriverRecord[]) : []
+      driver = arr.find((d) => d.id === driverId && d.is_active) ?? null
+    }
 
-    if (driverError || !driver || !driver.is_active) {
-      logger.warn("notifyDriverAssigned: driver not found or inactive", { slug, driverId, driverError })
+    if (!driver) {
+      logger.warn("notifyDriverAssigned: driver not found in tenant table or master JSONB", { slug, driverId })
       return
     }
 
-    const d = driver as DriverRecord
-    const link = `${origin}/${slug}/driver/${d.token || driverId}`
+    const link = `${origin}/${slug}/driver/${driver.token || driverId}`
     const message = [
-      `🛵 *${d.name}*`,
+      `🛵 *${driver.name}*`,
       ``,
       `تم تعيينك لتوصيل الطلب رقم #${orderNumber}`,
       `المبلغ: ${total} د.ج`,
@@ -106,7 +117,7 @@ export async function notifyDriverAssigned(
       link,
     ].join("\n")
 
-    await sendDriverWhatsApp(d.phone, message)
+    await sendDriverWhatsApp(driver.phone, message)
   } catch (e) {
     logger.error("notifyDriverAssigned failed", e)
   }
