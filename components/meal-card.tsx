@@ -62,13 +62,13 @@ export const MealCard = memo(function MealCard({
         )}
 
             <div className="absolute bottom-3 start-3 end-3 flex items-end justify-between">
-          <div className="bg-white/90 backdrop-blur-sm px-3 py-2 rounded-xl border border-white/20">
-            <span className="text-[9px] font-bold text-foreground uppercase tracking-widest leading-none mb-0.5 block">{lang === "ar" ? "السعر" : "PRICE"}</span>
-            <span className="text-foreground font-black text-lg tabular-nums">
-              {price.toLocaleString(lang === "fr" ? "fr-FR" : "en-US")}
-              <span className="text-[10px] font-bold text-muted-foreground ms-1">{lang === "ar" ? "د.ج" : "DA"}</span>
-            </span>
-          </div>
+            <div className="bg-white/90 backdrop-blur-sm px-3 py-2 rounded-xl border border-white/20 dark:bg-neutral-800 dark:border-neutral-700/50">
+              <span className="text-[9px] font-bold text-foreground uppercase tracking-widest leading-none mb-0.5 block dark:text-neutral-400">{lang === "ar" ? "السعر" : "PRICE"}</span>
+              <span className="text-foreground font-black text-lg tabular-nums dark:text-white">
+                {price.toLocaleString(lang === "fr" ? "fr-FR" : "en-US")}
+                <span className="text-[10px] font-bold text-muted-foreground ms-1 dark:text-neutral-400">{lang === "ar" ? "د.ج" : "DA"}</span>
+              </span>
+            </div>
         </div>
 
         {!product.is_available && (

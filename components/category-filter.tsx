@@ -41,7 +41,7 @@ export function CategoryFilter({
               className={`relative flex-shrink-0 snap-start px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300 active:scale-95 ${
                 isSelected
                   ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/20 scale-105"
-                  : "bg-secondary/40 text-muted-foreground hover:bg-secondary hover:text-foreground border border-border/30"
+                  : "bg-secondary/40 text-muted-foreground hover:bg-secondary hover:text-foreground border border-border/30 dark:bg-white/5 dark:text-neutral-300 dark:hover:bg-white/10 dark:hover:text-white dark:border-neutral-700/30"
               }`}
             >
               {cat === "All" ? t("menu.all") : cat}

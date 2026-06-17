@@ -348,6 +348,7 @@ export const T: Dict = {
 
   // ── Menu ───────────────────────────────────────────
   "menu.all": { ar: "الكل", en: "All", fr: "Tous" },
+  "menu.add": { ar: "إضافة", en: "Add", fr: "Ajouter" },
   "menu.featured": { ar: "مميز", en: "Featured", fr: "Spécial" },
   "menu.viewOrder": { ar: "عرض الطلب", en: "View Order", fr: "Voir la commande" },
   "menu.enterName": { ar: "يرجى إدخال الاسم", en: "Please enter a name", fr: "Veuillez saisir un nom" },
