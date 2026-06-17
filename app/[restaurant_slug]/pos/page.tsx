@@ -39,28 +39,20 @@ export default function POSPage() {
 
   const { products } = useProducts()
 
-  const handleOrderCreated = useCallback(() => {
-    setPageTab("orders")
-  }, [])
+  const handleOrderCreated = useCallback(() => { setPageTab("orders") }, [])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
+    <div className="min-h-screen bg-background">
       <POSHeader
         totalOrders={0} activeOrders={0} todayRevenue={0}
         onNewOrder={() => setPageTab("new")}
         userName={cashier?.email?.split("@")[0]} userRole={cashier?.role}
       />
-
       <PageTransition>
         {pageTab === "orders" ? (
           <OrdersPanel onNewOrder={() => setPageTab("new")} />
         ) : (
-          <NewOrderPanel
-            products={products}
-            onOrderCreated={handleOrderCreated}
-            onCancel={() => setPageTab("orders")}
-            hasDelivery={true}
-          />
+          <NewOrderPanel products={products} onOrderCreated={handleOrderCreated} onCancel={() => setPageTab("orders")} hasDelivery={true} />
         )}
       </PageTransition>
     </div>

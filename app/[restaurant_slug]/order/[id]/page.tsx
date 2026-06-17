@@ -13,20 +13,22 @@ import type { Order, OrderItem } from "@/lib/types"
 import { OrderStatusTracker } from "@/components/order-status-tracker"
 import { OrderDetails } from "@/components/order-details"
 const RatingWidget = dynamic(() => import("@/components/RatingWidget"), { ssr: false })
-import { CheckCircle, Clock, ChefHat, Bike, Sparkles } from "lucide-react"
+import { CheckCircle, Clock, ChefHat, Bike, Sparkles, Package } from "lucide-react"
 
 const LiveDriverMap = dynamic(() => import("@/components/live-driver-map"), { ssr: false })
 
 function OrderSkeleton() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
-      <main className="w-full max-w-md mx-auto px-4 py-6 space-y-5 animate-pulse">
-        <div className="space-y-2 text-center">
-          <div className="h-6 bg-zinc-800 rounded-lg w-1/2 mx-auto" />
-          <div className="h-4 bg-zinc-800 rounded w-1/3 mx-auto" />
+    <div className="min-h-screen bg-background">
+      <main className="w-full max-w-lg mx-auto px-4 py-8 space-y-6 animate-pulse">
+        <div className="space-y-3 text-center">
+          <div className="h-5 bg-muted rounded-lg w-1/3 mx-auto" />
+          <div className="h-7 bg-muted rounded-xl w-1/2 mx-auto" />
+          <div className="h-4 bg-muted rounded w-1/4 mx-auto" />
         </div>
-        <div className="h-32 bg-zinc-800 rounded-2xl" />
-        <div className="h-40 bg-zinc-800 rounded-2xl" />
+        <div className="h-36 bg-muted rounded-2xl" />
+        <div className="h-48 bg-muted rounded-2xl" />
+        <div className="h-24 bg-muted rounded-2xl" />
       </main>
     </div>
   )
@@ -35,7 +37,7 @@ function OrderSkeleton() {
 const STATUS_ICONS: Record<string, { icon: React.ReactNode; color: string; label: string }> = {
   pending: { icon: <Clock className="w-5 h-5" />, color: "bg-amber-500", label: "track.pending" },
   preparing: { icon: <ChefHat className="w-5 h-5" />, color: "bg-sky-500", label: "track.preparing" },
-  ready: { icon: <CheckCircle className="w-5 h-5" />, color: "bg-emerald-500", label: "track.ready" },
+  ready: { icon: <Package className="w-5 h-5" />, color: "bg-emerald-500", label: "track.ready" },
   out_for_delivery: { icon: <Bike className="w-5 h-5" />, color: "bg-violet-500", label: "track.outForDelivery" },
   completed: { icon: <Sparkles className="w-5 h-5" />, color: "bg-neutral-400", label: "track.completed" },
 }
@@ -93,11 +95,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
             errorBody = await res.text().catch(() => "Unable to read response body")
           }
 
-          logger.error(`[OrderTracking] Failed to fetch order ${id}`, {
-            status: res.status,
-            body: errorBody,
-            slug,
-          })
+          logger.error(`[OrderTracking] Failed to fetch order ${id}`, { status: res.status, body: errorBody, slug })
 
           if (res.status === 404) {
             setErrorMsg(t("order.notFound"))
@@ -124,12 +122,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
           return
         }
 
-        logger.info(`[OrderTracking] Successfully loaded order ${id}`, {
-          status: o.status,
-          orderType: o.order_type,
-          orderNumber: o.order_number,
-          itemCount: o.items?.length,
-        })
+        logger.info(`[OrderTracking] Successfully loaded order ${id}`, { status: o.status, orderType: o.order_type, orderNumber: o.order_number, itemCount: o.items?.length })
 
         setOrder(o)
         setItems(o.items || [])
@@ -172,7 +165,6 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
         (payload: { new?: Record<string, unknown> }) => {
           if (payload.new) {
             const updated = payload.new as unknown as Order
-            logger.info(`[OrderTracking] Realtime update for order ${id}`, { status: updated.status })
             setOrder((prev) =>
               prev ? { ...prev, ...updated, items: prev.items } : updated,
             )
@@ -250,15 +242,17 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
   if (loading) return <OrderSkeleton />
   if (!order) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="text-center max-w-sm">
-          <div className="text-7xl mb-6 opacity-80">🍔</div>
-          <h1 className="text-2xl font-black text-white mb-2">{t("order.notFound")}</h1>
-          {errorMsg && <p className="text-sm text-white/50 mb-2">{errorMsg}</p>}
+          <div className="flex items-center justify-center w-20 h-20 mx-auto mb-5 rounded-2xl bg-muted/40 border border-border/30">
+            <span className="text-4xl">🍔</span>
+          </div>
+          <h1 className="text-xl font-bold text-foreground mb-1.5">{t("order.notFound")}</h1>
+          {errorMsg && <p className="text-sm text-muted-foreground mb-1">{errorMsg}</p>}
           {process.env.NODE_ENV === "development" && errorDetail && (
-            <p className="text-xs text-rose-400/60 mb-6 break-all">{errorDetail}</p>
+            <p className="text-xs text-destructive/60 mb-6 break-all">{errorDetail}</p>
           )}
-          <Link href={`/${slug}/menu`} className="inline-flex rounded-xl bg-amber-500 text-white px-7 py-3 text-sm font-bold hover:bg-amber-400 transition-all active:scale-95 shadow-lg shadow-amber-500/20">
+          <Link href={`/${slug}/menu`} className="inline-flex items-center justify-center h-11 px-6 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/85 transition-all active:scale-[0.97] shadow-sm shadow-primary/20">
             {t("common.backToMenu")}
           </Link>
         </div>
@@ -273,99 +267,108 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
   const statusInfo = STATUS_ICONS[order.status] || STATUS_ICONS.pending
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white" dir={dir}>
-      <main className="w-full max-w-md mx-auto px-4 py-6 space-y-5">
+    <div className="min-h-screen bg-background text-foreground" dir={dir}>
+      <main className="w-full max-w-lg mx-auto px-4 py-8 space-y-6">
         <div className="text-center pb-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white/50 text-xs mb-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 border border-border/40 text-xs font-medium text-muted-foreground mb-4">
             <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.color}`} />
             {t(statusInfo.label)}
           </div>
-          <h1 className="text-2xl font-black text-white tracking-tight">{t("track.orderNumber")} <span className="text-amber-400">#{order.order_number ?? ""}</span></h1>
-          <p className="text-sm text-white/50 mt-1">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            {t("track.orderNumber")} <span className="text-primary">#{order.order_number ?? ""}</span>
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1.5">
             {order.customer_name}
             {order.table_number ? ` · ${t("track.table")} ${order.table_number}` : ""}
           </p>
-          <p className="text-xs text-white/30 mt-2">
-            {t("track.total")}: <span className="font-bold text-amber-400">{order.total} {cur}</span>
+          <p className="text-xs text-muted-foreground/60 mt-2">
+            {t("track.total")}: <span className="font-semibold text-foreground">{order.total} {cur}</span>
           </p>
         </div>
 
         {isOutForDelivery && hasLiveTracking && (
-          <LiveDriverMap
-            driverLat={driverLat}
-            driverLng={driverLng}
-            customerLat={deliveryCoords?.lat ?? null}
-            customerLng={deliveryCoords?.lng ?? null}
-            lastUpdated={order.driver_location_updated_at ?? null}
-          />
+          <div className="rounded-2xl overflow-hidden border border-border/40 bg-card shadow-sm">
+            <LiveDriverMap
+              driverLat={driverLat}
+              driverLng={driverLng}
+              customerLat={deliveryCoords?.lat ?? null}
+              customerLng={deliveryCoords?.lng ?? null}
+              lastUpdated={order.driver_location_updated_at ?? null}
+            />
+          </div>
         )}
 
         {isOutForDelivery && !hasLiveTracking && isElite && (
-          <div className="rounded-2xl bg-gradient-to-br from-violet-500/10 to-purple-500/5 border border-violet-500/20 p-5 text-center">
-            <div className="flex items-center justify-center gap-3 mb-2">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-500/20">
+          <div className="rounded-2xl border border-border/40 bg-card/50 p-6 text-center">
+            <div className="flex items-center justify-center gap-4 mb-2">
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-violet-500/10 border border-violet-500/20">
                 <span className="text-2xl">🛵</span>
               </div>
               <div className="text-left">
-                <p className="text-base font-bold text-white">{t("track.outForDelivery")}</p>
-                <p className="text-xs text-violet-300/70">{t("track.outForDeliverySub")}</p>
+                <p className="text-base font-semibold text-foreground">{t("track.outForDelivery")}</p>
+                <p className="text-xs text-muted-foreground">{t("track.outForDeliverySub")}</p>
               </div>
             </div>
-            <p className="text-xs text-zinc-500 mt-3">جاري تحميل التتبع المباشر...</p>
+            <p className="text-xs text-muted-foreground/60 mt-3">Loading live tracking...</p>
           </div>
         )}
 
         {isOutForDelivery && !hasLiveTracking && (isPro || (!isElite && !isPro)) && (
-          <div className="rounded-2xl bg-gradient-to-br from-violet-500/10 to-purple-500/5 border border-violet-500/20 p-5 text-center">
-            <div className="flex items-center justify-center gap-3 mb-2">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-500/20">
+          <div className="rounded-2xl border border-border/40 bg-card/50 p-6 text-center">
+            <div className="flex items-center justify-center gap-4 mb-2">
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-violet-500/10 border border-violet-500/20">
                 <span className="text-2xl">🛵</span>
               </div>
               <div className="text-left">
-                <p className="text-base font-bold text-white">{t("track.outForDelivery")}</p>
-                <p className="text-xs text-violet-300/70">{t("track.outForDeliverySub")}</p>
+                <p className="text-base font-semibold text-foreground">{t("track.outForDelivery")}</p>
+                <p className="text-xs text-muted-foreground">{t("track.outForDeliverySub")}</p>
               </div>
             </div>
-            {isPro && <p className="text-xs text-zinc-500 mt-3">Live GPS tracking available on the Elite plan</p>}
+            {isPro && <p className="text-xs text-muted-foreground/60 mt-3">Live GPS tracking available on the Elite plan</p>}
           </div>
         )}
 
-        <OrderStatusTracker
-          currentStage={stage}
-          orderType={(order.order_type as "dine_in" | "takeaway" | "delivery") ?? "dine_in"}
-        />
-        <OrderDetails items={items} />
+        <div className="rounded-2xl border border-border/30 bg-card shadow-sm">
+          <OrderStatusTracker
+            currentStage={stage}
+            orderType={(order.order_type as "dine_in" | "takeaway" | "delivery") ?? "dine_in"}
+          />
+        </div>
+
+        <div className="rounded-2xl border border-border/30 bg-card shadow-sm">
+          <OrderDetails items={items} />
+        </div>
 
         {isDelivery && order.delivery_address && (
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 flex items-start gap-3">
-            <span className="text-xl leading-none">📍</span>
+          <div className="rounded-2xl border border-border/30 bg-card/50 px-5 py-4 flex items-start gap-3 shadow-sm">
+            <span className="text-xl leading-none shrink-0">📍</span>
             <div>
-              <p className="text-xs font-semibold text-white/40 mb-0.5">{t("track.deliveryAddress")}</p>
-              <p className="text-sm text-white/80">{order.delivery_address}</p>
+              <p className="text-xs font-semibold text-muted-foreground mb-0.5">{t("track.deliveryAddress")}</p>
+              <p className="text-sm text-foreground/80">{order.delivery_address}</p>
             </div>
           </div>
         )}
 
         {isReady && hasRatings && (
-          <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
-            <div className="bg-gradient-to-r from-amber-500/10 to-transparent px-5 py-4 border-b border-white/5">
+          <div className="rounded-2xl border border-border/30 bg-card shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-border/30 bg-gradient-to-r from-primary-bg to-transparent">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-400" />
-                <h2 className="text-sm font-bold text-white">{t("order.rateMeals")}</h2>
+                <Sparkles className="w-4 h-4 text-primary" />
+                <h2 className="text-sm font-semibold text-foreground">{t("order.rateMeals")}</h2>
               </div>
-              <p className="text-xs text-white/40 mt-0.5">{t("order.rateSubtitle")}</p>
+              <p className="text-xs text-muted-foreground/70 mt-0.5">{t("order.rateSubtitle")}</p>
             </div>
-            <div className="divide-y divide-white/5">
+            <div className="divide-y divide-border/20">
               {items.map(i => (
                 <div key={i.id} className="px-5 py-4 space-y-2">
-                  <p className="text-sm font-medium text-white/80">{i.product_name}</p>
+                  <p className="text-sm font-medium text-foreground/80">{i.product_name}</p>
                   {!ratedProducts.includes(Number(i.product_id)) ? (
                     <RatingWidget
                       productId={i.product_id}
                       onRated={() => setRatedProducts(prev => [...prev, Number(i.product_id)])}
                     />
                   ) : (
-                    <p className="text-xs text-emerald-400 flex items-center gap-1">
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                       <CheckCircle className="w-3 h-3" /> {t("order.rated")}
                     </p>
                   )}
@@ -375,12 +378,12 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
           </div>
         )}
 
-        <p className="text-center text-xs text-rose-500/50 pb-2">
+        <p className="text-center text-xs text-muted-foreground/40">
           {t("order.cancelNotice")}
         </p>
 
         <div className="text-center pb-4">
-          <Link href={`/${slug}/menu`} className="inline-flex rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 px-6 py-2.5 text-sm font-bold hover:bg-amber-500/20 transition-all active:scale-95">
+          <Link href={`/${slug}/menu`} className="inline-flex items-center justify-center h-10 px-5 rounded-xl border border-border/40 bg-card/50 text-sm font-semibold text-foreground/70 hover:text-foreground hover:bg-card hover:border-border/60 transition-all active:scale-[0.97]">
             {t("track.backToMenu")}
           </Link>
         </div>

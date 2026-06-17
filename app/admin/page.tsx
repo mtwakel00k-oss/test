@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { LogOut, Building2 } from "lucide-react"
+import { LogOut, Building2, Shield } from "lucide-react"
 import { resetTenantClient } from "@/lib/tenant"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { PlanManager } from "@/components/admin/plan-manager"
+import { PageTransition } from "@/components/page-transition"
 
 export default function AdminDashboard() {
   const router = useRouter()
@@ -23,30 +24,33 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-background" dir="ltr">
-      <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-lg">
-        <div className="flex items-center justify-between px-6 py-3">
+      <header className="sticky top-0 z-30 border-b border-border/40 bg-background/70 backdrop-blur-xl">
+        <div className="flex items-center justify-between px-4 lg:px-6 py-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground font-bold text-sm shadow-sm">
-              <Building2 className="h-5 w-5" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-sm">
+              <Shield className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-foreground">Restaurant Management</h1>
+              <h1 className="text-sm font-bold text-foreground tracking-tight">Root Admin</h1>
               <p className="text-xs text-muted-foreground">Developer panel</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <ThemeToggle />
             <LanguageSwitcher />
             <button onClick={async () => { resetTenantClient(); await fetch("/api/auth/logout", { method: "POST" }); router.push("/login") }}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors" title="Logout">
-              <LogOut className="h-4 w-4" />
+              className="flex items-center gap-1.5 h-9 px-3 rounded-lg text-xs font-semibold text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all active:scale-95">
+              <LogOut className="h-3.5 w-3.5" />
+              Logout
             </button>
           </div>
         </div>
       </header>
-      <main className="p-6 max-w-6xl mx-auto">
-        <PlanManager />
-      </main>
+      <PageTransition>
+        <main className="p-4 lg:p-6 max-w-7xl mx-auto">
+          <PlanManager />
+        </main>
+      </PageTransition>
     </div>
   )
 }

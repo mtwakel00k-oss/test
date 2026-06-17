@@ -4,17 +4,9 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useParams } from "next/navigation"
+import { Search, ArrowLeft } from "lucide-react"
 import { logger } from "@/lib/logger"
 
-/**
- * Landing page for bare /order/:id URLs (no restaurant_slug).
- *
- * Flow:
- * 1. Calls GET /api/orders/:id?public=true
- * 2. Server scans all tenants until it finds the order
- * 3. Response includes { order, slug } → we redirect to /[slug]/order/[id]
- * 4. If the order is not found → show error with link to menu
- */
 export default function OrderRedirectPage() {
   const router = useRouter()
   const { id } = useParams<{ id: string }>()
@@ -22,86 +14,62 @@ export default function OrderRedirectPage() {
 
   useEffect(() => {
     if (!id) return
-
     let cancelled = false
-
     ;(async () => {
       try {
         logger.info(`[OrderRedirect] Looking up order ${id} via public API`)
-
         const res = await fetch(`/api/orders/${id}?public=true`, {
           headers: { "Content-Type": "application/json" },
         })
         if (cancelled) return
-
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}))
-          logger.warn(`[OrderRedirect] API returned ${res.status}`, body)
-          if (!cancelled) setStatus("not_found")
-          return
-        }
-
+        if (!res.ok) { if (!cancelled) setStatus("not_found"); return }
         const data = await res.json()
-
-        // Case 1: response includes a slug → redirect to tenant-scoped URL
         if (data.slug) {
-          logger.info(`[OrderRedirect] Redirecting to /${data.slug}/order/${id}`)
-          if (!cancelled) {
-            setStatus("redirecting")
-            router.replace(`/${data.slug}/order/${id}`)
-          }
+          if (!cancelled) { setStatus("redirecting"); router.replace(`/${data.slug}/order/${id}`) }
           return
         }
-
-        // Case 2: no slug but order exists (rare — means standard lookup worked)
-        if (data.order) {
-          logger.info(`[OrderRedirect] Order found, no slug returned — staying on /order/${id}`)
-          if (!cancelled) {
-            // Render below will show the order content once we set state
-            setStatus("not_found")
-          }
-          return
-        }
-
-        logger.warn(`[OrderRedirect] Unexpected response shape`, data)
+        if (data.order) { if (!cancelled) setStatus("not_found"); return }
         if (!cancelled) setStatus("not_found")
-      } catch (e) {
-        logger.error(`[OrderRedirect] Network error`, { error: e instanceof Error ? e.message : String(e) })
+      } catch {
         if (!cancelled) setStatus("not_found")
       }
     })()
-
     return () => { cancelled = true }
   }, [id, router])
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       {status === "loading" && (
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-green-500/30 border-t-green-400 rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-white/60 text-sm">جاري البحث عن طلبك...</p>
+        <div className="text-center space-y-4">
+          <div className="flex items-center justify-center w-16 h-16 mx-auto rounded-2xl bg-card border border-border shadow-sm">
+            <Search className="w-6 h-6 text-muted-foreground animate-pulse" />
+          </div>
+          <p className="text-sm text-muted-foreground">Searching for your order...</p>
         </div>
       )}
 
       {status === "redirecting" && (
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-green-500/30 border-t-green-400 rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-white/60 text-sm">جاري تحويلك إلى صفحة التتبع...</p>
+        <div className="text-center space-y-4">
+          <div className="flex items-center justify-center w-16 h-16 mx-auto rounded-2xl bg-card border border-border shadow-sm">
+            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+          <p className="text-sm text-muted-foreground">Redirecting to tracking page...</p>
         </div>
       )}
 
       {status === "not_found" && (
-        <div className="glass rounded-3xl p-8 max-w-sm w-full text-center">
-          <div className="text-6xl mb-4">🍔</div>
-          <h1 className="text-xl font-black text-white mb-2">لم يتم العثور على الطلب</h1>
-          <p className="text-sm text-white/40 mb-6">
-            قد يكون الرابط غير صحيح أو أن الطلب قد أُزيل. تحقق من الرابط أو تواصل مع المطعم.
+        <div className="rounded-2xl bg-card border border-border/40 p-8 max-w-sm w-full text-center shadow-sm">
+          <div className="flex items-center justify-center w-16 h-16 mx-auto rounded-2xl bg-destructive/10 border border-destructive/20 mb-4">
+            <Search className="w-7 h-7 text-destructive" />
+          </div>
+          <h1 className="text-xl font-bold text-foreground mb-2">Order Not Found</h1>
+          <p className="text-sm text-muted-foreground mb-6">
+            The link may be incorrect or the order has been removed. Please check the link or contact the restaurant.
           </p>
-          <Link
-            href="/menu"
-            className="inline-block rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-black px-6 py-2.5 text-sm font-bold"
-          >
-            العودة إلى القائمة
+          <Link href="/menu"
+            className="inline-flex items-center gap-2 rounded-xl bg-primary text-primary-foreground px-6 py-2.5 text-sm font-bold hover:opacity-90 transition-all active:scale-95 shadow-sm">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Menu
           </Link>
         </div>
       )}
