@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useRef, useCallback, useMemo } from "react"
+import { useEffect, useState, useRef, useCallback, useMemo, startTransition } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ExternalLink, ChefHat, Timer, Bell } from "lucide-react"
@@ -134,43 +134,42 @@ export default function KitchenPage() {
   const preparingOrders = orders.filter(o => o.status === "preparing")
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white">
-      {/* Header */}
-      <header className="border-b border-white/5 bg-black/40 backdrop-blur-xl">
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="border-b border-border/40 bg-background/70 backdrop-blur-xl">
         <div className="flex items-center justify-between px-4 lg:px-6 py-3">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-amber-500/20">
               <ChefHat className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-base font-bold text-white tracking-tight">{t("kitchen.title")}</h1>
-              <p className="text-xs text-white/40">{t("kitchen.subtitle")}</p>
+              <h1 className="text-base font-bold text-foreground tracking-tight">{t("kitchen.title")}</h1>
+              <p className="text-xs text-muted-foreground">{t("kitchen.subtitle")}</p>
             </div>
           </div>
 
           <div className="hidden md:flex items-center gap-4">
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
-              <Bell className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-              <span className="text-sm text-white/70">
-                <span className="font-bold text-amber-400">{pendingOrders.length}</span> {t("kitchen.new")}
+              <Bell className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+              <span className="text-sm text-muted-foreground">
+                <span className="font-bold text-amber-500">{pendingOrders.length}</span> {t("kitchen.new")}
               </span>
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-sky-500/10 border border-sky-500/20">
-              <Timer className="w-3.5 h-3.5 text-sky-400" />
-              <span className="text-sm text-white/70">
-                <span className="font-bold text-sky-400">{preparingOrders.length}</span> {t("kitchen.preparing")}
+              <Timer className="w-3.5 h-3.5 text-sky-500" />
+              <span className="text-sm text-muted-foreground">
+                <span className="font-bold text-sky-500">{preparingOrders.length}</span> {t("kitchen.preparing")}
               </span>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-bold text-white tabular-nums">{currentTime}</p>
-              <p className="text-xs text-white/40">{currentDate}</p>
+              <p className="text-sm font-bold text-foreground tabular-nums">{currentTime}</p>
+              <p className="text-xs text-muted-foreground">{currentDate}</p>
             </div>
             <ThemeToggle />
             <LanguageSwitcher />
-            <Link href="/pos" title={t("kitchen.posLink")} className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 hover:bg-amber-500/20 hover:text-amber-400 text-white/50 transition-colors">
+            <Link href="/pos" title={t("kitchen.posLink")} className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted/50 hover:bg-amber-500/20 hover:text-amber-500 text-muted-foreground/50 transition-colors">
               <ExternalLink className="h-4 w-4" />
             </Link>
           </div>
@@ -179,12 +178,12 @@ export default function KitchenPage() {
 
       <main className="p-4 lg:p-6">
         {orders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-white/30">
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white/5 mb-6">
+          <div className="flex flex-col items-center justify-center py-20 text-muted-foreground/30">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-muted/40 mb-6">
               <ChefHat className="w-12 h-12" />
             </div>
-            <p className="text-2xl font-bold text-white/20">{t("kitchen.noOrders")}</p>
-            <p className="text-base text-white/10 mt-2">{t("kitchen.waiting")}</p>
+            <p className="text-2xl font-bold text-muted-foreground/20">{t("kitchen.noOrders")}</p>
+            <p className="text-base text-muted-foreground/10 mt-2">{t("kitchen.waiting")}</p>
           </div>
         ) : (
           <>
@@ -195,7 +194,7 @@ export default function KitchenPage() {
                     <span className="absolute inline-flex h-3 w-3 rounded-full bg-amber-400 opacity-75 animate-ping" />
                     <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500" />
                   </span>
-                  <h2 className="text-lg font-black text-amber-400 tracking-tight">{t("kitchen.newOrders")} ({pendingOrders.length})</h2>
+                  <h2 className="text-lg font-black text-amber-500 tracking-tight">{t("kitchen.newOrders")} ({pendingOrders.length})</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
                   {pendingOrders.map(order => (
@@ -203,23 +202,23 @@ export default function KitchenPage() {
                       <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
                       <div className="flex justify-between items-start w-full mb-4 relative">
                         <div>
-                          <div className="text-2xl font-black text-white text-start">
+                          <div className="text-2xl font-black text-foreground text-start">
                             {order.orderType === "takeaway" ? t("pos.takeaway") : `${t("pos.table")} ${order.tableNumber}`}
                           </div>
-                          <p className="text-sm text-white/40 mt-0.5 text-start font-mono">#{order.orderNumber}</p>
+                          <p className="text-sm text-muted-foreground/60 mt-0.5 text-start font-mono">#{order.orderNumber}</p>
                         </div>
                         <div className="flex flex-col items-end gap-1.5">
-                          <span className="inline-flex px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                          <span className="inline-flex px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-500/10 text-purple-600 dark:text-purple-300 border border-purple-500/20 dark:border-purple-500/30">
                             {order.orderType === "takeaway" ? t("pos.takeaway") : t("pos.dineIn")}
                           </span>
-                          <span className="text-sm font-mono text-amber-400/80 tabular-nums">{fmtTime(order.createdAt)}</span>
+                          <span className="text-sm font-mono text-amber-500/70 tabular-nums">{fmtTime(order.createdAt)}</span>
                         </div>
                       </div>
                       <div className="border-t border-amber-500/10 pt-4 space-y-2.5 relative">
                         {order.items.map(item => (
                           <div key={item.id} className="flex items-center gap-3">
-                            <span className="text-lg font-black text-amber-400 min-w-[3rem]">{item.quantity}×</span>
-                            <span className="text-sm text-white/90 font-medium">{item.name}</span>
+                            <span className="text-lg font-black text-amber-500 min-w-[3rem]">{item.quantity}×</span>
+                            <span className="text-sm text-foreground/80 font-medium">{item.name}</span>
                           </div>
                         ))}
                       </div>
@@ -232,8 +231,8 @@ export default function KitchenPage() {
             {preparingOrders.length > 0 && (
               <section>
                 <div className="flex items-center gap-3 mb-4">
-                  <Timer className="w-4 h-4 text-sky-400" />
-                  <h2 className="text-lg font-black text-sky-400 tracking-tight">{t("kitchen.preparingOrders")} ({preparingOrders.length})</h2>
+                  <Timer className="w-4 h-4 text-sky-500" />
+                  <h2 className="text-lg font-black text-sky-500 tracking-tight">{t("kitchen.preparingOrders")} ({preparingOrders.length})</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
                   {preparingOrders.map(order => (
@@ -241,23 +240,23 @@ export default function KitchenPage() {
                       <div className="absolute top-0 left-0 w-32 h-32 bg-sky-500/5 rounded-full blur-3xl pointer-events-none" />
                       <div className="flex justify-between items-start w-full mb-4 relative">
                         <div>
-                          <div className="text-2xl font-black text-white text-start">
+                          <div className="text-2xl font-black text-foreground text-start">
                             {order.orderType === "takeaway" ? t("pos.takeaway") : `${t("pos.table")} ${order.tableNumber}`}
                           </div>
-                          <p className="text-sm text-white/40 mt-0.5 text-start font-mono">#{order.orderNumber}</p>
+                          <p className="text-sm text-muted-foreground/60 mt-0.5 text-start font-mono">#{order.orderNumber}</p>
                         </div>
                         <div className="flex flex-col items-end gap-1.5">
-                          <span className="inline-flex px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                          <span className="inline-flex px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-500/10 text-purple-600 dark:text-purple-300 border border-purple-500/20 dark:border-purple-500/30">
                             {order.orderType === "takeaway" ? t("pos.takeaway") : t("pos.dineIn")}
                           </span>
-                          <span className="text-sm font-mono text-sky-400/80 tabular-nums">{fmtTime(order.createdAt)}</span>
+                          <span className="text-sm font-mono text-sky-500/70 tabular-nums">{fmtTime(order.createdAt)}</span>
                         </div>
                       </div>
                       <div className="border-t border-sky-500/10 pt-4 space-y-2.5 relative">
                         {order.items.map(item => (
                           <div key={item.id} className="flex items-center gap-3">
-                            <span className="text-lg font-black text-sky-400 min-w-[3rem]">{item.quantity}×</span>
-                            <span className="text-sm text-white/90 font-medium">{item.name}</span>
+                            <span className="text-lg font-black text-sky-500 min-w-[3rem]">{item.quantity}×</span>
+                            <span className="text-sm text-foreground/80 font-medium">{item.name}</span>
                           </div>
                         ))}
                       </div>

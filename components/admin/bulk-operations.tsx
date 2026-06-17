@@ -200,11 +200,11 @@ export function BulkOperations({ open, onClose, onComplete }: BulkOperationsProp
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block">
                 {t("action", "en")}
               </label>
-              <div className="flex items-center gap-1.5 bg-white/5 p-0.5 rounded-lg border border-white/5 w-fit">
+              <div className="flex items-center gap-1.5 bg-muted/50 p-0.5 rounded-lg border border-border/40 w-fit">
                 {(["set_availability", "set_price", "set_category"] as BulkAction[]).map((a) => (
                   <button key={a} onClick={() => setAction(a)}
                     className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
-                      action === a ? "bg-white/10 text-white shadow-sm" : "text-white/40 hover:text-white/70"
+                      action === a ? "bg-muted text-foreground shadow-sm" : "text-muted-foreground/60 hover:text-foreground/70"
                     }`}>
                     {a === "set_availability" ? t("setAvailability", "en") : a === "set_price" ? t("setPrice", "en") : t("setCategory", "en")}
                   </button>
@@ -214,13 +214,13 @@ export function BulkOperations({ open, onClose, onComplete }: BulkOperationsProp
 
             {/* Action-specific inputs */}
             {action === "set_availability" && (
-              <div className="flex items-center gap-1.5 bg-white/5 p-0.5 rounded-lg border border-white/5 w-fit">
+              <div className="flex items-center gap-1.5 bg-muted/50 p-0.5 rounded-lg border border-border/40 w-fit">
                 <button onClick={() => setIsAvailable(true)}
-                  className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${isAvailable ? "bg-emerald-500/20 text-emerald-400 shadow-sm" : "text-white/40 hover:text-white/70"}`}>
+                  className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${isAvailable ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 shadow-sm" : "text-muted-foreground/60 hover:text-foreground/70"}`}>
                   {t("available", "en")}
                 </button>
                 <button onClick={() => setIsAvailable(false)}
-                  className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${!isAvailable ? "bg-rose-500/20 text-rose-400 shadow-sm" : "text-white/40 hover:text-white/70"}`}>
+                  className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${!isAvailable ? "bg-rose-500/20 text-rose-600 dark:text-rose-400 shadow-sm" : "text-muted-foreground/60 hover:text-foreground/70"}`}>
                   {t("unavailable", "en")}
                 </button>
               </div>
@@ -232,10 +232,10 @@ export function BulkOperations({ open, onClose, onComplete }: BulkOperationsProp
                   <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block">
                     {t("sizeCode", "en")}
                   </label>
-                  <div className="flex items-center gap-1 bg-white/5 p-0.5 rounded-lg border border-white/5">
+                  <div className="flex items-center gap-1 bg-muted/50 p-0.5 rounded-lg border border-border/40">
                     {["S", "M", "L", "XL"].map((code) => (
                       <button key={code} onClick={() => setSizeCode(code)}
-                        className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${sizeCode === code ? "bg-white/10 text-white shadow-sm" : "text-white/40 hover:text-white/70"}`}>
+                        className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${sizeCode === code ? "bg-muted text-foreground shadow-sm" : "text-muted-foreground/60 hover:text-foreground/70"}`}>
                         {code}
                       </button>
                     ))}
@@ -246,7 +246,7 @@ export function BulkOperations({ open, onClose, onComplete }: BulkOperationsProp
                     {t("price", "en")} (DA)
                   </label>
                   <input type="number" value={price} onChange={(e) => setPrice(e.target.value)}
-                    className="w-24 h-9 rounded-lg bg-white/5 border border-white/10 text-white text-sm text-center font-bold focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    className="w-24 h-9 rounded-lg bg-muted/50 border border-input text-foreground text-sm text-center font-bold focus:outline-none focus:ring-2 focus:ring-primary/30"
                     placeholder="0" min="0" step="10" />
                 </div>
               </div>
@@ -258,7 +258,7 @@ export function BulkOperations({ open, onClose, onComplete }: BulkOperationsProp
                   {t("setCategory", "en")}
                 </label>
                 <select value={categorieId} onChange={(e) => setCategorieId(e.target.value ? Number(e.target.value) : "")}
-                  className="h-9 rounded-lg bg-white/5 border border-white/10 text-white/80 text-sm px-3 focus:outline-none focus:ring-2 focus:ring-primary/30">
+                  className="h-9 rounded-lg bg-muted/50 border border-input text-foreground/80 text-sm px-3 focus:outline-none focus:ring-2 focus:ring-primary/30">
                   <option value="">{t("all", "en")}</option>
                   {categories.map((c) => (
                     <option key={c.id} value={c.id}>{c.nom}</option>
@@ -280,27 +280,27 @@ export function BulkOperations({ open, onClose, onComplete }: BulkOperationsProp
               <input type="text"
                 value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search products..."
-                className="w-full h-9 rounded-lg bg-white/5 border border-white/10 text-white text-sm px-3 mb-2 focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                className="w-full h-9 rounded-lg bg-muted/50 border border-input text-foreground text-sm px-3 mb-2 focus:outline-none focus:ring-2 focus:ring-primary/30" />
             </div>
 
             {/* Product list */}
-            <div className="max-h-48 overflow-y-auto space-y-1 border border-white/5 rounded-xl p-1">
+            <div className="max-h-48 overflow-y-auto space-y-1 border border-border/40 rounded-xl p-1">
               {filteredProducts.length === 0 ? (
                 <p className="text-xs text-muted-foreground text-center py-4">{t("noProducts", "en")}</p>
               ) : (
                 filteredProducts.map((p) => (
                   <label key={p.id}
                     className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
-                      selectedIds.has(p.id) ? "bg-primary/10 text-white" : "bg-white/[0.02] text-white/70 hover:bg-white/5"
+                      selectedIds.has(p.id) ? "bg-primary/10 text-foreground" : "bg-transparent text-muted-foreground hover:bg-muted/50"
                     }`}>
                     <input type="checkbox" checked={selectedIds.has(p.id)} onChange={() => toggle(p.id)}
-                      className="w-4 h-4 rounded border-white/20 accent-primary" />
+                      className="w-4 h-4 rounded border-border accent-primary" />
                     <div className="flex-1 min-w-0">
                       <span className="text-sm font-medium block truncate">{p.name}</span>
                       <span className="text-[10px] text-muted-foreground">{p.category}</span>
                     </div>
                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                      p.is_available ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400"
+                      p.is_available ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
                     }`}>
                       {p.is_available ? "ON" : "OFF"}
                     </span>

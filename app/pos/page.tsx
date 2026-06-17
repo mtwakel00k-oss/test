@@ -426,7 +426,7 @@ export default function POSPage() {
   }, [selectedOrder])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
+    <div className="min-h-screen bg-background">
       <POSHeader totalOrders={orders.length} activeOrders={activeOrders.length} todayRevenue={todayRevenue} />
       <OrderTabs activeTab={activeTab} onTabChange={setActiveTab} counts={counts} />
       {activeTab === "active" && <OrderFilters activeFilter={statusFilter} onFilterChange={setStatusFilter} counts={counts} />}
@@ -434,14 +434,14 @@ export default function POSPage() {
       <div className="flex">
         <div className={cn("flex-1 p-4 lg:p-6 space-y-3", showCheckout ? "hidden lg:block" : "block")}>
           {filteredOrders.length === 0 && !showNewOrder ? (
-            <div className="flex flex-col items-center justify-center py-20 text-white/30">
-              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/5 mb-4">
+            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground/30">
+              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-muted/40 mb-4">
                 <svg className="w-10 h-10 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
               </div>
-              <p className="text-lg font-bold text-white/40">{activeTab === "active" ? t("pos.noActiveOrders") : t("pos.noCompletedOrders")}</p>
-              <p className="text-sm text-white/20 mt-1">{activeTab === "active" ? t("pos.newOrdersHere") : t("pos.completedOrdersHere")}</p>
+              <p className="text-lg font-bold text-muted-foreground/60">{activeTab === "active" ? t("pos.noActiveOrders") : t("pos.noCompletedOrders")}</p>
+              <p className="text-sm text-muted-foreground/30 mt-1">{activeTab === "active" ? t("pos.newOrdersHere") : t("pos.completedOrdersHere")}</p>
             </div>
           ) : (
             filteredOrders.map(order => (
@@ -453,7 +453,7 @@ export default function POSPage() {
           )}
           {activeTab === "active" && (
             <button onClick={() => { setShowNewOrder(true); setSelectedOrder(null); setNewOrderError("") }}
-              className="w-full py-3 rounded-xl border-2 border-dashed border-white/10 text-white/40 hover:border-amber-500/40 hover:text-amber-400 hover:bg-amber-500/5 transition-all duration-200 text-sm font-bold">
+              className="w-full py-3 rounded-xl border-2 border-dashed border-border/40 text-muted-foreground/50 hover:border-amber-500/40 hover:text-amber-500 hover:bg-amber-500/5 transition-all duration-200 text-sm font-bold">
               + {t("pos.newOrder")}
             </button>
           )}
@@ -461,15 +461,15 @@ export default function POSPage() {
 
         {(selectedOrder || showNewOrder) && (
           <div className={cn(
-            "w-full lg:w-96 border-l border-white/5 bg-black/20 backdrop-blur-xl",
+            "w-full lg:w-96 border-l border-border/40 bg-background/60 backdrop-blur-xl",
             showCheckout ? "block" : "hidden lg:block"
           )}>
             {showNewOrder ? (
               <div className="h-full flex flex-col">
-                <div className="flex items-center justify-between p-4 border-b border-white/5">
-                  <h2 className="text-lg font-bold text-white">{t("pos.newOrderTitle")}</h2>
+                <div className="flex items-center justify-between p-4 border-b border-border/40">
+                  <h2 className="text-lg font-bold text-foreground">{t("pos.newOrderTitle")}</h2>
                   <button onClick={() => { setShowNewOrder(false); setNewOrderError("") }}
-                    className="p-1.5 rounded-lg hover:bg-white/5 transition-colors text-white/40 hover:text-white"
+                    className="p-1.5 rounded-lg hover:bg-muted/50 transition-colors text-muted-foreground/50 hover:text-foreground"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -478,7 +478,7 @@ export default function POSPage() {
                 </div>
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
                   <input value={newName} onChange={e => setNewName(e.target.value)} placeholder={t("pos.customerName")}
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-white/30"
+                    className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground"
                   />
                   <div className="flex gap-2">
                     <button onClick={() => setNewOrderType("dine_in")}
