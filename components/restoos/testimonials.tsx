@@ -1,7 +1,6 @@
 'use client'
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import useEmblaCarousel from 'embla-carousel-react'
 import { motion } from 'framer-motion'
 
@@ -10,7 +9,7 @@ const testimonials = [
     name: 'أحمد بن علي',
     place: 'مطعم الأصالة',
     initial: 'أ',
-    bg: 'bg-gradient-to-br from-primary to-green-700',
+    bg: 'bg-gradient-to-br from-primary to-emerald-700',
     quote: 'وفّر علينا RestoOS ساعات يومياً. الطلبات تصل للمطبخ مباشرة والكاشير أصبح أسرع بكثير.',
   },
   {
@@ -30,72 +29,53 @@ const testimonials = [
 ]
 
 export function Testimonials() {
-  const [emblaRef] = useEmblaCarousel({ 
+  const [emblaRef] = useEmblaCarousel({
     align: 'start',
-    breakpoints: { '(min-width: 768px)': { active: false } }
+    breakpoints: { '(min-width: 768px)': { active: false } },
   })
 
   return (
-    <section className="relative py-28 overflow-hidden">
-      <div className="mx-auto max-w-6xl px-5">
-        <div className="mx-auto mb-16 max-w-2xl text-center">
-          <Badge variant="outline" className="mb-5 px-5 py-2 text-sm font-medium rounded-xl border-primary/20 bg-primary/5 text-primary">
-            الشهادات
-          </Badge>
-          <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl md:text-5xl">
+    <section className="relative py-32 md:py-40 overflow-hidden">
+      <div className="mx-auto max-w-6xl px-4 md:px-6">
+        <div className="mx-auto mb-20 max-w-2xl text-center">
+          <span className="section-eyebrow mb-6">الشهادات</span>
+          <h2 className="font-display mt-6 text-[clamp(2rem,4vw,3.25rem)] font-normal leading-tight tracking-tight text-foreground">
             ماذا يقول أصحاب المطاعم
           </h2>
         </div>
 
         <div className="overflow-hidden" ref={emblaRef}>
-          <div className="flex gap-6 md:grid md:grid-cols-3 md:gap-8">
+          <div className="flex gap-5 md:grid md:grid-cols-3 md:gap-6">
             {testimonials.map((t, i) => (
               <motion.div
                 key={t.name}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: i * 0.1 }}
-                className="group relative flex min-w-[85%] md:min-w-0 flex-col rounded-3xl border border-border/50 bg-card/50 backdrop-blur p-8 shadow-sm transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 hover:border-primary/20"
+                transition={{ duration: 0.7, delay: i * 0.1, ease: [0.32, 0.72, 0, 1] }}
+                className="group min-w-[85%] md:min-w-0"
               >
-                <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary/[0.05] to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-                <div className="relative mb-6 flex gap-1 text-lg text-amber-400" aria-label="تقييم 5 من 5">
-                  {'★★★★★'.split('').map((s, idx) => (
-                    <span key={idx}>{s}</span>
-                  ))}
-                </div>
-                <blockquote className="relative flex-1 text-lg italic leading-relaxed text-foreground/90">
-                  &ldquo;{t.quote}&rdquo;
-                </blockquote>
-                <figcaption className="relative mt-8 flex items-center gap-4">
-                  <Avatar className="size-14 ring-4 ring-background shadow-lg transition-transform duration-500 group-hover:scale-110">
-                    <AvatarFallback className={t.bg + ' text-white text-lg font-black'}>
-                      {t.initial}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-lg font-extrabold text-foreground">{t.name}</p>
-                    <p className="text-sm font-medium text-muted-foreground">{t.place}</p>
+                <div className="premium-bezel h-full transition-transform duration-700 group-hover:scale-[1.01]">
+                  <div className="premium-bezel-inner flex h-full min-h-[280px] flex-col p-8">
+                    <div className="mb-5 flex gap-0.5 text-amber-500" aria-label="تقييم 5 من 5">
+                      {'★★★★★'.split('').map((s, idx) => <span key={idx} className="text-sm">{s}</span>)}
+                    </div>
+                    <blockquote className="flex-1 text-base leading-relaxed text-foreground/85">
+                      &ldquo;{t.quote}&rdquo;
+                    </blockquote>
+                    <figcaption className="mt-8 flex items-center gap-4">
+                      <Avatar className="size-12 ring-2 ring-border/50">
+                        <AvatarFallback className={`${t.bg} text-base font-bold text-white`}>{t.initial}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-semibold text-foreground">{t.name}</p>
+                        <p className="text-sm text-muted-foreground">{t.place}</p>
+                      </div>
+                    </figcaption>
                   </div>
-                </figcaption>
+                </div>
               </motion.div>
             ))}
-            
-            {/* CTA Testimonial Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="group relative flex min-w-[85%] md:min-w-0 flex-col items-center justify-center rounded-3xl border-2 border-dashed border-primary/20 bg-primary/5 p-8 text-center transition-all duration-500 hover:bg-primary/10 hover:border-primary/40"
-            >
-              <div className="mb-4 grid size-16 place-items-center rounded-full bg-primary/10 text-primary">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-              </div>
-              <h4 className="text-xl font-bold text-foreground">ستكون مطعمك هنا؟</h4>
-              <p className="mt-2 text-sm text-muted-foreground">انضم إلى عائلة RestoOS اليوم</p>
-              <a href="#cta" className="mt-6 text-sm font-bold text-primary hover:underline">ابدأ الآن</a>
-            </motion.div>
           </div>
         </div>
       </div>

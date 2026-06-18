@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 
 type Plan = {
@@ -68,7 +67,7 @@ function Check({ on }: { on: boolean }) {
       <path d="M20 6 9 17l-5-5" />
     </svg>
   ) : (
-    <svg className="size-5 shrink-0 text-muted-foreground/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
+    <svg className="size-5 shrink-0 text-muted-foreground/25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
       <path d="M18 6 6 18M6 6l12 12" />
     </svg>
   )
@@ -78,100 +77,84 @@ export function Pricing() {
   const [isYearly, setIsYearly] = useState(false)
 
   return (
-    <section id="pricing" className="relative py-28 overflow-hidden">
+    <section id="pricing" className="relative py-32 md:py-40 overflow-hidden">
       <div className="absolute inset-0 bg-muted/30" />
-      <div className="relative mx-auto max-w-6xl px-5">
-        <div className="mx-auto mb-12 max-w-2xl text-center">
-          <Badge variant="outline" className="mb-5 px-5 py-2 text-sm font-medium rounded-xl border-primary/20 bg-primary/5 text-primary">
-            التسعير
-          </Badge>
-          <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl md:text-5xl">
+      <div className="relative mx-auto max-w-6xl px-4 md:px-6">
+        <div className="mx-auto mb-16 max-w-2xl text-center">
+          <span className="section-eyebrow mb-6">التسعير</span>
+          <h2 className="font-display mt-6 text-[clamp(2rem,4vw,3.25rem)] font-normal leading-tight tracking-tight text-foreground">
             اختر الخطة المناسبة لمطعمك
           </h2>
-          
-          {/* Billing Toggle */}
-          <div className="mt-10 flex items-center justify-center gap-4">
-            <span className={cn("text-sm font-medium", !isYearly ? "text-foreground" : "text-muted-foreground")}>شهري</span>
-            <button
-              onClick={() => setIsYearly(!isYearly)}
-              className="relative h-7 w-12 rounded-full bg-muted border border-border p-1 transition-colors hover:border-primary/50"
-            >
-              <motion.div
-                animate={{ x: isYearly ? 20 : 0 }}
-                className="h-4.5 w-4.5 rounded-full bg-primary shadow-sm"
-              />
+
+          <div className="mt-10 inline-flex items-center gap-4 rounded-full border border-border/50 bg-card/80 p-1.5">
+            <button type="button" onClick={() => setIsYearly(false)} className={cn('rounded-full px-4 py-2 text-sm font-medium transition-all duration-500', !isYearly ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground')}>شهري</button>
+            <button type="button" onClick={() => setIsYearly(true)} className={cn('rounded-full px-4 py-2 text-sm font-medium transition-all duration-500', isYearly ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground')}>
+              سنوي <span className="ms-1 text-[10px] opacity-80">-20%</span>
             </button>
-            <span className={cn("text-sm font-medium", isYearly ? "text-foreground" : "text-muted-foreground")}>
-              سنوي <Badge variant="secondary" className="bg-primary/10 text-primary border-none ml-1 text-[10px] py-0 px-1.5">خصم 20%</Badge>
-            </span>
           </div>
         </div>
 
-        <div className="grid items-stretch gap-8 md:grid-cols-3">
+        <div className="grid items-stretch gap-6 md:grid-cols-3 md:gap-5">
           {plans.map((p, i) => (
             <motion.div
               key={p.name}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 32 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-60px' }}
-              transition={{ duration: 0.6, delay: i * 0.12 }}
-              className={`relative flex flex-col rounded-3xl border p-8 transition-all duration-300 ${
-                p.highlight
-                  ? 'border-primary/30 bg-card shadow-2xl shadow-primary/10 md:scale-105'
-                  : p.dark
-                    ? 'border-border/50 bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white shadow-xl'
-                    : 'border-border/50 bg-card shadow-sm hover:shadow-lg'
-              }`}
+              transition={{ duration: 0.75, delay: i * 0.1, ease: [0.32, 0.72, 0, 1] }}
+              className={cn('relative flex flex-col', p.highlight && 'md:-mt-4 md:mb-4')}
             >
-              {p.highlight && (
-                <span className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-primary to-primary/80 px-6 py-1.5 text-xs font-black uppercase tracking-wider text-primary-foreground shadow-xl shadow-primary/30">
-                  الأكثر طلباً
-                </span>
-              )}
-
-              <div className="mb-2 flex items-center justify-between">
-                <p className={`text-sm font-medium ${p.dark ? 'text-white/60' : 'text-muted-foreground'}`}>
-                  {p.tag}
-                </p>
-                <span className={`text-2xl font-black ${p.dark ? 'text-white' : 'text-foreground'}`}>
-                  {p.name}
-                </span>
-              </div>
-
-              <div className="mt-6 flex items-baseline gap-1">
-                <span className={`text-4xl font-black ${p.highlight ? 'text-primary' : p.dark ? 'text-white' : 'text-foreground'}`}>
-                  {p.price}
-                </span>
-                {p.price !== 'تواصل معنا' && (
-                  <span className={`text-sm font-medium ${p.dark ? 'text-white/40' : 'text-muted-foreground'}`}>
-                    / {isYearly ? 'سنوياً' : 'شهرياً'}
-                  </span>
-                )}
-              </div>
-
-              <ul className="mt-8 flex flex-1 flex-col gap-3.5">
-                {p.features.map((f) => (
-                  <li key={f.label} className="flex items-center gap-3">
-                    <Check on={f.on} />
-                    <span className={`text-sm ${!f.on ? 'text-muted-foreground/40' : p.dark ? 'text-white/80' : 'text-foreground/80'}`}>
-                      {f.label}
+              <div className={cn(
+                'premium-bezel flex h-full flex-col',
+                p.highlight && 'ring-2 ring-primary/20',
+              )}>
+                <div className={cn(
+                  'premium-bezel-inner flex flex-1 flex-col p-8',
+                  p.dark && 'bg-[oklch(0.12_0.015_55)] text-white',
+                )}>
+                  {p.highlight && (
+                    <span className="absolute -top-3 start-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground shadow-[var(--shadow-glow)]">
+                      الأكثر طلباً
                     </span>
-                  </li>
-                ))}
-              </ul>
+                  )}
 
-              <a
-                href="#cta"
-                className={`mt-8 rounded-2xl px-6 py-3.5 text-center text-sm font-bold transition-all hover:-translate-y-0.5 ${
-                  p.highlight
-                    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40'
-                    : p.dark
-                      ? 'bg-white/10 text-white border border-white/20 hover:bg-white/20'
-                      : 'border border-border bg-card text-foreground hover:border-primary/30 hover:text-primary hover:bg-primary/5'
-                }`}
-              >
-                {p.cta}
-              </a>
+                  <div className="mb-1 flex items-center justify-between">
+                    <p className={cn('text-sm', p.dark ? 'text-white/50' : 'text-muted-foreground')}>{p.tag}</p>
+                    <span className={cn('font-display text-2xl', p.dark ? 'text-white' : 'text-foreground')}>{p.name}</span>
+                  </div>
+
+                  <div className="mt-6 flex items-baseline gap-1">
+                    <span className={cn('font-display text-4xl', p.highlight ? 'text-primary' : p.dark ? 'text-white' : 'text-foreground')}>{p.price}</span>
+                    {p.price !== 'تواصل معنا' && (
+                      <span className={cn('text-sm', p.dark ? 'text-white/40' : 'text-muted-foreground')}>/ {isYearly ? 'سنوياً' : 'شهرياً'}</span>
+                    )}
+                  </div>
+
+                  <ul className="mt-8 flex flex-1 flex-col gap-3.5">
+                    {p.features.map((f) => (
+                      <li key={f.label} className="flex items-center gap-3">
+                        <Check on={f.on} />
+                        <span className={cn('text-sm', !f.on ? 'text-muted-foreground/35' : p.dark ? 'text-white/75' : 'text-foreground/80')}>{f.label}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <a
+                    href="#cta"
+                    className={cn(
+                      'group mt-8 inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-center text-sm font-semibold transition-all duration-700 active:scale-[0.98]',
+                      p.highlight
+                        ? 'bg-primary text-primary-foreground shadow-[var(--shadow-md),var(--shadow-glow)]'
+                        : p.dark
+                          ? 'border border-white/15 bg-white/8 text-white hover:bg-white/12'
+                          : 'border border-border/60 bg-background text-foreground hover:border-primary/25 hover:bg-primary/5',
+                    )}
+                    style={{ transitionTimingFunction: 'var(--ease-premium)' }}
+                  >
+                    {p.cta}
+                  </a>
+                </div>
+              </div>
             </motion.div>
           ))}
         </div>

@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion'
 import { useState } from 'react'
-import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 
 const faqs = [
   { q: 'هل يعمل النظام بدون إنترنت؟', a: 'النظام سحابي بالكامل ويحتاج اتصال بالإنترنت للعمل. جميع البيانات والطلبات مخزنة على خوادم Supabase السحابية.' },
@@ -16,55 +16,50 @@ export function Faq() {
   const [open, setOpen] = useState<number | null>(0)
 
   return (
-    <section id="faq" className="relative py-28">
-      <div className="absolute inset-0 bg-muted/30" />
-      <div className="relative mx-auto max-w-3xl px-5">
-        <div className="mb-12 text-center">
-          <Badge variant="outline" className="mb-5 px-5 py-2 text-sm font-medium rounded-xl border-primary/20 bg-primary/5 text-primary">
-            الأسئلة
-          </Badge>
-          <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl md:text-5xl">
+    <section id="faq" className="relative py-32 md:py-40">
+      <div className="absolute inset-0 bg-muted/25" />
+      <div className="relative mx-auto max-w-3xl px-4 md:px-6">
+        <div className="mb-16 text-center">
+          <span className="section-eyebrow mb-6">الأسئلة</span>
+          <h2 className="font-display mt-6 text-[clamp(2rem,4vw,3.25rem)] font-normal leading-tight tracking-tight text-foreground">
             الأسئلة الشائعة
           </h2>
         </div>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           {faqs.map((f, i) => {
             const isOpen = open === i
             return (
-              <div
-                key={f.q}
-                className={`overflow-hidden rounded-2xl border transition-all duration-300 ${
-                  isOpen ? 'border-primary/20 bg-card shadow-md' : 'border-border/50 bg-card/50 hover:border-border'
-                }`}
-              >
-                <button
-                  type="button"
-                  onClick={() => setOpen(isOpen ? null : i)}
-                  className="flex w-full items-center justify-between gap-4 px-6 py-5 text-right"
-                  aria-expanded={isOpen}
-                >
-                  <span className="font-bold text-foreground">{f.q}</span>
-                  <motion.span
-                    animate={{ rotate: isOpen ? 45 : 0 }}
-                    transition={{ duration: 0.25 }}
-                    className="grid size-8 shrink-0 place-items-center rounded-xl bg-primary/10 text-lg font-bold text-primary"
+              <div key={f.q} className={cn('premium-bezel overflow-hidden transition-shadow duration-500', isOpen && 'shadow-[var(--shadow-md)]')}>
+                <div className="premium-bezel-inner">
+                  <button
+                    type="button"
+                    onClick={() => setOpen(isOpen ? null : i)}
+                    className="flex w-full items-center justify-between gap-4 px-6 py-5 text-right"
+                    aria-expanded={isOpen}
                   >
-                    +
-                  </motion.span>
-                </button>
-                <AnimatePresence initial={false}>
-                  {isOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                    <span className="font-semibold text-foreground">{f.q}</span>
+                    <motion.span
+                      animate={{ rotate: isOpen ? 45 : 0 }}
+                      transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
+                      className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/8 text-lg font-light text-primary"
                     >
-                      <p className="px-6 pb-6 leading-relaxed text-muted-foreground">{f.a}</p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                      +
+                    </motion.span>
+                  </button>
+                  <AnimatePresence initial={false}>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
+                      >
+                        <p className="px-6 pb-6 leading-relaxed text-muted-foreground">{f.a}</p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
             )
           })}

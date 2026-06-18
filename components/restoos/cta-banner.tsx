@@ -28,70 +28,39 @@ export function CtaBanner() {
   }
 
   return (
-    <section id="cta" className="px-5 py-28">
-      <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[3rem] bg-gradient-to-br from-primary via-primary to-emerald-600 px-8 py-24 text-center shadow-[0_32px_64px_-16px_rgba(34,197,94,0.3)]">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(oklch(1_0_0/0.15)_1.5px,transparent_1.5px)] bg-[length:32px_32px]" />
+    <section id="cta" className="px-4 py-32 md:px-6 md:py-40">
+      <motion.div
+        initial={{ opacity: 0, y: 32 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.85, ease: [0.32, 0.72, 0, 1] }}
+        className="relative mx-auto max-w-5xl overflow-hidden rounded-[2.5rem] bg-[oklch(0.22_0.04_55)] px-6 py-20 text-center md:px-12 md:py-24"
+      >
         <div className="pointer-events-none absolute inset-0">
-          {Array.from({ length: 30 }).map((_, i) => (
-            <motion.span
-              key={i}
-              className="absolute bottom-0 size-3 rounded-full bg-white/40 blur-[1px]"
-              style={{ left: `${(i * 3.33 + 2) % 100}%` }}
-              initial={{ y: 0, opacity: 0 }}
-              animate={{ y: '-350%', opacity: [0, 0.7, 0] }}
-              transition={{
-                duration: 5 + (i % 5),
-                repeat: Infinity,
-                delay: i * 0.2,
-                ease: 'easeInOut',
-              }}
-            />
-          ))}
+          <div className="absolute -top-24 start-1/4 h-64 w-64 rounded-full bg-primary/20 blur-[80px]" />
+          <div className="absolute -bottom-16 end-1/4 h-48 w-48 rounded-full bg-accent/15 blur-[60px]" />
         </div>
 
         <div className="relative">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-balance text-4xl font-black leading-tight text-white sm:text-6xl"
-          >
+          <h2 className="font-display mx-auto max-w-3xl text-[clamp(2rem,4.5vw,3.5rem)] font-normal leading-tight text-white">
             جاهز لتحويل مطعمك رقمياً؟
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-white/80"
-          >
+          </h2>
+          <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-white/65">
             اترك رقمك وسنعاود الاتصال بك في أقرب وقت
-          </motion.p>
+          </p>
 
           {status === 'done' ? (
-            <motion.p
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="mt-10 text-xl font-bold text-white"
-            >
-              تم الاستلام! سنتواصل معك قريباً ✅
+            <motion.p initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mt-12 text-lg font-medium text-white">
+              تم الاستلام! سنتواصل معك قريباً
             </motion.p>
           ) : (
-            <motion.form
-              onSubmit={handleSubmit}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="mx-auto mt-10 flex max-w-lg flex-col gap-4 sm:flex-row"
-            >
+            <form onSubmit={handleSubmit} className="mx-auto mt-12 flex max-w-xl flex-col gap-3 sm:flex-row sm:items-center">
               <input
                 type="text"
                 placeholder="الاسم (اختياري)"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="flex-1 rounded-2xl bg-white/15 px-6 py-4 text-sm text-white placeholder:text-white/50 backdrop-blur outline-none ring-1 ring-white/20 transition-all focus:ring-white/50 focus:bg-white/20"
+                className="h-12 flex-1 rounded-full border border-white/12 bg-white/8 px-5 text-sm text-white placeholder:text-white/40 outline-none transition-all duration-500 focus:border-white/25 focus:bg-white/12"
               />
               <input
                 type="tel"
@@ -99,23 +68,27 @@ export function CtaBanner() {
                 placeholder="رقم الهاتف *"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="flex-1 rounded-2xl bg-white/15 px-6 py-4 text-sm text-white placeholder:text-white/50 backdrop-blur outline-none ring-1 ring-white/20 transition-all focus:ring-white/50 focus:bg-white/20"
+                className="h-12 flex-1 rounded-full border border-white/12 bg-white/8 px-5 text-sm text-white placeholder:text-white/40 outline-none transition-all duration-500 focus:border-white/25 focus:bg-white/12"
               />
               <button
                 type="submit"
                 disabled={status === 'sending'}
-                className="shrink-0 rounded-2xl bg-white px-8 py-4 text-base font-black text-primary shadow-[0_12px_24px_-8px_rgba(255,255,255,0.4)] transition-all hover:-translate-y-1 hover:shadow-[0_20px_40px_-12px_rgba(255,255,255,0.5)] active:scale-95 disabled:opacity-70"
+                className="group inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-7 text-sm font-semibold text-[oklch(0.22_0.04_55)] transition-all duration-700 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70"
+                style={{ transitionTimingFunction: 'var(--ease-premium)' }}
               >
-                {status === 'sending' ? '...' : 'تواصل معنا ←'}
+                {status === 'sending' ? '...' : 'تواصل معنا'}
+                <span className="grid size-7 place-items-center rounded-full bg-black/5 transition-transform duration-700 group-hover:translate-x-0.5">
+                  <svg className="size-3.5 rtl:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </span>
               </button>
-            </motion.form>
+            </form>
           )}
 
           {status === 'error' && (
-            <p className="mt-4 text-sm text-red-200">فشل الإرسال، حاول مرة أخرى</p>
+            <p className="mt-4 text-sm text-red-300">فشل الإرسال، حاول مرة أخرى</p>
           )}
         </div>
-      </div>
+      </motion.div>
     </section>
   )
 }

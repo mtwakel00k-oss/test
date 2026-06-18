@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useRef } from "react"
-import { LogOut, Receipt, Plus, User, ChevronDown, Check } from "lucide-react"
+import { LogOut, Receipt, Plus, User, ChevronDown, Check, Key } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -10,6 +10,7 @@ import { useSlug } from "@/lib/use-slug"
 import { useTranslation } from "@/lib/use-translation"
 import { cn } from "@/lib/utils"
 import { useStaff } from "@/context/StaffContext"
+import { ChangePasswordDialog } from "@/components/change-password-dialog"
 
 interface POSHeaderProps {
   totalOrders?: number
@@ -30,6 +31,7 @@ export function POSHeader({ totalOrders: _totalOrders, activeOrders, todayRevenu
   const menuRef = useRef<HTMLDivElement>(null)
   const cur = lang === "ar" ? "د.ج" : "DA"
   const { activeStaff, staffList, setActiveStaff, loading } = useStaff()
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
 
   const logout = async () => {
     setMenuOpen(false)
@@ -57,18 +59,18 @@ export function POSHeader({ totalOrders: _totalOrders, activeOrders, todayRevenu
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  return (
-    <header className="sticky top-0 z-30 border-b border-border/50 bg-background/80 backdrop-blur-2xl shadow-sm">
-      <div className="flex items-center justify-between gap-4 px-6 py-3">
+  return (<>
+    <header className="sticky top-0 z-30 px-4 pt-4 md:px-6">
+      <div className="flex items-center justify-between gap-4 rounded-[1.25rem] border border-border/50 bg-card/70 px-5 py-3 shadow-[var(--shadow-sm)] backdrop-blur-xl">
         <div className="flex items-center gap-4">
-          <div className="flex items-center justify-center size-11 rounded-2xl bg-primary text-primary-foreground shadow-xl shadow-primary/20">
-            <Receipt className="w-5 h-5" />
+          <div className="flex items-center justify-center size-11 rounded-2xl bg-primary text-primary-foreground shadow-[var(--shadow-md),var(--shadow-glow)]">
+            <Receipt className="size-5" strokeWidth={1.5} />
           </div>
           <div className="flex flex-col">
-            <h1 className="text-base font-black text-foreground tracking-tight leading-none mb-1">{t("pos.title")}</h1>
-            <div className="flex items-center gap-1.5">
+            <h1 className="text-base font-semibold leading-none tracking-tight text-foreground">{t("pos.title")}</h1>
+            <div className="mt-1 flex items-center gap-1.5">
               <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t("pos.subtitle")}</p>
+              <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">{t("pos.subtitle")}</p>
             </div>
           </div>
         </div>
@@ -103,7 +105,7 @@ export function POSHeader({ totalOrders: _totalOrders, activeOrders, todayRevenu
 
           {onNewOrder && (
             <button data-testid="new-order-tab" onClick={onNewOrder}
-              className="inline-flex items-center gap-2 h-11 px-5 rounded-2xl bg-primary text-primary-foreground text-sm font-black hover:scale-105 active:scale-95 transition-all shadow-xl shadow-primary/20">
+              className="inline-flex h-11 items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-md),var(--shadow-glow)] transition-all duration-500 hover:scale-[1.02] active:scale-[0.98]">
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">{t("pos.newOrder")}</span>
             </button>
@@ -179,6 +181,12 @@ export function POSHeader({ totalOrders: _totalOrders, activeOrders, todayRevenu
                   </div>
                 </div>
 
+                <button onClick={() => { setMenuOpen(false); setPasswordDialogOpen(true) }}
+                  className="flex items-center gap-2 w-full px-3 py-2.5 text-xs text-foreground hover:bg-muted transition-colors border-t border-border/40">
+                  <Key className="w-3.5 h-3.5 text-muted-foreground" />
+                  {lang === "ar" ? "تغيير كلمة المرور" : lang === "fr" ? "Changer le mot de passe" : "Change Password"}
+                </button>
+
                 <button onClick={logout} className="flex items-center gap-2 w-full px-3 py-2.5 text-xs text-destructive hover:bg-destructive/5 transition-colors">
                   <LogOut className="w-3.5 h-3.5" /> {t("login.logOut")}
                 </button>
@@ -188,5 +196,10 @@ export function POSHeader({ totalOrders: _totalOrders, activeOrders, todayRevenu
         </div>
       </div>
     </header>
-  )
+
+      <ChangePasswordDialog
+        open={passwordDialogOpen}
+        onClose={() => setPasswordDialogOpen(false)}
+      />
+  </>)
 }

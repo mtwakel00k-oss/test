@@ -1,10 +1,10 @@
 export function Logo({ className = '' }: { className?: string }) {
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      <span className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary-light text-white shadow-lg shadow-primary/30">
+    <div className={`flex items-center gap-2.5 ${className}`}>
+      <span className="grid size-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-md),var(--shadow-glow)]">
         <svg
-          width="20"
-          height="20"
+          width="18"
+          height="18"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -20,7 +20,7 @@ export function Logo({ className = '' }: { className?: string }) {
           <path d="M18 11v11" />
         </svg>
       </span>
-      <span className="text-xl font-extrabold tracking-tight text-foreground">
+      <span className="font-display text-xl tracking-tight text-foreground">
         Resto<span className="text-primary">OS</span>
       </span>
     </div>

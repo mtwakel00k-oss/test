@@ -25,7 +25,7 @@ export function OrderBar({ onCheckout }: OrderBarProps) {
           initial={{ y: 80, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="bg-background/80 backdrop-blur-2xl border border-border/40 rounded-[2rem] p-4 shadow-[0_20px_60px_rgba(0,0,0,0.12)]"
+          className="rounded-[1.75rem] border border-border/40 bg-card/85 p-4 shadow-[var(--shadow-xl)] backdrop-blur-xl"
         >
           {items.length > 0 && (
             <AnimatePresence>

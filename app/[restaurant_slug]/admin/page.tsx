@@ -131,15 +131,15 @@ export default function AdminPage() {
 
   if (slug === "developer") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white" dir={dir}>
-        <header className="sticky top-0 z-30 bg-black/40 backdrop-blur-xl border-b border-white/5 px-4 lg:px-6 py-3">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+      <div className="admin-surface" dir={dir}>
+        <header className="sticky top-0 z-30 border-b border-white/6 px-4 py-3 backdrop-blur-xl lg:px-6">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-lg shadow-amber-500/20">
-                <ChartNoAxesColumn className="w-4 h-4" />
+              <div className="grid size-10 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-[var(--shadow-glow)]">
+                <ChartNoAxesColumn className="size-4" strokeWidth={1.5} />
               </div>
               <div>
-                <h1 className="text-sm font-bold text-white">Developer Panel</h1>
+                <h1 className="text-sm font-semibold text-white">Developer Panel</h1>
                 <p className="text-[10px] text-white/40">Restaurant Management</p>
               </div>
             </div>
@@ -165,15 +165,15 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white" dir={dir}>
-      <header className="sticky top-0 z-30 bg-black/40 backdrop-blur-xl border-b border-white/5 px-4 lg:px-6 py-3">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+    <div className="admin-surface" dir={dir}>
+      <header className="sticky top-0 z-30 border-b border-white/6 px-4 py-3 backdrop-blur-xl lg:px-6">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-lg shadow-amber-500/20">
-              <ChartNoAxesColumn className="w-4 h-4" />
+            <div className="grid size-10 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-[var(--shadow-glow)]">
+              <ChartNoAxesColumn className="size-4" strokeWidth={1.5} />
             </div>
             <div>
-              <h1 className="text-sm font-bold text-white">{t("admin.dashboard")}</h1>
+              <h1 className="font-display text-base font-normal text-white">{t("admin.dashboard")}</h1>
               <p className="text-[10px] text-white/40">{slug}</p>
             </div>
           </div>
@@ -194,11 +194,11 @@ export default function AdminPage() {
       </header>
 
       <main className="max-w-7xl mx-auto p-4 lg:p-6 space-y-6">
-        <div className="flex items-center gap-1.5 bg-white/5 p-0.5 rounded-lg w-fit border border-white/5">
+        <div className="flex w-fit items-center gap-1 rounded-full border border-white/8 bg-white/4 p-1">
           {(["overview", "products", "orders", "audit"] as const).map((tab) => (
             <button key={tab} onClick={() => setAdminTab(tab)}
-              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
-                adminTab === tab ? "bg-white/10 text-white shadow-sm" : "text-white/40 hover:text-white/70"
+              className={`rounded-full px-4 py-2 text-xs font-semibold transition-all duration-500 ${
+                adminTab === tab ? "bg-white/12 text-white shadow-sm" : "text-white/45 hover:text-white/75"
               }`}>
               {tab === "overview" ? t("admin.overview") : tab === "products" ? t("admin.products") : tab === "orders" ? t("admin.orders") : t("admin.audit")}
             </button>
@@ -206,11 +206,11 @@ export default function AdminPage() {
         </div>
 
         {adminTab === "overview" && (
-          <div className="flex items-center gap-1.5 bg-white/5 p-0.5 rounded-lg w-fit border border-white/5">
+          <div className="flex w-fit items-center gap-1 rounded-full border border-white/8 bg-white/4 p-1">
             {(Object.entries(PERIOD_LABELS) as [Period, string][]).map(([key, label]) => (
               <button key={key} onClick={() => setPeriod(key)}
-                className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
-                  period === key ? "bg-white/10 text-white shadow-sm" : "text-white/40 hover:text-white/70"
+                className={`rounded-full px-4 py-2 text-xs font-semibold transition-all duration-500 ${
+                  period === key ? "bg-white/12 text-white shadow-sm" : "text-white/45 hover:text-white/75"
                 }`}>
                 {label}
               </button>

@@ -1,58 +1,51 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Badge } from '@/components/ui/badge'
 
 const steps = [
-  { num: '1', title: 'أنشئ حساب المالك', desc: 'سجّل حساب المالك (Owner) الذي يدير كل المطاعم.', icon: '🔑' },
-  { num: '2', title: 'أضف مطعمك', desc: 'أنشئ مطعماً بقاعدة بيانات مستقلة وأضف الموظفين.', icon: '🏠' },
-  { num: '3', title: 'ابدأ البيع', desc: 'جهّز القائمة، شغّل الكاشير والمطبخ، وتابع أرباحك.', icon: '🚀' },
+  { num: '01', title: 'أنشئ حساب المالك', desc: 'سجّل حساب المالك (Owner) الذي يدير كل المطاعم.', icon: '🔑' },
+  { num: '02', title: 'أضف مطعمك', desc: 'أنشئ مطعماً بقاعدة بيانات مستقلة وأضف الموظفين.', icon: '🏠' },
+  { num: '03', title: 'ابدأ البيع', desc: 'جهّز القائمة، شغّل الكاشير والمطبخ، وتابع أرباحك.', icon: '🚀' },
 ]
 
 export function HowItWorks() {
   return (
-    <section id="how" className="relative py-28">
-      <div className="mx-auto max-w-5xl px-5">
-        <div className="mx-auto mb-16 max-w-2xl text-center">
-          <Badge variant="outline" className="mb-5 px-5 py-2 text-sm font-medium rounded-xl border-primary/20 bg-primary/5 text-primary">
-            طريقة العمل
-          </Badge>
-          <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl md:text-5xl">
+    <section id="how" className="relative py-32 md:py-40">
+      <div className="mx-auto max-w-5xl px-4 md:px-6">
+        <div className="mx-auto mb-20 max-w-2xl text-center">
+          <span className="section-eyebrow mb-6">طريقة العمل</span>
+          <h2 className="font-display mt-6 text-[clamp(2rem,4vw,3.25rem)] font-normal leading-tight tracking-tight text-foreground">
             ابدأ في 3 خطوات
           </h2>
-          <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+          <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
             من التسجيل إلى أول طلب — كل شيء بسيط وسريع.
           </p>
         </div>
 
-        <div className="relative grid gap-10 md:grid-cols-3">
-          <motion.div
-            initial={{ scaleX: 0 }}
-            whileInView={{ scaleX: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1.4, ease: 'easeInOut' }}
-            className="absolute right-[16%] top-14 hidden h-0.5 w-[68%] origin-right bg-gradient-to-l from-transparent via-primary/40 to-transparent md:block"
-          />
+        <div className="relative grid gap-8 md:grid-cols-3 md:gap-6">
+          <div className="absolute right-[16%] top-16 hidden h-px w-[68%] origin-right bg-gradient-to-l from-transparent via-primary/30 to-transparent md:block" />
 
           {steps.map((s, i) => (
             <motion.div
               key={s.num}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 28, filter: 'blur(8px)' }}
+              whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: i * 0.2 }}
-              className="group relative rounded-3xl border border-border/50 bg-card/50 p-8 text-center backdrop-blur transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5 hover:border-primary/20"
+              transition={{ duration: 0.75, delay: i * 0.12, ease: [0.32, 0.72, 0, 1] }}
+              className="group relative"
             >
-              <div className="relative z-10 mx-auto mb-8">
-                <div className="mx-auto grid size-20 place-items-center rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-3xl font-black text-white shadow-2xl shadow-primary/30 ring-4 ring-background transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-3">
-                  {s.icon}
-                </div>
-                <div className="absolute -bottom-2 -right-2 grid size-8 place-items-center rounded-full bg-background border-2 border-primary text-xs font-bold text-primary">
-                  {s.num}
+              <div className="premium-bezel h-full">
+                <div className="premium-bezel-inner p-8 text-center">
+                  <div className="relative mx-auto mb-8 w-fit">
+                    <div className="grid size-20 place-items-center rounded-[1.25rem] bg-primary text-3xl text-primary-foreground shadow-[var(--shadow-lg),var(--shadow-glow)] transition-transform duration-700 group-hover:scale-105">
+                      {s.icon}
+                    </div>
+                    <span className="absolute -bottom-2 -start-2 font-mono text-[10px] font-bold tracking-widest text-primary/60">{s.num}</span>
+                  </div>
+                  <h3 className="mb-3 text-xl font-semibold text-foreground">{s.title}</h3>
+                  <p className="leading-relaxed text-muted-foreground">{s.desc}</p>
                 </div>
               </div>
-              <h3 className="mb-4 text-2xl font-extrabold text-foreground">{s.title}</h3>
-              <p className="text-lg leading-relaxed text-muted-foreground/90">{s.desc}</p>
             </motion.div>
           ))}
         </div>

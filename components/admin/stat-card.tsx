@@ -21,47 +21,46 @@ export function StatCard({ title, value, change, icon, trend, suffix, isLive }: 
   const isPositive = trend === "up"
 
   return (
-    <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}>
-    <Card className="group relative overflow-hidden border-border/50 bg-card/50 backdrop-blur-xl hover:border-primary/30 transition-all duration-500 rounded-[2rem] shadow-sm hover:shadow-2xl">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-      <CardContent className="p-8">
-        <div className="flex items-start justify-between">
-          <div className="space-y-4">
-            <div className="flex items-center gap-2.5">
-              <div className="size-10 rounded-2xl bg-primary/10 flex items-center justify-center [&_svg]:size-5 [&_svg]:text-primary shadow-inner border border-primary/10">
-                {icon}
-              </div>
-              <div className="flex flex-col">
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 leading-none mb-1">{title}</p>
-                {isLive && (
-                  <span className="flex items-center gap-1.5">
-                    <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-[10px] text-emerald-500 font-black uppercase tracking-wider">{t("common.live")}</span>
-                  </span>
-                )}
-              </div>
-            </div>
-            
-            <div className="flex items-baseline gap-1.5">
-              <h3 className="text-3xl font-black text-foreground tracking-tight">{value}</h3>
-              {suffix && <span className="text-sm font-bold text-muted-foreground uppercase">{suffix}</span>}
-            </div>
+    <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}>
+      <div className="premium-bezel h-full">
+        <Card className="premium-bezel-inner h-full border-0 shadow-none">
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="grid size-10 place-items-center rounded-2xl bg-primary/10 text-primary [&_svg]:size-[18px]">
+                    {icon}
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{title}</p>
+                    {isLive && (
+                      <span className="mt-1 flex items-center gap-1.5 text-[10px] font-medium text-emerald-500">
+                        <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        {t("common.live")}
+                      </span>
+                    )}
+                  </div>
+                </div>
 
-            <div className="flex items-center gap-2">
-              <span
-                className={cn(
-                  "inline-flex items-center px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider",
-                  isPositive ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" : "bg-rose-500/10 text-rose-600 border border-rose-500/20",
-                )}
-              >
-                {isPositive ? "↑" : "↓"} {Math.abs(change)}%
-              </span>
-              <span className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">{t("common.vsYesterday")}</span>
+                <div className="flex items-baseline gap-1.5">
+                  <h3 className="text-2xl font-semibold tracking-tight text-foreground tabular-nums">{value}</h3>
+                  {suffix && <span className="text-xs font-medium text-muted-foreground">{suffix}</span>}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className={cn(
+                    "inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold",
+                    isPositive ? "bg-emerald-500/10 text-emerald-600" : "bg-rose-500/10 text-rose-600",
+                  )}>
+                    {isPositive ? "↑" : "↓"} {Math.abs(change)}%
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">{t("common.vsYesterday")}</span>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+          </CardContent>
+        </Card>
+      </div>
     </motion.div>
   )
 }

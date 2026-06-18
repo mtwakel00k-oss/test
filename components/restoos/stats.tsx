@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { motion } from 'framer-motion'
 
 const stats = [
-  { value: 200, prefix: '+', suffix: '', label: 'مطعم نشط', icon: '🏢' },
-  { value: 50000, prefix: '+', suffix: '', label: 'طلب معالج', icon: '🍔' },
-  { value: 4.9, prefix: '', suffix: '★', label: 'متوسط التقييم', decimals: 1, icon: '⭐' },
-  { value: 99.9, prefix: '', suffix: '%', label: 'وقت التشغيل', decimals: 1, icon: '⚡' },
+  { value: 200, prefix: '+', suffix: '', label: 'مطعم نشط' },
+  { value: 50000, prefix: '+', suffix: '', label: 'طلب معالج' },
+  { value: 4.9, prefix: '', suffix: '', label: 'متوسط التقييم', decimals: 1 },
+  { value: 99.9, prefix: '', suffix: '%', label: 'وقت التشغيل', decimals: 1 },
 ]
 
 function useCountUp(target: number, decimals = 0, run = false) {
@@ -15,7 +16,7 @@ function useCountUp(target: number, decimals = 0, run = false) {
     if (!run) return
     let raf = 0
     const start = performance.now()
-    const duration = 2000
+    const duration = 2200
     const tick = (now: number) => {
       const p = Math.min((now - start) / duration, 1)
       const eased = 1 - Math.pow(1 - p, 4)
@@ -31,18 +32,11 @@ function useCountUp(target: number, decimals = 0, run = false) {
 function StatItem({ stat, run }: { stat: (typeof stats)[number]; run: boolean }) {
   const display = useCountUp(stat.value, stat.decimals ?? 0, run)
   return (
-    <div className="relative px-4 text-center group">
-      <div className="mb-4 text-3xl opacity-80 transition-transform duration-500 group-hover:scale-125 group-hover:rotate-6">
-        {stat.icon}
-      </div>
-      <p className="text-5xl font-black tracking-tight text-foreground sm:text-6xl">
-        <span className="bg-gradient-to-b from-foreground to-foreground/50 bg-clip-text text-transparent">
-          {stat.prefix}
-          {display}
-          {stat.suffix}
-        </span>
+    <div className="relative px-4 text-center">
+      <p className="font-display text-5xl font-normal tracking-tight text-foreground sm:text-6xl">
+        {stat.prefix}{display}{stat.suffix}
       </p>
-      <p className="mt-3 text-lg font-bold text-muted-foreground/80 uppercase tracking-wide">{stat.label}</p>
+      <p className="mt-3 text-sm font-medium uppercase tracking-[0.15em] text-muted-foreground">{stat.label}</p>
     </div>
   )
 }
@@ -55,12 +49,7 @@ export function Stats() {
     const el = ref.current
     if (!el) return
     const obs = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          setRun(true)
-          obs.disconnect()
-        }
-      },
+      ([e]) => { if (e.isIntersecting) { setRun(true); obs.disconnect() } },
       { threshold: 0.4 },
     )
     obs.observe(el)
@@ -68,18 +57,20 @@ export function Stats() {
   }, [])
 
   return (
-    <section className="relative py-24 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-primary/5" />
-      <div className="absolute inset-0 bg-[radial-gradient(oklch(0.52_0.18_145/0.03)_1px,transparent_1px)] bg-[length:32px_32px]" />
-      
-      <div
+    <section className="relative border-y border-border/50 py-24 md:py-32">
+      <div className="absolute inset-0 bg-muted/40" />
+      <motion.div
         ref={ref}
-        className="relative mx-auto grid max-w-6xl grid-cols-2 gap-y-16 px-5 md:grid-cols-4 md:gap-y-0 md:divide-x md:divide-x-reverse md:divide-border/50"
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1] }}
+        className="relative mx-auto grid max-w-6xl grid-cols-2 gap-y-16 px-4 md:grid-cols-4 md:gap-y-0 md:divide-x md:divide-x-reverse md:divide-border/40 md:px-6"
       >
         {stats.map((s) => (
           <StatItem key={s.label} stat={s} run={run} />
         ))}
-      </div>
+      </motion.div>
     </section>
   )
 }

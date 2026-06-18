@@ -55,17 +55,14 @@ class ErrorBoundary extends Component<
 
 function SkeletonCard() {
   return (
-    <div className="bg-card rounded-2xl overflow-hidden border border-border/30 animate-pulse">
-      <div className="aspect-[4/3] bg-muted/40" />
-      <div className="p-5 space-y-3">
-        <div className="h-4 bg-muted/40 rounded-md w-3/4" />
-        <div className="h-3 bg-muted/20 rounded w-full" />
-        <div className="h-3 bg-muted/20 rounded w-2/3" />
-        <div className="flex gap-2 pt-2">
-          <div className="h-7 bg-muted/30 rounded-lg w-16" />
-          <div className="h-7 bg-muted/30 rounded-lg w-12" />
+    <div className="premium-bezel animate-pulse">
+      <div className="premium-bezel-inner overflow-hidden">
+        <div className="aspect-[4/3] bg-muted/40" />
+        <div className="space-y-3 p-5">
+          <div className="h-4 w-3/4 rounded-full bg-muted/50" />
+          <div className="h-3 w-full rounded-full bg-muted/30" />
+          <div className="h-10 rounded-full bg-muted/40" />
         </div>
-        <div className="h-10 bg-muted/40 rounded-xl mt-2" />
       </div>
     </div>
   )
@@ -181,18 +178,18 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-[100dvh] app-surface">
         <AppHeader cartItemCount={itemCount} onCart={() => setCheckoutOpen(true)} />
 
-        <main className="max-w-5xl mx-auto px-4 md:px-6 pt-6 pb-32">
-          <div className="mb-10">
+        <main className="mx-auto max-w-5xl px-4 pb-32 pt-6 md:px-6">
+          <div className="mb-12">
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
             >
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">القائمة</h1>
-              <p className="text-sm text-muted-foreground/60 mt-1.5">اختر وجبتك المفضلة من قائمتنا المتنوعة</p>
+              <h1 className="font-display text-[clamp(2rem,4vw,2.75rem)] font-normal tracking-tight text-foreground">القائمة</h1>
+              <p className="mt-2 text-sm text-muted-foreground">اختر وجبتك المفضلة من قائمتنا المتنوعة</p>
             </motion.div>
           </div>
 

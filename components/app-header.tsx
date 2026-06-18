@@ -42,108 +42,85 @@ export function AppHeader({ cartItemCount, onCart }: AppHeaderProps) {
   }, []);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 8);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 8);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    <header
-      className={`sticky top-0 z-50 w-full transition-all duration-300 ${
-        isScrolled
-          ? "bg-background/95 backdrop-blur-xl border-b border-border/60 shadow-[0_4px_20px_rgba(0,0,0,0.08)]"
-          : "bg-background/80 backdrop-blur-xl border-b border-border/40 shadow-sm"
-      }`}
-    >
-      <div className="mx-auto max-w-2xl px-4 py-3.5">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0 flex-1">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-              className="size-11 rounded-2xl bg-emerald-500/10 flex items-center justify-center overflow-hidden shrink-0 border border-emerald-500/20 shadow-inner relative"
+    <header className="sticky top-0 z-50 px-4 pt-4 md:px-6">
+      <div
+        className={`mx-auto flex max-w-5xl items-center justify-between gap-4 rounded-full px-4 py-2.5 transition-all duration-700 ${
+          isScrolled
+            ? "glass shadow-[var(--shadow-md)]"
+            : "border border-border/40 bg-card/60 shadow-[var(--shadow-sm)]"
+        }`}
+        style={{ transitionTimingFunction: "var(--ease-premium)" }}
+      >
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
+            className="relative size-11 shrink-0 overflow-hidden rounded-2xl border border-primary/15 bg-primary/8 shadow-inner"
+          >
+            {logoUrl ? (
+              <Image
+                src={logoUrl}
+                alt={tenant?.name || "Logo"}
+                fill
+                sizes="44px"
+                className="object-cover"
+                onError={() => setLogoUrl(null)}
+              />
+            ) : (
+              <div className="grid size-full place-items-center">
+                <ShoppingBag className="size-5 text-primary" strokeWidth={1.5} />
+              </div>
+            )}
+          </motion.div>
+          <div className="min-w-0 flex flex-col">
+            <motion.h1
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.08 }}
+              className="truncate text-base font-semibold leading-tight text-foreground"
             >
-              {logoUrl ? (
-                <Image
-                  src={logoUrl}
-                  alt={tenant?.name || "Logo"}
-                  fill
-                  sizes="44px"
-                  className="object-cover"
-                  onError={() => setLogoUrl(null)}
-                />
-              ) : (
-                <ShoppingBag className="w-6 h-6 text-emerald-600" />
-              )}
-            </motion.div>
-            <div className="flex flex-col min-w-0">
-              <motion.h1
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
-                className="text-base font-black text-foreground truncate leading-tight"
-              >
-                {tenant?.name || "Restaurant"}
-              </motion.h1>
-              <motion.span
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
-                className="text-[10px] font-bold text-emerald-6000/70 uppercase tracking-widest"
-              >
-                مفتوح الآن
-              </motion.span>
-            </div>
+              {tenant?.name || "Restaurant"}
+            </motion.h1>
+            <motion.span
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.12 }}
+              className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.15em] text-primary"
+            >
+              <span className="size-1.5 rounded-full bg-primary animate-pulse" />
+              مفتوح الآن
+            </motion.span>
           </div>
+        </div>
 
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <motion.div
-              initial={{ opacity: 0, x: 16 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
-            >
-              <LanguageSwitcher />
-            </motion.div>
-
-            <motion.button
-              initial={{ opacity: 0, x: 16 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1], delay: 0.25 }}
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="p-2.5 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors text-foreground/70 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/20 active:scale-95"
-              aria-label="Toggle theme"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Sun className="w-5 h-5 hidden dark:block" />
-              <Moon className="w-5 h-5 block dark:hidden" />
-            </motion.button>
-
-            <motion.button
-              initial={{ opacity: 0, x: 16 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
-              onClick={onCart}
-              className="relative p-2.5 rounded-xl bg-emerald-600 text-emerald-foreground shadow-lg shadow-emerald-500/30 hover:bg-emerald-500 active:scale-[0.97] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              <ShoppingBag className="w-5 h-5" />
-              {cartItemCount > 0 && (
-                <motion.span
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className="absolute -top-1.5 -end-1.5 size-5 bg-foreground text-background text-[10px] font-black rounded-full flex items-center justify-center ring-2 ring-background"
-                >
-                  {cartItemCount > 9 ? "9+" : cartItemCount}
-                </motion.span>
-              )}
-            </motion.button>
-          </div>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <LanguageSwitcher />
+          <button
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="grid size-10 place-items-center rounded-full border border-border/40 bg-background/60 text-muted-foreground transition-all duration-500 hover:text-foreground active:scale-95"
+            aria-label="Toggle theme"
+          >
+            <Sun className="size-[18px] hidden dark:block" strokeWidth={1.5} />
+            <Moon className="size-[18px] block dark:hidden" strokeWidth={1.5} />
+          </button>
+          <button
+            onClick={onCart}
+            className="relative grid size-10 place-items-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-md),var(--shadow-glow)] transition-all duration-500 hover:scale-[1.03] active:scale-[0.97]"
+          >
+            <ShoppingBag className="size-[18px]" strokeWidth={1.5} />
+            {cartItemCount > 0 && (
+              <span className="absolute -top-1 -end-1 grid size-5 place-items-center rounded-full bg-foreground text-[10px] font-bold text-background ring-2 ring-background">
+                {cartItemCount > 9 ? "9+" : cartItemCount}
+              </span>
+            )}
+          </button>
         </div>
       </div>
     </header>

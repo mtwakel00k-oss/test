@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabaseForRequest, isTenantMismatch, parseSession } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
+import { getMemoryAuditLog } from "@/lib/audit"
 
 export interface AuditLogRow {
   id: string
@@ -40,9 +41,14 @@ export async function GET(req: NextRequest) {
 
     const { data, error, count } = await query.returns<AuditLogRow[]>()
     if (error) {
-      // Table may not exist yet in this tenant
+      // Table may not exist yet in this tenant — fall back to in-memory store
       if (error.message?.includes("does not exist") || error.message?.includes("relation")) {
-        return NextResponse.json({ data: [], count: 0 })
+        let memEntries = getMemoryAuditLog()
+        // Apply same filters to in-memory entries
+        if (tableFilter) memEntries = memEntries.filter(e => e.table_name === tableFilter)
+        if (operationFilter) memEntries = memEntries.filter(e => e.operation === operationFilter.toUpperCase())
+        const paginated = memEntries.slice(offset, offset + limit)
+        return NextResponse.json({ data: paginated, count: memEntries.length })
       }
       throw new Error(error.message)
     }
