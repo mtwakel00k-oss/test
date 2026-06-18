@@ -1,38 +1,13 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
-const isDev = process.env.NODE_ENV === "development"
-
 const PUBLIC_PREFIXES = ["/login", "/_next", "/favicon.ico", "/api/auth", "/order"]
 const PROTECTED_ROUTES = new Set(["/admin", "/pos", "/kitchen"])
-
-function addSecurityHeaders(res: NextResponse) {
-  const csp = [
-    "default-src 'self'",
-    `script-src 'self' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""}`,
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' blob: data: https://*.supabase.co",
-    "font-src 'self'",
-    "object-src 'none'",
-    "base-uri 'self'",
-    "form-action 'self'",
-    "frame-ancestors 'none'",
-    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org",
-    "upgrade-insecure-requests",
-  ].join("; ")
-
-  res.headers.set("Content-Security-Policy", csp)
-  res.headers.set("X-Frame-Options", "DENY")
-  res.headers.set("X-Content-Type-Options", "nosniff")
-  res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin")
-  res.headers.set("Permissions-Policy", "geolocation=(self), camera=(), microphone=(), browsing-topics=()")
-  res.headers.set("X-Robots-Tag", "noindex, nofollow")
-}
-
 const MAX_BODY_SIZE = 2 * 1024 * 1024
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+  const isDev = process.env.NODE_ENV === "development"
 
   // Request size limit
   if (request.method !== "GET" && request.method !== "HEAD") {
@@ -40,6 +15,47 @@ export async function middleware(request: NextRequest) {
     if (contentLength && parseInt(contentLength, 10) > MAX_BODY_SIZE) {
       return NextResponse.json({ error: "Request body too large (max 2MB)" }, { status: 413 })
     }
+  }
+
+  // Skip CSP for non-page routes (they use NextResponse.json which is fine)
+  const skipCsp = pathname.startsWith("/api/") || pathname.startsWith("/_next/static")
+
+  let nonce = ""
+  if (!skipCsp) {
+    nonce = Buffer.from(crypto.randomUUID()).toString("base64")
+  }
+
+  function addSecurityHeaders(res: NextResponse) {
+    if (!skipCsp && nonce) {
+      const csp = [
+        "default-src 'self'",
+        `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""}`,
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' blob: data: https://*.supabase.co",
+        "font-src 'self'",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "frame-ancestors 'none'",
+        "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org",
+        "upgrade-insecure-requests",
+      ].join("; ")
+      res.headers.set("Content-Security-Policy", csp)
+    }
+    res.headers.set("X-Frame-Options", "DENY")
+    res.headers.set("X-Content-Type-Options", "nosniff")
+    res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin")
+    res.headers.set("Permissions-Policy", "geolocation=(self), camera=(), microphone=(), browsing-topics=()")
+    res.headers.set("X-Robots-Tag", "noindex, nofollow")
+  }
+
+  // Set nonce on request headers so Next.js can apply it to inline scripts
+  if (nonce) {
+    const requestHeaders = new Headers(request.headers)
+    requestHeaders.set("x-nonce", nonce)
+    const res = NextResponse.next({ request: { headers: requestHeaders } })
+    addSecurityHeaders(res)
+    return res
   }
 
   // Allow public paths
