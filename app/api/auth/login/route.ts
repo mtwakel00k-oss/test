@@ -162,11 +162,12 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e)
     const name = e instanceof Error ? e.name : "Unknown"
-    logger.info("[login] Unexpected error:", { name, message })
+    const stack = e instanceof Error ? e.stack : ""
+    logger.info("[login] Unexpected error:", { name, message, stack: stack?.slice(0, 500) })
     logger.error("Login error", e)
     if (process.env.NODE_ENV === "development") {
-      return NextResponse.json({ error: message, name }, { status: 500 })
+      return NextResponse.json({ error: message, name, stack }, { status: 500 })
     }
-    return NextResponse.json({ error: "Internal error" }, { status: 500 })
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
