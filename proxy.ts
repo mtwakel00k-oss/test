@@ -5,7 +5,7 @@ const PUBLIC_PREFIXES = ["/login", "/_next", "/favicon.ico", "/api/auth", "/orde
 const PROTECTED_ROUTES = new Set(["/admin", "/pos", "/kitchen"])
 const MAX_BODY_SIZE = 2 * 1024 * 1024
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const isDev = process.env.NODE_ENV === "development"
 
