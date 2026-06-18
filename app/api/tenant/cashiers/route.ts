@@ -28,15 +28,23 @@ export async function GET(req: NextRequest) {
   if (!tenant) return NextResponse.json({ error: "Tenant not found" }, { status: 404 })
 
   const { data: users } = await masterClient.from("restaurant_users")
-    .select("user_id, role, profiles!inner(id, username)")
+    .select("user_id, role")
     .eq("restaurant_id", tenant.id)
     .eq("role", "cashier")
 
-  const list = (users || []).map((u: unknown) => {
-    const row = u as { user_id: string; role: string; profiles: { id: string; username: string } | { id: string; username: string }[] }
-    const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles
-    return { id: row.user_id, username: profile?.username || row.user_id, role: row.role }
-  })
+  if (!users || users.length === 0) return NextResponse.json([])
+
+  const userIds = (users as { user_id: string; role: string }[]).map((u) => u.user_id)
+  const { data: profiles } = await masterClient.from("profiles")
+    .select("id, username")
+    .in("id", userIds)
+
+  const profileMap = new Map((profiles || []).map((p: { id: string; username: string }) => [p.id, p.username]))
+  const list = (users as { user_id: string; role: string }[]).map((u) => ({
+    id: u.user_id,
+    username: profileMap.get(u.user_id) || u.user_id,
+    role: u.role,
+  }))
   return NextResponse.json(list)
 }
 
