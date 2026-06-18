@@ -57,3 +57,8 @@ evolution-api.env
 qr-code*.png
 gh_out.txt
 
+
+# Debug screenshots
+*.screenshot*.png
+snapshot*.txt.env.production
+.env.preview
