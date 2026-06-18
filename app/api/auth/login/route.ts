@@ -102,10 +102,9 @@ export async function POST(req: NextRequest) {
     }
 
     const isEmail = username.includes("@")
-    const normalizedSlug = tenantSlug!.replace(/-/g, "")
     const email = isEmail
       ? username.toLowerCase().trim()
-      : `${username}@${normalizedSlug}.app`
+      : `${username}@${tenantSlug}.app`
 
     logger.info("[login] Attempting signInWithPassword:", { email })
 
