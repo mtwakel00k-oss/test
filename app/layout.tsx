@@ -4,22 +4,12 @@ import "./globals.css"
 import { LangProvider } from "@/lib/lang-context"
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from "@/lib/theme"
-import { Geist, Tajawal, Instrument_Serif } from "next/font/google";
+import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { scopeFromPath, scopedCookieKey } from "@/lib/i18n-scope";
 import { OfflineDetector } from "@/components/offline-detector"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
-const instrumentSerif = Instrument_Serif({
-  subsets: ["latin"],
-  weight: ["400"],
-  variable: "--font-display",
-});
-const tajawal = Tajawal({
-  subsets: ["arabic", "latin"],
-  weight: ["400", "500", "700", "800"],
-  variable: "--font-tajawal",
-});
 
 export const metadata: Metadata = {
   title: "Burger House - Order Your Favorites",
@@ -53,7 +43,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   } catch {}
 
   return (
-    <html suppressHydrationWarning lang={lang} dir={dir} data-locale={lang} className={cn(htmlClass, geist.variable, instrumentSerif.variable, tajawal.variable)}>
+    <html suppressHydrationWarning lang={lang} dir={dir} data-locale={lang} className={cn(htmlClass, geist.variable)}>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="mobile-web-app-capable" content="yes" />

@@ -39,11 +39,9 @@
   --sidebar-border: oklch(0.91 0.006 85);
   --sidebar-ring: oklch(0.42 0.11 175);
 
-  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
-  --font-display: var(--font-display), Georgia, serif;
-  --font-serif: var(--font-display);
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
-  --font-numbers: var(--font-geist-mono), ui-monospace, monospace;
+  --font-sans: var(--font-sans), system-ui, sans-serif;
+  --font-display: var(--font-sans), system-ui, sans-serif;
+  --font-mono: ui-monospace, monospace;
 
   --ease-premium: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
