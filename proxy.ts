@@ -17,16 +17,12 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // Skip CSP for non-page routes (they use NextResponse.json which is fine)
-  const skipCsp = pathname.startsWith("/api/") || pathname.startsWith("/_next/static")
-
-  let nonce = ""
-  if (!skipCsp) {
-    nonce = Buffer.from(crypto.randomUUID()).toString("base64")
-  }
+  // Generate nonce for page routes
+  const isPage = !pathname.startsWith("/api/") && !pathname.startsWith("/_next/static")
+  const nonce = isPage ? Buffer.from(crypto.randomUUID()).toString("base64") : ""
 
   function addSecurityHeaders(res: NextResponse) {
-    if (!skipCsp && nonce) {
+    if (isPage && nonce) {
       const csp = [
         "default-src 'self'",
         `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""}`,
@@ -45,14 +41,14 @@ export async function proxy(request: NextRequest) {
     res.headers.set("X-Frame-Options", "DENY")
     res.headers.set("X-Content-Type-Options", "nosniff")
     res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin")
-    res.headers.set("Permissions-Policy", "geolocation=(self), camera=(), microphone=(), browsing-topics=()")
+    res.headers.set("Permissions-Policy", "geolocation=(self), camera=(), microphone=()")
     res.headers.set("X-Robots-Tag", "noindex, nofollow")
   }
 
-  // Set nonce on request headers so Next.js can apply it to inline scripts
-  if (nonce) {
+  // Build response with nonce header
+  function buildResponse(): NextResponse {
     const requestHeaders = new Headers(request.headers)
-    requestHeaders.set("x-nonce", nonce)
+    if (nonce) requestHeaders.set("x-nonce", nonce)
     const res = NextResponse.next({ request: { headers: requestHeaders } })
     addSecurityHeaders(res)
     return res
@@ -60,23 +56,18 @@ export async function proxy(request: NextRequest) {
 
   // Allow public paths
   if (PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))) {
-    const res = NextResponse.next()
-    addSecurityHeaders(res)
-    return res
+    return buildResponse()
   }
 
   // Allow API routes (auth is handled per-route)
   if (pathname.startsWith("/api/")) {
-    const res = NextResponse.next()
-    addSecurityHeaders(res)
-    return res
+    return buildResponse()
   }
 
   const hasSession = request.cookies.has("session")
 
   const parts = pathname.split("/").filter(Boolean)
   const firstSegment = parts[0] || ""
-
   const knownTopPages = new Set(["admin", "pos", "kitchen", "order", "login"])
   const isTenantRoute = parts.length >= 2 && !knownTopPages.has(firstSegment)
 
@@ -85,18 +76,14 @@ export async function proxy(request: NextRequest) {
     const page = parts[1]
 
     if (page === "menu" || page === "login" || page === "order" || page === "driver") {
-      const res = NextResponse.next()
-      addSecurityHeaders(res)
-      return res
+      return buildResponse()
     }
 
     if (!hasSession) {
       return NextResponse.redirect(new URL(`/${slug}/login?redirect=${pathname}`, request.url))
     }
 
-    const res = NextResponse.next()
-    addSecurityHeaders(res)
-    return res
+    return buildResponse()
   }
 
   const matchedRoute = Array.from(PROTECTED_ROUTES).find((r) => pathname.startsWith(r))
@@ -104,14 +91,10 @@ export async function proxy(request: NextRequest) {
     if (!hasSession) {
       return NextResponse.redirect(new URL(`/login?redirect=${pathname}`, request.url))
     }
-    const res = NextResponse.next()
-    addSecurityHeaders(res)
-    return res
+    return buildResponse()
   }
 
-  const res = NextResponse.next()
-  addSecurityHeaders(res)
-  return res
+  return buildResponse()
 }
 
 export const config = {
