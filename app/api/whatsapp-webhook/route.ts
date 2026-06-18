@@ -2,10 +2,15 @@ import { NextRequest, NextResponse } from "next/server"
 import { constantTimeCompare } from "@/lib/session-crypto"
 import { logger } from "@/lib/logger"
 import { markOrderAsCollected } from "@/lib/collect"
+import { env } from "@/lib/env"
+import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
 export async function POST(req: NextRequest) {
   try {
-    const secret = process.env.WEBHOOK_SECRET
+    const rl = await checkRateLimit(`whatsapp-webhook:${getClientIp(req)}`, { max: 30, windowMs: 60000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
+    const secret = env.WEBHOOK_SECRET
     const signature = req.headers.get("x-evolution-signature") ?? ""
     const rawBody = await req.text()
 

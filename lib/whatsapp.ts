@@ -1,9 +1,10 @@
 import { createClient } from "@supabase/supabase-js"
 import { logger } from "@/lib/logger"
+import { env } from "@/lib/env"
 
-const EVOLUTION_URL      = (process.env.EVOLUTION_API_URL || "").replace(/\/$/, "")
-const EVOLUTION_KEY      = process.env.EVOLUTION_API_KEY  || ""
-const EVOLUTION_INSTANCE = process.env.EVOLUTION_INSTANCE || "burger-house"
+const EVOLUTION_URL      = (env.EVOLUTION_API_URL || "").replace(/\/$/, "")
+const EVOLUTION_KEY      = env.EVOLUTION_API_KEY  || ""
+const EVOLUTION_INSTANCE = env.EVOLUTION_INSTANCE || "burger-house"
 
 interface DriverRecord {
   id: string
@@ -64,8 +65,8 @@ export async function notifyDriverAssigned(
   try {
     if (!slug) { logger.warn("notifyDriverAssigned: no slug"); return }
 
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const url = env.NEXT_PUBLIC_SUPABASE_URL
+    const key = env.SUPABASE_SERVICE_ROLE_KEY
     if (!url || !key) { logger.warn("notifyDriverAssigned: missing env vars"); return }
 
     const masterSb = createClient(url, key)

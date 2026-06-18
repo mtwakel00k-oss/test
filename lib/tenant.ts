@@ -4,6 +4,7 @@ import { NextResponse } from "next/server"
 import { cache } from "react"
 import { logger } from "@/lib/logger"
 import { decryptSession as cryptoDecrypt, type SessionData } from "@/lib/session-crypto"
+import { env } from "@/lib/env"
 
 export interface TenantConfig {
   id: string
@@ -25,9 +26,9 @@ export class TenantMismatchError extends Error {
   }
 }
 
-const MASTER_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const MASTER_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
-const FALLBACK_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const MASTER_URL = env.NEXT_PUBLIC_SUPABASE_URL!
+const MASTER_KEY = env.SUPABASE_SERVICE_ROLE_KEY
+const FALLBACK_KEY = env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 if (typeof window === "undefined" && !MASTER_KEY) {
   logger.warn("SUPABASE_SERVICE_ROLE_KEY not set — master client will use anon key (RLS-restricted)")
@@ -312,7 +313,7 @@ export function parseSession(cookieHeader: string): SessionData {
   if (!match) return {}
   try {
     const raw = decodeURIComponent(match[1])
-    const hasKey = !!process.env.SESSION_ENCRYPTION_KEY
+    const hasKey = !!env.SESSION_ENCRYPTION_KEY
 
     if (hasKey) {
       const decrypted = cryptoDecrypt(raw)

@@ -3,14 +3,15 @@ import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { createClient } from "@supabase/supabase-js"
 import { parseSession } from "@/lib/tenant"
+import { env } from "@/lib/env"
 import LoginForm from "./login-form"
 
 const VALID_ROLES = ["cashier", "chef", "admin", "owner"]
 
 async function getTenants() {
   const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    env.NEXT_PUBLIC_SUPABASE_URL!,
+    env.SUPABASE_SERVICE_ROLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   )
   const { data } = await supabase.from("tenants").select("*").eq("is_active", true).order("name")
   return data || []

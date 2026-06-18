@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 import { logger } from "@/lib/logger"
+import { env } from "@/lib/env"
 
-const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN || ""
-const TELEGRAM_CHAT = process.env.TELEGRAM_CHAT_ID
+const TELEGRAM_TOKEN = env.TELEGRAM_BOT_TOKEN || ""
+const TELEGRAM_CHAT = env.TELEGRAM_CHAT_ID
 
 function escapeHtml(text: string): string {
   return text

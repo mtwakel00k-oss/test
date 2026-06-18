@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 import { supabaseForRequest, parseSession, getTenantConfig } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
+import { env } from "@/lib/env"
+import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
 function getMasterServiceClient() {
   return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    env.NEXT_PUBLIC_SUPABASE_URL!,
+    env.SUPABASE_SERVICE_ROLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   )
 }
 
@@ -20,8 +22,8 @@ async function getTenantServiceClient(slug: string) {
     if (tRow?.supabase_service_key) svcKey = tRow.supabase_service_key
   } catch {}
   if (svcKey) return createClient(config.supabase_url, svcKey)
-  const isSameProject = config.supabase_url === process.env.NEXT_PUBLIC_SUPABASE_URL
-  return isSameProject ? createClient(config.supabase_url, process.env.SUPABASE_SERVICE_ROLE_KEY!) : null
+  const isSameProject = config.supabase_url === env.NEXT_PUBLIC_SUPABASE_URL
+  return isSameProject ? createClient(config.supabase_url, env.SUPABASE_SERVICE_ROLE_KEY!) : null
 }
 
 const RLS_HELP =
@@ -46,6 +48,9 @@ async function clearAll(sb: SupabaseClient) {
 
 export async function POST(req: NextRequest) {
   try {
+    const rl = await checkRateLimit(`admin:clear-data:${getClientIp(req)}`, { max: 5, windowMs: 300000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     const session = parseSession(req.headers.get("cookie") || "")
     if (session.role !== "admin" && session.role !== "owner") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

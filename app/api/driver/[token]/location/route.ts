@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { createTenantSupabaseClient } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
+import { env } from "@/lib/env"
+import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
 interface Driver {
   id: string; name: string; phone: string; token: string; is_active: boolean
@@ -14,8 +16,8 @@ interface Tenant {
 
 async function findDriverByToken(token: string): Promise<{ driver: Driver; tenant: Tenant } | null> {
   const masterSb = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || "",
+    env.NEXT_PUBLIC_SUPABASE_URL!,
+    env.SUPABASE_SERVICE_ROLE_KEY || "",
   )
   const { data: tenants, error } = await masterSb
     .from("tenants")
@@ -37,6 +39,8 @@ export async function PATCH(
   { params }: { params: Promise<{ token: string }> },
 ) {
   try {
+    const rl = await checkRateLimit(`driver:*:location:${getClientIp(req)}`, { max: 60, windowMs: 60000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
     const { token } = await params
     if (!token || token.length < 10) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 })

@@ -1,9 +1,10 @@
 import { createClient } from "@supabase/supabase-js"
 import { getTenantConfig, createTenantSupabaseClient } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
+import { env } from "@/lib/env"
 
-const MASTER_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const MASTER_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const MASTER_URL = env.NEXT_PUBLIC_SUPABASE_URL!
+const MASTER_KEY = env.SUPABASE_SERVICE_ROLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 /**
  * Generate the correct tracking URL for a customer order.

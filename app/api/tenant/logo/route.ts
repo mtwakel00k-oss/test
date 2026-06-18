@@ -2,13 +2,15 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { invalidateTenantConfig, parseSession } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
+import { env } from "@/lib/env"
+import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
 let _supabase: ReturnType<typeof createClient> | null = null
 
 function getSupabase() {
   if (!_supabase) {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const url = env.NEXT_PUBLIC_SUPABASE_URL
+    const key = env.SUPABASE_SERVICE_ROLE_KEY
     if (!url || !key) return null
     _supabase = createClient(url, key)
   }
@@ -57,6 +59,9 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
+    const rl = await checkRateLimit(`tenant:logo:${getClientIp(req)}`, { max: 10, windowMs: 60000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     const session = await getSession(req)
     if (!isAdmin(session)) return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
     const slug = session!.slug
@@ -86,6 +91,9 @@ export async function PATCH(req: NextRequest) {
 export async function POST(req: NextRequest) {
   let slug = "unknown"
   try {
+    const rl = await checkRateLimit(`tenant:logo:${getClientIp(req)}`, { max: 10, windowMs: 60000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     const session = await getSession(req)
     if (!isAdmin(session)) return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
     slug = session!.slug!

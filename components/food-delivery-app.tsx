@@ -243,6 +243,7 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
                       size={sizes[p.id] || "L"}
                       sauceId={sauces[p.id] ?? null}
                       quantity={cartQuantities[k] || 0}
+                      priority={idx < 6}
                       onSizeChange={(s) => setSizes(prev => ({ ...prev, [p.id]: s }))}
                       onSauceChange={(s) => setSauces(prev => ({ ...prev, [p.id]: s }))}
                       onAdd={() => debouncedAdd(() => { addItem(p, sizes[p.id] || "L", sauces[p.id] ?? null); logger.info("Added", { name: p.name }) })}

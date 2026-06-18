@@ -1,12 +1,12 @@
-import "@/lib/env"
+import { env } from "@/lib/env"
 import { createServerClient } from "@supabase/ssr"
 import { NextRequest, NextResponse } from "next/server"
 import { logger } from "@/lib/logger"
 
 export function createClientForProxy(request: NextRequest, response: NextResponse) {
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    env.NEXT_PUBLIC_SUPABASE_URL!,
+    env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
@@ -30,8 +30,8 @@ export function createClientForRouteHandler(request: Request) {
   const pairs = parseCookieHeader(cookieHeader)
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    env.NEXT_PUBLIC_SUPABASE_URL!,
+    env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() { return pairs },
@@ -43,8 +43,8 @@ export function createClientForRouteHandler(request: Request) {
 
 export function createClientForRouteHandlerWithResponse(request: NextRequest, response: NextResponse) {
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    env.NEXT_PUBLIC_SUPABASE_URL!,
+    env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {

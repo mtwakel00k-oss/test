@@ -2,19 +2,19 @@ import { NextRequest, NextResponse } from "next/server"
 import { parseSession, getTenantConfig, createTenantSupabaseClient } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 import { randomUUID } from "crypto"
+import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
+import sharp from "sharp"
 
 const ALLOWED_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"])
 const MAX_SIZE = 5 * 1024 * 1024
-
-const EXT_BY_MIME: Record<string, string> = {
-  "image/png": "png",
-  "image/jpeg": "jpg",
-  "image/webp": "webp",
-  "image/gif": "gif",
-}
+const MAX_WIDTH = 800
+const JPEG_QUALITY = 80
 
 export async function POST(req: NextRequest) {
   try {
+    const rl = await checkRateLimit(`upload:${getClientIp(req)}`, { max: 10, windowMs: 60000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     const session = parseSession(req.headers.get("cookie") || "")
     if (session.role !== "admin" && session.role !== "owner") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -49,15 +49,40 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Empty file" }, { status: 400 })
     }
 
-    const ext = EXT_BY_MIME[file.type] ?? "bin"
-    const fileName = `${tenantSlug}/${randomUUID()}.${ext}`
-
     const supabase = createTenantSupabaseClient(tenantConfig.supabase_url, tenantConfig.supabase_anon_key)
 
-    const buffer = Buffer.from(await file.arrayBuffer())
+    const raw = Buffer.from(await file.arrayBuffer())
+    const img = sharp(raw)
+    const meta = await img.metadata()
+    const w = meta.width || 999
+    const resizeW = w > MAX_WIDTH ? MAX_WIDTH : undefined
+    const q = JPEG_QUALITY
+
+    let compressed: Buffer
+    let contentType: string
+    let ext: string
+
+    if (file.type === "image/gif") {
+      compressed = raw
+      contentType = "image/gif"
+      ext = "gif"
+    } else {
+      const pipeline = img.resize(resizeW, undefined, { fit: "inside", withoutEnlargement: true })
+      compressed = await pipeline.jpeg({ quality: q, progressive: true }).toBuffer()
+      contentType = "image/jpeg"
+      ext = "jpg"
+    }
+
+    const fileName = `${tenantSlug}/${randomUUID()}.${ext}`
+
     const { error: uploadErr } = await supabase.storage
       .from("product-images")
-      .upload(fileName, buffer, { contentType: file.type, upsert: false })
+      .upload(fileName, compressed, { contentType, upsert: false })
+
+    logger.info("Image compressed", {
+      tenant: tenantSlug, original: file.size, compressed: compressed.length,
+      dims: `${meta.width}x${meta.height} → ${resizeW ? `${resizeW}x?` : `${meta.width}x${meta.height}`}`,
+    })
 
     if (uploadErr) {
       if (uploadErr.message?.includes("bucket")) {

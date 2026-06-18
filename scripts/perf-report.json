@@ -1,0 +1,410 @@
+{
+  "totalTime": 4775,
+  "cold": {
+    "ttfb": 2230.5999999996275,
+    "fcp": null,
+    "domContentLoaded": 4262.799999999814,
+    "loadEvent": 4263.0999999996275,
+    "lcp": null,
+    "transferSize": 266192
+  },
+  "images": {
+    "total": 0,
+    "loaded": 0,
+    "failed": 0,
+    "sources": []
+  },
+  "warmTime": 1138,
+  "warm": {
+    "ttfb": 122.09999999962747,
+    "fcp": null,
+    "transferSize": 263084
+  },
+  "network": {
+    "byType": {
+      "woff2": {
+        "count": 9,
+        "size": 0,
+        "time": 0
+      },
+      "css": {
+        "count": 1,
+        "size": 300,
+        "time": 4.7000000001862645
+      },
+      "js": {
+        "count": 72,
+        "size": 0,
+        "time": 0
+      }
+    },
+    "totalSize": 300
+  },
+  "jsBundles": [
+    {
+      "name": "%5Broot-of-the-server%5D__08q~9b8._.css",
+      "size": 300,
+      "duration": 4.7000000001862645
+    },
+    {
+      "name": "%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10z625~._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_next_dist_compiled_next-devtools_index_0553esy.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_next_dist_compiled_react-dom_058-ah~._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_next_dist_compiled_0rpq4pf._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_next_dist_client_0fhqo1d._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_next_dist_115brz8._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_%40swc_helpers_cjs_0-4ujiy._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "_0rqeker._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "turbopack-_0p44nws._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_0~yk_rb._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "_07om86s._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "app_layout_tsx_004glpo._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "app_global-error_tsx_076mf8i._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "app_global-error_tsx_0sg1~22._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "components_service-worker-register_tsx_0e2a79t._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "app_%5Brestaurant_slug%5D_layout_tsx_0sg1~22._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_0d..6~1._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "_0cl7~ea._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "app_error_tsx_0sg1~22._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_0-ivvwe._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "_0q-vzz_._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "app_not-found_tsx_0sg1~22._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "components_checkout-modal_tsx_11fxwk_._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "_11c4zxf._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_next_dist_compiled_crypto-browserify_index_0bwy7an.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_next_dist_compiled_13tmr6a._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_next_dist_0rota3k._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_next_02kt3wg._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_motion-dom_dist_es_0n_wqqr._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_framer-motion_dist_es_129u8xh._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_%40supabase_postgrest-js_dist_index_mjs_0eu3ylr._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_0jw1uq_._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "app_%5Brestaurant_slug%5D_menu_page_tsx_0q30gx.._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10z625~._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10z625~._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_next_dist_compiled_next-devtools_index_0553esy.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_next_dist_compiled_react-dom_058-ah~._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_next_dist_compiled_react-server-dom-turbopack_0p3wegg._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_next_dist_compiled_0rpq4pf._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_next_dist_client_0fhqo1d._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_next_dist_115brz8._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_%40swc_helpers_cjs_0-4ujiy._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "_0rqeker._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "turbopack-_0p44nws._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_0~yk_rb._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "_07om86s._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "app_layout_tsx_004glpo._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "app_global-error_tsx_076mf8i._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "app_global-error_tsx_0sg1~22._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "components_service-worker-register_tsx_0e2a79t._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "app_%5Brestaurant_slug%5D_layout_tsx_0sg1~22._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_0d..6~1._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "_0cl7~ea._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "app_error_tsx_0sg1~22._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_0-ivvwe._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "_0q-vzz_._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "app_not-found_tsx_0sg1~22._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "components_checkout-modal_tsx_11fxwk_._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "_11c4zxf._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_next_dist_compiled_crypto-browserify_index_0bwy7an.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_next_dist_compiled_13tmr6a._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_next_dist_0rota3k._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_next_02kt3wg._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_motion-dom_dist_es_0n_wqqr._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_framer-motion_dist_es_129u8xh._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_%40supabase_postgrest-js_dist_index_mjs_0eu3ylr._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_%40supabase_auth-js_dist_module_0.pzobh._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "node_modules_0jw1uq_._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "app_%5Brestaurant_slug%5D_menu_page_tsx_0q30gx.._.js",
+      "size": 0,
+      "duration": 0
+    },
+    {
+      "name": "%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_10z625~._.js",
+      "size": 0,
+      "duration": 0
+    }
+  ]
+}

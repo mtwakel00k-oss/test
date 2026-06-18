@@ -4,6 +4,8 @@ import { randomUUID } from "crypto"
 import { parseSession } from "@/lib/tenant"
 import { resolveTenantSlug } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
+import { env } from "@/lib/env"
+import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
 export interface Driver {
   id: string
@@ -28,8 +30,8 @@ export async function GET(req: NextRequest) {
   const slug = getSlug(req)
   if (!slug) return NextResponse.json({ error: "No tenant" }, { status: 400 })
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const url = env.NEXT_PUBLIC_SUPABASE_URL
+  const key = env.SUPABASE_SERVICE_ROLE_KEY
   if (!url || !key) return NextResponse.json({ error: "Server config error" }, { status: 500 })
   const masterClient = createClient(url, key)
 
@@ -73,6 +75,9 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const session = parseSession(req.headers.get("cookie") || "")
   if (session.role !== "admin" && session.role !== "owner") {
+    const rl = await checkRateLimit(`tenant:drivers:${getClientIp(req)}`, { max: 20, windowMs: 60000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     return NextResponse.json({ error: "Forbidden — admin only" }, { status: 403 })
   }
 
@@ -94,8 +99,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid phone number" }, { status: 400 })
   }
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const url = env.NEXT_PUBLIC_SUPABASE_URL
+  const key = env.SUPABASE_SERVICE_ROLE_KEY
   if (!url || !key) return NextResponse.json({ error: "Server config error" }, { status: 500 })
   const masterClient = createClient(url, key)
 
@@ -128,6 +133,9 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   const session = parseSession(req.headers.get("cookie") || "")
   if (session.role !== "admin" && session.role !== "owner") {
+    const rl = await checkRateLimit(`tenant:drivers:${getClientIp(req)}`, { max: 20, windowMs: 60000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     return NextResponse.json({ error: "Forbidden — admin only" }, { status: 403 })
   }
 
@@ -149,8 +157,8 @@ export async function PATCH(req: NextRequest) {
 
   if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 })
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const url = env.NEXT_PUBLIC_SUPABASE_URL
+  const key = env.SUPABASE_SERVICE_ROLE_KEY
   if (!url || !key) return NextResponse.json({ error: "Server config error" }, { status: 500 })
   const masterClient = createClient(url, key)
 
@@ -180,6 +188,9 @@ export async function PATCH(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const session = parseSession(req.headers.get("cookie") || "")
   if (session.role !== "admin" && session.role !== "owner") {
+    const rl = await checkRateLimit(`tenant:drivers:${getClientIp(req)}`, { max: 20, windowMs: 60000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     return NextResponse.json({ error: "Forbidden — admin only" }, { status: 403 })
   }
 
@@ -190,8 +201,8 @@ export async function DELETE(req: NextRequest) {
   const id = searchParams.get("id")
   if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 })
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const url = env.NEXT_PUBLIC_SUPABASE_URL
+  const key = env.SUPABASE_SERVICE_ROLE_KEY
   if (!url || !key) return NextResponse.json({ error: "Server config error" }, { status: 500 })
   const masterClient = createClient(url, key)
 

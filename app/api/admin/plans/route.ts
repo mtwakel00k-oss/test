@@ -4,10 +4,12 @@ import { revalidatePath } from "next/cache"
 import { invalidateTenantConfig } from "@/lib/tenant"
 import { requireRootOwner, isErrorResponse } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
+import { env } from "@/lib/env"
+import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
-const MASTER_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const MASTER_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
-const FALLBACK_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const MASTER_URL = env.NEXT_PUBLIC_SUPABASE_URL!
+const MASTER_KEY = env.SUPABASE_SERVICE_ROLE_KEY
+const FALLBACK_KEY = env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 interface TenantRow {
   id: string
@@ -46,6 +48,9 @@ const VALID_PLANS = ["starter", "pro", "elite"]
 
 export async function PATCH(req: NextRequest) {
   try {
+    const rl = await checkRateLimit(`admin:plans:${getClientIp(req)}`, { max: 20, windowMs: 60000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     const session = requireRootOwner(req)
     if (isErrorResponse(session)) return session
 

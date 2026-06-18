@@ -1,9 +1,10 @@
 import { getTenantConfigRSC } from "@/lib/tenant"
 import { ServiceWorkerRegister } from "@/components/service-worker-register"
 import { notFound } from "next/navigation"
+import { env } from "@/lib/env"
 
-const MASTER_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const MASTER_URL = env.NEXT_PUBLIC_SUPABASE_URL!
+const ANON_KEY = env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 export async function generateMetadata({ params }: { params: Promise<{ restaurant_slug: string }> }) {
   const { restaurant_slug } = await params

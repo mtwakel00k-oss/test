@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { getTenantConfig, parseSession } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
+import { env } from "@/lib/env"
+import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
 const TENANT_MIGRATION = `
 -- ============================================================
@@ -136,8 +138,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY
+  const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL
   const results: { step: string; status: string; detail?: string }[] = []
   const slug = new URL(req.url).searchParams.get("slug") || ""
 
@@ -182,6 +184,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   if (process.env.NODE_ENV === "production") {
+    const rl = await checkRateLimit(`run-sql:${getClientIp(req)}`, { max: 10, windowMs: 60000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     return NextResponse.json({ error: "Not available in production" }, { status: 403 })
   }
 
@@ -203,11 +208,11 @@ export async function POST(req: NextRequest) {
 
   // Look up tenant's own service key from DB
   const masterSb = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    env.NEXT_PUBLIC_SUPABASE_URL!,
+    env.SUPABASE_SERVICE_ROLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   )
   const { data: tenantRow } = await masterSb.from("tenants").select("supabase_service_key").eq("slug", slug).maybeSingle()
-  const tenantServiceKey = tenantRow?.supabase_service_key || process.env.SUPABASE_SERVICE_ROLE_KEY
+  const tenantServiceKey = tenantRow?.supabase_service_key || env.SUPABASE_SERVICE_ROLE_KEY
   if (!tenantServiceKey) {
     return NextResponse.json({ error: "No service key available for this tenant" }, { status: 500 })
   }

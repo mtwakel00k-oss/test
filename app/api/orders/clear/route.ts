@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabaseForRequest, isTenantMismatch, parseSession } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
+import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
 export async function DELETE(req: NextRequest) {
   try {
+    const rl = await checkRateLimit(`orders:clear:${getClientIp(req)}`, { max: 10, windowMs: 60000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     const session = parseSession(req.headers.get("cookie") || "")
     if (session.role !== "admin" && session.role !== "owner") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 })

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
+import { env } from "@/lib/env"
 
-const DEV_ROOT_PASSWORD = process.env.DEV_ROOT_PASSWORD
+const DEV_ROOT_PASSWORD = env.DEV_ROOT_PASSWORD
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,7 +11,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Not available" }, { status: 404 })
     }
 
-    const setupSecret = process.env.SETUP_SECRET
+    const setupSecret = env.SETUP_SECRET
     const authHeader = req.headers.get("authorization")
     if (setupSecret && authHeader !== `Bearer ${setupSecret}`) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
@@ -19,13 +20,13 @@ export async function POST(req: NextRequest) {
     const rl = await checkRateLimit(`setup-root:${getClientIp(req)}`, { max: 5, windowMs: 900_000 })
     if (!rl.allowed) return rateLimitResponse(rl.resetAt)
 
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY
     if (!serviceKey) {
       return NextResponse.json({ error: "Missing SUPABASE_SERVICE_ROLE_KEY" }, { status: 500 })
     }
 
     const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      env.NEXT_PUBLIC_SUPABASE_URL!,
       serviceKey,
       { auth: { autoRefreshToken: false, persistSession: false } },
     )

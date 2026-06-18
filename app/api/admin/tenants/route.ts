@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { requireRootOwner, isErrorResponse } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
+import { env } from "@/lib/env"
+import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
 function generatePassword(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
@@ -10,12 +12,15 @@ function generatePassword(): string {
   return pwd + "A1"
 }
 
-const MASTER_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+const MASTER_URL = env.NEXT_PUBLIC_SUPABASE_URL!
+const SERVICE_KEY = env.SUPABASE_SERVICE_ROLE_KEY
 
 
 export async function POST(req: NextRequest) {
   try {
+    const rl = await checkRateLimit(`admin:tenants:${getClientIp(req)}`, { max: 20, windowMs: 60000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     const session = requireRootOwner(req)
     if (isErrorResponse(session)) return session
 
@@ -42,7 +47,7 @@ export async function POST(req: NextRequest) {
         slug,
         name,
         supabase_url: MASTER_URL,
-        supabase_anon_key: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        supabase_anon_key: env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         plan_type: validPlan,
         is_active: true,
       })

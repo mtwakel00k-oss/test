@@ -3,6 +3,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 import { supabaseForRequest, parseSession, isTenantMismatch } from "@/lib/tenant"
 import { requireRootOwner, isErrorResponse } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
+import { env } from "@/lib/env"
 
 type Period = "7d" | "30d" | "6m" | "12m"
 const PERIOD_DAYS: Record<Period, number> = { "7d": 7, "30d": 30, "6m": 180, "12m": 365 }
@@ -27,8 +28,8 @@ export async function GET(req: NextRequest) {
       if (isErrorResponse(denied)) return denied
 
       const masterSb = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        env.NEXT_PUBLIC_SUPABASE_URL!,
+        env.SUPABASE_SERVICE_ROLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       )
       return handleRootDashboard(masterSb)
     }
@@ -100,8 +101,8 @@ export async function GET(req: NextRequest) {
         driverMap.set(o.driver_id, entry)
       }
       const masterSb = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        env.NEXT_PUBLIC_SUPABASE_URL!,
+        env.SUPABASE_SERVICE_ROLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       )
       const { data: tenantData } = await masterSb.from("tenants").select("drivers").eq("slug", slug).single()
       const drivers: { id: string; name: string; phone: string }[] = Array.isArray(tenantData?.drivers) ? tenantData.drivers : []

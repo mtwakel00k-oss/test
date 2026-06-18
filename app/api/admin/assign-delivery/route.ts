@@ -4,9 +4,13 @@ import { requireStaff, resolveTenantSlug, isErrorResponse } from "@/lib/api-auth
 import { logger } from "@/lib/logger"
 import { logAudit } from "@/lib/audit"
 import { sendDriverWhatsApp } from "@/lib/whatsapp"
+import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
 export async function POST(req: NextRequest) {
   try {
+    const rl = await checkRateLimit(`admin:assign-delivery:${getClientIp(req)}`, { max: 30, windowMs: 60000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     const session = requireStaff(req)
     if (isErrorResponse(session)) return session
 

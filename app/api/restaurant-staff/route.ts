@@ -3,11 +3,13 @@ import { createClient } from "@supabase/supabase-js"
 import { supabaseForRequest, isTenantMismatch, parseSession } from "@/lib/tenant"
 import { requireStaff, requireAdmin, resolveTenantSlug, isErrorResponse } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
+import { env } from "@/lib/env"
+import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
 function masterSb() {
   return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    env.NEXT_PUBLIC_SUPABASE_URL!,
+    env.SUPABASE_SERVICE_ROLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   )
 }
 
@@ -43,6 +45,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const rl = await checkRateLimit(`restaurant-staff:${getClientIp(req)}`, { max: 20, windowMs: 60000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     const session = requireAdmin(req)
     if (isErrorResponse(session)) return session
 
@@ -70,6 +75,9 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
+    const rl = await checkRateLimit(`restaurant-staff:${getClientIp(req)}`, { max: 20, windowMs: 60000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     const session = requireAdmin(req)
     if (isErrorResponse(session)) return session
 
@@ -101,6 +109,9 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    const rl = await checkRateLimit(`restaurant-staff:${getClientIp(req)}`, { max: 20, windowMs: 60000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     const session = requireAdmin(req)
     if (isErrorResponse(session)) return session
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { supabaseForRequest, isTenantMismatch, parseSession } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 import { logAudit } from "@/lib/audit"
+import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
 export async function GET(req: NextRequest) {
   try {
@@ -51,6 +52,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const rl = await checkRateLimit(`categories:${getClientIp(req)}`, { max: 30, windowMs: 60000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     const postSession = parseSession(req.headers.get("cookie") || "")
     if (postSession.role !== "admin" && postSession.role !== "owner") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -85,6 +89,9 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    const rl = await checkRateLimit(`categories:${getClientIp(req)}`, { max: 30, windowMs: 60000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     const delSession = parseSession(req.headers.get("cookie") || "")
     if (delSession.role !== "admin" && delSession.role !== "owner") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

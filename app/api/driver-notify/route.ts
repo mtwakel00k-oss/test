@@ -3,19 +3,24 @@ import { createClient } from "@supabase/supabase-js"
 import { formatPhone } from "@/lib/phone"
 import { requireStaff, isErrorResponse } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
+import { env } from "@/lib/env"
+import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
-const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL
-const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY
+const EVOLUTION_API_URL = env.EVOLUTION_API_URL
+const EVOLUTION_API_KEY = env.EVOLUTION_API_KEY
 
 function masterSb() {
   return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    env.NEXT_PUBLIC_SUPABASE_URL!,
+    env.SUPABASE_SERVICE_ROLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   )
 }
 
 export async function POST(req: NextRequest) {
   try {
+    const rl = await checkRateLimit(`driver-notify:${getClientIp(req)}`, { max: 30, windowMs: 60000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     const session = requireStaff(req)
     if (isErrorResponse(session)) return session
 

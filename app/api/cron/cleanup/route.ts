@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { constantTimeCompare } from "@/lib/session-crypto"
 import { logger } from "@/lib/logger"
+import { env } from "@/lib/env"
 
-const MASTER_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
+const MASTER_URL = env.NEXT_PUBLIC_SUPABASE_URL || ""
 
 export async function GET(req: NextRequest) {
   const startTime = Date.now()
-  const expected = process.env.CRON_SECRET
+  const expected = env.CRON_SECRET
   const authHeader = req.headers.get("authorization")
   const querySecret = new URL(req.url).searchParams.get("secret")
 
@@ -20,7 +21,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY
   if (!serviceKey || !MASTER_URL) {
     return NextResponse.json({ error: "Missing env vars" }, { status: 500 })
   }

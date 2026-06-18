@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { logger } from "@/lib/logger"
+import { env } from "@/lib/env"
 
 const FIVE_MIN = 300_000
 
@@ -17,11 +18,11 @@ export interface RateLimitResult {
 
 const DEFAULTS: RateLimitConfig = { max: 30, windowMs: FIVE_MIN }
 
-const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL
-const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN
+const UPSTASH_URL = env.UPSTASH_REDIS_REST_URL
+const UPSTASH_TOKEN = env.UPSTASH_REDIS_REST_TOKEN
 
-const SB_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
-const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const SB_URL = env.NEXT_PUBLIC_SUPABASE_URL
+const SB_KEY = env.SUPABASE_SERVICE_ROLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 let _sbClient: ReturnType<typeof createClient> | null = null
 function getSbClient() {

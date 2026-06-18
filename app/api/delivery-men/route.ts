@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { supabaseForRequest, isTenantMismatch } from "@/lib/tenant"
 import { requireStaff, requireAdmin, isErrorResponse } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
+import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
 export async function GET(req: NextRequest) {
   try {
@@ -27,6 +28,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const rl = await checkRateLimit(`delivery-men:${getClientIp(req)}`, { max: 20, windowMs: 60000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     const session = requireAdmin(req)
     if (isErrorResponse(session)) return session
 
@@ -56,6 +60,9 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
+    const rl = await checkRateLimit(`delivery-men:${getClientIp(req)}`, { max: 20, windowMs: 60000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     const session = requireAdmin(req)
     if (isErrorResponse(session)) return session
 
@@ -87,6 +94,9 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    const rl = await checkRateLimit(`delivery-men:${getClientIp(req)}`, { max: 20, windowMs: 60000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     const session = requireAdmin(req)
     if (isErrorResponse(session)) return session
 

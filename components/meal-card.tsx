@@ -13,6 +13,7 @@ interface MealCardProps {
   size: string;
   sauceId: number | null;
   quantity: number;
+  priority?: boolean;
   onSizeChange: (s: string) => void;
   onSauceChange: (id: number | null) => void;
   onAdd: () => void;
@@ -24,6 +25,7 @@ export const MealCard = memo(function MealCard({
   size,
   sauceId,
   quantity,
+  priority = false,
   onSizeChange,
   onSauceChange,
   onAdd,
@@ -42,6 +44,8 @@ export const MealCard = memo(function MealCard({
         {showImg ? (
           <Image src={product.image_url!} alt={product.name}
             fill
+            loading="lazy"
+            priority={priority}
             sizes="(max-width: 640px) 100vw, 50vw"
             className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
             onError={() => setImgFailed(true)} />

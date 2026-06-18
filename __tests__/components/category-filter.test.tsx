@@ -39,7 +39,7 @@ describe("CategoryFilter", () => {
       />
     )
     const pizzaBtn = screen.getByText("Pizza")
-    expect(pizzaBtn.className).toContain("bg-primary")
+    expect(pizzaBtn.className).toContain("bg-emerald-600")
   })
 
   it("calls onSelectCategory on click", () => {

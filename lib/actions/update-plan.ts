@@ -4,10 +4,11 @@ import { createClient } from "@supabase/supabase-js"
 import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
 import { logger } from "@/lib/logger"
+import { env } from "@/lib/env"
 
-const MASTER_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const MASTER_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
-const FALLBACK_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const MASTER_URL = env.NEXT_PUBLIC_SUPABASE_URL!
+const MASTER_KEY = env.SUPABASE_SERVICE_ROLE_KEY
+const FALLBACK_KEY = env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 export type PlanType = "starter" | "pro" | "elite"
 

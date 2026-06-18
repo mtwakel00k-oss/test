@@ -5,6 +5,7 @@ import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit
 import { encryptSession } from "@/lib/session-crypto"
 import { parseSession } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
+import { env } from "@/lib/env"
 
 const VALID_ROLES = ["cashier", "chef", "admin", "owner"]
 
@@ -50,16 +51,16 @@ export async function POST(req: NextRequest) {
     if (!emailRl.allowed) return rateLimitResponse(emailRl.resetAt)
 
     if (!username || !password) return NextResponse.json({ error: "Missing credentials" }, { status: 400 })
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return NextResponse.json({ error: "Server config error" }, { status: 500 })
+    if (!env.SUPABASE_SERVICE_ROLE_KEY) return NextResponse.json({ error: "Server config error" }, { status: 500 })
 
-    const masterSb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY)
+    const masterSb = createClient(env.NEXT_PUBLIC_SUPABASE_URL!, env.SUPABASE_SERVICE_ROLE_KEY)
 
     // ── Root admin (owner) ──────────────────────────────────────
     if (username.endsWith("@root.app") || reqSlug === "__root__") {
       const email = username.includes("@") ? username.toLowerCase().trim() : `${username}@root.app`
       const rawSb = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        env.NEXT_PUBLIC_SUPABASE_URL!,
+        env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       )
       const { data, error: authError } = await rawSb.auth.signInWithPassword({ email, password })
       if (authError) return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
@@ -110,8 +111,8 @@ export async function POST(req: NextRequest) {
 
     // Use a fresh client (no SSR middleware) to avoid existing session cookie conflicts
     const rawSb = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      env.NEXT_PUBLIC_SUPABASE_URL!,
+      env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
     const { data, error: authError } = await rawSb.auth.signInWithPassword({ email, password })
     if (authError) {

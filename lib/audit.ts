@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 import { createClient } from "@supabase/supabase-js"
 import { parseSession } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
+import { env } from "@/lib/env"
 
 export interface AuditEntry {
   table_name: string
@@ -39,7 +40,7 @@ export function getMemoryAuditLog(): StoredAuditEntry[] {
 
 async function ensureAuditTable(sb: SupabaseClient): Promise<boolean> {
   const supabaseUrl = (sb as unknown as { supabaseUrl?: string }).supabaseUrl
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY
   if (!supabaseUrl || !serviceKey) {
     logger.warn("Cannot create audit_log table: missing supabaseUrl or service key")
     return false
@@ -75,7 +76,7 @@ async function ensureAuditTable(sb: SupabaseClient): Promise<boolean> {
   }
 
   // Fallback: try Management API (requires SUPABASE_ACCESS_TOKEN)
-  const mgmtKey = process.env.SUPABASE_ACCESS_TOKEN
+  const mgmtKey = env.SUPABASE_ACCESS_TOKEN
   if (!mgmtKey) return false
 
   try {

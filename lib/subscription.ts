@@ -1,9 +1,10 @@
 import { createClient } from "@supabase/supabase-js"
 import { TIER_FEATURES, type SubscriptionTier, type TierFeatures } from "@/types/subscriptions"
 import { logger } from "@/lib/logger"
+import { env } from "@/lib/env"
 
-const MASTER_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
-const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+const MASTER_URL = env.NEXT_PUBLIC_SUPABASE_URL
+const SERVICE_KEY = env.SUPABASE_SERVICE_ROLE_KEY
 
 let _serviceClient: ReturnType<typeof createClient> | null = null
 

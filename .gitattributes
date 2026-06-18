@@ -1,0 +1,17 @@
+# Force UTF-8 encoding + LF endings for translation source
+lib/translations.ts text eol=lf working-tree-encoding=UTF-8
+
+# All source files
+*.ts text eol=lf
+*.tsx text eol=lf
+*.css text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.sql text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.ico binary

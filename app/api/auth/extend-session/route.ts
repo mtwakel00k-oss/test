@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
 import { encryptSession, decryptSession } from "@/lib/session-crypto"
 import { logger } from "@/lib/logger"
+import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
 const SECURE = process.env.NODE_ENV === "production"
 
 export async function POST(req: NextRequest) {
   try {
+    const rl = await checkRateLimit(`auth:extend-session:${getClientIp(req)}`, { max: 10, windowMs: 60000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     const rawCookie = req.cookies.get("session")?.value
     if (!rawCookie) {
       return NextResponse.json({ error: "No session" }, { status: 401 })

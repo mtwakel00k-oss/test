@@ -1,11 +1,12 @@
 import { createCipheriv, createDecipheriv, randomBytes, timingSafeEqual } from "crypto"
+import { env } from "@/lib/env"
 
 const ALGORITHM = "aes-256-gcm"
 const IV_LENGTH = 16
 const TAG_LENGTH = 16
 
 function getKey(): Buffer | null {
-  const raw = process.env.SESSION_ENCRYPTION_KEY
+  const raw = env.SESSION_ENCRYPTION_KEY
   if (!raw) return null
   // Accept both hex (64 chars) and base64 (44 chars) formats
   let key: Buffer

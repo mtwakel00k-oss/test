@@ -2,9 +2,13 @@ import { NextRequest, NextResponse } from "next/server"
 import { markOrderAsCollected } from "@/lib/collect"
 import { requireStaff, resolveTenantSlug, isErrorResponse } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
+import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
 export async function POST(req: NextRequest) {
   try {
+    const rl = await checkRateLimit(`delivery:collect:${getClientIp(req)}`, { max: 30, windowMs: 60000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     const session = requireStaff(req)
     if (isErrorResponse(session)) return session
 

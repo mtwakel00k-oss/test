@@ -3,10 +3,11 @@ import { createClient } from "@supabase/supabase-js"
 import { createTenantSupabaseClient } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit"
+import { env } from "@/lib/env"
 
 const masterClient = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  env.NEXT_PUBLIC_SUPABASE_URL!,
+  env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
 interface Driver {

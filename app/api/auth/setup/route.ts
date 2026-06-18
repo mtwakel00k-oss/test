@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { parseSession } from "@/lib/tenant"
 import { createHash } from "crypto"
+import { env } from "@/lib/env"
+import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
 const USERS = [
   { username: "admin",   role: "admin" },
@@ -17,7 +19,7 @@ function generatePassword(): string {
 }
 
 function getDevPassword(username: string, slug: string): string {
-  const hash = process.env.DEV_PASSWORD_HASH
+  const hash = env.DEV_PASSWORD_HASH
   if (!hash) return generatePassword()
   // Use hash as seed for deterministic password per username+slug
   const seed = createHash("sha256").update(`${username}:${slug}:${hash}`).digest("hex")
@@ -32,6 +34,9 @@ function getDevPassword(username: string, slug: string): string {
 
 export async function POST(req: NextRequest) {
   try {
+    const rl = await checkRateLimit(`auth:setup:${getClientIp(req)}`, { max: 5, windowMs: 300000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     const session = parseSession(req.headers.get("cookie") || "")
     if (session.role !== "admin" && session.role !== "owner") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -44,13 +49,13 @@ export async function POST(req: NextRequest) {
     }
     const passwordsInput = body?.passwords as Record<string, string> | undefined
 
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY
     if (!serviceKey) {
       return NextResponse.json({ error: "Missing SUPABASE_SERVICE_ROLE_KEY in .env.local" }, { status: 500 })
     }
 
     const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      env.NEXT_PUBLIC_SUPABASE_URL!,
       serviceKey,
       { auth: { autoRefreshToken: false, persistSession: false } },
     )

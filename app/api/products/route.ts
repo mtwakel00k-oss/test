@@ -4,11 +4,13 @@ import { supabaseForRequest, isTenantMismatch, parseSession, getTenantConfig } f
 import { logger } from "@/lib/logger"
 import { logAudit } from "@/lib/audit"
 import { getAllImageUrls, setImageUrl, deleteImageUrl } from "@/lib/image-store"
+import { env } from "@/lib/env"
+import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
 function getMasterServiceClient() {
   return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    env.NEXT_PUBLIC_SUPABASE_URL!,
+    env.SUPABASE_SERVICE_ROLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   )
 }
 
@@ -22,8 +24,8 @@ async function getTenantServiceClient(slug: string) {
     if (tRow?.supabase_service_key) svcKey = tRow.supabase_service_key
   } catch {}
   if (svcKey) return createClient(config.supabase_url, svcKey)
-  const isSameProject = config.supabase_url === process.env.NEXT_PUBLIC_SUPABASE_URL
-  return isSameProject ? createClient(config.supabase_url, process.env.SUPABASE_SERVICE_ROLE_KEY!) : null
+  const isSameProject = config.supabase_url === env.NEXT_PUBLIC_SUPABASE_URL
+  return isSameProject ? createClient(config.supabase_url, env.SUPABASE_SERVICE_ROLE_KEY!) : null
 }
 
 function getAdminRole(req: NextRequest): boolean {
@@ -71,6 +73,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const rl = await checkRateLimit(`products:${getClientIp(req)}`, { max: 30, windowMs: 60000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     if (!getAdminRole(req)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -261,6 +266,9 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    const rl = await checkRateLimit(`products:${getClientIp(req)}`, { max: 30, windowMs: 60000 })
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt)
+
     if (!getAdminRole(req)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }

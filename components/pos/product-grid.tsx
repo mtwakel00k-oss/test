@@ -60,6 +60,7 @@ function ProductCard({ product, curSize, curSauce, count, price, sizes, showSauc
       <div className="aspect-[4/3] bg-muted/50 flex items-center justify-center overflow-hidden relative">
         {product.image_url ? (
           <Image src={product.image_url} alt={product.name} width={200} height={150}
+            loading="lazy"
             className="w-full h-full object-cover transition duration-700 group-hover:scale-110" />
         ) : (
           <span className="text-4xl opacity-20 grayscale group-hover:grayscale-0 transition-all duration-500">🍕</span>

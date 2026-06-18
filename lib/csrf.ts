@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createCipheriv, createDecipheriv, randomBytes, timingSafeEqual } from "crypto"
+import { env } from "@/lib/env"
 
 const CSRF_COOKIE = "csrf_token"
 const CSRF_HEADER = "x-csrf-token"
-const CSRF_SECRET = process.env.CSRF_SECRET || (() => {
+const CSRF_SECRET = env.CSRF_SECRET || (() => {
   if (process.env.NODE_ENV === "production") {
     throw new Error("CSRF_SECRET must be set in production")
   }
