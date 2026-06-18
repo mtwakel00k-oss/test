@@ -61,6 +61,10 @@ gh_out.txt
 # Debug screenshots
 *.screenshot*.png
 menu-*.png
+debug-*.png
+*-debug.png
+*-final-prod.png
+*-final.png
 snapshot*.txt
 .env.production
 .env.preview

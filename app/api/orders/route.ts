@@ -247,6 +247,11 @@ export async function POST(req: NextRequest) {
           const found = OPTIONAL_COLS.find((c) => row[c] !== undefined && msg.includes(c))
           if (found) { delete row[found]; continue }
         }
+        // Type mismatch (e.g. TEXT value into INT column) → strip and retry
+        if (msg.includes("invalid input syntax")) {
+          const found = OPTIONAL_COLS.find((c) => row[c] !== undefined && msg.includes(String(row[c])))
+          if (found) { delete row[found]; continue }
+        }
         // Check constraint violation → try fallback order_type first, then status
         if (msg.includes("23514") || msg.includes("check constraint")) {
           if (typeof row.order_type === "string") {
