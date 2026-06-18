@@ -65,10 +65,6 @@ export function getCsrfToken(req: NextRequest): string | null {
 export function checkCsrf(req: NextRequest): NextResponse | null {
   const cookieToken = getCsrfToken(req)
   const headerToken = req.headers.get(CSRF_HEADER)
-  const bodyToken = req.headers.get("content-type")?.includes("multipart/form-data")
-    ? null // Can't read body easily for multipart, rely on cookie+header
-    : null
-
   const providedToken = headerToken // Primary: header
   if (!cookieToken || !providedToken) {
     return NextResponse.json({ error: "CSRF token missing" }, { status: 403 })

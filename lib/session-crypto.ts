@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, randomBytes, createHash, timingSafeEqual } from "crypto"
+import { createCipheriv, createDecipheriv, randomBytes, timingSafeEqual } from "crypto"
 
 const ALGORITHM = "aes-256-gcm"
 const IV_LENGTH = 16

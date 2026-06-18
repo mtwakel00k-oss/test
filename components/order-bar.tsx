@@ -1,6 +1,6 @@
 "use client";
 
-import { ShoppingBag, ChevronRight, X } from "lucide-react";
+import { ShoppingBag, ChevronRight } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useTranslation } from "@/lib/use-translation";
 import { motion, AnimatePresence } from "framer-motion";

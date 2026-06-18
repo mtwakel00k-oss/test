@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { createClientForRouteHandlerWithResponse, createClientForRouteHandler } from "@/lib/supabase-server"
+import { createClientForRouteHandler } from "@/lib/supabase-server"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 import { encryptSession } from "@/lib/session-crypto"
 import { parseSession } from "@/lib/tenant"

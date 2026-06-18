@@ -92,6 +92,7 @@ export function useRealtime(options: UseRealtimeOptions) {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
+    stableOnPoll.current?.()
     pollRef.current = setInterval(() => {
       stableOnPoll.current?.()
     }, pollInterval)

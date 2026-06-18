@@ -151,8 +151,6 @@ export default function KitchenPage() {
     }
   }, [soundOn])
 
-  useEffect(() => { fetchOrders().then(data => startTransition(() => setOrders(data))) }, [fetchOrders])
-
   const debouncedRefreshRef = useRef<ReturnType<typeof debounce> | null>(null)
 
   useEffect(() => {

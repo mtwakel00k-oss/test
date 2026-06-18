@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { createTenantSupabaseClient } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
-import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
+import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit"
 
 const masterClient = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

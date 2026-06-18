@@ -103,13 +103,6 @@ export default function DriverManagePage({ params }: { params: Promise<{ order_i
     finally { setConfirming(false) }
   }
 
-  const accent = useMemo(() => ({
-    from: "from-emerald-500",
-    to: "to-emerald-600",
-    light: "emerald-500/10",
-    border: "emerald-500/20",
-  }), [])
-
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">

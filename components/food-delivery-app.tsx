@@ -87,8 +87,14 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
   const [sizes, setSizes] = useState<Record<number, string>>({})
   const [sauces, setSauces] = useState<Record<number, number | null>>({})
   const [checkoutOpen, setCheckoutOpen] = useState(false)
-  const [loading, setLoading] = useState(!initialProducts)
-  const { items, addItem, updateQuantity, itemCount, clear, total, removeProduct } = useCart()
+  const [loading, setLoading] = useState(() => !(initialProducts && initialProducts.length > 0))
+  const { items, addItem, updateQuantity, itemCount, clear, total, removeProduct: _removeProduct } = useCart()
+
+  const itemsRef = useRef(items)
+  const removeProductRef = useRef(_removeProduct)
+
+  useEffect(() => { itemsRef.current = items }, [items])
+  useEffect(() => { removeProductRef.current = _removeProduct }, [_removeProduct])
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -125,7 +131,6 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
         setLoading(false)
       })
     } else {
-      setLoading(true)
       fetchApi("/api/products").then(r => {
         if (!r.ok) throw new Error(`Products API returned ${r.status}`)
         return r.json()
@@ -158,10 +163,10 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
   useEffect(() => {
     if (products.length === 0) return
     const validIds = new Set(products.map(p => p.id))
-    const stale = items.filter(i => !validIds.has(i.product.id))
+    const stale = itemsRef.current.filter(i => !validIds.has(i.product.id))
     if (stale.length > 0) {
       logger.warn("Removing stale items from cart", { removed: stale.map(i => ({ id: i.product.id, name: i.product.name })) })
-      for (const s of stale) removeProduct(s.product.id)
+      for (const s of stale) removeProductRef.current(s.product.id)
     }
   }, [products])
 
@@ -260,7 +265,7 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
             onClose={() => setCheckoutOpen(false)}
             onSuccess={(orderId) => { setCheckoutOpen(false); router.push(getOrderTrackingUrl(slug, orderId)) }}
             onClear={clear}
-            onRemoveProduct={removeProduct}
+            onRemoveProduct={_removeProduct}
           />
         )}
       </div>

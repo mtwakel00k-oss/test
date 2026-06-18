@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useTranslation } from "@/lib/use-translation"
-import { CardContent } from "@/components/ui/card"
+import { CardContent as _CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -165,7 +165,7 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
               <div className="flex gap-2 p-1.5 mb-6 rounded-2xl bg-muted/50 border border-border/30">
                 {visibleRoles.map(key => {
                   const cfg = ROLE_CONFIG[key]
-                  const acs = ACCENT_STYLES[cfg.accent]
+                  const _acs = ACCENT_STYLES[cfg.accent]
                   return (
                     <button key={key} data-testid={`role-tab-${key}`} onClick={() => { setPage(key); setError("") }}
                       className={cn(

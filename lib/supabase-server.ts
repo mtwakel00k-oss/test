@@ -1,3 +1,4 @@
+import "@/lib/env"
 import { createServerClient } from "@supabase/ssr"
 import { NextRequest, NextResponse } from "next/server"
 import { logger } from "@/lib/logger"

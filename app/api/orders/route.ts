@@ -210,9 +210,6 @@ export async function POST(req: NextRequest) {
 
     const total = validItems.reduce((s, i) => s + i.unit_price * i.quantity, 0)
 
-    const today = new Date().toISOString().slice(0, 10)
-    const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10)
-
     // ── Payload ─────────────────────────────────────────
     const payload: Record<string, unknown> = {
       customer_name,

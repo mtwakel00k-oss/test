@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback, useEffect, useMemo, startTransition } from "react"
-import { MapPin, Loader2, ShoppingBag, Check, ChevronRight } from "lucide-react"
+import { MapPin, Loader2, ShoppingBag, Check } from "lucide-react"
 import { getPrice } from "@/lib/types"
 import type { CartItem, OrderType } from "@/lib/types"
 import { logger } from "@/lib/logger"
