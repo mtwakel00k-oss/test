@@ -34,15 +34,35 @@ export async function GET(req: NextRequest) {
 
   if (!users || users.length === 0) return NextResponse.json([])
 
-  const userIds = (users as { user_id: string; role: string }[]).map((u) => u.user_id)
-  const { data: profiles } = await masterClient.from("profiles")
-    .select("id, username")
-    .in("id", userIds)
+  // Fetch usernames from auth user metadata as fallback (profiles table may be missing data)
+  let usernameMap = new Map<string, string>()
+  try {
+    const { data: profiles } = await masterClient.from("profiles")
+      .select("id, username")
+      .in("id", (users as { user_id: string }[]).map((u) => u.user_id))
+    if (profiles) {
+      for (const p of profiles as { id: string; username: string }[]) {
+        usernameMap.set(p.id, p.username)
+      }
+    }
+  } catch { /* profiles table may not exist */ }
 
-  const profileMap = new Map((profiles || []).map((p: { id: string; username: string }) => [p.id, p.username]))
+  // For users without profile username, fetch from auth metadata
+  const missingIds = (users as { user_id: string }[]).filter((u) => !usernameMap.has(u.user_id)).map((u) => u.user_id)
+  if (missingIds.length > 0) {
+    try {
+      const { data: authList } = await masterClient.auth.admin.listUsers()
+      for (const u of authList?.users || []) {
+        if (missingIds.includes(u.id) && u.user_metadata?.username) {
+          usernameMap.set(u.id, u.user_metadata.username as string)
+        }
+      }
+    } catch { /* may not have permission */ }
+  }
+
   const list = (users as { user_id: string; role: string }[]).map((u) => ({
     id: u.user_id,
-    username: profileMap.get(u.user_id) || u.user_id,
+    username: usernameMap.get(u.user_id) || u.user_id,
     role: u.role,
   }))
   return NextResponse.json(list)
