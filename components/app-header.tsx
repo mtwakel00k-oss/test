@@ -83,7 +83,7 @@ export function AppHeader({ cartItemCount, onCart }: AppHeaderProps) {
             <motion.h1
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.08 }}
+              transition={{ duration: 0.5, delay: 0.08, ease: [0.32, 0.72, 0, 1] }}
               className="truncate text-base font-semibold leading-tight text-foreground"
             >
               {tenant?.name || "Restaurant"}
@@ -91,7 +91,7 @@ export function AppHeader({ cartItemCount, onCart }: AppHeaderProps) {
             <motion.span
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.12 }}
+              transition={{ duration: 0.5, delay: 0.12, ease: [0.32, 0.72, 0, 1] }}
               className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.15em] text-primary"
             >
               <span className="size-1.5 rounded-full bg-primary animate-pulse" />

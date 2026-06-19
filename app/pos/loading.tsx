@@ -9,7 +9,7 @@ export default function POSLoading() {
           <Skeleton className="h-4 w-24" />
         </div>
         <div className="flex items-center gap-3">
-          <Skeleton className="h-9 w-9 rounded-lg" />
+          <Skeleton className="h-9 w-9 rounded-xl" />
           <Skeleton className="h-10 w-10 rounded-full" />
         </div>
       </header>
@@ -17,20 +17,24 @@ export default function POSLoading() {
         <div className="lg:col-span-2 space-y-3">
           <div className="flex gap-2">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-8 w-20 rounded-lg" />
+              <Skeleton key={i} className="h-8 w-20 rounded-xl" />
             ))}
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="rounded-xl border border-border bg-card p-3 space-y-2">
-                <Skeleton className="h-16 w-full rounded-lg" />
+              <div
+                key={i}
+                className="rounded-2xl bg-muted/30 dark:bg-muted/10 border border-border/5 p-3 space-y-2"
+                style={{ animationDelay: `${i * 0.04}s` }}
+              >
+                <Skeleton className="h-16 w-full rounded-xl" />
                 <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="h-3 w-1/2" />
               </div>
             ))}
           </div>
         </div>
-        <div className="rounded-xl border border-border bg-card p-4 space-y-4">
+        <div className="rounded-2xl bg-muted/30 dark:bg-muted/10 border border-border/5 p-4 space-y-4">
           <Skeleton className="h-5 w-28" />
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="flex items-center gap-3">
@@ -42,7 +46,7 @@ export default function POSLoading() {
               <Skeleton className="h-6 w-12" />
             </div>
           ))}
-          <Skeleton className="h-10 w-full rounded-lg mt-4" />
+          <Skeleton className="h-10 w-full rounded-xl mt-4" />
         </div>
       </div>
     </div>

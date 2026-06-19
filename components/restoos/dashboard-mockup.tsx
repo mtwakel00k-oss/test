@@ -68,7 +68,7 @@ export function DashboardMockup() {
                   key={s.label}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 + i * 0.12, duration: 0.5 }}
+                  transition={{ delay: 0.6 + i * 0.12, duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
                   className="rounded-xl border border-border/70 bg-white p-3 shadow-sm"
                 >
                   <p className="mb-1 text-[9px] text-muted-foreground">{s.label}</p>
@@ -86,26 +86,26 @@ export function DashboardMockup() {
               <svg viewBox="0 0 320 90" className="w-full" preserveAspectRatio="none">
                 <defs>
                   <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#7c5cfc" stopOpacity="0.35" />
-                    <stop offset="100%" stopColor="#7c5cfc" stopOpacity="0" />
+                    <stop offset="0%" stopColor="#C76B37" stopOpacity="0.35" />
+                    <stop offset="100%" stopColor="#C76B37" stopOpacity="0" />
                   </linearGradient>
                 </defs>
                 <motion.path
                   d="M0 70 C 40 60, 60 30, 100 38 S 170 10, 210 28 S 280 55, 320 22"
                   fill="none"
-                  stroke="#7c5cfc"
+                  stroke="#C76B37"
                   strokeWidth="3"
                   strokeLinecap="round"
                   initial={{ pathLength: 0 }}
                   animate={{ pathLength: 1 }}
-                  transition={{ duration: 1.6, ease: 'easeInOut', delay: 0.9 }}
+                  transition={{ duration: 1.6, ease: [0.32, 0.72, 0, 1], delay: 0.9 }}
                 />
                 <motion.path
                   d="M0 70 C 40 60, 60 30, 100 38 S 170 10, 210 28 S 280 55, 320 22 L 320 90 L 0 90 Z"
                   fill="url(#chartFill)"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ duration: 1, delay: 1.6 }}
+                  transition={{ duration: 1, delay: 1.6, ease: [0.32, 0.72, 0, 1] }}
                 />
               </svg>
             </div>

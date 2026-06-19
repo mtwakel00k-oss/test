@@ -10,7 +10,7 @@ export default function MenuLoading() {
             <Skeleton className="h-4 w-56" />
           </div>
           <div className="flex items-center gap-3">
-            <Skeleton className="h-9 w-9 rounded-lg" />
+            <Skeleton className="h-9 w-9 rounded-xl" />
             <Skeleton className="h-10 w-10 rounded-full" />
           </div>
         </header>
@@ -21,8 +21,12 @@ export default function MenuLoading() {
         </div>
         <div className="space-y-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="flex gap-4 rounded-xl border border-border bg-card p-4">
-              <Skeleton className="h-24 w-24 rounded-lg shrink-0" />
+            <div
+              key={i}
+              className="flex gap-4 rounded-2xl bg-muted/30 dark:bg-muted/10 border border-border/5 p-4"
+              style={{ animationDelay: `${i * 0.06}s` }}
+            >
+              <Skeleton className="h-24 w-24 rounded-xl shrink-0" />
               <div className="flex-1 space-y-2">
                 <Skeleton className="h-5 w-3/4" />
                 <Skeleton className="h-4 w-full" />

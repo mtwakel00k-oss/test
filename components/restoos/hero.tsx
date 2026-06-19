@@ -75,7 +75,7 @@ export function Hero() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.42 }}
+            transition={{ duration: 0.8, ease, delay: 0.42 }}
             className="mt-10 flex items-center justify-center gap-4"
           >
             <div className="flex -space-x-2.5 space-x-reverse">
