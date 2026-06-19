@@ -29,6 +29,7 @@ const ROLE_CONFIG: Record<PageRole, { icon: string; labelKey: string }> = {
 
 export default function LoginForm({ redirect: redirectProp, slug: slugProp, tenants }: { redirect?: string; slug?: string; tenants?: TenantItem[] }) {
   const [page, setPage] = useState<PageRole>(slugProp ? "cashier" : "admin")
+  const [showOwnerForm, setShowOwnerForm] = useState(false)
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -86,6 +87,9 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
   )
 
   if (!slugProp && tenants && tenants.length > 0) {
+    if (showOwnerForm) {
+      return renderLoginForm()
+    }
     return (
       <div className="relative flex min-h-[100dvh] items-center justify-center app-surface overflow-hidden">
         <div className="pointer-events-none absolute inset-0">
@@ -130,116 +134,136 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
               </motion.button>
             ))}
           </div>
+          <div className="mt-8 text-center">
+            <div className="relative mb-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border/30" />
+              </div>
+              <div className="relative flex justify-center">
+                <span className="bg-background px-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground/40">{t("login.or")}</span>
+              </div>
+            </div>
+            <button onClick={() => { setShowOwnerForm(true); setPage("owner") }}
+              className="group inline-flex items-center gap-2 rounded-xl border border-yellow-500/20 bg-yellow-500/5 px-5 py-3 text-sm font-semibold text-yellow-600 dark:text-yellow-400 transition-all duration-500 hover:border-yellow-500/40 hover:bg-yellow-500/10 active:scale-[0.98]"
+            >
+              <span className="text-base">👑</span>
+              <span>{t("login.owner")}</span>
+            </button>
+          </div>
         </motion.div>
       </div>
     )
   }
 
-  return (
-    <div className="relative flex min-h-[100dvh] items-center justify-center app-surface overflow-hidden selection:bg-primary/10">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-24 end-0 h-80 w-80 rounded-full bg-primary/8 blur-[90px]" />
-        <div className="absolute -bottom-24 start-0 h-72 w-72 rounded-full bg-accent/6 blur-[80px]" />
-      </div>
-      {topBar}
-      <motion.div
-        initial={{ opacity: 0, y: 24, filter: 'blur(8px)' }}
-        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-        transition={{ duration: 0.85, ease: [0.32, 0.72, 0, 1] }}
-        className={cn("relative w-full max-w-sm px-4", shaking && "animate-shake")}
-      >
-        <div className="premium-bezel shadow-[var(--shadow-xl)]">
-          <div className="premium-bezel-inner overflow-hidden">
-            {slugProp && (
-              <div className="px-6 pt-5">
-                <button onClick={() => router.push("/login")}
-                  className="flex items-center gap-2 text-xs font-medium text-muted-foreground/60 transition-colors hover:text-foreground">
-                  <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                  {t("login.changeRestaurant")}
-                </button>
-              </div>
-            )}
-
-            <div className="px-6 pt-6 pb-5 text-center">
-              <div className="mx-auto mb-5 grid size-16 place-items-center rounded-[1.25rem] bg-primary/8 text-3xl transition-transform duration-500">
-                {activeRole.icon}
-              </div>
-              <h1 className="font-display text-2xl font-normal tracking-tight text-foreground">{t(`${activeRole.labelKey}`)}</h1>
-              <p className="mt-1.5 text-sm text-muted-foreground/60">{t("login.subtitle")}</p>
-            </div>
-
-            <div className="px-6 pb-6">
-              {visibleRoles.length > 1 && (
-                <div className="mb-5 flex gap-1 rounded-full border border-border/30 bg-muted/40 p-1">
-                  {visibleRoles.map(key => {
-                    const cfg = ROLE_CONFIG[key]
-                    return (
-                      <button key={key} data-testid={`role-tab-${key}`} onClick={() => { setPage(key); setError("") }}
-                        className={cn(
-                          "flex flex-1 items-center justify-center gap-2 rounded-full py-2 transition-all duration-500",
-                          page === key
-                            ? "bg-card text-foreground shadow-[var(--shadow-sm)]"
-                            : "text-muted-foreground/50 hover:text-foreground",
-                        )}>
-                        <span className="text-base">{cfg.icon}</span>
-                        <span className="text-xs font-semibold">{t(cfg.labelKey)}</span>
-                      </button>
-                    )
-                  })}
+  function renderLoginForm() {
+    return (
+      <div className="relative flex min-h-[100dvh] items-center justify-center app-surface overflow-hidden selection:bg-primary/10">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-24 end-0 h-80 w-80 rounded-full bg-primary/8 blur-[90px]" />
+          <div className="absolute -bottom-24 start-0 h-72 w-72 rounded-full bg-accent/6 blur-[80px]" />
+        </div>
+        {topBar}
+        <motion.div
+          initial={{ opacity: 0, y: 24, filter: 'blur(8px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          transition={{ duration: 0.85, ease: [0.32, 0.72, 0, 1] }}
+          className={cn("relative w-full max-w-sm px-4", shaking && "animate-shake")}
+        >
+          <div className="premium-bezel shadow-[var(--shadow-xl)]">
+            <div className="premium-bezel-inner overflow-hidden">
+              {(slugProp || showOwnerForm) && (
+                <div className="px-6 pt-5">
+                  <button onClick={() => showOwnerForm ? setShowOwnerForm(false) : router.push("/login")}
+                    className="flex items-center gap-2 text-xs font-medium text-muted-foreground/60 transition-colors hover:text-foreground">
+                    <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    {t("login.changeRestaurant")}
+                  </button>
                 </div>
               )}
 
-              <div className="space-y-3">
-                <Input
-                  data-testid="username-input"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                  placeholder={t("login.usernamePlaceholder")}
-                  className={cn(error && "border-destructive/50")}
-                  autoFocus
-                />
-                <Input
-                  data-testid="password-input"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                  placeholder={t("login.passwordPlaceholder")}
-                  className={cn(error && "border-destructive/50")}
-                />
+              <div className="px-6 pt-6 pb-5 text-center">
+                <div className="mx-auto mb-5 grid size-16 place-items-center rounded-[1.25rem] bg-primary/8 text-3xl transition-transform duration-500">
+                  {activeRole.icon}
+                </div>
+                <h1 className="font-display text-2xl font-normal tracking-tight text-foreground">{t(`${activeRole.labelKey}`)}</h1>
+                <p className="mt-1.5 text-sm text-muted-foreground/60">{t("login.subtitle")}</p>
+              </div>
 
-                {error && (
-                  <p data-testid="login-error" className="text-center text-xs font-medium text-destructive">
-                    {error}
-                  </p>
+              <div className="px-6 pb-6">
+                {visibleRoles.length > 1 && (
+                  <div className="mb-5 flex gap-1 rounded-full border border-border/30 bg-muted/40 p-1">
+                    {visibleRoles.map(key => {
+                      const cfg = ROLE_CONFIG[key]
+                      return (
+                        <button key={key} data-testid={`role-tab-${key}`} onClick={() => { setPage(key); setError("") }}
+                          className={cn(
+                            "flex flex-1 items-center justify-center gap-2 rounded-full py-2 transition-all duration-500",
+                            page === key
+                              ? "bg-card text-foreground shadow-[var(--shadow-sm)]"
+                              : "text-muted-foreground/50 hover:text-foreground",
+                          )}>
+                          <span className="text-base">{cfg.icon}</span>
+                          <span className="text-xs font-semibold">{t(cfg.labelKey)}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
                 )}
 
-                <Button
-                  data-testid="login-submit"
-                  onClick={handleLogin}
-                  disabled={loading || !username || !password}
-                  size="lg"
-                  className="w-full h-12 rounded-xl text-sm font-semibold shadow-[var(--shadow-md),var(--shadow-glow)]"
-                >
-                  {loading ? (
-                    <span className="flex items-center justify-center gap-2.5">
-                      <svg className="size-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      {t("login.loggingIn")}
-                    </span>
-                  ) : t("login.logIn")}
-                </Button>
+                <div className="space-y-3">
+                  <Input
+                    data-testid="username-input"
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                    placeholder={t("login.usernamePlaceholder")}
+                    className={cn(error && "border-destructive/50")}
+                    autoFocus
+                  />
+                  <Input
+                    data-testid="password-input"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                    placeholder={t("login.passwordPlaceholder")}
+                    className={cn(error && "border-destructive/50")}
+                  />
+
+                  {error && (
+                    <p data-testid="login-error" className="text-center text-xs font-medium text-destructive">
+                      {error}
+                    </p>
+                  )}
+
+                  <Button
+                    data-testid="login-submit"
+                    onClick={handleLogin}
+                    disabled={loading || !username || !password}
+                    size="lg"
+                    className="w-full h-12 rounded-xl text-sm font-semibold shadow-[var(--shadow-md),var(--shadow-glow)]"
+                  >
+                    {loading ? (
+                      <span className="flex items-center justify-center gap-2.5">
+                        <svg className="size-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        {t("login.loggingIn")}
+                      </span>
+                    ) : t("login.logIn")}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </motion.div>
-    </div>
-  )
+        </motion.div>
+      </div>
+    )
+  }
+
+  return renderLoginForm()
 }
