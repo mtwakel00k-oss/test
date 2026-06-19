@@ -51,6 +51,7 @@ export const T: Dict = {
   "login.usernamePlaceholder": { ar: "اسم المستخدم أو البريد الإلكتروني", en: "Username or email", fr: "Nom d'utilisateur ou email" },
   "login.passwordPlaceholder": { ar: "كلمة المرور", en: "Password", fr: "Mot de passe" },
   "login.autoLink": { ar: "سيتم ربطك بمطعمك تلقائياً", en: "You will be linked to your restaurant automatically", fr: "Vous serez automatiquement lié à votre restaurant" },
+  "login.or": { ar: "أو", en: "or", fr: "ou" },
   "login.loggingIn": { ar: "جارٍ تسجيل الدخول...", en: "Logging in...", fr: "Connexion en cours..." },
   "login.logIn": { ar: "تسجيل الدخول", en: "Log in", fr: "Se connecter" },
   "login.logOut": { ar: "تسجيل الخروج", en: "Log out", fr: "Se déconnecter" },
