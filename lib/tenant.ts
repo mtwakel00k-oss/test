@@ -98,26 +98,48 @@ export async function getTenantConfig(slug: string): Promise<TenantConfig | null
   const cached = configCache.get(slug)
   if (cached && cached.expiry > Date.now()) return cached.data
 
-  const { data, error } = await (_masterClient.from("tenants"))
-    .select("id, slug, name, supabase_url, supabase_anon_key, is_active, is_open, created_at, logo_url, plan_type")
+  // Try with is_open first, fall back gracefully if column doesn't exist
+  let result: Record<string, unknown> | null = null
+  let qErr: unknown = null
+
+  const cols = ["id", "slug", "name", "supabase_url", "supabase_anon_key", "is_active", "is_open", "created_at", "logo_url", "plan_type"]
+  const { data: d1, error: e1 } = await (_masterClient.from("tenants"))
+    .select(cols.join(","))
     .eq("slug", slug)
     .maybeSingle()
+  qErr = e1
 
-  if (error || !data) {
+  if (d1) {
+    result = d1 as unknown as Record<string, unknown>
+  } else if (e1 && ((e1 as { message?: string }).message?.includes("does not exist") || (e1 as { code?: string }).code === "42703")) {
+    const fallbackCols = cols.filter((c) => c !== "is_open")
+    const { data: d2, error: e2 } = await (_masterClient.from("tenants"))
+      .select(fallbackCols.join(","))
+      .eq("slug", slug)
+      .maybeSingle()
+    qErr = e2
+    result = d2 as unknown as Record<string, unknown> | null
+    if (result) {
+      result.is_open = true
+    }
+  }
+
+  if (qErr || !result) {
     configCache.set(slug, { data: null, expiry: Date.now() + 10_000 })
-    if (error) logger.error("getTenantConfig query failed", error)
+    if (qErr) logger.error("getTenantConfig query failed", qErr)
     return null
   }
 
-  if (typeof data.plan_type === "string") {
-    data.plan_type = data.plan_type.toLowerCase()
+  if (typeof result.plan_type === "string") {
+    result.plan_type = (result.plan_type as string).toLowerCase()
   }
-  if (typeof data.is_open !== "boolean") {
-    data.is_open = true
+  if (typeof result.is_open !== "boolean") {
+    result.is_open = true
   }
 
-  configCache.set(slug, { data, expiry: Date.now() + CACHE_TTL })
-  return data
+  const config = result as unknown as TenantConfig
+  configCache.set(slug, { data: config, expiry: Date.now() + CACHE_TTL })
+  return config
 }
 
 /** Fetch only the service key for a tenant (separate call — column may not exist on all DBs). */
@@ -277,19 +299,39 @@ async function lookupTenantByEmail(email: string): Promise<TenantConfig | null> 
   const slug = domainMap[domain] || domain?.split(".")[0]
   if (!slug) return null
 
-  const { data, error } = await (_masterClient.from("tenants"))
-    .select("id, slug, name, supabase_url, supabase_anon_key, is_active, is_open, created_at, logo_url")
+  let result: Record<string, unknown> | null = null
+  let qErr: unknown = null
+  const cols = ["id", "slug", "name", "supabase_url", "supabase_anon_key", "is_active", "is_open", "created_at", "logo_url"]
+
+  const { data: d1, error: e1 } = await (_masterClient.from("tenants"))
+    .select(cols.join(","))
     .eq("slug", slug)
     .maybeSingle()
-  if (error || !data) {
-    if (error) logger.error("lookupTenantByEmail query failed", error)
+  qErr = e1
+
+  if (d1) {
+    result = d1 as unknown as Record<string, unknown>
+  } else if (e1 && ((e1 as { message?: string }).message?.includes("does not exist") || (e1 as { code?: string }).code === "42703")) {
+    const fallbackCols = cols.filter((c) => c !== "is_open")
+    const { data: d2, error: e2 } = await (_masterClient.from("tenants"))
+      .select(fallbackCols.join(","))
+      .eq("slug", slug)
+      .maybeSingle()
+    qErr = e2
+    result = d2 as unknown as Record<string, unknown> | null
+    if (result) result.is_open = true
+  }
+
+  if (qErr || !result) {
+    if (qErr) logger.error("lookupTenantByEmail query failed", qErr)
     return null
   }
-  if (typeof data.is_open !== "boolean") {
-    (data as Record<string, unknown>).is_open = true
+  if (typeof result.is_open !== "boolean") {
+    result.is_open = true
   }
-  configCache.set(data.slug, { data, expiry: Date.now() + CACHE_TTL })
-  return data
+  const config = result as unknown as TenantConfig
+  configCache.set(config.slug, { data: config, expiry: Date.now() + CACHE_TTL })
+  return config
 }
 export { lookupTenantByEmail }
 

@@ -28,17 +28,30 @@ export async function GET(req: NextRequest) {
 
     const masterSb = createClient(MASTER_URL, MASTER_KEY || FALLBACK_KEY)
 
-    const { data, error } = await masterSb
+    let { data, error } = await masterSb
       .from("tenants")
       .select("id, slug, name, plan_type, is_active, is_open, created_at")
-      .order("name", { ascending: true })
+      .order("name", { ascending: true }) as { data: unknown; error: unknown }
+
+    // Fallback if is_open column doesn't exist yet
+    if (error && ((error as { message?: string }).message?.includes("does not exist") || (error as { code?: string }).code === "42703")) {
+      const fallback = await masterSb
+        .from("tenants")
+        .select("id, slug, name, plan_type, is_active, created_at")
+        .order("name", { ascending: true })
+      error = fallback.error
+      data = fallback.data
+    }
 
     if (error) {
       logger.error("Failed to list tenants", error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: (error as { message?: string }).message || "Unknown error" }, { status: 500 })
     }
 
-    return NextResponse.json({ tenants: data as TenantRow[] })
+    const rows = (data as Array<Record<string, unknown>> | null) || []
+    const tenants = rows.map((r) => ({ ...r, is_open: r.is_open ?? true })) as TenantRow[]
+
+    return NextResponse.json({ tenants })
   } catch (e) {
     logger.error("Unexpected error listing tenants", e)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
@@ -85,10 +98,23 @@ export async function PATCH(req: NextRequest) {
 
     const masterSb = createClient(MASTER_URL, MASTER_KEY || FALLBACK_KEY)
 
-    const { error } = await masterSb
+    // Try update; if is_open column missing, strip it and retry
+    let { error } = await masterSb
       .from("tenants")
       .update(updates)
       .eq("slug", slug)
+
+    if (error && (error.message?.includes("does not exist") || (error as { code?: string }).code === "42703") && "is_open" in updates) {
+      const { is_open: _, ...safe } = updates
+      const retry = await masterSb
+        .from("tenants")
+        .update(safe)
+        .eq("slug", slug)
+      error = retry.error
+      if (!error) {
+        logger.info(`Tenant ${slug} updated (is_open skipped — column missing)`)
+      }
+    }
 
     if (error) {
       logger.error("Failed to update tenant", error)
