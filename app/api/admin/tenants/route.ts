@@ -16,6 +16,34 @@ const MASTER_URL = env.NEXT_PUBLIC_SUPABASE_URL!
 const SERVICE_KEY = env.SUPABASE_SERVICE_ROLE_KEY
 
 
+export async function DELETE(req: NextRequest) {
+  try {
+    const session = requireRootOwner(req)
+    if (isErrorResponse(session)) return session
+
+    const { slug } = await req.json()
+    if (!slug || typeof slug !== "string") {
+      return NextResponse.json({ error: "Missing slug" }, { status: 400 })
+    }
+
+    const supabaseAdmin = createClient(MASTER_URL, SERVICE_KEY || "", {
+      auth: { autoRefreshToken: false, persistSession: false },
+    })
+
+    const { error } = await supabaseAdmin.from("tenants").delete().eq("slug", slug)
+    if (error) {
+      logger.error("Failed to delete tenant", error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    logger.info(`Tenant ${slug} deleted`)
+    return NextResponse.json({ success: true, slug })
+  } catch (e) {
+    logger.error("Unexpected error deleting tenant", e)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const rl = await checkRateLimit(`admin:tenants:${getClientIp(req)}`, { max: 20, windowMs: 60000 })

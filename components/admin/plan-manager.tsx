@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback, startTransition } from "react"
-import { Loader2, Plus, DoorOpen, DoorClosed } from "lucide-react"
+import { Loader2, Plus, DoorOpen, DoorClosed, Power, Trash2 } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -132,6 +132,31 @@ export function PlanManager() {
       setUpdating((prev) => ({ ...prev, [slug]: false }))
     }
   }, [])
+
+  const handleDelete = useCallback(async (slug: string) => {
+    if (!confirm(t("admin.confirmDelete") || `Are you sure you want to delete "${slug}"? This cannot be undone.`)) return
+    setUpdating((prev) => ({ ...prev, [slug]: true }))
+    try {
+      const res = await fetchApi("/api/admin/tenants", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        logger.error("Failed to delete tenant", data.error)
+        toast({ title: data.error || "Failed to delete", variant: "destructive" })
+      } else {
+        setTenants((prev) => prev.filter((t) => t.slug !== slug))
+        toast({ title: `🗑️ Deleted ${slug}` })
+      }
+    } catch (e) {
+      logger.error("Failed to delete tenant", e)
+      toast({ title: "Network error", variant: "destructive" })
+    } finally {
+      setUpdating((prev) => ({ ...prev, [slug]: false }))
+    }
+  }, [t])
 
   const handlePlanChange = useCallback(async (slug: string, planType: string) => {
     setUpdating((prev) => ({ ...prev, [slug]: true }))
@@ -301,6 +326,9 @@ export function PlanManager() {
                   <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 text-center hidden lg:table-cell">
                     {t("admin.openStatus") || "Open"}
                   </th>
+                  <th className="px-4 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 text-center">
+                    {t("admin.actions") || "Actions"}
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50 bg-transparent">
@@ -364,6 +392,34 @@ export function PlanManager() {
                         )}
                         {tenant.is_open ? "Open" : "Closed"}
                       </button>
+                    </td>
+                    <td className="px-4 py-6">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          onClick={() => handleToggleActive(tenant.slug, tenant.is_active)}
+                          disabled={updating[tenant.slug]}
+                          title={tenant.is_active ? "Stop service" : "Start service"}
+                          className={`inline-flex items-center justify-center size-8 rounded-xl transition-all border ${
+                            tenant.is_active
+                              ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20"
+                              : "bg-rose-500/10 text-rose-600 border-rose-500/20 hover:bg-rose-500/20"
+                          }`}
+                        >
+                          {updating[tenant.slug] ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : (
+                            <Power className="size-3.5" strokeWidth={2} />
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleDelete(tenant.slug)}
+                          disabled={updating[tenant.slug]}
+                          title="Delete"
+                          className="inline-flex items-center justify-center size-8 rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-600 transition-all hover:bg-rose-500/20"
+                        >
+                          <Trash2 className="size-3.5" strokeWidth={2} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
