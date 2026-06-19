@@ -39,8 +39,8 @@ export const MealCard = memo(function MealCard({
   const price = getPrice(product, size, sauceId) || 0
 
   return (
-    <div className="premium-bezel group transition-transform duration-700 hover:scale-[1.01]" style={{ transitionTimingFunction: 'var(--ease-premium)' }}>
-      <div className="premium-bezel-inner overflow-hidden">
+    <div className="premium-bezel group transition-transform duration-700 hover:scale-[1.01] h-full flex flex-col" style={{ transitionTimingFunction: 'var(--ease-premium)' }}>
+      <div className="premium-bezel-inner overflow-hidden flex flex-col h-full">
         <div className="relative aspect-[4/3] overflow-hidden bg-muted/30">
           {showImg ? (
             <Image src={product.image_url!} alt={product.name}
@@ -68,11 +68,11 @@ export const MealCard = memo(function MealCard({
           )}
 
           <div className="absolute bottom-3 start-3 end-3 flex items-end justify-between">
-            <div className="rounded-xl border border-white/20 bg-white/95 px-3.5 py-2 backdrop-blur-sm shadow-[var(--shadow-md)] dark:bg-neutral-900/90 dark:border-white/10">
-              <span className="mb-0.5 block text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-foreground/70">{lang === "ar" ? "السعر" : "Price"}</span>
-              <span className="text-lg font-semibold tabular-nums text-foreground">
+            <div className="rounded-xl px-3.5 py-2 shadow-[var(--shadow-md)] bg-neutral-900 text-white font-bold dark:bg-neutral-800 dark:text-white dark:border dark:border-neutral-700">
+              <span className="mb-0.5 block text-[9px] font-semibold uppercase tracking-[0.15em] text-white/70">{lang === "ar" ? "السعر" : "Price"}</span>
+              <span className="text-lg font-semibold tabular-nums text-white">
                 {price.toLocaleString(lang === "fr" ? "fr-FR" : "en-US")}
-                <span className="ms-1 text-[10px] font-medium text-muted-foreground/60">{lang === "ar" ? "د.ج" : "DA"}</span>
+                <span className="ms-1 text-[10px] font-medium text-white/60">{lang === "ar" ? "د.ج" : "DA"}</span>
               </span>
             </div>
           </div>
@@ -86,45 +86,47 @@ export const MealCard = memo(function MealCard({
           )}
         </div>
 
-        <div className="p-5">
-          <h3 className="line-clamp-1 text-base font-semibold leading-tight text-foreground transition-colors duration-300 group-hover:text-primary">
-            {product.name}
-          </h3>
-          {product.description && (
-            <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-              {product.description}
-            </p>
-          )}
+        <div className="p-5 flex flex-col flex-1">
+          <div className="flex-1">
+            <h3 className="line-clamp-1 text-base font-semibold leading-tight text-foreground transition-colors duration-300 group-hover:text-primary">
+              {product.name}
+            </h3>
+            {product.description && (
+              <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                {product.description}
+              </p>
+            )}
 
-          {avSizes.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-1.5">
-              {avSizes.map(s => (
-                <button key={s} onClick={() => onSizeChange(s)}
-                  className={`rounded-full px-4 py-1.5 text-[11px] font-bold transition-all duration-500 ${
-                    size === s
-                      ? "bg-primary text-primary-foreground shadow-[var(--shadow-sm)] ring-1 ring-primary/30"
-                      : "bg-secondary/60 text-muted-foreground hover:bg-secondary hover:text-foreground"
-                  }`}>
-                  {s}
-                </button>
-              ))}
-            </div>
-          )}
+            {avSizes.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                {avSizes.map(s => (
+                  <button key={s} onClick={() => onSizeChange(s)}
+                    className={`rounded-full px-4 py-1.5 text-[11px] font-bold transition-all duration-500 ${
+                      size === s
+                        ? "bg-primary text-primary-foreground shadow-[var(--shadow-sm)] ring-1 ring-primary/30"
+                        : "bg-secondary/60 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    }`}>
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
 
-          {showSauce && (
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {SAUCES.map(s => (
-                <button key={s.id} onClick={() => onSauceChange(s.id)}
-                  className={`rounded-full px-3.5 py-1.5 text-[11px] font-semibold transition-all duration-500 ${
-                    sauceId === s.id
-                      ? "bg-primary text-primary-foreground shadow-[var(--shadow-sm)]"
-                      : "bg-secondary/60 text-muted-foreground hover:bg-secondary hover:text-foreground"
-                  }`}>
-                  {s.label}
-                </button>
-              ))}
-            </div>
-          )}
+            {showSauce && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {SAUCES.map(s => (
+                  <button key={s.id} onClick={() => onSauceChange(s.id)}
+                    className={`rounded-full px-3.5 py-1.5 text-[11px] font-semibold transition-all duration-500 ${
+                      sauceId === s.id
+                        ? "bg-primary text-primary-foreground shadow-[var(--shadow-sm)]"
+                        : "bg-secondary/60 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    }`}>
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           <div className="mt-5 border-t border-border/30 pt-4">
             {quantity === 0 ? (

@@ -56,8 +56,8 @@ function ProductCard({ product, curSize, curSauce, count, price, sizes, showSauc
 }) {
   const { t } = useTranslation()
   return (
-    <div data-testid="product-card" className="group relative bg-card rounded-[2rem] border border-border/50 overflow-hidden shadow-sm hover:shadow-2xl hover:border-primary/20 hover:-translate-y-1 transition-all duration-300">
-      <div className="aspect-[4/3] bg-muted/50 flex items-center justify-center overflow-hidden relative">
+    <div data-testid="product-card" className="group relative bg-card rounded-[2rem] border border-border/50 overflow-hidden shadow-sm hover:shadow-2xl hover:border-primary/20 hover:-translate-y-1 transition-all duration-300 h-full flex flex-col">
+      <div className="aspect-[4/3] bg-muted/50 flex items-center justify-center overflow-hidden relative shrink-0">
         {product.image_url ? (
           <Image src={product.image_url} alt={product.name} width={200} height={150}
             loading="lazy"
@@ -67,42 +67,44 @@ function ProductCard({ product, curSize, curSauce, count, price, sizes, showSauc
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
-      <div className="p-4 space-y-3">
-        <h3 className="text-sm font-black text-foreground leading-tight line-clamp-2 min-h-[2.5rem]">{product.name}</h3>
-        <div className="flex flex-col gap-2">
-          {sizes.length > 0 && (
-            <div className="flex gap-1.5 flex-wrap">
-              {sizes.map((s) => (
-                <button key={s} onClick={() => onSizeChange(product.id, s)}
-                  className={cn("text-[9px] px-2.5 py-1 rounded-xl font-black uppercase tracking-widest transition-all border",
-                    curSize === s
-                      ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20"
-                      : "bg-muted/50 text-muted-foreground border-border/50 hover:border-primary/30 hover:text-foreground")}>
-                  {SIZE_LABEL[s] || s}
-                </button>
-              ))}
-            </div>
-          )}
-          {showSauces && (
-            <div className="flex gap-1.5">
-              {sauces.tomato && (
-                <button onClick={() => onSauceChange(product.id, 1)}
-                  className={cn("text-[9px] px-2.5 py-1 rounded-xl font-black uppercase tracking-widest transition-all border",
-                    curSauce === 1 ? "bg-rose-500 text-white border-rose-500 shadow-lg shadow-rose-500/20" : "bg-muted/50 text-muted-foreground border-border/50 hover:border-rose-300 hover:text-rose-600")}>
-                  {t("pos.redSauce")}
-                </button>
-              )}
-              {sauces.cream && (
-                <button onClick={() => onSauceChange(product.id, 2)}
-                  className={cn("text-[9px] px-2.5 py-1 rounded-xl font-black uppercase tracking-widest transition-all border",
-                    curSauce === 2 ? "bg-amber-400 text-black border-amber-400 shadow-lg shadow-amber-400/20" : "bg-muted/50 text-muted-foreground border-border/50 hover:border-amber-300 hover:text-amber-700")}>
-                  {t("pos.whiteSauce")}
-                </button>
-              )}
-            </div>
-          )}
+      <div className="p-4 flex flex-col flex-1">
+        <div className="flex-1 space-y-3">
+          <h3 className="text-sm font-black text-foreground leading-tight line-clamp-2 min-h-[2.5rem]">{product.name}</h3>
+          <div className="flex flex-col gap-2">
+            {sizes.length > 0 && (
+              <div className="flex gap-1.5 flex-wrap">
+                {sizes.map((s) => (
+                  <button key={s} onClick={() => onSizeChange(product.id, s)}
+                    className={cn("text-[9px] px-2.5 py-1 rounded-xl font-black uppercase tracking-widest transition-all border",
+                      curSize === s
+                        ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20"
+                        : "bg-muted/50 text-muted-foreground border-border/50 hover:border-primary/30 hover:text-foreground")}>
+                    {SIZE_LABEL[s] || s}
+                  </button>
+                ))}
+              </div>
+            )}
+            {showSauces && (
+              <div className="flex gap-1.5">
+                {sauces.tomato && (
+                  <button onClick={() => onSauceChange(product.id, 1)}
+                    className={cn("text-[9px] px-2.5 py-1 rounded-xl font-black uppercase tracking-widest transition-all border",
+                      curSauce === 1 ? "bg-rose-500 text-white border-rose-500 shadow-lg shadow-rose-500/20" : "bg-muted/50 text-muted-foreground border-border/50 hover:border-rose-300 hover:text-rose-600")}>
+                    {t("pos.redSauce")}
+                  </button>
+                )}
+                {sauces.cream && (
+                  <button onClick={() => onSauceChange(product.id, 2)}
+                    className={cn("text-[9px] px-2.5 py-1 rounded-xl font-black uppercase tracking-widest transition-all border",
+                      curSauce === 2 ? "bg-amber-400 text-black border-amber-400 shadow-lg shadow-amber-400/20" : "bg-muted/50 text-muted-foreground border-border/50 hover:border-amber-300 hover:text-amber-700")}>
+                    {t("pos.whiteSauce")}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-        <div className="flex items-center justify-between pt-3 border-t border-border/50">
+        <div className="mt-auto flex items-center justify-between pt-3 border-t border-border/50">
           <div className="flex flex-col">
             <span className="text-sm font-black text-foreground tabular-nums leading-none">{price.toLocaleString()}</span>
             <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{t("pos.currency")}</span>
