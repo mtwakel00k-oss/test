@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, startTransition } from "react"
 import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
-import { DollarSign, TrendingUp, ShoppingBag, Star, CalendarClock, LogOut, ChartNoAxesColumn } from "lucide-react"
+import { DollarSign, TrendingUp, ShoppingBag, Star, CalendarClock, LogOut, ChartNoAxesColumn, Shield } from "lucide-react"
 import { supabase, resetTenantClient, fetchApi } from "@/lib/tenant"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -33,6 +33,9 @@ const OrdersList = dynamic(() => import("@/components/admin/orders-list").then(m
 const OrderDetailSheet = dynamic(() => import("@/components/admin/order-detail-sheet").then(m => ({ default: m.OrderDetailSheet })))
 const ClearData = dynamic(() => import("@/components/admin/clear-data").then(m => ({ default: m.ClearData })))
 const PlanManager = dynamic(() => import("@/components/admin/plan-manager").then(m => ({ default: m.PlanManager })))
+const EarningsOverview = dynamic(() => import("@/components/admin/earnings-overview").then(m => ({ default: m.EarningsOverview })), {
+  loading: () => <div className="h-48 rounded-2xl bg-white/5 animate-pulse" />,
+})
 const AuditLog = dynamic(() => import("@/components/admin/audit-log").then(m => ({ default: m.AuditLog })), {
   loading: () => <div className="h-96 rounded-2xl bg-white/5 animate-pulse" />,
 })
@@ -55,6 +58,8 @@ export default function AdminPage() {
     fetchApi("/api/me").then(r => r.ok ? r.json() : null).then(data => {
       if (!data || (data.role !== "admin" && data.role !== "owner")) {
         router.push(`/${slug}/login`)
+      } else {
+        setUserRole(data.role)
       }
     }).catch(() => router.push(`/${slug}/login`))
   }, [router, slug])
@@ -80,6 +85,7 @@ export default function AdminPage() {
   const [cashierStats, setCashierStats] = useState<{ id: string; name: string; orders: number; revenue: number }[]>([])
   const [sheetOrderId, setSheetOrderId] = useState<string | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [userRole, setUserRole] = useState<string | null>(null)
   const [adminTab, setAdminTab] = useState<"overview" | "products" | "orders" | "audit">("overview")
 
   const handleViewOrder = useCallback((orderId: string) => {
@@ -157,7 +163,21 @@ export default function AdminPage() {
             </div>
           </div>
         </header>
-        <main className="max-w-7xl mx-auto p-4 lg:p-6">
+        <main className="max-w-7xl mx-auto p-4 lg:p-6 space-y-6">
+          {userRole === "owner" && (
+            <div className="bg-card/50 border border-border/50 backdrop-blur-xl rounded-2xl p-5 lg:p-6">
+              <div className="flex items-center gap-2.5 mb-5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-yellow-500/10">
+                  <Shield className="w-4 h-4 text-yellow-500" strokeWidth={1.5} />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-foreground tracking-tight">Root Admin</h2>
+                  <p className="text-xs text-muted-foreground/60">Platform earnings</p>
+                </div>
+              </div>
+              <EarningsOverview />
+            </div>
+          )}
           <PlanManager />
         </main>
       </div>
