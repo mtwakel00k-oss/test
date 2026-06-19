@@ -49,6 +49,7 @@ export async function proxy(request: NextRequest) {
   function buildResponse(): NextResponse {
     const requestHeaders = new Headers(request.headers)
     if (nonce) requestHeaders.set("x-nonce", nonce)
+    requestHeaders.set("x-pathname", pathname)
     const res = NextResponse.next({ request: { headers: requestHeaders } })
     addSecurityHeaders(res)
     return res

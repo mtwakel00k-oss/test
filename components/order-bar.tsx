@@ -25,8 +25,9 @@ export function OrderBar({ onCheckout }: OrderBarProps) {
           initial={{ y: 80, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="rounded-[1.75rem] border border-border/40 bg-card/85 p-4 shadow-[var(--shadow-xl)] backdrop-blur-xl"
+          className="premium-bezel shadow-[var(--shadow-xl)]"
         >
+          <div className="premium-bezel-inner p-3">
           {items.length > 0 && (
             <AnimatePresence>
               {expanded && (
@@ -37,13 +38,13 @@ export function OrderBar({ onCheckout }: OrderBarProps) {
                   transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
                   className="overflow-hidden"
                 >
-                  <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-4 border-b border-border/30 mb-4">
+                  <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-4 border-b border-border/30 mb-3">
                     {items.map((item) => (
                       <div
                         key={`${item.product.id}_${item.size}_${item.sauceId}`}
                         className="relative w-16 flex-shrink-0"
                       >
-                        <div className="aspect-square rounded-2xl overflow-hidden border border-border/40 bg-secondary/40">
+                        <div className="aspect-square rounded-xl overflow-hidden border border-border/40 bg-secondary/40">
                           {item.product.image_url ? (
                             <Image
                               src={item.product.image_url}
@@ -59,7 +60,7 @@ export function OrderBar({ onCheckout }: OrderBarProps) {
                           )}
                         </div>
                         {item.quantity > 1 && (
-                          <div className="absolute -top-1.5 -end-1.5 size-5 bg-emerald-600 text-white text-[9px] font-black rounded-full flex items-center justify-center ring-2 ring-background">
+                          <div className="absolute -top-1.5 -end-1.5 size-5 bg-primary text-primary-foreground text-[9px] font-bold rounded-full flex items-center justify-center ring-2 ring-background">
                             {item.quantity}
                           </div>
                         )}
@@ -74,10 +75,10 @@ export function OrderBar({ onCheckout }: OrderBarProps) {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setExpanded(!expanded)}
-              className="relative size-12 bg-emerald-600/10 rounded-2xl flex items-center justify-center flex-shrink-0 hover:bg-emerald-600/20 transition-colors"
+              className="relative size-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0 hover:bg-primary/20 transition-colors"
             >
-              <ShoppingBag className="w-5 h-5 text-emerald-600" />
-              <span className="absolute -top-1.5 -end-1.5 size-5 bg-emerald-600 text-white text-[9px] font-black rounded-full flex items-center justify-center ring-2 ring-background">
+              <ShoppingBag className="w-5 h-5 text-primary" />
+              <span className="absolute -top-1.5 -end-1.5 size-5 bg-primary text-primary-foreground text-[9px] font-bold rounded-full flex items-center justify-center ring-2 ring-background">
                 {itemCount > 9 ? "9+" : itemCount}
               </span>
             </button>
@@ -85,7 +86,7 @@ export function OrderBar({ onCheckout }: OrderBarProps) {
             <div className="flex-1 min-w-0">
               <button
                 onClick={() => setExpanded(!expanded)}
-                className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground/60 uppercase tracking-widest"
+                className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground/50 uppercase tracking-wider"
               >
                 {t("menu.viewOrder")}
                 <ChevronRight
@@ -94,9 +95,9 @@ export function OrderBar({ onCheckout }: OrderBarProps) {
                   }`}
                 />
               </button>
-              <div className="text-lg font-black text-foreground tabular-nums">
+              <div className="text-lg font-semibold text-foreground tabular-nums">
                 {total.toLocaleString(lang === "fr" ? "fr-FR" : "en-US")}
-                <span className="text-xs font-bold text-muted-foreground ms-1">
+                <span className="text-xs font-medium text-muted-foreground ms-1">
                   {lang === "ar" ? "د.ج" : "DA"}
                 </span>
               </div>
@@ -104,11 +105,12 @@ export function OrderBar({ onCheckout }: OrderBarProps) {
 
             <button
               onClick={onCheckout}
-              className="flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl active:scale-[0.97] transition-all duration-200 shadow-lg shadow-emerald-600/20 font-black text-sm uppercase tracking-wider"
+              className="btn-premium bg-primary text-primary-foreground shadow-[var(--shadow-md),var(--shadow-glow)]"
             >
               {t("menu.confirmOrder")}
-              <ChevronRight className="w-4 h-4 rtl:scale-x-[-1]" />
+              <ChevronRight className="w-4 h-4" />
             </button>
+          </div>
           </div>
         </motion.div>
       </div>

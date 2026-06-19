@@ -24,6 +24,7 @@ const eslintConfig = defineConfig([
     // Test scripts
     "test-*.js",
     "scripts/*.mjs",
+    "scripts/*.cjs",
   ]),
 ]);
 

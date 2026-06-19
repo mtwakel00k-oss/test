@@ -146,14 +146,14 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
         initial={{ opacity: 0, y: 24, filter: 'blur(8px)' }}
         animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
         transition={{ duration: 0.85, ease: [0.32, 0.72, 0, 1] }}
-        className={cn("relative w-full max-w-md px-4", shaking && "animate-shake")}
+        className={cn("relative w-full max-w-sm px-4", shaking && "animate-shake")}
       >
         <div className="premium-bezel shadow-[var(--shadow-xl)]">
           <div className="premium-bezel-inner overflow-hidden">
             {slugProp && (
-              <div className="px-8 pt-6">
+              <div className="px-6 pt-5">
                 <button onClick={() => router.push("/login")}
-                  className="flex items-center gap-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
+                  className="flex items-center gap-2 text-xs font-medium text-muted-foreground/60 transition-colors hover:text-foreground">
                   <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
@@ -162,26 +162,26 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
               </div>
             )}
 
-            <div className="px-8 pt-8 pb-6 text-center">
-              <div className="mx-auto mb-6 grid size-20 place-items-center rounded-[1.5rem] bg-primary/8 text-4xl transition-transform duration-500">
+            <div className="px-6 pt-6 pb-5 text-center">
+              <div className="mx-auto mb-5 grid size-16 place-items-center rounded-[1.25rem] bg-primary/8 text-3xl transition-transform duration-500">
                 {activeRole.icon}
               </div>
-              <h1 className="font-display text-3xl font-normal tracking-tight text-foreground">{t(`${activeRole.labelKey}`)}</h1>
-              <p className="mt-2 text-sm text-muted-foreground">{t("login.subtitle")}</p>
+              <h1 className="font-display text-2xl font-normal tracking-tight text-foreground">{t(`${activeRole.labelKey}`)}</h1>
+              <p className="mt-1.5 text-sm text-muted-foreground/60">{t("login.subtitle")}</p>
             </div>
 
-            <div className="px-8 pb-8">
+            <div className="px-6 pb-6">
               {visibleRoles.length > 1 && (
-                <div className="mb-6 flex gap-1.5 rounded-full border border-border/40 bg-muted/40 p-1.5">
+                <div className="mb-5 flex gap-1 rounded-full border border-border/30 bg-muted/40 p-1">
                   {visibleRoles.map(key => {
                     const cfg = ROLE_CONFIG[key]
                     return (
                       <button key={key} data-testid={`role-tab-${key}`} onClick={() => { setPage(key); setError("") }}
                         className={cn(
-                          "flex flex-1 items-center justify-center gap-2 rounded-full py-2.5 transition-all duration-500",
+                          "flex flex-1 items-center justify-center gap-2 rounded-full py-2 transition-all duration-500",
                           page === key
                             ? "bg-card text-foreground shadow-[var(--shadow-sm)]"
-                            : "text-muted-foreground hover:text-foreground",
+                            : "text-muted-foreground/50 hover:text-foreground",
                         )}>
                         <span className="text-base">{cfg.icon}</span>
                         <span className="text-xs font-semibold">{t(cfg.labelKey)}</span>
@@ -191,7 +191,7 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
                 </div>
               )}
 
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <Input
                   data-testid="username-input"
                   type="text"
@@ -223,7 +223,7 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
                   onClick={handleLogin}
                   disabled={loading || !username || !password}
                   size="lg"
-                  className="w-full"
+                  className="w-full h-12 rounded-xl text-sm font-semibold shadow-[var(--shadow-md),var(--shadow-glow)]"
                 >
                   {loading ? (
                     <span className="flex items-center justify-center gap-2.5">

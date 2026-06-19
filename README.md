@@ -1,6 +1,8 @@
-# Burger House — Restaurant Management System
+# Simploo — Multi-Tenant Restaurant Management Platform
 
-An integrated restaurant management platform with a **Point of Sale (POS)**, **Kitchen Display System (KDS)**, **Customer Menu & Ordering**, and **Admin Dashboard** — all in one Next.js application.
+An integrated restaurant management platform with **POS**, **KDS**, **Customer Menu & Ordering**, **Delivery Tracking**, **WhatsApp notifications**, and **Admin Dashboard** — all in a single Next.js application.
+
+Built as a **multi-tenant SaaS**: each restaurant gets its own Supabase project (or shares a project with row-level isolation).
 
 ## Tech Stack
 
@@ -9,115 +11,198 @@ An integrated restaurant management platform with a **Point of Sale (POS)**, **K
 | **Framework** | Next.js 16 (App Router) + Turbopack |
 | **UI** | React 19, TypeScript 6, Tailwind CSS 4 |
 | **Backend** | Supabase (PostgreSQL + Auth + Realtime) |
+| **Maps** | Leaflet (driver tracking, customer order tracking) |
 | **Charts** | Recharts |
 | **Icons** | Lucide React |
+| **WhatsApp** | Evolution API (self-hosted WhatsApp Business proxy) |
+| **Migrations** | Per-tenant SQL via Supabase Dashboard or `exec_sql` RPC |
+
+## Architecture
+
+### Multi-Tenant
+- **Master DB** — `tenants` table: slug, supabase_url, supabase_anon_key, drivers, plan_type, etc.
+- **Per-tenant DB** — Each tenant has its own Supabase project (or schema-isolated tables in a shared project). All business tables: `produits`, `categories`, `orders`, `order_items`, `ratings`, `delivery_men`, `audit_log`.
+- **Session** — Cookie stores `{email, role, slug}` only (no DB credentials). Server-side lookup resolves tenant config.
+- **Routing** — `[restaurant_slug]` param drives all tenant-scoped pages and API routes.
+
+### Subscription Tiers
+| Tier | Delivery | Live Tracking | Ratings | Max Branches |
+|------|----------|--------------|---------|-------------|
+| Starter | ❌ | ❌ | ✅ | 1 |
+| Pro | ✅ | ❌ | ✅ | 1 |
+| Elite | ✅ | ✅ | ✅ | 3 |
 
 ## Features
 
-### 🏪 POS Terminal (`/pos`)
-- Create dine-in / takeaway orders
+### 🏪 POS Terminal (`/[slug]/pos`)
+- Dine-in / takeaway / delivery orders
 - Item size & sauce selection
-- Cash payment with change calculator and numeral keypad
-- Receipt preview (browser print)
-- Order status lifecycle: Pending → Preparing → Ready → Completed
-- Real-time Supabase sync
+- Cash payment with change calculator (numeral keypad)
+- Receipt preview & browser print
+- Order status lifecycle: Pending → Preparing → Ready → Out for Delivery → Completed
+- Staff/cashier switching with active staff indicator
+- Cashier self-service password change (dropdown menu)
 
-### 👨‍🍳 Kitchen Display (`/kitchen`)
+### 👨‍🍳 Kitchen Display (`/[slug]/kitchen`)
 - Live order feed via Supabase Realtime
 - Audio notification on new orders (Web Audio API)
 - Pending / Preparing sections
-- Time since order placed
+- Time-since-order tracking
 
-### 🍔 Customer Menu (`/menu`)
+### 🍔 Customer Menu (`/[slug]/menu`)
 - Product grid with category filters
-- Size & sauce customization per item
+- Size & sauce customization
 - Persistent cart (localStorage via React Context)
+- Order type selection: dine-in / takeaway / delivery
+- Table number from URL param (`?table=N`) for QR-scanned customers
 - Checkout with order number confirmation
-- Real-time order tracking at `/order/[id]`
+- Real-time order tracking at `/[slug]/order/[id]`
+- Live driver map (Elite plan)
 - Per-item star rating after delivery
 
-### 📊 Admin Dashboard (`/admin`)
+### 📊 Admin Dashboard (`/[slug]/admin`)
 - Revenue chart (7d / 30d / 6m / 12m)
 - Top 5 selling products
 - Peak hours chart
 - Customer reviews feed
-- Product availability manager
+- Product / category CRUD
+- Order management (list, detail, status updates)
+- Restaurant settings (name, logo)
+- Driver management (add/remove/toggle)
+- Cashier management (add/remove)
+- Table QR code generator (print QR codes with table number)
+- Audit log viewer (table-filter, operation-filter, detail expand)
+
+### 🚚 Delivery Management
+- Delivery men CRUD (name, WhatsApp number, busy status)
+- Order assignment → WhatsApp notification via Evolution API
+- Driver token-based auth (secret link per driver)
+- Driver GPS location updates (PATCH `/api/driver/[token]/location`)
+- Staff-side driver map with live GPS (Leaflet)
+- Customer-side order tracking with live driver map + ETA
+- WhatsApp webhook for "collected" confirmation
+
+### 👑 Root Admin (`/admin`)
+- All tenants list (status, plan, URL)
+- Plan management (assign Starter/Pro/Elite per tenant)
+- Root login at `/login` (Owner tab)
+- Cross-tenant stats (`/api/admin/stats?mode=root`)
 
 ### 🔐 Authentication
-- **Supabase Auth** with email/password (username-based via `{username}@burgerhouse.app`)
-- Three roles: `admin`, `cashier`, `chef`
-- Middleware route protection (`proxy.ts`) — enforces role-based access
+- Supabase Auth with email/password (username-based: `{username}@{slug}.app`)
+- Roles: `owner`, `admin`, `cashier`, `chef`
+- Proxy-based route protection (`proxy.ts` enforces role-based access)
 - Client-side `AuthGuard` fallback on protected layouts
+- Rate limiting: 10 req/min for ratings, 20 req/min for orders, etc.
+
+### 📋 Audit Log
+- Automatic INSERT/UPDATE/DELETE logging for products, categories, orders
+- Stores to `audit_log` table (auto-created via RPC if missing)
+- In-memory fallback when DB table doesn't exist
+- Viewable in admin dashboard with filters
 
 ## Getting Started
 
 ### 1. Prerequisites
-
 - Node.js 20+
-- A Supabase project (free tier works)
+- A Supabase project (for master DB) + per-tenant Supabase project(s)
 
 ### 2. Environment Variables
+Copy `.env.local` and ensure it contains:
 
-Copy `.env.local` (already present) and ensure it contains:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key   # needed for /api/auth/setup
-```
+| Variable | Purpose |
+|----------|---------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Master project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Master project anon key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Master project service role key |
+| `SESSION_ENCRYPTION_KEY` | 32-byte base64-encoded key for session cookie encryption |
+| `CRON_SECRET` | Secret for `/api/cron/cleanup` endpoint |
+| `EVOLUTION_API_URL` | WhatsApp Evolution API base URL |
+| `EVOLUTION_API_KEY` | WhatsApp Evolution API key |
 
 ### 3. Database Setup
-
-1. Open your Supabase Dashboard → **SQL Editor**
-2. Paste and run the contents of `data/migration.sql`
-3. Go to **Database → Replication** and enable Realtime on the `orders` table (INSERT / UPDATE / DELETE)
+1. Master project: run `data/migration-tenant.sql` to create `tenants` table
+2. For each tenant: run the SQL output from `GET /api/run-sql?slug=<tenant_slug>` in their Supabase Dashboard SQL editor
+3. Enable Realtime on `orders` table in each tenant's Supabase Dashboard → Database → Replication
 
 ### 4. Install & Run
-
 ```bash
 npm install
 npm run dev
 ```
 
-### 5. Create Seed Users (one-time)
-
-Set credentials via environment variables before running setup.
-
+### 5. Create Root Admin
 ```bash
-# In .env.local, define passwords per tenant:
-# DEV_PASSWORDS={"burger-house":{"admin":"YourAdmin@123","cashier":"Cashier123","chef":"Chef1234"}}
-# Or omit to generate random 12-char passwords for each user.
+curl -X POST http://localhost:3000/api/auth/setup-root \
+  -H "Content-Type: application/json" \
+  -d '{"password":"RootAdmin@123"}'
+```
+Default: `root@root.app` / `RootAdmin@123`
 
+### 6. Register a Tenant
+```bash
+curl -X POST http://localhost:3000/api/admin/tenants \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Burger House","slug":"burger-house","supabase_url":"https://xxx.supabase.co","supabase_anon_key":"<key>"}'
+```
+
+### 7. Create Seed Users
+```bash
 curl -X POST http://localhost:3000/api/auth/setup \
   -H "Content-Type: application/json" \
-  -d '{"slug":"burger-house","passwords":{"admin":"YourAdmin@123","cashier":"Cashier123","chef":"Chef1234"}}'
+  -d '{"slug":"burger-house","passwords":{"admin":"Admin@123","cashier":"Cash12345","chef":"Chef@1234"}}'
 ```
 
-This creates three accounts per tenant:
-
-| Username | Role | Password |
-|----------|------|----------|
-| `admin` | Admin | Set via `DEV_PASSWORDS` env var or request body, else random |
-| `cashier` | Cashier | Same as above |
-| `chef` | Chef | Same as above |
-
-### 6. Log In
-
-Open `http://localhost:3000/login`, select your role tab, and enter the credentials from step 5.
+### 8. Log In
+Open `http://localhost:3000/login`, select your role tab, and enter credentials.
 
 ## Project Structure
-
 ```
-├── proxy.ts                 # Auth middleware
-├── app/                     # Pages + API routes
-├── components/              # React components
-│   ├── pos/                 # POS terminal components
-│   ├── admin/               # Admin dashboard components
-│   └── icons/               # SVG icons
-├── context/                 # React context providers
-├── lib/                     # Utilities, types, supabase clients
-├── data/                    # Database migration
-└── public/                  # Static assets
+├── proxy.ts                    # Auth middleware (route protection)
+├── app/
+│   ├── [restaurant_slug]/      # Tenant-scoped pages & API
+│   │   ├── admin/              # Admin dashboard
+│   │   ├── kitchen/            # Kitchen Display System (KDS)
+│   │   ├── menu/               # Customer menu & ordering
+│   │   ├── order/[id]/         # Public order tracking
+│   │   └── pos/                # POS terminal
+│   ├── admin/                  # Root admin (cross-tenant)
+│   ├── delivery/manage/[id]/   # Driver delivery management
+│   ├── login/                  # Login page
+│   └── api/                    # API routes (auth, products, orders, categories, ratings, admin, tenant, qr, upload, cron, run-sql, driver)
+├── components/
+│   ├── pos/                    # POS components
+│   ├── admin/                  # Admin components
+│   ├── restoos/                # Landing page components
+│   └── ui/                     # shadcn/ui primitives
+├── lib/                        # Utilities, types, supabase clients, translations
+├── data/                       # SQL migrations (v1–v14)
+└── sql/                        # RLS policies, JWT hooks
 ```
 
-See `PROJECT_MAP.md` for the full architecture breakdown.
+## Migrations
+
+| File | Purpose |
+|------|---------|
+| `migration.sql` | Base schema (categories, produits, orders, ratings) |
+| `migration-v2.sql` | is_available, image_url, payment_status |
+| `migration-v3.sql` | Self-healing: missing columns + v_products_flat view |
+| `migration-v4-delivery.sql` | Delivery address, lat/lng, order_type constraint |
+| `migration-v6-drivers.sql` | Drivers JSONB, driver_id, payment_method |
+| `migration-v7-drivers-telegram.sql` | Drivers table, telegram_chat_id |
+| `migration-v8-cashiers.sql` | cashier_id, cashier_name on orders |
+| `migration-v9-driver-location.sql` | driver_lat, driver_lng, driver_location_updated_at |
+| `migration-v10-public-order-tracking.sql` | RLS for anonymous order tracking |
+| `migration-v11-delivery-men.sql` | delivery_men table + delivery_man_id |
+| `migration-v12-restaurant-staff.sql` | restaurant_staff table |
+| `migration-v13-audit.sql` | audit_log table + RLS |
+| `migration-v14-rate-limit.sql` | rate_limits table |
+
+To apply: run the combined SQL from `GET /api/run-sql?slug=<tenant_slug>` in each tenant's Supabase Dashboard SQL editor.
+
+## Tests
+```bash
+npm test          # 139+ tests (vitest)
+npm run typecheck # tsc --noEmit
+npm run lint      # eslint
+```

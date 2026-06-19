@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
   if (!users || users.length === 0) return NextResponse.json([])
 
   // Fetch usernames from auth user metadata as fallback (profiles table may be missing data)
-  let usernameMap = new Map<string, string>()
+  const usernameMap = new Map<string, string>()
   try {
     const { data: profiles } = await masterClient.from("profiles")
       .select("id, username")

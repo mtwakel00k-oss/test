@@ -66,7 +66,11 @@ export function CheckoutModal({
   }, [])
 
   const [orderType, setOrderType] = useState<OrderType>(initialOrderType)
-  const [form, setForm] = useState<FormData>({ name: "", table: "", phone: initialDeliveryPhone, deliveryAddress: "" })
+  const [form, setForm] = useState<FormData>(() => {
+    const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null
+    const tableParam = params?.get("table") || ""
+    return { name: "", table: tableParam, phone: initialDeliveryPhone, deliveryAddress: "" }
+  })
   const [errors, setErrors] = useState<FormErrors>({})
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -277,11 +281,13 @@ export function CheckoutModal({
         className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-[2.5rem] border border-border/40 bg-card/90 backdrop-blur-3xl p-8 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide"
       >
         <div className="flex flex-col items-center mb-8 text-center">
-          <div className="size-14 rounded-[1.25rem] bg-emerald-600/10 flex items-center justify-center mb-4">
-            <ShoppingBag className="w-6 h-6 text-emerald-600" />
+          <div className="premium-bezel mb-6">
+            <div className="premium-bezel-inner p-3">
+              <ShoppingBag className="size-6 text-primary" strokeWidth={1.5} />
+            </div>
           </div>
-            <h2 className="text-2xl font-black text-foreground tracking-tight mb-2">{t("menu.confirmOrder")}</h2>
-          <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest mt-2">{t("menu.pleaseConfirm")}</p>
+          <h2 className="font-display text-3xl font-normal text-foreground tracking-tight">{t("menu.confirmOrder")}</h2>
+          <p className="mt-3 text-xs text-muted-foreground/60">{t("menu.pleaseConfirm")}</p>
         </div>
 
         <div className="flex gap-2 mb-8 bg-muted/40 p-1.5 rounded-[1.25rem] border border-border/30">
@@ -292,9 +298,9 @@ export function CheckoutModal({
               <button key={type} type="button"
                 disabled={isDisabled}
                 onClick={() => { if (!isDisabled) { setOrderType(type); setErrors({}) } }}
-                className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${
+                className={`flex-1 py-2.5 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all ${
                   orderType === type
-                    ? "bg-background text-emerald-600 shadow-lg shadow-emerald-600/5 ring-1 ring-border/20"
+                    ? "bg-background text-primary shadow-lg shadow-primary/5 ring-1 ring-border/20"
                     : isDisabled
                       ? "text-muted-foreground/20 cursor-not-allowed grayscale"
                       : "text-muted-foreground/50 hover:text-foreground"
@@ -306,18 +312,18 @@ export function CheckoutModal({
           })}
         </div>
 
-        <div className="mb-8 rounded-[1.5rem] bg-emerald-600/[0.03] border border-emerald-600/10 p-6">
-          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-600/50 mb-5">{t("menu.orderSummary")}</p>
+        <div className="mb-8 rounded-[1.5rem] bg-muted/30 border border-border/30 p-6">
+          <p className="section-eyebrow mb-5">{t("menu.orderSummary")}</p>
           <div className="max-h-40 space-y-3 overflow-y-auto scrollbar-hide" role="list">
             {items.map(i => {
               const k = `${i.product.id}_${i.size}_${i.sauceId}`
               const sauceLabel = i.sauceId === 1 ? "Sauce Tomate" : i.sauceId === 2 ? "Crème Fraîche" : null
               const itemPrice = getPrice(i.product, i.size, i.sauceId) * i.quantity
               return (
-                <div key={k} className="flex items-center justify-between gap-4" role="listitem">
+                <div key={k} className="flex items-center justify-between gap-4 py-1" role="listitem">
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-sm font-black text-foreground tracking-tight leading-tight">{i.product.name}</span>
-                    <div className="flex items-center gap-1.5 text-[9px] font-bold text-muted-foreground/50 uppercase tracking-widest">
+                    <span className="text-sm font-semibold text-foreground leading-tight">{i.product.name}</span>
+                    <div className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground/50">
                       {i.size !== "UNIQUE" && <span>{i.size}</span>}
                       {sauceLabel && (
                         <>
@@ -326,38 +332,38 @@ export function CheckoutModal({
                         </>
                       )}
                       <div className="size-0.5 rounded-full bg-border" />
-                      <span className="text-emerald-600 dark:text-emerald-400">x{i.quantity}</span>
+                      <span className="text-primary/60 font-semibold">x{i.quantity}</span>
                     </div>
                   </div>
-                  <span className="text-sm font-black text-foreground tabular-nums whitespace-nowrap">
+                  <span className="text-sm font-semibold text-foreground tabular-nums whitespace-nowrap">
                     {itemPrice.toLocaleString(lang === "fr" ? "fr-FR" : "en-US")}
-                    <span className="text-[9px] font-bold text-muted-foreground ms-1">DA</span>
+                    <span className="text-[9px] font-medium text-muted-foreground ms-1">DA</span>
                   </span>
                 </div>
               )
             })}
           </div>
           <div className="flex items-center justify-between pt-6 mt-4 border-t border-border/30">
-            <span className="font-black text-foreground uppercase tracking-[0.15em] text-[10px]">{t("pos.total")}</span>
-            <span className="font-black text-3xl text-emerald-600 dark:text-emerald-400 tracking-tight tabular-nums">
+            <span className="text-[10px] font-bold text-foreground/60 uppercase tracking-[0.15em]">{t("pos.total")}</span>
+            <span className="font-semibold text-3xl text-foreground tracking-tight tabular-nums">
               {total.toLocaleString(lang === "fr" ? "fr-FR" : "en-US")}
-              <span className="text-xs font-bold text-muted-foreground ms-1">DA</span>
+              <span className="text-xs font-medium text-muted-foreground ms-1">DA</span>
             </span>
           </div>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-2">
+            <label className="block text-[10px] font-semibold text-muted-foreground/60 mb-2">
               {t("menu.name")}
             </label>
             <input
               value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
               onKeyDown={e => e.key === "Enter" && !submitting && handleSubmit()}
-              className="w-full h-12 rounded-2xl border border-border/40 bg-muted/20 px-5 text-sm font-bold text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/30 focus:bg-background transition-all disabled:opacity-50"
+              className="w-full h-12 rounded-xl border border-border/40 bg-muted/20 px-5 text-sm font-medium text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 focus:bg-background transition-all disabled:opacity-50"
               placeholder={t("menu.namePlaceholder") || "أدخل اسمك"}
               disabled={submitting} autoFocus />
-            {errors.name && <p className="text-[10px] font-black uppercase tracking-widest text-rose-500 mt-2 px-1">{errors.name}</p>}
+            {errors.name && <p className="text-xs font-medium text-rose-500 mt-1.5 px-1">{errors.name}</p>}
           </div>
 
           {orderType === "delivery" && !deliveryAllowed && (
@@ -431,15 +437,15 @@ export function CheckoutModal({
                 transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
                 className="overflow-hidden"
               >
-                <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-2">
+                <label className="block text-[10px] font-semibold text-muted-foreground/60 mb-2">
                   {t("pos.tableNumber")}
                 </label>
                 <input type="number" min="1" value={form.table}
                   onChange={e => setForm(f => ({ ...f, table: e.target.value }))}
                   onKeyDown={e => e.key === "Enter" && !submitting && handleSubmit()}
-                  className="w-full h-12 rounded-2xl border border-border/40 bg-muted/20 px-5 text-sm font-bold text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/30 focus:bg-background transition-all disabled:opacity-50"
+                  className="w-full h-12 rounded-xl border border-border/40 bg-muted/20 px-5 text-sm font-medium text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 focus:bg-background transition-all disabled:opacity-50"
                   placeholder="مثال: 5" disabled={submitting} />
-                {errors.table && <p className="text-[10px] font-black uppercase tracking-widest text-rose-500 mt-2 px-1">{errors.table}</p>}
+                {errors.table && <p className="text-xs font-medium text-rose-500 mt-1.5 px-1">{errors.table}</p>}
               </motion.div>
             )}
             {orderType === "takeaway" && (
@@ -451,13 +457,13 @@ export function CheckoutModal({
                 transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
                 className="overflow-hidden"
               >
-                <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-2">
+                <label className="block text-[10px] font-semibold text-muted-foreground/60 mb-2">
                   {t("pos.phone")} <span className="text-muted-foreground/30">({t("rating.optional")})</span>
                 </label>
                 <input type="tel" value={form.phone} maxLength={10}
                   onChange={e => setForm(f => ({ ...f, phone: maskPhone(e.target.value) }))}
                   onKeyDown={e => e.key === "Enter" && !submitting && handleSubmit()}
-                  className="w-full h-12 rounded-2xl border border-border/40 bg-muted/20 px-5 text-sm font-bold text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/30 focus:bg-background transition-all disabled:opacity-50"
+                  className="w-full h-12 rounded-xl border border-border/40 bg-muted/20 px-5 text-sm font-medium text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 focus:bg-background transition-all disabled:opacity-50"
                   placeholder="0555123456" disabled={submitting} />
               </motion.div>
             )}
@@ -476,11 +482,11 @@ export function CheckoutModal({
 
         <div className="mt-6 flex gap-3">
           <button type="button" onClick={onClose} disabled={submitting}
-            className="flex-1 rounded-2xl border border-border/40 py-3 text-sm font-bold text-muted-foreground hover:bg-secondary disabled:opacity-50 transition-colors">
+            className="flex-1 rounded-xl border border-border/40 py-3 text-sm font-semibold text-muted-foreground hover:bg-secondary disabled:opacity-50 transition-colors">
             {t("common.cancel")}
           </button>
           <button type="button" onClick={handleSubmit} disabled={submitting}
-            className="flex-1 rounded-2xl bg-emerald-600 text-white py-3 text-sm font-black uppercase tracking-wider hover:bg-emerald-500 disabled:opacity-60 transition-all shadow-lg shadow-emerald-600/20 active:scale-[0.97]">
+            className="flex-1 rounded-xl bg-primary text-primary-foreground py-3 text-sm font-semibold hover:brightness-110 disabled:opacity-60 transition-all shadow-[var(--shadow-md),var(--shadow-glow)] active:scale-[0.97]">
             {submitting ? (
               <span className="flex items-center justify-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin" />

@@ -2,7 +2,8 @@
 
 import { useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { getScope, setScopedCookieLang, getScopedCookieLang } from "@/lib/i18n-scope"
+import { getScope, setScopedCookieLang } from "@/lib/i18n-scope"
+import { useLang } from "@/lib/lang-context"
 import type { Lang } from "@/lib/translations"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -17,11 +18,10 @@ const DIR: Record<Lang, "rtl" | "ltr"> = { ar: "rtl", en: "ltr", fr: "ltr" }
 export function LanguageSwitcher() {
   const [open, setOpen] = useState(false)
   const router = useRouter()
-  const [current, setCurrent] = useState<Lang>(() => getScopedCookieLang(getScope()) || "ar")
+  const current = useLang()
 
   const switchLang = useCallback((lang: Lang) => {
     setScopedCookieLang(lang, getScope())
-    setCurrent(lang)
     setOpen(false)
     document.documentElement.lang = lang
     document.documentElement.dir = DIR[lang]

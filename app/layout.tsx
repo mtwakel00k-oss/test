@@ -4,12 +4,18 @@ import "./globals.css"
 import { LangProvider } from "@/lib/lang-context"
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from "@/lib/theme"
-import { Geist } from "next/font/google";
+import { Geist, Instrument_Serif } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { scopeFromPath, scopedCookieKey } from "@/lib/i18n-scope";
 import { OfflineDetector } from "@/components/offline-detector"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-display",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Burger House - Order Your Favorites",
@@ -20,7 +26,7 @@ async function getLang(): Promise<"ar" | "en" | "fr"> {
   try {
     const c = await cookies()
     const h = await headers()
-    const url = h.get("x-url") || h.get("referer") || ""
+    const url = h.get("x-pathname") || h.get("x-url") || h.get("referer") || ""
     const scope = scopeFromPath(url)
     const key = scopedCookieKey(scope)
     const lang = c.get(key)?.value
@@ -43,7 +49,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   } catch {}
 
   return (
-    <html suppressHydrationWarning lang={lang} dir={dir} data-locale={lang} className={cn(htmlClass, geist.variable)}>
+      <html suppressHydrationWarning lang={lang} dir={dir} data-locale={lang} className={cn(htmlClass, geist.variable, instrumentSerif.variable)}>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="mobile-web-app-capable" content="yes" />

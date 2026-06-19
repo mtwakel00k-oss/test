@@ -216,55 +216,55 @@ export default function KitchenPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="sticky top-0 z-30 border-b border-border/40 bg-background/70 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 border-b border-border/30 bg-background/60 backdrop-blur-xl">
         <div className="flex items-center justify-between gap-3 px-4 lg:px-6 py-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-sm">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-[var(--shadow-sm)]">
               <ChefHat className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-sm font-bold text-foreground tracking-tight">{t("kitchen.title")}</h1>
-              <p className="text-xs text-muted-foreground">{t("kitchen.subtitle")}</p>
+              <h1 className="text-sm font-semibold text-foreground tracking-tight">{t("kitchen.title")}</h1>
+              <p className="text-xs text-muted-foreground/60">{t("kitchen.subtitle")}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <div className="hidden md:flex items-center gap-2">
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/15">
-                <Bell className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+                <Bell className="w-3.5 h-3.5 text-amber-400" />
                 <span className="text-xs text-muted-foreground">
-                  <span className="font-bold text-amber-500">{pendingOrders.length}</span>
-                  <span className="hidden lg:inline text-muted-foreground/60"> {t("kitchen.new")}</span>
+                  <span className="font-bold text-amber-400">{pendingOrders.length}</span>
+                  <span className="hidden lg:inline text-muted-foreground/50"> {t("kitchen.new")}</span>
                 </span>
               </div>
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-sky-500/10 border border-sky-500/15">
-                <Timer className="w-3.5 h-3.5 text-sky-500" />
+                <Timer className="w-3.5 h-3.5 text-sky-400" />
                 <span className="text-xs text-muted-foreground">
-                  <span className="font-bold text-sky-500">{preparingOrders.length}</span>
-                  <span className="hidden lg:inline text-muted-foreground/60"> {t("kitchen.preparing")}</span>
+                  <span className="font-bold text-sky-400">{preparingOrders.length}</span>
+                  <span className="hidden lg:inline text-muted-foreground/50"> {t("kitchen.preparing")}</span>
                 </span>
               </div>
             </div>
 
             <div className="flex items-center gap-1">
-              <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg bg-muted/50 text-muted-foreground/60 text-[10px] font-mono tabular-nums border border-border/30">
+              <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg bg-muted/30 text-muted-foreground/50 text-[10px] font-mono tabular-nums">
                 <span className={cn(
-                  "w-1.5 h-1.5 rounded-full transition-colors",
-                  countdown <= 3 ? "bg-amber-500" : countdown <= 6 ? "bg-amber-400" : "bg-emerald-500"
+                  "w-1.5 h-1.5 rounded-full",
+                  countdown <= 3 ? "bg-amber-400" : countdown <= 6 ? "bg-amber-400/60" : "bg-emerald-400"
                 )} />
                 {countdown}s
               </div>
               <button onClick={() => setSoundOn(!soundOn)}
-                className="flex items-center justify-center h-10 w-10 rounded-lg text-muted-foreground/50 hover:text-amber-500 hover:bg-amber-500/10 transition-all active:scale-90">
+                className="flex items-center justify-center h-9 w-9 rounded-lg text-muted-foreground/40 hover:text-amber-400 hover:bg-amber-500/10 transition-all active:scale-90">
                 {soundOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
               </button>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 border border-border/30 text-muted-foreground/60 text-xs font-mono tabular-nums">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/30 text-muted-foreground/50 text-xs font-mono tabular-nums">
                 <span>{currentTime}</span>
               </div>
               <ThemeToggle />
               <LanguageSwitcher />
               <Link href={`/${slug}/pos`} title={t("kitchen.posLink")}
-                className="flex items-center justify-center h-10 w-10 rounded-lg text-muted-foreground/50 hover:text-primary hover:bg-primary/10 transition-all active:scale-90">
+                className="flex items-center justify-center h-9 w-9 rounded-lg text-muted-foreground/40 hover:text-primary hover:bg-primary/10 transition-all active:scale-90">
                 <ExternalLink className="h-4 w-4" />
               </Link>
             </div>
@@ -274,12 +274,14 @@ export default function KitchenPage() {
 
       <PageTransition><main className="p-4 lg:p-6">
         {orders.length === 0 ? (
-          <div data-testid="kitchen-empty" className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-muted/40 border border-border/20 mb-5">
-              <ChefHat className="w-10 h-10 text-muted-foreground/30" />
+          <div data-testid="kitchen-empty" className="flex flex-col items-center justify-center py-28 text-center">
+            <div className="premium-bezel mb-6">
+              <div className="premium-bezel-inner p-5">
+                <ChefHat className="size-10 text-muted-foreground/20" strokeWidth={1} />
+              </div>
             </div>
-            <p className="text-lg font-semibold text-muted-foreground">{t("kitchen.noOrders")}</p>
-            <p className="text-sm text-muted-foreground/60 mt-1">{t("kitchen.waiting")}</p>
+            <p className="text-lg font-semibold text-foreground/60">{t("kitchen.noOrders")}</p>
+            <p className="text-sm text-muted-foreground/40 mt-1">{t("kitchen.waiting")}</p>
           </div>
         ) : (
           <>
@@ -294,37 +296,38 @@ export default function KitchenPage() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
                   {pendingOrders.map(order => (
-                    <div data-testid="kds-order-card" key={order.id} className="group relative bg-card border-2 border-amber-500/20 rounded-2xl p-5 shadow-sm shadow-amber-500/5 hover:shadow-md hover:shadow-amber-500/10 hover:border-amber-500/40 transition-all duration-200">
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
-                      <div className="flex justify-between items-start w-full mb-4 relative">
-                        <div>
-                          <div className="text-xl font-bold text-foreground">
-                            {order.orderType === "takeaway"
-                              ? t("pos.takeaway")
-                              : order.orderType === "delivery"
-                                ? t("pos.delivery")
-                                : `${t("pos.table")} ${order.tableNumber ?? ""}`}
+                    <div data-testid="kds-order-card" key={order.id} className="premium-bezel border-amber-500/20 shadow-amber-500/5 hover:shadow-amber-500/10">
+                      <div className="premium-bezel-inner p-5">
+                        <div className="flex justify-between items-start w-full mb-4 relative">
+                          <div>
+                            <div className="text-xl font-semibold text-foreground">
+                              {order.orderType === "takeaway"
+                                ? t("pos.takeaway")
+                                : order.orderType === "delivery"
+                                  ? t("pos.delivery")
+                                  : `${t("pos.table")} ${order.tableNumber ?? ""}`}
+                            </div>
+                            <p className="text-xs text-muted-foreground/50 mt-0.5">#{order.orderNumber}</p>
                           </div>
-                          <p className="text-xs text-muted-foreground/60 mt-0.5 font-mono">#{order.orderNumber}</p>
-                        </div>
-                        <div className="flex flex-col items-end gap-1.5">
-                          <span className="inline-flex px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-muted/50 text-muted-foreground border border-border/30">
-                            {order.orderType === "takeaway"
-                              ? t("pos.takeaway")
-                              : order.orderType === "delivery"
-                                ? t("pos.delivery")
-                                : t("pos.dineIn")}
-                          </span>
-                          <span className="text-xs font-mono text-amber-500/70 tabular-nums">{fmtTime(order.createdAt)}</span>
-                        </div>
-                      </div>
-                      <div className="border-t border-amber-500/10 pt-4 space-y-2.5 relative">
-                        {order.items.map(item => (
-                          <div key={item.id} className="flex items-center gap-3">
-                            <span className="text-base font-bold text-amber-500 min-w-[2.5rem] tabular-nums">{item.quantity}×</span>
-                            <span className="text-sm text-foreground/80 font-medium">{item.name}</span>
+                          <div className="flex flex-col items-end gap-1.5">
+                            <span className="inline-flex px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-muted/30 text-muted-foreground/60">
+                              {order.orderType === "takeaway"
+                                ? t("pos.takeaway")
+                                : order.orderType === "delivery"
+                                  ? t("pos.delivery")
+                                  : t("pos.dineIn")}
+                            </span>
+                            <span className="text-xs font-mono text-amber-400/60 tabular-nums">{fmtTime(order.createdAt)}</span>
                           </div>
-                        ))}
+                        </div>
+                        <div className="border-t border-amber-500/10 pt-4 space-y-2.5">
+                          {order.items.map(item => (
+                            <div key={item.id} className="flex items-center gap-3">
+                              <span className="text-base font-bold text-amber-400 min-w-[2.5rem] tabular-nums">{item.quantity}×</span>
+                              <span className="text-sm text-foreground/80 font-medium">{item.name}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -353,37 +356,38 @@ export default function KitchenPage() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
                   {preparingOrders.map(order => (
-                    <div key={order.id} className="relative bg-card border border-sky-500/15 rounded-2xl p-5 shadow-sm hover:shadow-md hover:shadow-sky-500/5 hover:border-sky-500/25 transition-all duration-200">
-                      <div className="absolute top-0 left-0 w-32 h-32 bg-sky-500/5 rounded-full blur-3xl pointer-events-none" />
-                      <div className="flex justify-between items-start w-full mb-4 relative">
-                        <div>
-                          <div className="text-xl font-bold text-foreground">
-                            {order.orderType === "takeaway"
-                              ? t("pos.takeaway")
-                              : order.orderType === "delivery"
-                                ? t("pos.delivery")
-                                : `${t("pos.table")} ${order.tableNumber ?? ""}`}
+                    <div key={order.id} className="premium-bezel border-sky-500/15 shadow-sky-500/5 hover:shadow-sky-500/10">
+                      <div className="premium-bezel-inner p-5">
+                        <div className="flex justify-between items-start w-full mb-4">
+                          <div>
+                            <div className="text-xl font-semibold text-foreground">
+                              {order.orderType === "takeaway"
+                                ? t("pos.takeaway")
+                                : order.orderType === "delivery"
+                                  ? t("pos.delivery")
+                                  : `${t("pos.table")} ${order.tableNumber ?? ""}`}
+                            </div>
+                            <p className="text-xs text-muted-foreground/50 mt-0.5">#{order.orderNumber}</p>
                           </div>
-                          <p className="text-xs text-muted-foreground/60 mt-0.5 font-mono">#{order.orderNumber}</p>
-                        </div>
-                        <div className="flex flex-col items-end gap-1.5">
-                          <span className="inline-flex px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-muted/50 text-muted-foreground border border-border/30">
-                            {order.orderType === "takeaway"
-                              ? t("pos.takeaway")
-                              : order.orderType === "delivery"
-                                ? t("pos.delivery")
-                                : t("pos.dineIn")}
-                          </span>
-                          <span className="text-xs font-mono text-sky-500/70 tabular-nums">{fmtTime(order.createdAt)}</span>
-                        </div>
-                      </div>
-                      <div className="border-t border-sky-500/10 pt-4 space-y-2.5 relative">
-                        {order.items.map(item => (
-                          <div key={item.id} className="flex items-center gap-3">
-                            <span className="text-base font-bold text-sky-500 min-w-[2.5rem] tabular-nums">{item.quantity}×</span>
-                            <span className="text-sm text-foreground/80 font-medium">{item.name}</span>
+                          <div className="flex flex-col items-end gap-1.5">
+                            <span className="inline-flex px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-muted/30 text-muted-foreground/60">
+                              {order.orderType === "takeaway"
+                                ? t("pos.takeaway")
+                                : order.orderType === "delivery"
+                                  ? t("pos.delivery")
+                                  : t("pos.dineIn")}
+                            </span>
+                            <span className="text-xs font-mono text-sky-400/60 tabular-nums">{fmtTime(order.createdAt)}</span>
                           </div>
-                        ))}
+                        </div>
+                        <div className="border-t border-sky-500/10 pt-4 space-y-2.5">
+                          {order.items.map(item => (
+                            <div key={item.id} className="flex items-center gap-3">
+                              <span className="text-base font-bold text-sky-400 min-w-[2.5rem] tabular-nums">{item.quantity}×</span>
+                              <span className="text-sm text-foreground/80 font-medium">{item.name}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   ))}

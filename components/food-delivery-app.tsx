@@ -178,18 +178,23 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
 
   return (
     <ErrorBoundary>
-      <div className="min-h-[100dvh] app-surface">
+      <div className="min-h-[100dvh] app-surface relative">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -top-48 -right-48 h-[32rem] w-[32rem] rounded-full bg-primary/4 blur-[120px]" />
+          <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-accent/4 blur-[100px]" />
+        </div>
         <AppHeader cartItemCount={itemCount} onCart={() => setCheckoutOpen(true)} />
 
-        <main className="mx-auto max-w-5xl px-4 pb-32 pt-6 md:px-6">
-          <div className="mb-12">
+        <main className="relative mx-auto max-w-5xl px-4 pb-32 pt-8 md:px-6">
+          <div className="mb-10">
             <motion.div
               initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
               animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
               transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
             >
+              <span className="section-eyebrow mb-4">Menu</span>
               <h1 className="font-display text-[clamp(2rem,4vw,2.75rem)] font-normal tracking-tight text-foreground">القائمة</h1>
-              <p className="mt-2 text-sm text-muted-foreground">اختر وجبتك المفضلة من قائمتنا المتنوعة</p>
+              <p className="mt-3 text-sm text-muted-foreground max-w-md">اختر وجبتك المفضلة من قائمتنا المتنوعة</p>
             </motion.div>
           </div>
 
@@ -211,15 +216,17 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="col-span-full flex flex-col items-center justify-center py-24 text-center gap-5"
+                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                className="col-span-full flex flex-col items-center justify-center py-28 text-center gap-6"
               >
-                <div className="size-20 rounded-2xl bg-muted/40 flex items-center justify-center border border-border/20">
-                  <ShoppingBag className="w-8 h-8 text-muted-foreground/30" />
+                <div className="premium-bezel">
+                  <div className="premium-bezel-inner p-6">
+                    <ShoppingBag className="size-10 text-muted-foreground/20" strokeWidth={1} />
+                  </div>
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-foreground">لا توجد منتجات</p>
-                  <p className="text-sm text-muted-foreground/60 mt-1">عذراً، لا توجد منتجات متوفرة في هذا القسم حالياً.</p>
+                  <p className="text-xl font-semibold text-foreground">لا توجد منتجات</p>
+                  <p className="text-sm text-muted-foreground/60 mt-2 max-w-xs">عذراً، لا توجد منتجات متوفرة في هذا القسم حالياً.</p>
                 </div>
               </motion.div>
             ) : (

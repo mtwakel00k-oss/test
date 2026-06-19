@@ -194,11 +194,11 @@ export default function AdminPage() {
       </header>
 
       <main className="max-w-7xl mx-auto p-4 lg:p-6 space-y-6">
-        <div className="flex w-fit items-center gap-1 rounded-full border border-white/8 bg-white/4 p-1">
+        <div className="flex w-fit items-center gap-1 rounded-full border border-white/6 bg-white/[0.03] p-0.5 backdrop-blur-sm">
           {(["overview", "products", "orders", "audit"] as const).map((tab) => (
             <button key={tab} onClick={() => setAdminTab(tab)}
-              className={`rounded-full px-4 py-2 text-xs font-semibold transition-all duration-500 ${
-                adminTab === tab ? "bg-white/12 text-white shadow-sm" : "text-white/45 hover:text-white/75"
+              className={`rounded-full px-5 py-2 text-xs font-semibold transition-all duration-500 ${
+                adminTab === tab ? "bg-white/10 text-white shadow-[var(--shadow-sm)]" : "text-white/40 hover:text-white/70"
               }`}>
               {tab === "overview" ? t("admin.overview") : tab === "products" ? t("admin.products") : tab === "orders" ? t("admin.orders") : t("admin.audit")}
             </button>
@@ -206,11 +206,11 @@ export default function AdminPage() {
         </div>
 
         {adminTab === "overview" && (
-          <div className="flex w-fit items-center gap-1 rounded-full border border-white/8 bg-white/4 p-1">
+          <div className="flex w-fit items-center gap-1 rounded-full border border-white/6 bg-white/[0.03] p-0.5">
             {(Object.entries(PERIOD_LABELS) as [Period, string][]).map(([key, label]) => (
               <button key={key} onClick={() => setPeriod(key)}
-                className={`rounded-full px-4 py-2 text-xs font-semibold transition-all duration-500 ${
-                  period === key ? "bg-white/12 text-white shadow-sm" : "text-white/45 hover:text-white/75"
+                className={`rounded-full px-5 py-2 text-xs font-semibold transition-all duration-500 ${
+                  period === key ? "bg-white/10 text-white shadow-[var(--shadow-sm)]" : "text-white/40 hover:text-white/70"
                 }`}>
                 {label}
               </button>
@@ -222,14 +222,14 @@ export default function AdminPage() {
           {loadingStats ? (
             <>
               {[...Array(5)].map((_, i) => (
-                <motion.div key={i} variants={fadeInUp(i * 0.04)} className="bg-card border border-border rounded-xl p-4 space-y-3 animate-pulse">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-muted" />
-                    <div className="h-3 w-20 rounded bg-muted" />
+                <div key={i} className="bg-card/40 border border-white/5 rounded-2xl p-5 space-y-4 animate-pulse">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-white/5" />
+                    <div className="h-3 w-24 rounded-full bg-white/5" />
                   </div>
-                  <div className="h-6 w-28 rounded bg-muted" />
-                  <div className="h-3 w-16 rounded bg-muted/60" />
-                </motion.div>
+                  <div className="h-7 w-32 rounded-full bg-white/8" />
+                  <div className="h-3 w-20 rounded-full bg-white/5" />
+                </div>
               ))}
             </>
           ) : (
@@ -244,39 +244,39 @@ export default function AdminPage() {
         </motion.div>
 
         {adminTab === "overview" && driverStats.length > 0 && (
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
-            <div className="px-4 py-3 border-b border-border">
-              <h3 className="text-sm font-semibold text-foreground">{t("admin.driverPerformance")}</h3>
+          <div className="bg-card/40 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-sm">
+            <div className="px-5 py-3.5 border-b border-white/5">
+              <h3 className="text-sm font-semibold text-white/80">{t("admin.driverPerformance")}</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-border/50">
-                    <th className="text-right px-4 py-2.5 text-muted-foreground font-medium text-xs">{t("admin.driver")}</th>
-                    <th className="text-center px-4 py-2.5 text-muted-foreground font-medium text-xs">{t("admin.deliveries")}</th>
-                    <th className="text-center px-4 py-2.5 text-muted-foreground font-medium text-xs">{t("admin.revenue")}</th>
-                    <th className="text-center px-4 py-2.5 text-muted-foreground font-medium text-xs">{t("admin.avgOrder")}</th>
+                  <tr className="border-b border-white/5">
+                    <th className="text-right px-5 py-3 text-white/40 font-medium text-[10px] uppercase tracking-wider">{t("admin.driver")}</th>
+                    <th className="text-center px-5 py-3 text-white/40 font-medium text-[10px] uppercase tracking-wider">{t("admin.deliveries")}</th>
+                    <th className="text-center px-5 py-3 text-white/40 font-medium text-[10px] uppercase tracking-wider">{t("admin.revenue")}</th>
+                    <th className="text-center px-5 py-3 text-white/40 font-medium text-[10px] uppercase tracking-wider">{t("admin.avgOrder")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {driverStats.map((d, i) => (
-                    <tr key={d.id} className={i < driverStats.length - 1 ? "border-b border-border/30" : ""}>
-                      <td className="px-4 py-2.5">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
+                    <tr key={d.id} className={i < driverStats.length - 1 ? "border-b border-white/[0.02]" : ""}>
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-white/5 text-white/60 flex items-center justify-center text-xs font-semibold">
                             {d.name.charAt(0)}
                           </div>
-                          <span className="font-medium text-foreground text-sm">{d.name}</span>
+                          <span className="font-medium text-white/80 text-sm">{d.name}</span>
                         </div>
                       </td>
-                      <td className="text-center px-4 py-2.5">
-                        <span className="font-bold text-foreground">{d.deliveries}</span>
+                      <td className="text-center px-5 py-3">
+                        <span className="font-semibold text-white/80">{d.deliveries}</span>
                       </td>
-                      <td className="text-center px-4 py-2.5">
-                        <span className="font-medium text-emerald-600 dark:text-emerald-400">{fmtNum(d.revenue)} {currency}</span>
+                      <td className="text-center px-5 py-3">
+                        <span className="font-medium text-emerald-400/80">{fmtNum(d.revenue)} {currency}</span>
                       </td>
-                      <td className="text-center px-4 py-2.5">
-                        <span className="text-muted-foreground">{d.deliveries > 0 ? fmtNum(Math.round(d.revenue / d.deliveries)) : 0} {currency}</span>
+                      <td className="text-center px-5 py-3">
+                        <span className="text-white/40">{d.deliveries > 0 ? fmtNum(Math.round(d.revenue / d.deliveries)) : 0} {currency}</span>
                       </td>
                     </tr>
                   ))}
@@ -287,30 +287,30 @@ export default function AdminPage() {
         )}
 
         {adminTab === "overview" && cashierStats.length > 0 && (
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
-            <div className="px-4 py-3 border-b border-border">
-              <h3 className="text-sm font-semibold text-foreground">{t("admin.cashierPerformance")}</h3>
+          <div className="bg-card/40 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-sm">
+            <div className="px-5 py-3.5 border-b border-white/5">
+              <h3 className="text-sm font-semibold text-white/80">{t("admin.cashierPerformance")}</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-border/50">
-                    <th className="text-right px-4 py-2.5 text-muted-foreground font-medium text-xs">{t("admin.cashier")}</th>
-                    <th className="text-center px-4 py-2.5 text-muted-foreground font-medium text-xs">{t("admin.orders")}</th>
-                    <th className="text-center px-4 py-2.5 text-muted-foreground font-medium text-xs">{t("admin.revenue")}</th>
+                  <tr className="border-b border-white/5">
+                    <th className="text-right px-5 py-3 text-white/40 font-medium text-[10px] uppercase tracking-wider">{t("admin.cashier")}</th>
+                    <th className="text-center px-5 py-3 text-white/40 font-medium text-[10px] uppercase tracking-wider">{t("admin.orders")}</th>
+                    <th className="text-center px-5 py-3 text-white/40 font-medium text-[10px] uppercase tracking-wider">{t("admin.revenue")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {cashierStats.map((c, i) => (
-                    <tr key={c.id} className={i < cashierStats.length - 1 ? "border-b border-border/30" : ""}>
-                      <td className="px-4 py-2.5">
-                        <span className="font-medium text-foreground text-sm">{c.name}</span>
+                    <tr key={c.id} className={i < cashierStats.length - 1 ? "border-b border-white/[0.02]" : ""}>
+                      <td className="px-5 py-3">
+                        <span className="font-medium text-white/80 text-sm">{c.name}</span>
                       </td>
-                      <td className="text-center px-4 py-2.5">
-                        <span className="font-bold text-foreground">{c.orders}</span>
+                      <td className="text-center px-5 py-3">
+                        <span className="font-semibold text-white/80">{c.orders}</span>
                       </td>
-                      <td className="text-center px-4 py-2.5">
-                        <span className="font-medium text-emerald-600 dark:text-emerald-400">{fmtNum(c.revenue)} {currency}</span>
+                      <td className="text-center px-5 py-3">
+                        <span className="font-medium text-emerald-400/80">{fmtNum(c.revenue)} {currency}</span>
                       </td>
                     </tr>
                   ))}

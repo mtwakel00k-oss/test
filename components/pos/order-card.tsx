@@ -85,55 +85,55 @@ const OrderCardInner = memo(function OrderCardInner({
     <div data-testid="order-card"
       onClick={onSelect}
       className={cn(
-        "group relative bg-card rounded-[2rem] border border-border/50 overflow-hidden cursor-pointer",
-        "transition-all duration-300 hover:shadow-2xl hover:border-primary/20 hover:-translate-y-1 active:scale-[0.98]",
+        "group relative bg-card rounded-[1.75rem] border border-border/50 overflow-hidden cursor-pointer",
+        "transition-all duration-500 hover:shadow-2xl hover:border-primary/20 hover:-translate-y-1 active:scale-[0.98]",
         isSelected ? "ring-4 ring-primary/20 border-primary/40 shadow-2xl bg-primary/[0.02]" : "shadow-sm",
       )}
     >
-      <div className="p-6">
+      <div className="p-5">
         <div className="flex items-start justify-between gap-4">
-          <div className="flex-1 min-w-0 space-y-4">
+          <div className="flex-1 min-w-0 space-y-3.5">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className={cn("inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest", s.badge)}>
-                <span className={cn("size-2 rounded-full", s.dot, order.status === "pending" && "animate-pulse")} />
+              <span className={cn("inline-flex items-center gap-2 px-3 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wider", s.badge)}>
+                <span className={cn("size-1.5 rounded-full", s.dot, order.status === "pending" && "animate-pulse")} />
                 {t(`pos.${s.label}`)}
               </span>
-              <span className={cn("inline-flex px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest",
+              <span className={cn("inline-flex px-3 py-1 rounded-xl text-[10px] font-bold",
                 order.paymentStatus === "paid"
-                  ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
-                  : "bg-amber-500/10 text-amber-600 border border-amber-500/20"
+                  ? "bg-emerald-500/10 text-emerald-600"
+                  : "bg-amber-500/10 text-amber-600"
               )}>
                 {order.paymentStatus === "paid" ? t("pos.paid") : t("pos.unpaid")}
               </span>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className={cn("flex items-center justify-center size-10 rounded-2xl text-xl shadow-inner border border-border/50", orderTypeInfo.badge.split(' ')[0])}>
+              <div className={cn("flex items-center justify-center size-11 rounded-xl text-xl shadow-inner border border-border/50 bg-card", orderTypeInfo.badge.split(' ')[0])}>
                 {orderTypeInfo.icon}
               </div>
               <div className="flex flex-col">
-                <h3 className="text-base font-black text-foreground leading-none mb-1">{orderTypeInfo.label}</h3>
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">#{order.orderNumber}</span>
+                <h3 className="text-base font-semibold text-foreground leading-none mb-1">{orderTypeInfo.label}</h3>
+                <span className="text-[10px] font-medium text-muted-foreground">#{order.orderNumber}</span>
               </div>
             </div>
 
             <div className="flex items-center gap-1.5 flex-wrap">
               {order.items.slice(0, 3).map((item) => (
-                <span key={item.id} className="text-[11px] font-bold text-muted-foreground bg-muted/50 border border-border/50 rounded-xl px-2.5 py-1">
-                  <span className="text-primary font-black">x{item.quantity}</span> {item.name}
+                <span key={item.id} className="text-[11px] font-medium text-muted-foreground bg-muted/30 border border-border/30 rounded-lg px-2.5 py-1">
+                  <span className="text-primary font-semibold">x{item.quantity}</span> {item.name}
                 </span>
               ))}
               {order.items.length > 3 && (
-                <span className="text-[10px] font-black text-primary bg-primary/10 rounded-xl px-2 py-1">+{order.items.length - 3}</span>
+                <span className="text-[10px] font-semibold text-primary bg-primary/5 rounded-lg px-2 py-1">+{order.items.length - 3}</span>
               )}
             </div>
           </div>
 
           <div className="flex flex-col items-end gap-1 shrink-0">
-            <span className="text-2xl font-black text-foreground tabular-nums leading-none mb-1">{order.total.toLocaleString()} <span className="text-xs opacity-60 font-bold">{cur}</span></span>
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-muted/50 border border-border/50">
-              <span className="size-1.5 rounded-full bg-muted-foreground/30" />
-              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-tighter">{timeAgo}</span>
+            <span className="text-2xl font-semibold text-foreground tabular-nums leading-none mb-1">{order.total.toLocaleString()} <span className="text-xs text-muted-foreground font-medium">{cur}</span></span>
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-muted/30">
+              <span className="size-1 rounded-full bg-muted-foreground/30" />
+              <span className="text-[10px] font-medium text-muted-foreground/60">{timeAgo}</span>
             </div>
           </div>
         </div>
@@ -156,16 +156,16 @@ const OrderCardInner = memo(function OrderCardInner({
                 {drivers.filter(d => !d.isBusy).map(driver => (
                   <button key={driver.id} onClick={e => { e.stopPropagation(); onAssignDriver(order.id, driver.id) }}
                     disabled={assigningDriver}
-                    className="flex items-center gap-2 w-full rounded-md border border-border/50 bg-card px-2.5 py-2 text-right hover:border-primary/30 hover:bg-primary/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed group">
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold group-hover:bg-emerald-500/20 transition-colors">
+                    className="flex items-center gap-2 w-full rounded-lg border border-border/40 bg-card px-3 py-2 text-right hover:border-primary/30 hover:bg-primary/[0.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
                       {driver.name.charAt(0)}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-medium text-foreground">{driver.name}</p>
-                      <p className="text-[10px] text-muted-foreground font-mono dir-ltr text-left">{driver.phone}</p>
+                      <p className="text-[10px] text-muted-foreground/60 font-mono dir-ltr text-left">{driver.phone}</p>
                     </div>
-                    <span className="flex items-center gap-1 shrink-0">
-                      <span className="w-1 h-1 rounded-full bg-emerald-500" />
+                    <span className="flex items-center gap-1.5 shrink-0">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                       <span className="text-[9px] font-semibold text-emerald-600 dark:text-emerald-400">متاح</span>
                     </span>
                   </button>
@@ -196,23 +196,23 @@ const OrderCardInner = memo(function OrderCardInner({
           </div>
         )}
 
-        <div className="flex items-center justify-between mt-6 pt-5 border-t border-border/50">
+        <div className="flex items-center justify-between mt-5 pt-4 border-t border-border/40">
           <div className="flex items-center gap-2">
             {getNextStatus() && (
               <button data-testid="advance-status" onClick={handleAdvanceStatus}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest bg-primary text-primary-foreground shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider bg-primary text-primary-foreground shadow-[var(--shadow-md),var(--shadow-glow)] hover:brightness-110 active:scale-95 transition-all">
                 {t(`pos.${STATUS_STYLES[getNextStatus()!].label}`)}
               </button>
             )}
             {order.status === "pending" && (
               <button onClick={(e) => { e.stopPropagation(); onCancel(order.id) }}
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black uppercase tracking-widest text-rose-500 hover:bg-rose-500/10 transition-all">
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold text-rose-500 hover:bg-rose-500/10 transition-all">
                 {t("common.cancel")}
               </button>
             )}
           </div>
-          <div className="size-10 rounded-2xl bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          <div className="size-9 rounded-xl bg-muted/40 flex items-center justify-center text-muted-foreground/40 group-hover:text-primary/60 transition-colors">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
           </div>
         </div>
       </div>

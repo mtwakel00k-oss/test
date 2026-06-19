@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import { ShoppingBag, Camera, Pencil, Check, X } from "lucide-react";
+import { ShoppingBag, Camera, Pencil, Check, X, QrCode } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { toast } from "@/hooks/use-toast";
 import { useLang } from "@/lib/lang-context"
 import type { Lang } from "@/lib/translations"
 import { fetchApi } from "@/lib/tenant"
+import { useSlug } from "@/lib/use-slug"
 
 interface Driver {
   id: string
@@ -29,6 +30,7 @@ const T = (lang: Lang, ar: string, en: string, fr: string) =>
 export function RestaurantSettings() {
   const lang = useLang();
   const dir: "rtl" | "ltr" = lang === "ar" ? "rtl" : "ltr";
+  const slug = useSlug()
 
   const [name, setName] = useState("");
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
@@ -54,6 +56,9 @@ export function RestaurantSettings() {
   const [newCashierPassword, setNewCashierPassword] = useState("")
   const [savingCashier, setSavingCashier] = useState(false)
   const [cashierError, setCashierError] = useState("")
+  const [qrTable, setQrTable] = useState("")
+  const [qrSvg, setQrSvg] = useState<string | null>(null)
+  const [qrLoading, setQrLoading] = useState(false)
 
   useEffect(() => {
     fetchApi("/api/tenant/logo")
@@ -358,6 +363,54 @@ export function RestaurantSettings() {
             "Chaque chauffeur a un lien secret envoyé automatiquement via WhatsApp"
           )}
         </p>
+      </CardContent>
+    </Card>
+
+    <Card className="border-border/50" dir={dir}>
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <QrCode className="w-5 h-5" />
+          {T(lang, "QR الطاولات", "Table QR Codes", "QR des tables")}
+        </CardTitle>
+        <p className="text-sm text-muted-foreground mt-1">
+          {T(lang, "ارمبز QR للطاولات — يفتح القائمة مباشرة مع رقم الطاولة", "QR codes for tables — opens the menu with table number pre-filled", "QR codes pour les tables — ouvre le menu avec le numéro de table")}
+        </p>
+      </CardHeader>
+      <CardContent>
+        <div className="flex gap-2 items-start">
+          <input type="number" min="1" value={qrTable} onChange={e => setQrTable(e.target.value)}
+            className="flex-1 h-11 px-4 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            placeholder={T(lang, "مثال: 5", "e.g. 5", "ex: 5")} />
+          <button disabled={!qrTable || qrLoading} onClick={async () => {
+            if (!slug || !qrTable) return
+            setQrLoading(true)
+            try {
+              const res = await fetch(`/api/qr/table?slug=${slug}&number=${qrTable}`)
+              if (!res.ok) return
+              const svg = await res.text()
+              setQrSvg(svg)
+            } finally { setQrLoading(false) }
+          }}
+            className="h-11 px-5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-primary/20 whitespace-nowrap disabled:opacity-50">
+            {qrLoading ? "..." : T(lang, "عرض QR", "Show QR", "Afficher QR")}
+          </button>
+        </div>
+        {qrSvg && (
+          <div className="mt-4 flex flex-col items-center gap-3 p-6 rounded-2xl bg-muted/30 border border-border/50">
+            <div className="bg-white rounded-xl p-3 shadow-sm" dangerouslySetInnerHTML={{ __html: qrSvg }} />
+            <p className="text-sm font-bold text-foreground">{T(lang, "طاولة رقم", "Table No.", "Table No.")} {qrTable}</p>
+            <button onClick={() => {
+              const w = window.open("", "_blank")
+              if (!w) return
+              w.document.write(`<html><head><title>Table ${qrTable}</title><style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh}</style></head><body>${qrSvg}</body></html>`)
+              w.document.close()
+              setTimeout(() => w.print(), 500)
+            }}
+              className="h-9 px-4 rounded-xl bg-foreground text-background text-xs font-bold hover:scale-[1.02] active:scale-95 transition-all">
+              {T(lang, "طباعة", "Print", "Imprimer")}
+            </button>
+          </div>
+        )}
       </CardContent>
     </Card>
 

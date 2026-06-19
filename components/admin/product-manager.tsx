@@ -15,7 +15,7 @@ import { BulkOperations } from "./bulk-operations"
 import { logger } from "@/lib/logger"
 import { cn } from "@/lib/utils"
 import { fetchApi } from "@/lib/tenant"
-import { getScope, getScopedCookieLang } from "@/lib/i18n-scope"
+import { useLang } from "@/lib/lang-context"
 
 // ─── Types ─────────────────────────────────────────────────
 
@@ -192,16 +192,6 @@ function intlNumber(value: number, lang: Lang): string {
   }
 }
 
-// ─── Use language hook ─────────────────────────────────────
-
-function useLanguage(): Lang {
-  const [lang] = useState<Lang>(() => {
-    if (typeof document === "undefined") return "ar"
-    return getScopedCookieLang(getScope()) || "ar"
-  })
-  return lang
-}
-
 // ─── Alert sub-component ───────────────────────────────────
 
 function Alert({ alert, onDismiss }: { alert: AlertState; onDismiss: () => void }) {
@@ -255,7 +245,7 @@ function priceRange(prices: ProductItem["prices"], lang: Lang): string {
 // ─── Main Component ──────────────────────────────────────
 
 export function ProductManager() {
-  const lang = useLanguage()
+  const lang = useLang()
   const dir: "rtl" | "ltr" = lang === "ar" ? "rtl" : "ltr"
   const lbl = (key: TranslationKey): string => getLabel(key, lang)
 

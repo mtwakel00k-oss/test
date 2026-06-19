@@ -25,10 +25,11 @@ Dashboard fetched via `GET /api/admin/stats?period=7d|30d|6m|12m` or `?mode=root
 - Real-time subscriptions (`supabase().channel(...)`) remain for refresh triggers only (no data queries).
 
 ## Rate Limiting
-- `lib/rate-limit.ts`: in-memory sliding window, keyed by client IP.
+- `lib/rate-limit.ts`: distributed sliding window — Upstash Redis (primary) + Supabase `rate_limits` table (fallback), keyed by client IP.
 - `POST /api/ratings`: 10 req/min per IP.
 - `POST /api/orders`: 20 req/min per IP.
 - Returns 429 with `Retry-After` header when exceeded.
+- Falls open (allows all) if both Redis and Supabase are unreachable.
 
 ## RLS / Migration SQL
 - `sql/rls-policies.sql`: RLS policies for all tenant tables (produits, categories, orders, order_items, ratings).
@@ -74,8 +75,8 @@ Deploy the stable app to production with all tests passing, fix login 500 error,
 10. **Tenant DB migration** — `data/run-this.sql` applied manually in Supabase Dashboard for `zordvqqjnlmxgtbkrspp.supabase.co`.
 
 ### Known
-- React hydration error #418 (text content mismatch) exists on menu/login pages — pre-existing, likely from `LangProvider` reading cookies client-side. Not CSP-related.
-- Driver tracking needs `migration-v9`, `migration-v10`, `migration-v11` for full functionality.
+- React hydration error #418 — **fixed** in `LangProvider` via `useSyncExternalStore` (no more text content mismatch).
+- Driver tracking — migrations v9–v11 included in `TENANT_MIGRATION` (apply via Supabase Dashboard).
 
 ### Environment
 - `SESSION_ENCRYPTION_KEY`: re-added to Vercel Production with valid 32-byte base64 key.
@@ -85,3 +86,21 @@ Deploy the stable app to production with all tests passing, fix login 500 error,
 1. Apply remaining driver tracking migrations (v9–v11) if needed.
 2. Fix React hydration error #418.
 <!-- END:session-2025-06-18 -->
+
+<!-- BEGIN:session-2025-06-19 -->
+## Session Progress (Jun 19) — Code Audit Fixes
+
+### Goal
+Address all issues from the code audit report (`75/100`): secure `/api/run-sql`, fix hydration error #418, update docs, clean test files, apply tenant migrations.
+
+### Done
+1. **`/api/run-sql` secured** — Now accepts `?secret=CRON_SECRET` in production. Falls back to admin/owner session check for dev. Rate-limited (10 req/min). Blocked entirely without valid secret in prod.
+2. **Hydration error #418 fixed** — `LangProvider` migrated to `useSyncExternalStore` from `useState`+`useEffect`. Server-rendered value matches initial render; client subscribes to cookie changes without hydration mismatch.
+3. **Test files cleaned** — 8 `test-*.js` files moved from project root to `scripts/`.
+4. **AGENTS.md rate-limit doc corrected** — Now accurately describes "Upstash Redis (primary) + Supabase `rate_limits` table (fallback)" instead of "in-memory sliding window".
+5. **Tenant migration SQL file** — `scripts/apply-tenant-migration.sql` contains the full combined SQL (v3–v11) ready to paste in Supabase Dashboard.
+6. **All 139 tests passing**, TypeScript compiles with zero errors.
+
+### To apply tenant migration
+Open `https://supabase.com/dashboard/project/zordvqqjnlmxgtbkrspp` → SQL Editor → paste contents of `scripts/apply-tenant-migration.sql` → Run.
+<!-- END:session-2025-06-19 -->
