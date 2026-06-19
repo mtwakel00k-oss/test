@@ -9,9 +9,10 @@ import { useState } from "react";
 
 interface OrderBarProps {
   onCheckout: () => void;
+  disabled?: boolean;
 }
 
-export function OrderBar({ onCheckout }: OrderBarProps) {
+export function OrderBar({ onCheckout, disabled }: OrderBarProps) {
   const { t, lang } = useTranslation();
   const { items, total, itemCount } = useCart();
   const [expanded, setExpanded] = useState(false);
@@ -105,7 +106,8 @@ export function OrderBar({ onCheckout }: OrderBarProps) {
 
             <button
               onClick={onCheckout}
-              className="btn-premium bg-primary text-primary-foreground shadow-[var(--shadow-md),var(--shadow-glow)]"
+              disabled={disabled}
+              className="btn-premium bg-primary text-primary-foreground shadow-[var(--shadow-md),var(--shadow-glow)] disabled:opacity-50 disabled:grayscale"
             >
               {t("menu.confirmOrder")}
               <ChevronRight className="w-4 h-4" />

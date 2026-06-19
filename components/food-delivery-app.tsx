@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
 import { motion } from "framer-motion"
 
+import { useTranslation } from "@/lib/use-translation"
 import { logger } from "@/lib/logger"
 import type { MenuProduct } from "@/lib/types"
 import { fetchApi } from "@/lib/tenant"
@@ -14,7 +15,7 @@ import { AppHeader } from "./app-header"
 import { CategoryFilter } from "./category-filter"
 import { MealCard } from "./meal-card"
 import { OrderBar } from "./order-bar"
-import { ShoppingBag } from "lucide-react"
+import { ShoppingBag, DoorClosed } from "lucide-react"
 
 const CheckoutModal = dynamic(
   () => import("./checkout-modal").then(m => ({ default: m.CheckoutModal })),
@@ -78,6 +79,7 @@ export function FoodDeliveryApp(props: { initialProducts?: MenuProduct[]; slug?:
 
 function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProducts?: MenuProduct[]; slug?: string }) {
   const router = useRouter()
+  const { t } = useTranslation()
   const [products, setProducts] = useState<MenuProduct[]>(initialProducts || [])
   const [categories, setCategories] = useState<string[]>([])
   const [selectedCategory, setSelectedCategory] = useState("All")
@@ -108,6 +110,17 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
     try { return ((window as unknown as Record<string, unknown>).__TENANT_CONFIG__ as { slug?: string })?.slug || "" } catch {}
     return ""
   }, [propSlug])
+
+  const isOpen = useMemo(() => {
+    if (typeof window === "undefined") return true
+    try {
+      const el = document.getElementById("tenant-config")
+      if (el?.textContent) return JSON.parse(el.textContent).is_open !== false
+      return ((window as unknown as Record<string, unknown>).__TENANT_CONFIG__ as { is_open?: boolean })?.is_open !== false
+    } catch {
+      return true
+    }
+  }, [])
 
   useEffect(() => {
     if (initialProducts && initialProducts.length > 0) {
@@ -183,6 +196,19 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
           <div className="absolute -top-48 -right-48 h-[32rem] w-[32rem] rounded-full bg-primary/4 blur-[120px]" />
           <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-accent/4 blur-[100px]" />
         </div>
+
+        {!isOpen && (
+          <div className="relative mx-auto max-w-5xl px-4 pt-4">
+            <div className="rounded-2xl bg-rose-500/10 border border-rose-500/20 px-5 py-4 flex items-center gap-3 text-rose-600">
+              <DoorClosed className="size-5 shrink-0" strokeWidth={2} />
+              <div>
+                <p className="text-sm font-bold">{t("menu.restaurantClosed")}</p>
+                <p className="text-xs text-rose-500/80">{t("menu.closedMessage")}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <AppHeader cartItemCount={itemCount} onCart={() => setCheckoutOpen(true)} />
 
         <main className="relative mx-auto max-w-5xl px-4 pb-32 pt-8 md:px-6">
@@ -246,12 +272,12 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
                     <MealCard product={p}
                       size={sizes[p.id] || "L"}
                       sauceId={sauces[p.id] ?? null}
-                      quantity={cartQuantities[k] || 0}
+                      quantity={isOpen ? cartQuantities[k] || 0 : 0}
                       priority={idx < 6}
                       onSizeChange={(s) => setSizes(prev => ({ ...prev, [p.id]: s }))}
                       onSauceChange={(s) => setSauces(prev => ({ ...prev, [p.id]: s }))}
-                      onAdd={() => debouncedAdd(() => { addItem(p, sizes[p.id] || "L", sauces[p.id] ?? null); logger.info("Added", { name: p.name }) })}
-                      onUpdateQuantity={(d) => { updateQuantity(p.id, sizes[p.id] || "L", sauces[p.id] ?? null, d) }}
+                      onAdd={isOpen ? () => debouncedAdd(() => { addItem(p, sizes[p.id] || "L", sauces[p.id] ?? null); logger.info("Added", { name: p.name }) }) : () => {}}
+                      onUpdateQuantity={isOpen ? (d) => { updateQuantity(p.id, sizes[p.id] || "L", sauces[p.id] ?? null, d) } : () => {}}
                     />
                   </motion.div>
                 )
@@ -260,7 +286,7 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
           </div>
         </main>
 
-        <OrderBar onCheckout={() => setCheckoutOpen(true)} />
+        <OrderBar onCheckout={() => isOpen && setCheckoutOpen(true)} disabled={!isOpen} />
 
         {checkoutOpen && (
           <CheckoutModal

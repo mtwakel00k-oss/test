@@ -7,6 +7,7 @@ import { resetTenantClient } from "@/lib/tenant"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { PlanManager } from "@/components/admin/plan-manager"
+import { EarningsOverview } from "@/components/admin/earnings-overview"
 import { PageTransition } from "@/components/page-transition"
 
 export default function AdminDashboard() {
@@ -47,7 +48,8 @@ export default function AdminDashboard() {
         </div>
       </header>
       <PageTransition>
-        <main className="p-4 lg:p-6 max-w-7xl mx-auto">
+        <main className="p-4 lg:p-6 max-w-7xl mx-auto space-y-6">
+          <EarningsOverview />
           <PlanManager />
         </main>
       </PageTransition>

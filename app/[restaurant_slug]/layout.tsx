@@ -42,6 +42,7 @@ export default async function RestaurantLayout({
       name: tenant.name,
       logo_url: tenant.logo_url ?? null,
       plan_type: tenant.plan_type ?? "starter",
+      is_open: tenant.is_open ?? true,
     }
     configStr = JSON.stringify(config)
   } catch {}

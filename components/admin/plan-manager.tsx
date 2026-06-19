@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback, startTransition } from "react"
-import { Loader2, Plus } from "lucide-react"
+import { Loader2, Plus, DoorOpen, DoorClosed } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -25,6 +25,7 @@ interface Tenant {
   name: string
   plan_type: string | null
   is_active: boolean
+  is_open: boolean
   created_at: string
 }
 
@@ -104,6 +105,29 @@ export function PlanManager() {
       }
     } catch (e) {
       logger.error("Failed to toggle active", e)
+    } finally {
+      setUpdating((prev) => ({ ...prev, [slug]: false }))
+    }
+  }, [])
+
+  const handleToggleOpen = useCallback(async (slug: string, current: boolean) => {
+    setUpdating((prev) => ({ ...prev, [slug]: true }))
+    try {
+      const res = await fetchApi("/api/admin/plans", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug, is_open: !current }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        logger.error("Failed to toggle open", data.error)
+      } else {
+        setTenants((prev) =>
+          prev.map((t) => (t.slug === slug ? { ...t, is_open: !current } : t))
+        )
+      }
+    } catch (e) {
+      logger.error("Failed to toggle open", e)
     } finally {
       setUpdating((prev) => ({ ...prev, [slug]: false }))
     }
@@ -274,6 +298,9 @@ export function PlanManager() {
                   <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 text-start">
                     {t("admin.changePlan") || "Change"}
                   </th>
+                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 text-center hidden lg:table-cell">
+                    {t("admin.openStatus") || "Open"}
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50 bg-transparent">
@@ -317,6 +344,26 @@ export function PlanManager() {
                           className="w-32 h-10 rounded-xl border-border/50 bg-background/50 text-[10px] font-black uppercase tracking-widest focus:ring-2 focus:ring-primary/20"
                         />
                       )}
+                    </td>
+                    <td className="px-8 py-6 text-center hidden lg:table-cell">
+                      <button
+                        onClick={() => handleToggleOpen(tenant.slug, tenant.is_open)}
+                        disabled={updating[tenant.slug]}
+                        className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all border shadow-sm ${
+                          tenant.is_open
+                            ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20"
+                            : "bg-rose-500/10 text-rose-600 border-rose-500/20 hover:bg-rose-500/20"
+                        }`}
+                      >
+                        {updating[tenant.slug] ? (
+                          <Loader2 className="size-3 animate-spin" />
+                        ) : tenant.is_open ? (
+                          <DoorOpen className="size-4" strokeWidth={2} />
+                        ) : (
+                          <DoorClosed className="size-4" strokeWidth={2} />
+                        )}
+                        {tenant.is_open ? "Open" : "Closed"}
+                      </button>
                     </td>
                   </tr>
                 ))}

@@ -4,6 +4,7 @@ import { supabaseForRequest, parseSession, isTenantMismatch } from "@/lib/tenant
 import { requireRootOwner, isErrorResponse } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
 import { env } from "@/lib/env"
+import { computeSubscriptionRevenue, COMMISSION_RATE } from "@/lib/pricing"
 
 type Period = "7d" | "30d" | "6m" | "12m"
 const PERIOD_DAYS: Record<Period, number> = { "7d": 7, "30d": 30, "6m": 180, "12m": 365 }
@@ -163,6 +164,36 @@ async function handleRootDashboard(sb: SupabaseClient) {
     (o) => new Date(o.created_at) >= prevMonthStart && new Date(o.created_at) < monthStart && (o.status === "preparing" || o.status === "ready"),
   ).length
 
+  /* ── Platform Earnings ────────────────────────────── */
+  const masterSb = createClient(
+    env.NEXT_PUBLIC_SUPABASE_URL!,
+    env.SUPABASE_SERVICE_ROLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  )
+  const { data: tenantRows } = await masterSb
+    .from("tenants")
+    .select("plan_type, is_active")
+    .returns<{ plan_type: string | null; is_active: boolean }[]>()
+  const allTenants = tenantRows || []
+  const activeTenants = allTenants.filter((t) => t.is_active)
+  const activeCount = activeTenants.length
+  const totalCount = allTenants.length
+
+  const subscriptionRevenue = computeSubscriptionRevenue(allTenants)
+  const commissionRevenue = Math.round(thisRev * COMMISSION_RATE)
+  const platformEarnings = subscriptionRevenue + commissionRevenue
+
+  const prevCommission = Math.round(lastRev * COMMISSION_RATE)
+  const prevEarnings = subscriptionRevenue + prevCommission
+
+  const { data: prevTenantRows } = await masterSb
+    .from("tenants")
+    .select("plan_type, is_active")
+    .lt("created_at", monthStart.toISOString())
+    .returns<{ plan_type: string | null; is_active: boolean }[]>()
+  const prevTenants = (prevTenantRows || []).filter((t) => t.is_active)
+  const prevActiveCount = prevTenants.length
+  /* ── End Platform Earnings ─────────────────────────── */
+
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   const todayOrders = orders.filter((o) => new Date(o.created_at) >= todayStart).length
 
@@ -208,5 +239,9 @@ async function handleRootDashboard(sb: SupabaseClient) {
     activeOrders: active, prevActiveOrders: prevActive,
     avgRating: avg, prevAvgRating: prevAvg,
     todayOrders, chartData, peakHours, topProducts, reviews,
+    platformEarnings, prevEarnings,
+    subscriptionRevenue, commissionRevenue,
+    activeTenants: activeCount, totalTenants: totalCount,
+    prevActiveTenants: prevActiveCount,
   })
 }

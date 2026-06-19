@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabaseForRequest, isTenantMismatch, parseSession } from "@/lib/tenant"
+import { supabaseForRequest, isTenantMismatch, parseSession, getTenantConfig } from "@/lib/tenant"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 import { logger } from "@/lib/logger"
@@ -142,6 +142,15 @@ export async function POST(req: NextRequest) {
     if (!rl.allowed) return rateLimitResponse(rl.resetAt)
 
     const sb = await supabaseForRequest(req)
+
+    // ── Check if restaurant is open ──────────────────────
+    const sessionSlug = parseSession(req.headers.get("cookie") || "").slug
+    if (sessionSlug) {
+      const tenantConfig = await getTenantConfig(sessionSlug)
+      if (tenantConfig && tenantConfig.is_open === false) {
+        return NextResponse.json({ error: "المطعم مغلق حالياً. لا يمكن تقديم الطلبات الآن.", code: "RESTAURANT_CLOSED" }, { status: 403 })
+      }
+    }
 
     // ── Validate products & compute server-side prices ──
     const prodIds = [...new Set(items.map((i: { product_id: number }) => i.product_id))] as number[]

@@ -29,6 +29,7 @@ vi.mock("@/lib/tenant", () => {
     supabaseForRequest: vi.fn(() => Promise.resolve(mockSupabase)),
     isTenantMismatch: vi.fn(() => null),
     parseSession: vi.fn(() => ({ role: "cashier", email: "test@test.com", slug: "burger-house" })),
+    getTenantConfig: vi.fn(() => Promise.resolve({ is_open: true })),
   }
 })
 

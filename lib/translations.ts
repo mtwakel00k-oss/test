@@ -202,6 +202,14 @@ export const T: Dict = {
   "admin.confirmClear": { ar: "تأكيد التصفير", en: "Clear All Data", fr: "Tout réinitialiser" },
   "admin.clearing": { ar: "جاري التصفير...", en: "Clearing...", fr: "Réinitialisation..." },
 
+  // ── Root Admin Earnings ────────────────────────────
+  "admin.platformEarnings": { ar: "أرباح المنصة", en: "Platform Earnings", fr: "Revenus de la plateforme" },
+  "admin.subscriptionRevenue": { ar: "الاشتراكات", en: "Subscriptions", fr: "Abonnements" },
+  "admin.commissionRevenue": { ar: "العمولات", en: "Commissions", fr: "Commissions" },
+  "admin.activeTenants": { ar: "المطاعم النشطة", en: "Active Restaurants", fr: "Restaurants actifs" },
+  "admin.vsLastMonth": { ar: "عن الشهر الماضي", en: "vs last month", fr: "vs mois dernier" },
+  "admin.openStatus": { ar: "مفتوح/مغلق", en: "Open/Closed", fr: "Ouvert/Fermé" },
+
   // ── Plan Manager ────────────────────────────────────
   "admin.plans": { ar: "الباقات", en: "Subscription Plans", fr: "Forfaits" },
   "admin.plansSub": { ar: "إدارة باقات الاشتراك للمطاعم", en: "Manage tenant subscription plans", fr: "Gérer les forfaits des restaurants" },
@@ -363,6 +371,8 @@ export const T: Dict = {
   "menu.trackOrder": { ar: "تتبع الطلب", en: "Track Order", fr: "Suivre la commande" },
   "menu.forbiddenError": { ar: "عذراً، حدث خطأ في التحقق من الصلاحية. يرجى تحديث الصفحة والمحاولة مرة أخرى.", en: "Sorry, a permission error occurred. Please refresh and try again.", fr: "Désolé, une erreur de permission s'est produite. Veuillez actualiser et réessayer." },
   "menu.confirmOrder": { ar: "تأكيد الطلب", en: "Confirm Order", fr: "Confirmer la commande" },
+  "menu.restaurantClosed": { ar: "المطعم مغلق حالياً", en: "Restaurant is closed", fr: "Le restaurant est fermé" },
+  "menu.closedMessage": { ar: "يمكنك تصفح القائمة ولكن لا يمكن تقديم الطلبات الآن", en: "You can browse the menu but cannot place orders right now", fr: "Vous pouvez parcourir le menu mais ne pouvez pas passer commande pour le moment" },
   "menu.tableDineIn": { ar: "طاولة (Dine-in)", en: "Table (Dine-in)", fr: "Table (Sur place)" },
   "menu.takeaway": { ar: "أخذ للخارج (Takeaway)", en: "Takeaway", fr: "À emporter" },
   "menu.name": { ar: "الاسم", en: "Name", fr: "Nom" },

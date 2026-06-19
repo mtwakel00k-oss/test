@@ -14,6 +14,7 @@ export interface TenantConfig {
   supabase_anon_key: string
   supabase_service_key?: string | null
   is_active: boolean
+  is_open: boolean
   created_at: string
   logo_url: string | null
   plan_type?: string | null
@@ -98,7 +99,7 @@ export async function getTenantConfig(slug: string): Promise<TenantConfig | null
   if (cached && cached.expiry > Date.now()) return cached.data
 
   const { data, error } = await (_masterClient.from("tenants"))
-    .select("id, slug, name, supabase_url, supabase_anon_key, is_active, created_at, logo_url, plan_type")
+    .select("id, slug, name, supabase_url, supabase_anon_key, is_active, is_open, created_at, logo_url, plan_type")
     .eq("slug", slug)
     .maybeSingle()
 
@@ -110,6 +111,9 @@ export async function getTenantConfig(slug: string): Promise<TenantConfig | null
 
   if (typeof data.plan_type === "string") {
     data.plan_type = data.plan_type.toLowerCase()
+  }
+  if (typeof data.is_open !== "boolean") {
+    data.is_open = true
   }
 
   configCache.set(slug, { data, expiry: Date.now() + CACHE_TTL })
@@ -274,12 +278,15 @@ async function lookupTenantByEmail(email: string): Promise<TenantConfig | null> 
   if (!slug) return null
 
   const { data, error } = await (_masterClient.from("tenants"))
-    .select("id, slug, name, supabase_url, supabase_anon_key, is_active, created_at, logo_url")
+    .select("id, slug, name, supabase_url, supabase_anon_key, is_active, is_open, created_at, logo_url")
     .eq("slug", slug)
     .maybeSingle()
   if (error || !data) {
     if (error) logger.error("lookupTenantByEmail query failed", error)
     return null
+  }
+  if (typeof data.is_open !== "boolean") {
+    (data as Record<string, unknown>).is_open = true
   }
   configCache.set(data.slug, { data, expiry: Date.now() + CACHE_TTL })
   return data

@@ -23,25 +23,25 @@ vi.mock("@/lib/env", () => ({
 }))
 
 vi.mock("@supabase/supabase-js", () => ({
-  createClient: vi.fn(() => ({
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        gte: vi.fn(() => ({
-          limit: vi.fn(() => ({
-            returns: vi.fn().mockResolvedValue({ data: [], error: null }),
-          })),
-        })),
-        order: vi.fn(() => ({
-          limit: vi.fn(() => ({
-            returns: vi.fn().mockResolvedValue({ data: [], error: null }),
-          })),
-        })),
-        eq: vi.fn(() => ({
-          single: vi.fn().mockResolvedValue({ data: null, error: null }),
+  createClient: vi.fn(() => {
+    const returnsFn = vi.fn().mockResolvedValue({ data: [], error: null })
+    const limitFn = vi.fn(() => ({ returns: returnsFn }))
+    const gteFn = vi.fn(() => ({ limit: limitFn }))
+    const orderFn = vi.fn(() => ({ limit: limitFn }))
+    const eqFn = vi.fn(() => ({ single: vi.fn().mockResolvedValue({ data: null, error: null }) }))
+    const ltFn = vi.fn(() => ({ returns: returnsFn }))
+    return {
+      from: vi.fn(() => ({
+        select: vi.fn(() => ({
+          returns: returnsFn,
+          gte: gteFn,
+          order: orderFn,
+          eq: eqFn,
+          lt: ltFn,
         })),
       })),
-    })),
-  })),
+    }
+  }),
 }))
 
 import { GET } from "@/app/api/admin/stats/route"
@@ -163,5 +163,10 @@ describe("GET /api/admin/stats", () => {
 
     const res = await GET(makeOwnerRequest("mode=root"))
     expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json).toHaveProperty("platformEarnings")
+    expect(json).toHaveProperty("subscriptionRevenue")
+    expect(json).toHaveProperty("commissionRevenue")
+    expect(json).toHaveProperty("activeTenants")
   })
 })

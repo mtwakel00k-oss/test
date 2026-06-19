@@ -17,6 +17,7 @@ interface TenantRow {
   name: string
   plan_type: string | null
   is_active: boolean
+  is_open: boolean
   created_at: string
 }
 
@@ -29,7 +30,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await masterSb
       .from("tenants")
-      .select("id, slug, name, plan_type, is_active, created_at")
+      .select("id, slug, name, plan_type, is_active, is_open, created_at")
       .order("name", { ascending: true })
 
     if (error) {
@@ -55,7 +56,7 @@ export async function PATCH(req: NextRequest) {
     if (isErrorResponse(session)) return session
 
     const body = await req.json()
-    const { slug, plan_type: planType, is_active } = body
+    const { slug, plan_type: planType, is_active, is_open } = body
 
     if (!slug || typeof slug !== "string") {
       return NextResponse.json({ error: "Missing or invalid slug" }, { status: 400 })
@@ -72,6 +73,10 @@ export async function PATCH(req: NextRequest) {
 
     if (typeof is_active === "boolean") {
       updates.is_active = is_active
+    }
+
+    if (typeof is_open === "boolean") {
+      updates.is_open = is_open
     }
 
     if (Object.keys(updates).length === 0) {
