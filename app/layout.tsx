@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { scopeFromPath, scopedCookieKey } from "@/lib/i18n-scope";
 import { OfflineDetector } from "@/components/offline-detector"
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
 const instrumentSerif = Instrument_Serif({
   subsets: ["latin"],
   weight: ["400"],
@@ -18,8 +18,47 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "Burger House - Order Your Favorites",
-  description: "Order your favorite meals from Burger House with fast delivery",
+  title: {
+    default: "RestoOS - Smart POS & Ordering System",
+    template: "%s | RestoOS"
+  },
+  description: "Multi-tenant restaurant management system with POS, kitchen display, delivery tracking, and customer ordering.",
+  keywords: ["restaurant", "pos", "ordering", "delivery", "kitchen", "management", "saas"],
+  authors: [{ name: "RestoOS" }],
+  creator: "RestoOS",
+  publisher: "RestoOS",
+  robots: "index, follow",
+  openGraph: {
+    type: "website",
+    locale: "ar",
+    url: "https://simploo.vercel.app",
+    siteName: "RestoOS",
+    title: "RestoOS - Smart Restaurant Management",
+    description: "Complete restaurant management platform with POS, kitchen display, delivery tracking, and customer ordering.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "RestoOS Dashboard"
+      }
+    ]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "RestoOS - Smart Restaurant Management",
+    description: "Complete restaurant management platform with POS, kitchen display, delivery tracking, and customer ordering.",
+    images: ["/og-image.png"]
+  },
+  verification: {
+    google: "google-site-verification-code"
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "black-translucent",
+    "theme-color": "#09090b"
+  }
 }
 
 async function getLang(): Promise<"ar" | "en" | "fr"> {
@@ -51,10 +90,34 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
       <html suppressHydrationWarning lang={lang} dir={dir} data-locale={lang} className={cn(htmlClass, geist.variable, instrumentSerif.variable)}>
       <head>
+        <link rel="preconnect" href="https://icefntwfwvtonkdyshde.supabase.co" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://zordvqqjnlmxgtbkrspp.supabase.co" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://nominatim.openstreetmap.org" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://*.supabase.co" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="theme-color" content="#09090b" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              name: "RestoOS",
+              applicationCategory: "BusinessApplication",
+              operatingSystem: "Cloud",
+              offers: {
+                "@type": "Offer",
+                price: "0",
+                priceCurrency: "USD",
+                availability: "https://schema.org/InStock"
+              },
+              description: "Multi-tenant restaurant management system with POS, kitchen display, delivery tracking, and customer ordering."
+            })
+          }}
+        />
       </head>
       <body className="antialiased bg-background text-foreground font-sans">
         <LangProvider lang={lang}>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState, useRef, useCallback, startTransition, Component, type ReactNode } from "react"
+import { useEffect, useMemo, useState, useRef, useCallback, useDeferredValue, startTransition, Component, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
 import { motion } from "framer-motion"
@@ -87,6 +87,8 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
   const [sauces, setSauces] = useState<Record<number, number | null>>({})
   const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [loading, setLoading] = useState(() => !(initialProducts && initialProducts.length > 0))
+  const [slug, setSlug] = useState(propSlug || "")
+  const [isOpen, setIsOpen] = useState(true)
   const { items, addItem, updateQuantity, itemCount, clear, total, removeProduct: _removeProduct } = useCart()
 
   const itemsRef = useRef(items)
@@ -95,6 +97,31 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
   useEffect(() => { itemsRef.current = items }, [items])
   useEffect(() => { removeProductRef.current = _removeProduct }, [_removeProduct])
 
+  // Read tenant config from DOM once on mount (avoids forced reflows during render)
+  useEffect(() => {
+    if (propSlug) {
+      setSlug(propSlug)
+      return
+    }
+    if (typeof window === "undefined") return
+    try {
+      const el = document.getElementById("tenant-config")
+      if (el?.textContent) {
+        const config = JSON.parse(el.textContent)
+        setSlug(config.slug || "")
+        setIsOpen(config.is_open !== false)
+        return
+      }
+    } catch {}
+    try {
+      const config = (window as unknown as Record<string, unknown>).__TENANT_CONFIG__ as { slug?: string; is_open?: boolean }
+      if (config) {
+        setSlug(config.slug || "")
+        setIsOpen(config.is_open !== false)
+      }
+    } catch {}
+  }, [propSlug])
+
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const debouncedAdd = useCallback((fn: () => void) => {
@@ -102,25 +129,21 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
     debounceRef.current = setTimeout(fn, 300)
   }, [])
 
-  const slug = useMemo(() => {
-    if (propSlug) return propSlug
-    if (typeof window === "undefined") return ""
-    const el = document.getElementById("tenant-config")
-    try { if (el?.textContent) return JSON.parse(el.textContent).slug || "" } catch {}
-    try { return ((window as unknown as Record<string, unknown>).__TENANT_CONFIG__ as { slug?: string })?.slug || "" } catch {}
-    return ""
-  }, [propSlug])
+  // Defer filtered computation to avoid blocking render
+  const filteredProducts = useDeferredValue(products)
 
-  const isOpen = useMemo(() => {
-    if (typeof window === "undefined") return true
-    try {
-      const el = document.getElementById("tenant-config")
-      if (el?.textContent) return JSON.parse(el.textContent).is_open !== false
-      return ((window as unknown as Record<string, unknown>).__TENANT_CONFIG__ as { is_open?: boolean })?.is_open !== false
-    } catch {
-      return true
-    }
-  }, [])
+  const filtered = useMemo(() => 
+    selectedCategory === "All"
+      ? filteredProducts
+      : filteredProducts.filter(p => p.category === selectedCategory)
+  , [filteredProducts, selectedCategory])
+
+  const cartQuantities = useMemo(() => 
+    items.reduce((acc, i) => {
+      acc[`${i.product.id}_${i.size}_${i.sauceId}`] = i.quantity
+      return acc
+    }, {} as Record<string, number>)
+  , [items])
 
   useEffect(() => {
     if (initialProducts && initialProducts.length > 0) {
@@ -180,15 +203,6 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
     }
   }, [products])
 
-  const filtered = selectedCategory === "All"
-    ? products
-    : products.filter(p => p.category === selectedCategory)
-
-  const cartQuantities = items.reduce((acc, i) => {
-    acc[`${i.product.id}_${i.size}_${i.sauceId}`] = i.quantity
-    return acc
-  }, {} as Record<string, number>)
-
   return (
     <ErrorBoundary>
       <div className="min-h-[100dvh] app-surface relative">
@@ -231,9 +245,6 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {loading ? (
               <>
-                <SkeletonCard />
-                <SkeletonCard />
-                <SkeletonCard />
                 <SkeletonCard />
                 <SkeletonCard />
                 <SkeletonCard />

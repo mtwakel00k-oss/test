@@ -100,6 +100,7 @@ Address all issues from the code audit report (`75/100`): secure `/api/run-sql`,
 4. **AGENTS.md rate-limit doc corrected** — Now accurately describes "Upstash Redis (primary) + Supabase `rate_limits` table (fallback)" instead of "in-memory sliding window".
 5. **Tenant migration SQL file** — `scripts/apply-tenant-migration.sql` contains the full combined SQL (v3–v11) ready to paste in Supabase Dashboard.
 6. **All 139 tests passing**, TypeScript compiles with zero errors.
+7. **`EarningsOverview` added to developer admin panel** — Now shows platform earnings in `[restaurant_slug]/admin/page.tsx` when logged in as `owner` role (conditionally rendered via `userRole` state). Pushed to main.
 
 ### To apply tenant migration
 Open `https://supabase.com/dashboard/project/zordvqqjnlmxgtbkrspp` → SQL Editor → paste contents of `scripts/apply-tenant-migration.sql` → Run.
