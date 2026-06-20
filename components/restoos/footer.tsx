@@ -1,6 +1,5 @@
-import { Logo } from './logo'
 import { Separator } from '@/components/ui/separator'
-import { Globe, Hash, Link2, MessageSquareText, Phone, Mail } from 'lucide-react'
+import { Phone, Mail } from 'lucide-react'
 
 const columns = [
   {
@@ -35,19 +34,32 @@ const columns = [
 export function Footer() {
   return (
     <footer className="border-t border-border/50 bg-card/50">
-      <div className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20">
+      <div className="mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-20">
         <div className="grid gap-12 md:grid-cols-5">
           <div className="md:col-span-2">
-            <Logo />
+            <a href="/" className="flex items-center gap-2.5">
+              <span className="grid size-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-md)]">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2" />
+                  <path d="M5 2v20" />
+                  <path d="M9 2v20" />
+                  <path d="M18 2a3 3 0 0 0-3 3v6h3" />
+                  <path d="M18 11v11" />
+                </svg>
+              </span>
+              <span className="font-display text-xl tracking-tight text-foreground">
+                Resto<span className="text-primary">OS</span>
+              </span>
+            </a>
             <p className="mt-5 max-w-xs leading-relaxed text-muted-foreground">
               نظام نقاط البيع الذكي والمتكامل لإدارة مطعمك من مكان واحد.
             </p>
             <div className="mt-8 flex gap-2">
               {[
-                { icon: MessageSquareText, label: 'فيسبوك' },
-                { icon: Hash, label: 'تويتر' },
-                { icon: Link2, label: 'لينكد إن' },
-                { icon: Globe, label: 'جيت هاب' },
+                { label: 'فيسبوك' },
+                { label: 'تويتر' },
+                { label: 'لينكد إن' },
+                { label: 'جيت هاب' },
               ].map((s, i) => (
                 <a
                   key={i}
@@ -56,7 +68,9 @@ export function Footer() {
                   className="grid size-10 place-items-center rounded-full border border-border/50 bg-background/60 text-muted-foreground transition-all duration-500 hover:border-primary/25 hover:bg-primary/8 hover:text-primary"
                   style={{ transitionTimingFunction: 'var(--ease-premium)' }}
                 >
-                  <s.icon size={16} strokeWidth={1.5} />
+                  <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+                  </svg>
                 </a>
               ))}
             </div>
@@ -98,7 +112,7 @@ export function Footer() {
 
         <Separator className="my-10 opacity-50" />
         <div className="text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} RestoOS — جميع الحقوق محفوظة
+          &copy; {new Date().getFullYear()} RestoOS &mdash; جميع الحقوق محفوظة
         </div>
       </div>
     </footer>

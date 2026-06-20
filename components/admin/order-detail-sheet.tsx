@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Printer, XCircle } from "lucide-react"
+import { Printer, XCircle, Search } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { printReceipt } from "@/lib/print-receipt"
@@ -200,7 +200,7 @@ function OrderDetailPanel({ orderId, onOrderUpdated }: { orderId: string | null;
       <div className="flex-1 overflow-y-auto p-8 space-y-8 bg-background/50 backdrop-blur-xl">
         {!orderId ? (
           <div className="flex flex-col items-center justify-center py-24 text-muted-foreground/30">
-            <span className="text-4xl mb-4">🔍</span>
+            <Search className="size-10 mb-4 opacity-30" />
             <p className="text-xs font-black uppercase tracking-widest">—</p>
           </div>
         ) : loading ? (
@@ -210,7 +210,7 @@ function OrderDetailPanel({ orderId, onOrderUpdated }: { orderId: string | null;
           </div>
         ) : !order ? (
           <div className="flex flex-col items-center justify-center py-24 text-muted-foreground/30">
-            <span className="text-4xl mb-4">❌</span>
+            <XCircle className="size-10 mb-4 opacity-30" />
             <p className="text-xs font-black uppercase tracking-widest">—</p>
           </div>
         ) : (

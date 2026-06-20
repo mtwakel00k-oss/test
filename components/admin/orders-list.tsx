@@ -58,30 +58,30 @@ const resolveOrderStatus = (status: string | null | undefined, paymentStatus: st
   const p = String(paymentStatus ?? "").toLowerCase()
 
   if (p === "paid" && ["delivered", "completed", "out_for_delivery"].includes(s)) {
-    return { label: `${t("order.status.completed")} · ${t("order.payment.paid")}`, color: "green", icon: "✓" }
+    return { label: `${t("order.status.completed")} · ${t("order.payment.paid")}`, color: "green", icon: "check" }
   }
   if (p === "refunded") {
-    return { label: t("order.payment.refunded"), color: "gray", icon: "↩" }
+    return { label: t("order.payment.refunded"), color: "gray", icon: "refresh" }
   }
   if (s === "cancelled") {
-    return { label: t("order.status.cancelled"), color: "red", icon: "✕" }
+    return { label: t("order.status.cancelled"), color: "red", icon: "x" }
   }
   if (s === "preparing") {
-    return { label: t("order.status.preparing"), color: "blue", icon: "⏳" }
+    return { label: t("order.status.preparing"), color: "blue", icon: "clock" }
   }
   if (s === "ready") {
-    return { label: t("order.status.ready"), color: "green", icon: "🛎️" }
+    return { label: t("order.status.ready"), color: "green", icon: "bell" }
   }
   if (s === "out_for_delivery") {
-    return { label: t("order.status.onTheWay"), color: "purple", icon: "🚗" }
+    return { label: t("order.status.onTheWay"), color: "purple", icon: "truck" }
   }
   if (s === "pending") {
-    return { label: t("order.status.pending"), color: "yellow", icon: "⏱" }
+    return { label: t("order.status.pending"), color: "yellow", icon: "hourglass" }
   }
   if (s === "completed" || s === "delivered") {
-    return { label: t("order.status.completed"), color: "green", icon: "✓" }
+    return { label: t("order.status.completed"), color: "green", icon: "check" }
   }
-  return { label: t("common.unknown"), color: "gray", icon: "?" }
+  return { label: t("common.unknown"), color: "gray", icon: "help" }
 }
 
 const COLUMNS = (t: (key: string) => string) => [
@@ -312,7 +312,7 @@ export function OrdersList({ onViewOrder }: OrdersListProps) {
                           {formatOrderId(order.order_number)}
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                          {isDineIn ? `🪑 ${t("pos.table")}` : `🛍️ ${t("order.type.takeaway")}`}
+                          {isDineIn ? t("pos.table") : t("order.type.takeaway")}
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap text-sm text-muted-foreground">
                           {isDineIn ? (order.table_number ?? "—") : "—"}

@@ -5,6 +5,7 @@ import type { PosOrder } from "@/lib/pos-types"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/lib/use-translation"
 import { toast } from "@/hooks/use-toast"
+import { Truck, AlertTriangle, CheckCircle } from "lucide-react"
 
 interface CheckoutPanelProps {
   order: PosOrder
@@ -95,7 +96,7 @@ export function CheckoutPanel({ order, onClose, onComplete, hasDriverAssigned = 
         <div className="flex flex-col flex-1 gap-8 p-8 overflow-y-auto">
           <div className="text-center space-y-4">
             <div className="size-20 mx-auto rounded-[2rem] bg-primary/10 flex items-center justify-center shadow-inner border border-primary/10">
-              <span className="text-4xl">🛵</span>
+              <Truck className="size-10 text-primary/60" />
             </div>
             <div className="space-y-1">
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50">{t("pos.cashOnDelivery")}</p>
@@ -143,7 +144,7 @@ export function CheckoutPanel({ order, onClose, onComplete, hasDriverAssigned = 
 
           {drivers.length === 0 && !hasDriverAssigned && (
             <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/30 text-amber-700 dark:text-amber-300 text-sm w-full animate-fade-in">
-              <span className="text-lg shrink-0">⚠️</span>
+              <AlertTriangle className="size-5 shrink-0" />
               <span className="leading-relaxed">لا يوجد سائقون متاحون — أضف من الإعدادات</span>
             </div>
           )}
@@ -161,7 +162,7 @@ export function CheckoutPanel({ order, onClose, onComplete, hasDriverAssigned = 
               </span>
             ) : (
               <span className="flex items-center justify-center gap-2">
-                <span>✅</span>
+                <CheckCircle className="size-4" />
                 {t("pos.confirmDelivery")}
               </span>
             )}

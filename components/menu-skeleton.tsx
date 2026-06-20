@@ -25,7 +25,6 @@ export function MenuSkeleton() {
       <div className="relative mx-auto max-w-5xl px-4 pb-32 pt-8 md:px-6">
         <div className="mb-10">
           <div className="animate-hero-enter">
-            <span className="section-eyebrow mb-4">Menu</span>
             <h1 className="font-display text-[clamp(2rem,4vw,2.75rem)] font-normal tracking-tight text-foreground">القائمة</h1>
             <p className="mt-3 text-sm text-muted-foreground max-w-md">اختر وجبتك المفضلة من قائمتنا المتنوعة</p>
           </div>

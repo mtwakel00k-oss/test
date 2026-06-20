@@ -60,8 +60,8 @@ export const MealCard = memo(function MealCard({
 
           {product.est_speciale && (
             <div className="absolute top-3 start-3">
-              <span className="section-eyebrow text-primary-foreground bg-primary/90 border-primary/20">
-                <span className="size-1.5 rounded-full bg-white" />
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/90 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground shadow-[var(--shadow-md)]">
+                <span className="size-1.5 rounded-full bg-white/70" />
                 {t("menu.featured")}
               </span>
             </div>

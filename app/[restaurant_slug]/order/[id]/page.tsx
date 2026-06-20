@@ -13,7 +13,7 @@ import type { Order, OrderItem } from "@/lib/types"
 import { OrderStatusTracker } from "@/components/order-status-tracker"
 import { OrderDetails } from "@/components/order-details"
 const RatingWidget = dynamic(() => import("@/components/RatingWidget"), { ssr: false })
-import { CheckCircle, Clock, ChefHat, Bike, Sparkles, Package } from "lucide-react"
+import { CheckCircle, Clock, ChefHat, Bike, Sparkles, Package, MapPin } from "lucide-react"
 
 const LiveDriverMap = dynamic(() => import("@/components/live-driver-map"), { ssr: false })
 
@@ -245,7 +245,12 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="text-center max-w-sm">
           <div className="flex items-center justify-center w-20 h-20 mx-auto mb-5 rounded-2xl bg-muted/40 border border-border/30">
-            <span className="text-4xl">🍔</span>
+            <svg className="size-10 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M8 12c0 4 4 4 8 0" />
+              <line x1="9" y1="9" x2="9.01" y2="9" />
+              <line x1="15" y1="9" x2="15.01" y2="9" />
+            </svg>
           </div>
           <h1 className="text-xl font-bold text-foreground mb-1.5">{t("order.notFound")}</h1>
           {errorMsg && <p className="text-sm text-muted-foreground mb-1">{errorMsg}</p>}
@@ -302,9 +307,14 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
           <div className="rounded-2xl border border-border/40 bg-card/50 p-6 text-center">
             <div className="flex items-center justify-center gap-4 mb-2">
               <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-violet-500/10 border border-violet-500/20">
-                <span className="text-2xl">🛵</span>
+                <svg className="size-7 text-violet-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="1" y="3" width="15" height="13" />
+                  <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+                  <circle cx="5.5" cy="18.5" r="2.5" />
+                  <circle cx="18.5" cy="18.5" r="2.5" />
+                </svg>
               </div>
-              <div className="text-left">
+              <div className="rtl:text-right ltr:text-left">
                 <p className="text-base font-semibold text-foreground">{t("track.outForDelivery")}</p>
                 <p className="text-xs text-muted-foreground">{t("track.outForDeliverySub")}</p>
               </div>
@@ -317,9 +327,14 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
           <div className="rounded-2xl border border-border/40 bg-card/50 p-6 text-center">
             <div className="flex items-center justify-center gap-4 mb-2">
               <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-violet-500/10 border border-violet-500/20">
-                <span className="text-2xl">🛵</span>
+                <svg className="size-7 text-violet-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="1" y="3" width="15" height="13" />
+                  <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+                  <circle cx="5.5" cy="18.5" r="2.5" />
+                  <circle cx="18.5" cy="18.5" r="2.5" />
+                </svg>
               </div>
-              <div className="text-left">
+              <div className="rtl:text-right ltr:text-left">
                 <p className="text-base font-semibold text-foreground">{t("track.outForDelivery")}</p>
                 <p className="text-xs text-muted-foreground">{t("track.outForDeliverySub")}</p>
               </div>
@@ -341,7 +356,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
 
         {isDelivery && order.delivery_address && (
           <div className="rounded-2xl border border-border/30 bg-card/50 px-5 py-4 flex items-start gap-3 shadow-sm">
-            <span className="text-xl leading-none shrink-0">📍</span>
+            <MapPin className="size-5 text-primary shrink-0 mt-0.5" />
             <div>
               <p className="text-xs font-semibold text-muted-foreground mb-0.5">{t("track.deliveryAddress")}</p>
               <p className="text-sm text-foreground/80">{order.delivery_address}</p>

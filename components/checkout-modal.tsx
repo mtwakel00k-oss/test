@@ -306,14 +306,14 @@ export function CheckoutModal({
                       : "text-muted-foreground/50 hover:text-foreground"
                 }`}
               >
-                {type === "delivery" ? `🛵 ${label}` : label}
+                {label}
               </button>
             )
           })}
         </div>
 
         <div className="mb-8 rounded-[1.5rem] bg-muted/30 border border-border/30 p-6">
-          <p className="section-eyebrow mb-5">{t("menu.orderSummary")}</p>
+          <p className="mb-5 text-[10px] font-bold uppercase tracking-widest text-primary">{t("menu.orderSummary")}</p>
           <div className="max-h-40 space-y-3 overflow-y-auto scrollbar-hide" role="list">
             {items.map(i => {
               const k = `${i.product.id}_${i.size}_${i.sauceId}`

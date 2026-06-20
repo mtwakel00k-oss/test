@@ -37,8 +37,13 @@ function EtaBanner({
   return (
     <div className="flex items-center justify-between p-6 bg-emerald-500 text-white">
       <div className="flex items-center gap-4">
-        <div className="size-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl animate-bounce">
-          🛵
+        <div className="size-12 rounded-2xl bg-white/20 flex items-center justify-center animate-bounce">
+          <svg className="size-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 8h14l1.5 4H4L5 8z" />
+            <circle cx="7" cy="17" r="2" strokeWidth={1.5} />
+            <circle cx="17" cy="17" r="2" strokeWidth={1.5} />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 12h16" />
+          </svg>
         </div>
         <div>
           <p className="text-sm font-black uppercase tracking-widest leading-none mb-1">السائق في الطريق</p>
@@ -115,7 +120,7 @@ export default function LiveDriverMap(props: LiveMapProps) {
       })
 
       const greenIcon = L.divIcon({
-        html: `<div style="font-size:24px;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.3))">🛵</div>`,
+        html: `<div style="width:28px;height:28px;background:#22c55e;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:white;">D</div>`,
         className: "",
         iconSize: [28, 28],
         iconAnchor: [14, 14],
@@ -164,7 +169,7 @@ export default function LiveDriverMap(props: LiveMapProps) {
         const L = leafletRef.current
         if (L && mapInstanceRef.current) {
           const icon = L.divIcon({
-            html: `<div style="font-size:24px;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.3))">🛵</div>`,
+            html: `<div style="width:28px;height:28px;background:#22c55e;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:white;">D</div>`,
             className: "",
             iconSize: [28, 28],
             iconAnchor: [14, 14],

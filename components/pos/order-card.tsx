@@ -1,9 +1,10 @@
 "use client"
 
-import { useEffect, useState, memo } from "react"
+import { useEffect, useState, memo, type ReactNode } from "react"
 import type { PosOrder, PosOrderStatus } from "@/lib/pos-types"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/lib/use-translation"
+import { Bike, ShoppingBag, UtensilsCrossed, AlertTriangle, Truck } from "lucide-react"
 
 interface DriverCard {
   id: string
@@ -54,11 +55,14 @@ const OrderCardInner = memo(function OrderCardInner({
   const s = STATUS_STYLES[order.status]
   const cur = lang === "ar" ? "د.ج" : "DA"
 
-  const orderTypeInfo = {
-    delivery: { icon: "🛵", label: t("pos.delivery"), badge: "bg-violet-500/10 text-violet-600 dark:text-violet-300 border-violet-500/20" },
-    takeaway: { icon: "🥡", label: t("pos.takeaway"), badge: "bg-orange-500/10 text-orange-600 dark:text-orange-300 border-orange-500/20" },
-    dine_in: { icon: order.tableNumber ? "🪑" : "🍽️", label: order.tableNumber ? `${t("pos.table")} ${order.tableNumber}` : t("pos.dineIn"), badge: "bg-blue-500/10 text-blue-600 dark:text-blue-300 border-blue-500/20" },
-  }[order.orderType] || { icon: "🍽️", label: t("pos.dineIn"), badge: "bg-blue-500/10 text-blue-600 dark:text-blue-300 border-blue-500/20" }
+  const orderTypeInfo = (() => {
+    const base = {
+      delivery: { icon: <Truck className="size-5" />, label: t("pos.delivery"), badge: "bg-violet-500/10 text-violet-600 dark:text-violet-300 border-violet-500/20" },
+      takeaway: { icon: <ShoppingBag className="size-5" />, label: t("pos.takeaway"), badge: "bg-orange-500/10 text-orange-600 dark:text-orange-300 border-orange-500/20" },
+      dine_in: { icon: <UtensilsCrossed className="size-5" />, label: order.tableNumber ? `${t("pos.table")} ${order.tableNumber}` : t("pos.dineIn"), badge: "bg-blue-500/10 text-blue-600 dark:text-blue-300 border-blue-500/20" },
+    }
+    return base[order.orderType as keyof typeof base] || base.dine_in
+  })()
 
   useEffect(() => {
     const interval = setInterval(() => setTimeAgo(formatTimeAgo(order.createdAt, t)), 30000)
@@ -143,12 +147,12 @@ const OrderCardInner = memo(function OrderCardInner({
             <p className="text-[11px] font-semibold text-muted-foreground/70 ms-1">اختر سائقاً للتوصيل:</p>
             {drivers.filter(d => !d.isBusy).length === 0 ? (
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-[11px]">
-                <span>⚠️</span>
+                <AlertTriangle className="size-3.5 shrink-0" />
                 <span>كل السائقين مشغولون حالياً</span>
               </div>
             ) : drivers.length === 0 ? (
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/30 text-muted-foreground text-[11px]">
-                <span>🛵</span>
+                <Truck className="size-3.5 shrink-0" />
                 <span>لا يوجد سائقون — أضف من الإعدادات</span>
               </div>
             ) : (

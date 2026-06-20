@@ -56,7 +56,7 @@ export function OrderTypeSelector({
                 if (isLocked) return
                 handleChange(opt.value)
               }}
-              title={isLocked ? "تتوفر ميزة التوصيل في الباقة الاحترافية (Pro) 👑" : undefined}
+              title={isLocked ? "تتوفر ميزة التوصيل في الباقة الاحترافية (Pro)" : undefined}
               className={`flex items-center justify-center gap-1.5 flex-1 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${
                 isActive
                   ? "bg-primary text-primary-foreground shadow-sm"
@@ -117,7 +117,7 @@ export function OrderTypeSelector({
               ) : (
                 <MapPin className="h-4 w-4" />
               )}
-              {geoStatus === "idle" && "📍 حدد موقعي تلقائياً"}
+              {geoStatus === "idle" && "حدد موقعي تلقائياً"}
               {geoStatus === "loading" && "جاري تحديد الموقع..."}
               {geoStatus === "success" && "✓ تم تحديد الموقع"}
               {geoStatus === "error" && "فشل تحديد الموقع، اضغط لإعادة المحاولة"}
@@ -128,7 +128,7 @@ export function OrderTypeSelector({
 
       {value === "delivery" && !deliveryAllowed && (
         <div className="text-xs text-center text-muted-foreground bg-amber-50 dark:bg-amber-900/20 rounded-lg px-3 py-2">
-          تتوفر ميزة التوصيل في الباقة الاحترافية (Pro) 👑
+          تتوفر ميزة التوصيل في الباقة الاحترافية (Pro)
         </div>
       )}
     </div>

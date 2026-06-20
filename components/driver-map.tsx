@@ -39,14 +39,14 @@ export default function DriverMap({ driverLat, driverLng, customerLat, customerL
 
       const driverIcon = L.divIcon({
         className: "",
-        html: `<div style="width:28px;height:28px;background:#22c55e;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:14px;">🛵</div>`,
+        html: `<div style="width:28px;height:28px;background:#22c55e;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:white;">D</div>`,
         iconSize: [28, 28],
         iconAnchor: [14, 14],
       })
 
       const customerIcon = L.divIcon({
         className: "",
-        html: `<div style="width:28px;height:28px;background:#ef4444;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:14px;">📍</div>`,
+        html: `<div style="width:28px;height:28px;background:#ef4444;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:white;">C</div>`,
         iconSize: [28, 28],
         iconAnchor: [14, 14],
       })

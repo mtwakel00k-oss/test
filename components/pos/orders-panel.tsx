@@ -10,6 +10,7 @@ import { playNewOrderSound, playSuccessSound, playErrorSound, playPrintSound } f
 import { printReceipt } from "@/lib/print-receipt"
 import type { PosOrder, PosOrderStatus, Driver } from "@/lib/pos-types"
 import { cn } from "@/lib/utils"
+import { ClipboardList, AlertTriangle, Truck } from "lucide-react"
 import { DB_STATUS_TO_POS, POS_STATUS_TO_DB } from "@/lib/constants"
 import { toast } from "@/hooks/use-toast"
 import { OrderTabs } from "@/components/pos/order-tabs"
@@ -255,7 +256,7 @@ export function OrdersPanel({ onNewOrder }: { onNewOrder: () => void }) {
                 <svg className="w-20 h-20 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={0.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
-                <span className="absolute -bottom-1 -end-1 text-lg">📋</span>
+                <ClipboardList className="absolute -bottom-1 -end-1 size-5 text-muted-foreground/30" />
               </div>
               <p className="text-lg font-medium text-foreground/60">{activeTab === "active" ? t("pos.noActiveOrders") : t("pos.noCompletedOrders")}</p>
               <p className="text-sm mt-1 text-muted-foreground/70">{activeTab === "active" ? t("pos.newOrdersHere") : t("pos.completedOrdersHere")}</p>
@@ -412,7 +413,7 @@ export function OrdersPanel({ onNewOrder }: { onNewOrder: () => void }) {
                       })() : allDrivers.length > 0 ? (
                         <div className="grid grid-cols-1 gap-1.5 max-h-44 overflow-y-auto pe-1">
                           {allDrivers.filter(d => !d.isBusy).length === 0 ? (
-                            <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs"><span>⚠️</span><span>كل السائقين مشغولون حالياً</span></div>
+                            <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs"><AlertTriangle className="size-3.5 shrink-0" /><span>كل السائقين مشغولون حالياً</span></div>
                           ) : (
                             allDrivers.filter(d => !d.isBusy).map(driver => (
                               <button key={driver.id} onClick={() => assignDriver(selectedOrder.id, driver)} disabled={assigningDriver}
@@ -425,7 +426,7 @@ export function OrdersPanel({ onNewOrder }: { onNewOrder: () => void }) {
                           )}
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-muted/30 text-muted-foreground text-xs"><span>🛵</span><span>لا يوجد سائقون — أضف من الإعدادات</span></div>
+                        <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-muted/30 text-muted-foreground text-xs"><Truck className="size-3.5 shrink-0" /><span>لا يوجد سائقون — أضف من الإعدادات</span></div>
                       )}
                     </div>
                   )}

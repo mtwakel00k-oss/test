@@ -28,17 +28,17 @@ export function CtaBanner() {
   }
 
   return (
-    <section id="cta" className="px-4 py-32 md:px-6 md:py-40">
+    <section id="cta" className="px-4 py-32 md:px-8 md:py-44">
       <motion.div
         initial={{ opacity: 0, y: 32 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        transition={{ duration: 0.85, ease: [0.32, 0.72, 0, 1] }}
-        className="relative mx-auto max-w-5xl overflow-hidden rounded-[2.5rem] bg-[oklch(0.22_0.04_55)] px-6 py-20 text-center md:px-12 md:py-24"
+        transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
+        className="relative mx-auto max-w-5xl overflow-hidden rounded-[2.5rem] bg-zinc-900 px-8 py-20 text-center md:px-16 md:py-28"
       >
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -top-24 start-1/4 h-64 w-64 rounded-full bg-primary/20 blur-[80px]" />
-          <div className="absolute -bottom-16 end-1/4 h-48 w-48 rounded-full bg-accent/15 blur-[60px]" />
+          <div className="absolute -top-24 right-1/4 h-64 w-64 rounded-full bg-primary/25 blur-[100px]" />
+          <div className="absolute -bottom-16 left-1/4 h-48 w-48 rounded-full bg-accent/15 blur-[80px]" />
         </div>
 
         <div className="relative">
@@ -54,7 +54,7 @@ export function CtaBanner() {
               تم الاستلام! سنتواصل معك قريباً
             </motion.p>
           ) : (
-            <form onSubmit={handleSubmit} className="mx-auto mt-12 flex max-w-xl flex-col gap-3 sm:flex-row sm:items-center">
+            <form onSubmit={handleSubmit} className="mx-auto mt-12 flex max-w-2xl flex-col gap-3 sm:flex-row">
               <input
                 type="text"
                 placeholder="الاسم (اختياري)"
@@ -73,13 +73,10 @@ export function CtaBanner() {
               <button
                 type="submit"
                 disabled={status === 'sending'}
-                className="group inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-7 text-sm font-semibold text-[oklch(0.22_0.04_55)] transition-all duration-700 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70"
-                style={{ transitionTimingFunction: 'var(--ease-premium)' }}
+                className="group inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-7 text-sm font-semibold text-zinc-900 transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70"
               >
                 {status === 'sending' ? '...' : 'تواصل معنا'}
-                <span className="grid size-7 place-items-center rounded-full bg-black/5 transition-transform duration-700 group-hover:translate-x-0.5">
-                  <svg className="size-3.5 rtl:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                </span>
+                <svg className="size-4 rtl:rotate-180 transition-transform duration-500 group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
               </button>
             </form>
           )}

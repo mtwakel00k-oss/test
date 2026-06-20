@@ -15,7 +15,12 @@ export default function NotFoundPage() {
         <LanguageSwitcher />
       </div>
       <div className="w-full max-w-sm bg-card border border-border rounded-2xl p-8 shadow-lg text-center">
-        <div className="text-5xl mb-4">🔍</div>
+        <div className="mb-4 grid size-16 place-items-center rounded-2xl bg-primary/10 mx-auto">
+        <svg className="size-8 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.35-4.35" />
+        </svg>
+      </div>
         <h1 className="text-xl font-bold text-foreground mb-2">{t("notFound.title")}</h1>
         <p className="text-sm text-muted-foreground mb-6">{t("notFound.description")}</p>
         <Link href="/login"

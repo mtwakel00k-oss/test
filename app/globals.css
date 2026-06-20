@@ -521,21 +521,6 @@ html[data-locale="fr"] body {
   transform: translate(2px, -1px) scale(1.05);
 }
 
-.section-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.375rem 0.875rem;
-  border-radius: 9999px;
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--primary);
-  background: oklch(0.4 0.135 42 / 0.08);
-  border: 1px solid oklch(0.4 0.135 42 / 0.15);
-}
-
 .app-surface {
   background:
     radial-gradient(ellipse 60% 40% at 100% 0%, oklch(0.4 0.135 42 / 0.06) 0%, transparent 50%),

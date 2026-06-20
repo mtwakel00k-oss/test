@@ -514,7 +514,7 @@ export default function POSPage() {
                                 {p.image_url ? (
                                   <Image src={p.image_url} alt="" width={28} height={28} className="rounded object-cover flex-shrink-0" />
                                 ) : (
-                                  <span className="h-7 w-7 rounded flex items-center justify-center flex-shrink-0 text-base">🍕</span>
+                                  <span className="h-7 w-7 rounded flex items-center justify-center flex-shrink-0 bg-primary/10 text-primary"><svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" /></svg></span>
                                 )}
                                 <span className="text-sm text-foreground truncate">{p.name}</span>
                               </div>

@@ -58,13 +58,13 @@ export function Stats() {
 
   return (
     <section className="relative border-y border-border/50 py-24 md:py-32">
-      <div className="absolute inset-0 bg-muted/40" />
+      <div className="absolute inset-0 bg-muted/30" />
       <motion.div
         ref={ref}
         initial={{ opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1] }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         className="relative mx-auto grid max-w-6xl grid-cols-2 gap-y-16 px-4 md:grid-cols-4 md:gap-y-0 md:divide-x md:divide-x-reverse md:divide-border/40 md:px-6"
       >
         {stats.map((s) => (

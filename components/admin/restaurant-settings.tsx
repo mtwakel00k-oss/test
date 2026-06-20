@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import { ShoppingBag, Camera, Pencil, Check, X, QrCode } from "lucide-react";
+import { ShoppingBag, Camera, Pencil, Check, X, QrCode, Truck, Lightbulb, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -301,7 +301,7 @@ export function RestaurantSettings() {
     <Card className="border-border/50" dir={dir}>
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2 text-base">
-          🛵 {T(lang, "سائقو التوصيل", "Delivery Drivers", "Chauffeurs")}
+          <Truck className="size-4" /> {T(lang, "سائقو التوصيل", "Delivery Drivers", "Chauffeurs")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -357,7 +357,7 @@ export function RestaurantSettings() {
         )}
 
         <p className="text-xs text-muted-foreground">
-          💡 {T(lang,
+          <Lightbulb className="size-3.5 shrink-0 mt-0.5" /> {T(lang,
             "كل سائق عنده رابط سري خاص به يُرسل تلقائياً عبر واتساب",
             "Each driver has a secret link sent automatically via WhatsApp",
             "Chaque chauffeur a un lien secret envoyé automatiquement via WhatsApp"
@@ -417,7 +417,7 @@ export function RestaurantSettings() {
     <Card className="border-border/50" dir={dir}>
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2 text-base">
-          👤 {T(lang, "إدارة الكاشير", "Staff Management", "Gestion du personnel")}
+          <Users className="size-4" /> {T(lang, "إدارة الكاشير", "Staff Management", "Gestion du personnel")}
         </CardTitle>
         <p className="text-sm text-muted-foreground mt-1">
           {T(lang, "إضافة أو حذف حسابات الكاشير للمطعم", "Add or remove cashier accounts", "Ajouter ou supprimer des caissiers")}

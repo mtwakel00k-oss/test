@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef, startTransition } from "react"
 import { useParams } from "next/navigation"
 import { t, type Lang } from "@/lib/translations"
+import { Truck, CheckCircle, MapPin, Navigation, Phone, User } from "lucide-react"
 
 const LANG: Lang = "ar"
 
@@ -151,7 +152,7 @@ export default function DriverPage() {
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center w-16 h-16 mx-auto rounded-2xl bg-white/5 border border-white/10">
-            <span className="text-3xl">🛵</span>
+            <Truck className="size-7 text-amber-400" />
           </div>
           <p className="text-sm text-white/50">{t("driver.loading", LANG)}</p>
         </div>
@@ -185,7 +186,7 @@ export default function DriverPage() {
         <div className="flex items-center justify-between max-w-lg px-4 py-3 mx-auto">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-amber-500/20">
-              <span className="text-lg">🛵</span>
+              <Truck className="size-5 text-white" />
             </div>
             <div>
               <p className="text-[10px] text-white/40 uppercase tracking-wider">{data.restaurant}</p>
@@ -220,7 +221,7 @@ export default function DriverPage() {
         {data.orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
             <div className="flex items-center justify-center w-20 h-20 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
-              <span className="text-4xl">✅</span>
+              <CheckCircle className="size-10 text-emerald-400" />
             </div>
             <div>
               <p className="text-xl font-black text-white">{t("driver.noOrders", LANG)}</p>
@@ -241,8 +242,8 @@ export default function DriverPage() {
                 {/* Customer header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 bg-gradient-to-r from-white/[0.03] to-transparent">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500/20 border border-amber-500/30 text-lg">
-                      👤
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500/20 border border-amber-500/30">
+                      <User className="size-5 text-amber-400" />
                     </div>
                     <div>
                       <span className="text-lg font-black text-white">{order.customer_name}</span>
@@ -262,7 +263,7 @@ export default function DriverPage() {
                 <div className="p-5 space-y-4">
                   {order.delivery_address && (
                     <div className="flex items-start gap-3 p-4 text-sm rounded-xl bg-white/[0.03] border border-white/5">
-                      <span className="text-xl leading-none shrink-0">📍</span>
+                      <MapPin className="size-5 shrink-0 mt-0.5 text-sky-400" />
                       <span className="text-white/80 leading-relaxed">{order.delivery_address}</span>
                     </div>
                   )}
@@ -271,7 +272,7 @@ export default function DriverPage() {
                     {mapsUrl ? (
                       <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
                         className="flex items-center justify-center gap-2 py-4 text-sm font-bold transition-all rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-400 hover:bg-sky-500/20 active:scale-[0.97]">
-                        🗺️ {t("driver.openMap", LANG)}
+                        <Navigation className="size-4" /> {t("driver.openMap", LANG)}
                       </a>
                     ) : (
                       <div className="flex items-center justify-center py-4 text-sm rounded-xl bg-white/[0.03] border border-white/10 text-white/30">
@@ -302,7 +303,7 @@ export default function DriverPage() {
                       </>
                     ) : (
                       <>
-                        <span className="text-xl">✅</span>
+                        <CheckCircle className="size-5" />
                         {t("driver.delivered", LANG)}
                       </>
                     )}
@@ -319,7 +320,7 @@ export default function DriverPage() {
           <div className="w-full max-w-sm bg-zinc-900 border border-white/10 rounded-2xl p-6 shadow-2xl animate-scale-in" onClick={e => e.stopPropagation()}>
             <div className="text-center space-y-3">
               <div className="flex items-center justify-center w-16 h-16 mx-auto rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                <span className="text-3xl">✅</span>
+                <CheckCircle className="size-8 text-emerald-400" />
               </div>
               <div>
                 <p className="text-lg font-bold text-white">{t("driver.confirmTitle", LANG)}</p>

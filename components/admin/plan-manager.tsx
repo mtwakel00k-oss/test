@@ -148,7 +148,7 @@ export function PlanManager() {
         toast({ title: data.error || "Failed to delete", variant: "destructive" })
       } else {
         setTenants((prev) => prev.filter((t) => t.slug !== slug))
-        toast({ title: `🗑️ Deleted ${slug}` })
+        toast({ title: `Deleted ${slug}` })
       }
     } catch (e) {
       logger.error("Failed to delete tenant", e)
@@ -175,7 +175,7 @@ export function PlanManager() {
         setTenants((prev) =>
           prev.map((t) => (t.slug === slug ? { ...t, plan_type: planType } : t))
         )
-        toast({ title: `✅ Plan changed to ${planType}` })
+        toast({ title: `Plan changed to ${planType}` })
         logger.info("Plan updated", { slug, planType })
       }
     } catch (e) {
@@ -203,7 +203,7 @@ export function PlanManager() {
         setAddError(data.error || "Failed to create restaurant")
         return
       }
-      setAddSuccess(`✅ ${data.tenant.name} – admin: ${data.adminEmail} / ${data.adminPassword}`)
+      setAddSuccess(`${data.tenant.name} – admin: ${data.adminEmail} / ${data.adminPassword}`)
       setAddName("")
       setAddSlug("")
       setAddPlan("starter")

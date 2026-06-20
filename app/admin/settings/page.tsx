@@ -36,10 +36,10 @@ export default function SettingsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ maintenance_mode: maintenanceMode, master_webhook_url: webhookUrl }),
       })
-      if (res.ok) setMessage("✅ Settings saved")
-      else setMessage("❌ Failed to save settings")
+      if (res.ok) setMessage("Settings saved")
+      else setMessage("Failed to save settings")
     } catch {
-      setMessage("❌ Network error")
+      setMessage("Network error")
     } finally {
       setSaving(false)
     }

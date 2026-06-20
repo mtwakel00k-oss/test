@@ -18,7 +18,7 @@ export function ReceiptPrint({ order, paid, change }: ReceiptPrintProps) {
   const date = order.createdAt.toLocaleString(lang === "fr" ? "fr-FR" : "en-US")
   const typeLabel =
     order.orderType === "takeaway" ? t("pos.takeaway") :
-    order.orderType === "delivery" ? "🛵 LIVRAISON / توصيل" :
+    order.orderType === "delivery" ? "LIVRAISON / توصيل" :
     `${t("pos.table")} ${order.tableNumber || "—"}`
 
   return (

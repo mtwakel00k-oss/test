@@ -40,9 +40,15 @@ class ErrorBoundary extends Component<
       return this.props.fallback || (
         <div className="min-h-screen bg-background flex items-center justify-center p-4">
           <div className="text-center max-w-sm">
-            <div className="flex items-center justify-center w-20 h-20 mx-auto mb-5 rounded-2xl bg-muted/40 border border-border/30">
-              <span className="text-4xl">🍔</span>
-            </div>
+              <div className="flex items-center justify-center w-20 h-20 mx-auto mb-5 rounded-2xl bg-muted/40 border border-border/30">
+                <svg className="size-10 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2" />
+                  <path d="M5 2v20" />
+                  <path d="M9 2v20" />
+                  <path d="M18 2a3 3 0 0 0-3 3v6h3" />
+                  <path d="M18 11v11" />
+                </svg>
+              </div>
             <h2 className="text-lg font-bold text-foreground mb-1.5">Something went wrong</h2>
             <p className="text-sm text-muted-foreground">Refresh the page to try again.</p>
           </div>
@@ -255,12 +261,9 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
         <AppHeader cartItemCount={itemCount} onCart={() => setCheckoutOpen(true)} />
 
         <main className="relative mx-auto max-w-5xl px-4 pb-32 pt-8 md:px-6" aria-label="Menu content">
-          <div className="mb-10">
-            <div className="animate-hero-enter">
-              <span className="section-eyebrow mb-4">Menu</span>
-              <h1 className="font-display text-[clamp(2rem,4vw,2.75rem)] font-normal tracking-tight text-foreground">القائمة</h1>
-              <p className="mt-3 text-sm text-muted-foreground max-w-md">اختر وجبتك المفضلة من قائمتنا المتنوعة</p>
-            </div>
+          <div className="mb-8">
+            <h1 className="font-display text-[clamp(2rem,4vw,2.75rem)] font-normal tracking-tight text-foreground">القائمة</h1>
+            <p className="mt-2 text-sm text-muted-foreground max-w-md">اختر وجبتك المفضلة من قائمتنا المتنوعة</p>
           </div>
 
           <div className="mb-8">

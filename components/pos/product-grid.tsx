@@ -63,7 +63,10 @@ function ProductCard({ product, curSize, curSauce, count, price, sizes, showSauc
             loading="lazy"
             className="w-full h-full object-cover transition duration-700 group-hover:scale-110" />
         ) : (
-          <span className="text-4xl opacity-20 grayscale group-hover:grayscale-0 transition-all duration-500">🍕</span>
+          <svg className="size-10 opacity-20 grayscale group-hover:grayscale-0 transition-all duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2} d="M12 2C6.48 2 2 6.48 2 12h20C22 6.48 17.52 2 12 2z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2} d="M8 8h.01M12 12h.01M16 10h.01" />
+          </svg>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>

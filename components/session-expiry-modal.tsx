@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react"
 import { logger } from "@/lib/logger"
+import { Clock } from "lucide-react"
 
 export function SessionExpiryModal() {
   const [show, setShow] = useState(false)
@@ -48,7 +49,7 @@ export function SessionExpiryModal() {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 text-center shadow-2xl">
-        <div className="text-4xl mb-4">⏰</div>
+        <Clock className="size-10 mx-auto mb-4 text-muted-foreground/40" />
         <h2 className="text-lg font-bold text-foreground mb-2">Your session is about to expire</h2>
         <p className="text-sm text-muted-foreground mb-6">Click below to extend your session for another 7 days.</p>
         <button

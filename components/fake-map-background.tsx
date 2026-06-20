@@ -18,14 +18,19 @@ export function FakeMapBackground({ orderId: _orderId, status: _status }: { orde
       </div>
 
       <div
-        className="absolute text-4xl z-10"
+        className="absolute z-10"
         style={{
           top: "30%", right: "28%",
           animation: "deliveryBounce 2s ease-in-out infinite",
           filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.15))",
         }}
       >
-        🛵
+        <svg className="size-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 8h14l1.5 4H4L5 8z" />
+          <circle cx="7" cy="17" r="2" strokeWidth={1.5} />
+          <circle cx="17" cy="17" r="2" strokeWidth={1.5} />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 12h16" />
+        </svg>
       </div>
     </div>
   )
