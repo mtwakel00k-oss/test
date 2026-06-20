@@ -86,14 +86,14 @@ export function DashboardMockup() {
               <svg viewBox="0 0 320 90" className="w-full" preserveAspectRatio="none">
                 <defs>
                   <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#C76B37" stopOpacity="0.35" />
-                    <stop offset="100%" stopColor="#C76B37" stopOpacity="0" />
+                    <stop offset="0%" stopColor="#8B9D6B" stopOpacity="0.35" />
+                    <stop offset="100%" stopColor="#8B9D6B" stopOpacity="0" />
                   </linearGradient>
                 </defs>
                 <motion.path
                   d="M0 70 C 40 60, 60 30, 100 38 S 170 10, 210 28 S 280 55, 320 22"
                   fill="none"
-                  stroke="#C76B37"
+                  stroke="#8B9D6B"
                   strokeWidth="3"
                   strokeLinecap="round"
                   initial={{ pathLength: 0 }}

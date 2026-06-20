@@ -14,7 +14,7 @@ import { AppHeader } from "./app-header"
 import { CategoryFilter } from "./category-filter"
 import { MealCard } from "./meal-card"
 import { OrderBar } from "./order-bar"
-import { ShoppingBag, DoorClosed } from "lucide-react"
+import { ShoppingBag, DoorClosed, Leaf, Sparkles } from "lucide-react"
 
 const CheckoutModal = dynamic(
   () => import("./checkout-modal").then(m => ({ default: m.CheckoutModal })),
@@ -38,10 +38,12 @@ class ErrorBoundary extends Component<
   render() {
     if (this.state.hasError) {
       return this.props.fallback || (
-        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="min-h-[100dvh] bg-background flex items-center justify-center p-4">
           <div className="text-center max-w-sm">
-              <div className="flex items-center justify-center w-20 h-20 mx-auto mb-5 rounded-2xl bg-muted/40 border border-border/30">
-                <svg className="size-10 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <div className="relative mx-auto mb-6 flex size-24 items-center justify-center">
+              <div className="absolute inset-0 rounded-[2rem] bg-accent/10 blur-xl" />
+              <div className="relative flex items-center justify-center w-20 h-20 rounded-[2rem] border border-accent/20 bg-card shadow-lg">
+                <svg className="size-10 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2" />
                   <path d="M5 2v20" />
                   <path d="M9 2v20" />
@@ -49,8 +51,9 @@ class ErrorBoundary extends Component<
                   <path d="M18 11v11" />
                 </svg>
               </div>
-            <h2 className="text-lg font-bold text-foreground mb-1.5">Something went wrong</h2>
-            <p className="text-sm text-muted-foreground">Refresh the page to try again.</p>
+            </div>
+            <h2 className="font-display text-xl font-semibold text-foreground mb-2">حدث خطأ ما</h2>
+            <p className="text-sm text-muted-foreground/70 leading-relaxed">يرجى تحديث الصفحة والمحاولة مرة أخرى.</p>
           </div>
         </div>
       )
@@ -61,14 +64,17 @@ class ErrorBoundary extends Component<
 
 function SkeletonCard() {
   return (
-    <div className="premium-bezel animate-pulse">
-      <div className="premium-bezel-inner overflow-hidden">
-        <div className="aspect-[4/3] bg-muted/40" />
-        <div className="space-y-3 p-5">
-          <div className="h-4 w-3/4 rounded-full bg-muted/50" />
-          <div className="h-3 w-full rounded-full bg-muted/30" />
-          <div className="h-10 rounded-full bg-muted/40" />
+    <div className="group relative overflow-hidden rounded-2xl border border-border/30 bg-card shadow-sm">
+      <div className="aspect-[4/3] bg-gradient-to-br from-primary/5 to-primary/10 animate-pulse" />
+      <div className="space-y-3 p-5">
+        <div className="h-5 w-2/3 rounded-full bg-muted/50 animate-pulse" />
+        <div className="h-3 w-full rounded-full bg-muted/20 animate-pulse" />
+        <div className="h-3 w-3/4 rounded-full bg-muted/20 animate-pulse" />
+        <div className="flex gap-2 pt-2">
+          <div className="h-8 w-14 rounded-full bg-muted/30 animate-pulse" />
+          <div className="h-8 w-14 rounded-full bg-muted/30 animate-pulse" />
         </div>
+        <div className="h-12 w-full rounded-full bg-muted/30 animate-pulse" />
       </div>
     </div>
   )
@@ -102,7 +108,6 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
   useEffect(() => { itemsRef.current = items }, [items])
   useEffect(() => { removeProductRef.current = _removeProduct }, [_removeProduct])
 
-  // Read tenant config from DOM once on mount (avoids forced reflows during render)
   useEffect(() => {
     if (propSlug) {
       setSlug(propSlug)
@@ -134,7 +139,6 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
     debounceRef.current = setTimeout(fn, 300)
   }, [])
 
-  // Defer filtered computation to avoid blocking render
   const filteredProducts = useDeferredValue(products)
 
   const filtered = useMemo(() => 
@@ -240,19 +244,22 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
 
   return (
     <ErrorBoundary>
-      <div className="min-h-[100dvh] app-surface relative">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-          <div className="absolute -top-48 -right-48 h-[32rem] w-[32rem] rounded-full bg-primary/4 blur-[120px]" />
-          <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-accent/4 blur-[100px]" />
+      <div className="min-h-[100dvh] bg-background relative">
+        <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
+          <div className="absolute -top-48 -right-48 h-[36rem] w-[36rem] rounded-full bg-primary/[0.035] blur-[140px]" />
+          <div className="absolute -bottom-40 -left-40 h-[30rem] w-[30rem] rounded-full bg-accent/[0.04] blur-[120px]" />
+          <div className="absolute top-1/3 left-1/4 h-64 w-64 rounded-full bg-primary/[0.02] blur-[100px]" />
         </div>
 
         {!isOpen && (
-          <div className="relative mx-auto max-w-5xl px-4 pt-4">
-            <div className="rounded-2xl bg-rose-500/10 border border-rose-500/20 px-5 py-4 flex items-center gap-3 text-rose-600">
-              <DoorClosed className="size-5 shrink-0" strokeWidth={2} />
+          <div className="relative mx-auto max-w-5xl px-4 pt-4 md:px-8">
+            <div className="rounded-2xl border border-rose-500/20 bg-gradient-to-r from-rose-500/8 to-rose-500/4 px-5 py-4 flex items-center gap-3 text-rose-600 shadow-sm backdrop-blur-sm">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-rose-500/10">
+                <DoorClosed className="size-5" strokeWidth={1.5} />
+              </div>
               <div>
                 <p className="text-sm font-bold">{t("menu.restaurantClosed")}</p>
-                <p className="text-xs text-rose-500/80">{t("menu.closedMessage")}</p>
+                <p className="text-xs text-rose-500/70">{t("menu.closedMessage")}</p>
               </div>
             </div>
           </div>
@@ -260,35 +267,46 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
 
         <AppHeader cartItemCount={itemCount} onCart={() => setCheckoutOpen(true)} />
 
-        <main className="relative mx-auto max-w-5xl px-4 pb-32 pt-8 md:px-6" aria-label="Menu content">
-          <div className="mb-8">
-            <h1 className="font-display text-[clamp(2rem,4vw,2.75rem)] font-normal tracking-tight text-foreground">القائمة</h1>
-            <p className="mt-2 text-sm text-muted-foreground max-w-md">اختر وجبتك المفضلة من قائمتنا المتنوعة</p>
+        <main className="relative mx-auto max-w-5xl px-4 pb-36 pt-10 md:px-8 md:pt-14" aria-label="Menu content">
+          <div className="mb-10 md:mb-14 animate-hero-enter">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="h-px w-10 bg-accent/60" aria-hidden="true" />
+              <Leaf className="size-3.5 text-accent" strokeWidth={1.5} aria-hidden="true" />
+            </div>
+            <h1 className="font-display text-[clamp(2.25rem,5vw,3.25rem)] font-light leading-[1.08] tracking-tight text-foreground">
+              القائمة
+            </h1>
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground/70">
+              اختر وجبتك المفضلة من قائمتنا المتنوعة — كل طبق يُحضر بعناية ليجمع بين النكهة الأصيلة والمذاق الاستثنائي
+            </p>
           </div>
 
-          <div className="mb-8">
+          <div className="mb-10 md:mb-12">
             <CategoryFilter categories={categories} selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-7">
             {loading ? (
               <>
                 <SkeletonCard />
                 <SkeletonCard />
                 <SkeletonCard />
+                <SkeletonCard />
+                <SkeletonCard />
+                <SkeletonCard />
               </>
             ) : filtered.length === 0 ? (
-              <div
-                className="animate-empty-enter col-span-full flex flex-col items-center justify-center py-28 text-center gap-6"
+              <div className="col-span-full flex flex-col items-center justify-center py-32 text-center gap-6"
               >
-                <div className="premium-bezel">
-                  <div className="premium-bezel-inner p-6">
-                    <ShoppingBag className="size-10 text-muted-foreground/20" strokeWidth={1} aria-hidden="true" />
+                <div className="relative">
+                  <div className="absolute inset-0 rounded-[2rem] bg-accent/8 blur-2xl" />
+                  <div className="relative flex size-20 items-center justify-center rounded-[2rem] border border-border/30 bg-card shadow-sm">
+                    <ShoppingBag className="size-9 text-muted-foreground/30" strokeWidth={1} aria-hidden="true" />
                   </div>
                 </div>
                 <div>
-                  <p className="text-xl font-semibold text-foreground">لا توجد منتجات</p>
-                  <p className="text-sm text-muted-foreground/60 mt-2 max-w-xs">عذراً، لا توجد منتجات متوفرة في هذا القسم حالياً.</p>
+                  <p className="font-display text-xl font-semibold text-foreground">لا توجد منتجات</p>
+                  <p className="mt-2 text-sm text-muted-foreground/60 max-w-xs leading-relaxed">عذراً، لا توجد منتجات متوفرة في هذا القسم حالياً.</p>
                 </div>
               </div>
             ) : (
@@ -298,7 +316,7 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
                   <div
                     key={p.id}
                     className="animate-card-enter"
-                    style={{ animationDelay: `${0.1 + idx * 0.03}s` }}
+                    style={{ animationDelay: `${0.08 + idx * 0.035}s` }}
                   >
                     <MealCard product={p}
                       size={sizes[p.id] || "L"}

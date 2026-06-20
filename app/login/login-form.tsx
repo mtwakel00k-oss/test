@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -110,23 +110,102 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
   const visibleRoles: PageRole[] = slugProp ? ["cashier", "chef", "admin"] : ["admin", "owner"]
   const activeRole = ROLE_CONFIG[page]
 
-  const topBar = (
-    <div className="absolute top-6 ltr:right-6 rtl:left-6 flex items-center gap-3 z-10">
-      <ThemeToggle />
-      <LanguageSwitcher />
+  // ── Desktop brand panel (left column) ───────────────────────────
+  const BrandPanel = () => (
+    <div className="relative hidden md:flex flex-col items-center justify-center bg-primary p-12 overflow-hidden min-h-screen select-none">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.04]"
+        style={{
+          backgroundImage: [
+            "linear-gradient(rgba(255,255,255,.12) 1px, transparent 1px)",
+            "linear-gradient(90deg, rgba(255,255,255,.12) 1px, transparent 1px)",
+          ].join(","),
+          backgroundSize: "32px 32px",
+        }}
+      />
+      <div className="pointer-events-none absolute -top-48 -right-48 h-[600px] w-[600px] rounded-full bg-white/8 blur-[150px]" />
+      <div className="pointer-events-none absolute -bottom-48 -left-48 h-[500px] w-[500px] rounded-full bg-accent/10 blur-[120px]" />
+      <div className="relative z-10 flex flex-col items-center text-center">
+        <div className="mb-10 grid size-28 place-items-center rounded-3xl bg-white/10 ring-1 ring-white/20 shadow-2xl backdrop-blur-sm">
+          <svg className="size-14 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+        </div>
+        <h1 className="font-display text-[2.75rem] font-normal leading-none tracking-tight text-primary-foreground">
+          RestoOS
+        </h1>
+        <div className="my-5 h-px w-12 bg-white/15" />
+        <p className="text-base text-primary-foreground/65 max-w-[14rem] leading-relaxed">
+          نظام نقاط البيع الذكي
+        </p>
+        <div className="mt-16 flex items-center gap-2">
+          <span className="size-1.5 rounded-full bg-white/15" />
+          <span className="size-1.5 rounded-full bg-white/25" />
+          <span className="size-1.5 rounded-full bg-white/35" />
+          <span className="size-1.5 rounded-full bg-white/25" />
+          <span className="size-1.5 rounded-full bg-white/15" />
+        </div>
+        <p className="mt-4 text-[11px] font-medium tracking-[0.2em] uppercase text-primary-foreground/25">
+          Smart POS System
+        </p>
+      </div>
     </div>
   )
 
+  // ── Two-column / single-column layout shell ────────────────────
+  const PageShell = ({ children }: { children: ReactNode }) => (
+    <div className="min-h-[100dvh] app-surface md:grid md:grid-cols-[43%_57%] overflow-hidden">
+      <BrandPanel />
+      <div className="relative min-h-[100dvh] flex flex-col">
+        {/* Mobile brand strip */}
+        <div className="md:hidden flex items-center gap-3 bg-primary px-5 py-4">
+          <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-white/10">
+            <svg className="size-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            <span className="font-display text-base text-primary-foreground">RestoOS</span>
+            <p className="text-[11px] text-primary-foreground/60 truncate">نظام نقاط البيع الذكي</p>
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            <ThemeToggle />
+            <LanguageSwitcher />
+          </div>
+        </div>
+
+        {/* Desktop top bar */}
+        <div className="hidden md:flex absolute top-6 ltr:right-6 rtl:left-6 items-center gap-3 z-10">
+          <ThemeToggle />
+          <LanguageSwitcher />
+        </div>
+
+        {/* Content area */}
+        <div className="relative flex flex-1 flex-col items-center justify-center p-4 md:p-8 overflow-hidden">
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute -top-24 end-0 h-80 w-80 rounded-full bg-primary/8 blur-[90px]" />
+            <div className="absolute -bottom-24 start-0 h-72 w-72 rounded-full bg-accent/6 blur-[80px]" />
+          </div>
+          {children}
+        </div>
+      </div>
+    </div>
+  )
+
+  // ── Tenant selection page ───────────────────────────────────────
   if (!slugProp && tenants && tenants.length > 0) {
     if (showOwnerForm) {
-      return renderLoginForm()
+      return (
+        <PageShell>
+          <LoginCard />
+        </PageShell>
+      )
     }
+
     return (
-      <div className="relative flex min-h-[100dvh] items-center justify-center app-surface overflow-hidden">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -top-32 start-1/3 h-96 w-96 rounded-full bg-primary/10 blur-[100px]" />
-        </div>
-        {topBar}
+      <PageShell>
         <motion.div
           initial={{ opacity: 0, y: 24, filter: 'blur(8px)' }}
           animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
@@ -188,116 +267,115 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
             </button>
           </div>
         </motion.div>
-      </div>
+      </PageShell>
     )
   }
 
-  function renderLoginForm() {
+  // ── Login form card ─────────────────────────────────────────────
+  function LoginCard() {
     return (
-      <div className="relative flex min-h-[100dvh] items-center justify-center app-surface overflow-hidden">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -top-24 end-0 h-80 w-80 rounded-full bg-primary/8 blur-[90px]" />
-          <div className="absolute -bottom-24 start-0 h-72 w-72 rounded-full bg-accent/6 blur-[80px]" />
-        </div>
-        {topBar}
-        <motion.div
-          initial={{ opacity: 0, y: 24, filter: 'blur(8px)' }}
-          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
-          className={cn("relative w-full max-w-sm px-4", shaking && "animate-shake")}
-        >
-          <div className="overflow-hidden rounded-2xl border border-border/40 bg-card shadow-[var(--shadow-xl)]">
-            {(slugProp || showOwnerForm) && (
-              <div className="px-6 pt-5">
-                <button onClick={() => showOwnerForm ? setShowOwnerForm(false) : router.push("/login")}
-                  className="flex items-center gap-2 text-xs font-medium text-muted-foreground/60 transition-colors hover:text-foreground">
-                  <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                  {t("login.changeRestaurant")}
-                </button>
+      <motion.div
+        initial={{ opacity: 0, y: 24, filter: 'blur(8px)' }}
+        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+        transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
+        className={cn("relative w-full max-w-sm px-4", shaking && "animate-shake")}
+      >
+        <div className="overflow-hidden rounded-2xl border border-border/40 bg-card shadow-[var(--shadow-xl)]">
+          {(slugProp || showOwnerForm) && (
+            <div className="px-6 pt-5">
+              <button onClick={() => showOwnerForm ? setShowOwnerForm(false) : router.push("/login")}
+                className="flex items-center gap-2 text-xs font-medium text-muted-foreground/60 transition-colors hover:text-foreground">
+                <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                {t("login.changeRestaurant")}
+              </button>
+            </div>
+          )}
+
+          <div className="px-6 pt-6 pb-5 text-center">
+            <div className="mx-auto mb-5 grid size-16 place-items-center rounded-2xl bg-primary/8 text-primary transition-transform duration-500">
+              <RoleIcon role={page} />
+            </div>
+            <h1 className="font-display text-2xl font-normal tracking-tight text-foreground">{t(`${activeRole.labelKey}`)}</h1>
+            <p className="mt-1.5 text-sm text-muted-foreground/60">{t("login.subtitle")}</p>
+          </div>
+
+          <div className="px-6 pb-6">
+            {visibleRoles.length > 1 && (
+              <div className="mb-5 flex gap-1 rounded-full border border-border/30 bg-muted/40 p-1">
+                {visibleRoles.map(key => (
+                  <button key={key} data-testid={`role-tab-${key}`} onClick={() => { setPage(key); setError("") }}
+                    className={cn(
+                      "flex flex-1 items-center justify-center gap-2 rounded-full py-2 transition-all duration-500",
+                      page === key
+                        ? "bg-card text-foreground shadow-sm"
+                        : "text-muted-foreground/50 hover:text-foreground",
+                    )}>
+                    <span className={cn("transition-colors", page === key ? "text-primary" : "text-muted-foreground/40")}>
+                      <RoleIcon role={key} />
+                    </span>
+                    <span className="text-xs font-semibold">{t(ROLE_CONFIG[key].labelKey)}</span>
+                  </button>
+                ))}
               </div>
             )}
 
-            <div className="px-6 pt-6 pb-5 text-center">
-              <div className="mx-auto mb-5 grid size-16 place-items-center rounded-2xl bg-primary/8 text-primary transition-transform duration-500">
-                <RoleIcon role={page} />
-              </div>
-              <h1 className="font-display text-2xl font-normal tracking-tight text-foreground">{t(`${activeRole.labelKey}`)}</h1>
-              <p className="mt-1.5 text-sm text-muted-foreground/60">{t("login.subtitle")}</p>
-            </div>
+            <div className="space-y-3">
+              <Input
+                data-testid="username-input"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                placeholder={t("login.usernamePlaceholder")}
+                className={cn(error && "border-destructive/50")}
+                autoFocus
+              />
+              <Input
+                data-testid="password-input"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                placeholder={t("login.passwordPlaceholder")}
+                className={cn(error && "border-destructive/50")}
+              />
 
-            <div className="px-6 pb-6">
-              {visibleRoles.length > 1 && (
-                <div className="mb-5 flex gap-1 rounded-full border border-border/30 bg-muted/40 p-1">
-                  {visibleRoles.map(key => (
-                    <button key={key} data-testid={`role-tab-${key}`} onClick={() => { setPage(key); setError("") }}
-                      className={cn(
-                        "flex flex-1 items-center justify-center gap-2 rounded-full py-2 transition-all duration-500",
-                        page === key
-                          ? "bg-card text-foreground shadow-sm"
-                          : "text-muted-foreground/50 hover:text-foreground",
-                      )}>
-                      <span className={cn("transition-colors", page === key ? "text-primary" : "text-muted-foreground/40")}>
-                        <RoleIcon role={key} />
-                      </span>
-                      <span className="text-xs font-semibold">{t(ROLE_CONFIG[key].labelKey)}</span>
-                    </button>
-                  ))}
-                </div>
+              {error && (
+                <p data-testid="login-error" className="text-center text-xs font-medium text-destructive">
+                  {error}
+                </p>
               )}
 
-              <div className="space-y-3">
-                <Input
-                  data-testid="username-input"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                  placeholder={t("login.usernamePlaceholder")}
-                  className={cn(error && "border-destructive/50")}
-                  autoFocus
-                />
-                <Input
-                  data-testid="password-input"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                  placeholder={t("login.passwordPlaceholder")}
-                  className={cn(error && "border-destructive/50")}
-                />
-
-                {error && (
-                  <p data-testid="login-error" className="text-center text-xs font-medium text-destructive">
-                    {error}
-                  </p>
-                )}
-
-                <Button
-                  data-testid="login-submit"
-                  onClick={handleLogin}
-                  disabled={loading || !username || !password}
-                  size="lg"
-                  className="w-full h-12 rounded-xl text-sm font-semibold shadow-[var(--shadow-md)]"
-                >
-                  {loading ? (
-                    <span className="flex items-center justify-center gap-2.5">
-                      <svg className="size-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      {t("login.loggingIn")}
-                    </span>
-                  ) : t("login.logIn")}
-                </Button>
-              </div>
+              <Button
+                data-testid="login-submit"
+                onClick={handleLogin}
+                disabled={loading || !username || !password}
+                size="lg"
+                className="w-full h-12 rounded-xl text-sm font-semibold shadow-[var(--shadow-md)]"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2.5">
+                    <svg className="size-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    {t("login.loggingIn")}
+                  </span>
+                ) : t("login.logIn")}
+              </Button>
             </div>
           </div>
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>
     )
   }
 
-  return renderLoginForm()
+  // ── Default: login form ─────────────────────────────────────────
+  return (
+    <PageShell>
+      <LoginCard />
+    </PageShell>
+  )
 }

@@ -145,7 +145,7 @@ export default function AdminPage() {
                 <ChartNoAxesColumn className="size-4" strokeWidth={1.5} />
               </div>
               <div>
-                <h1 className="text-sm font-semibold text-white">Developer Panel</h1>
+                <h1 className="font-display text-base font-normal text-white">Developer Panel</h1>
                 <p className="text-[10px] text-white/40">Restaurant Management</p>
               </div>
             </div>
@@ -167,11 +167,11 @@ export default function AdminPage() {
           {userRole === "owner" && (
             <div className="bg-card/50 border border-border/50 backdrop-blur-xl rounded-2xl p-5 lg:p-6">
               <div className="flex items-center gap-2.5 mb-5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-yellow-500/10">
-                  <Shield className="w-4 h-4 text-yellow-500" strokeWidth={1.5} />
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-accent/10">
+                  <Shield className="w-4 h-4 text-accent" strokeWidth={1.5} />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold text-foreground tracking-tight">Root Admin</h2>
+                  <h2 className="font-display text-sm font-bold text-foreground tracking-tight">Root Admin</h2>
                   <p className="text-xs text-muted-foreground/60">Platform earnings</p>
                 </div>
               </div>
@@ -193,7 +193,7 @@ export default function AdminPage() {
               <ChartNoAxesColumn className="size-4" strokeWidth={1.5} />
             </div>
             <div>
-              <h1 className="font-display text-base font-normal text-white">{t("admin.dashboard")}</h1>
+              <h1 className="font-display text-base font-medium tracking-tight text-white">{t("admin.dashboard")}</h1>
               <p className="text-[10px] text-white/40">{slug}</p>
             </div>
           </div>
@@ -218,7 +218,7 @@ export default function AdminPage() {
           {(["overview", "products", "orders", "audit"] as const).map((tab) => (
             <button key={tab} onClick={() => setAdminTab(tab)}
               className={`rounded-full px-5 py-2 text-xs font-semibold transition-all duration-500 ${
-                adminTab === tab ? "bg-white/10 text-white shadow-[var(--shadow-sm)]" : "text-white/40 hover:text-white/70"
+                adminTab === tab ? "bg-accent/15 text-accent shadow-[var(--shadow-sm)]" : "text-white/40 hover:text-white/70"
               }`}>
               {tab === "overview" ? t("admin.overview") : tab === "products" ? t("admin.products") : tab === "orders" ? t("admin.orders") : t("admin.audit")}
             </button>
@@ -230,7 +230,7 @@ export default function AdminPage() {
             {(Object.entries(PERIOD_LABELS) as [Period, string][]).map(([key, label]) => (
               <button key={key} onClick={() => setPeriod(key)}
                 className={`rounded-full px-5 py-2 text-xs font-semibold transition-all duration-500 ${
-                  period === key ? "bg-white/10 text-white shadow-[var(--shadow-sm)]" : "text-white/40 hover:text-white/70"
+                  period === key ? "bg-accent/15 text-accent shadow-[var(--shadow-sm)]" : "text-white/40 hover:text-white/70"
                 }`}>
                 {label}
               </button>
@@ -244,7 +244,7 @@ export default function AdminPage() {
               {[...Array(5)].map((_, i) => (
                 <div key={i} className="bg-card/40 border border-white/5 rounded-2xl p-5 space-y-4 animate-pulse">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-white/5" />
+                    <div className="w-10 h-10 rounded-xl bg-primary/10" />
                     <div className="h-3 w-24 rounded-full bg-white/5" />
                   </div>
                   <div className="h-7 w-32 rounded-full bg-white/8" />
@@ -264,26 +264,27 @@ export default function AdminPage() {
         </motion.div>
 
         {adminTab === "overview" && driverStats.length > 0 && (
-          <div className="bg-card/40 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-sm">
-            <div className="px-5 py-3.5 border-b border-white/5">
-              <h3 className="text-sm font-semibold text-white/80">{t("admin.driverPerformance")}</h3>
+          <div className="bg-card/40 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-sm card-hover">
+            <div className="px-5 py-3.5 border-b border-white/5 flex items-center gap-2.5">
+              <span className="w-1 h-1 rounded-full bg-accent/60" />
+              <h3 className="font-display text-sm font-semibold text-white/80">{t("admin.driverPerformance")}</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-white/5">
-                    <th className="text-right px-5 py-3 text-white/40 font-medium text-[10px] uppercase tracking-wider">{t("admin.driver")}</th>
-                    <th className="text-center px-5 py-3 text-white/40 font-medium text-[10px] uppercase tracking-wider">{t("admin.deliveries")}</th>
-                    <th className="text-center px-5 py-3 text-white/40 font-medium text-[10px] uppercase tracking-wider">{t("admin.revenue")}</th>
-                    <th className="text-center px-5 py-3 text-white/40 font-medium text-[10px] uppercase tracking-wider">{t("admin.avgOrder")}</th>
+                    <th className="text-right px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.driver")}</th>
+                    <th className="text-center px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.deliveries")}</th>
+                    <th className="text-center px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.revenue")}</th>
+                    <th className="text-center px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.avgOrder")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {driverStats.map((d, i) => (
-                    <tr key={d.id} className={i < driverStats.length - 1 ? "border-b border-white/[0.02]" : ""}>
+                    <tr key={d.id} className={`${i < driverStats.length - 1 ? "border-b border-white/[0.02]" : ""} hover:bg-white/[0.015] transition-colors`}>
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-white/5 text-white/60 flex items-center justify-center text-xs font-semibold">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 text-primary/60 flex items-center justify-center text-xs font-semibold">
                             {d.name.charAt(0)}
                           </div>
                           <span className="font-medium text-white/80 text-sm">{d.name}</span>
@@ -307,22 +308,23 @@ export default function AdminPage() {
         )}
 
         {adminTab === "overview" && cashierStats.length > 0 && (
-          <div className="bg-card/40 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-sm">
-            <div className="px-5 py-3.5 border-b border-white/5">
-              <h3 className="text-sm font-semibold text-white/80">{t("admin.cashierPerformance")}</h3>
+          <div className="bg-card/40 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-sm card-hover">
+            <div className="px-5 py-3.5 border-b border-white/5 flex items-center gap-2.5">
+              <span className="w-1 h-1 rounded-full bg-accent/60" />
+              <h3 className="font-display text-sm font-semibold text-white/80">{t("admin.cashierPerformance")}</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-white/5">
-                    <th className="text-right px-5 py-3 text-white/40 font-medium text-[10px] uppercase tracking-wider">{t("admin.cashier")}</th>
-                    <th className="text-center px-5 py-3 text-white/40 font-medium text-[10px] uppercase tracking-wider">{t("admin.orders")}</th>
-                    <th className="text-center px-5 py-3 text-white/40 font-medium text-[10px] uppercase tracking-wider">{t("admin.revenue")}</th>
+                    <th className="text-right px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.cashier")}</th>
+                    <th className="text-center px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.orders")}</th>
+                    <th className="text-center px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.revenue")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {cashierStats.map((c, i) => (
-                    <tr key={c.id} className={i < cashierStats.length - 1 ? "border-b border-white/[0.02]" : ""}>
+                    <tr key={c.id} className={`${i < cashierStats.length - 1 ? "border-b border-white/[0.02]" : ""} hover:bg-white/[0.015] transition-colors`}>
                       <td className="px-5 py-3">
                         <span className="font-medium text-white/80 text-sm">{c.name}</span>
                       </td>
