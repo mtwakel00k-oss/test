@@ -249,7 +249,10 @@ export async function POST(req: NextRequest) {
       .update({ is_available: next })
       .eq("id", id)
 
-    if (error && !error.message?.includes("is_available")) {
+    if (error) {
+      if (error.message?.includes("does not exist") || error.code === "42703") {
+        return NextResponse.json({ error: "Tenant DB missing 'is_available' column. Apply tenant migration SQL in Supabase Dashboard." }, { status: 400 })
+      }
       throw new Error(error.message || JSON.stringify(error))
     }
 

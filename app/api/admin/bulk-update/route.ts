@@ -60,6 +60,9 @@ export async function POST(req: NextRequest) {
         if (error) errors.push(`Product ${id}: ${error.message}`)
         else affected++
       }
+      if (errors.length > 0 && errors.every(e => e.includes("does not exist") || e.includes("42703"))) {
+        return NextResponse.json({ error: "Tenant DB missing 'is_available' column. Apply tenant migration SQL in Supabase Dashboard.", errors }, { status: 400 })
+      }
       logAudit(sb, req, { table_name: "produits", record_id: `bulk:${product_ids.join(",")}`, operation: "UPDATE", new_data: { action: "set_availability", is_available, count: product_ids.length } })
     } else if (action === "set_price") {
       const { size_code, price, sauce_id } = body

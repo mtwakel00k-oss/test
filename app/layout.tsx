@@ -31,7 +31,6 @@ export const metadata: Metadata = {
   robots: "index, follow",
   openGraph: {
     type: "website",
-    locale: "ar",
     url: "https://simploo.vercel.app",
     siteName: "RestoOS",
     title: "RestoOS - Smart Restaurant Management",
@@ -53,12 +52,6 @@ export const metadata: Metadata = {
   },
   verification: {
     google: "google-site-verification-code"
-  },
-  other: {
-    "mobile-web-app-capable": "yes",
-    "apple-mobile-web-app-capable": "yes",
-    "apple-mobile-web-app-status-bar-style": "black-translucent",
-    "theme-color": "#09090b"
   }
 }
 
@@ -92,9 +85,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <html suppressHydrationWarning lang={lang} dir={dir} data-locale={lang} className={cn(htmlClass, geist.variable, instrumentSerif.variable)}>
       <head>
         <link rel="preconnect" href="https://icefntwfwvtonkdyshde.supabase.co" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://zordvqqjnlmxgtbkrspp.supabase.co" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://nominatim.openstreetmap.org" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://*.supabase.co" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />

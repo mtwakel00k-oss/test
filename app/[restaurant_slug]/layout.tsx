@@ -47,8 +47,11 @@ export default async function RestaurantLayout({
     configStr = JSON.stringify(config)
   } catch {}
 
+  const tenantUrl = isShared ? MASTER_URL : tenant.supabase_url
+
   return (
     <>
+      <link rel="preconnect" href={tenantUrl} crossOrigin="anonymous" />
       {configStr && (
         <script id="tenant-config" type="application/json" dangerouslySetInnerHTML={{ __html: configStr }} />
       )}
