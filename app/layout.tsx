@@ -18,6 +18,7 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://simploo.vercel.app"),
   title: {
     default: "RestoOS - Smart POS & Ordering System",
     template: "%s | RestoOS"
