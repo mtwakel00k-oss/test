@@ -27,16 +27,16 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-background relative" dir="ltr">
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-32 -start-32 w-96 h-96 rounded-full bg-primary/[0.03] blur-3xl" />
-        <div className="absolute top-1/3 -end-48 w-80 h-80 rounded-full bg-amber-500/[0.03] blur-3xl" />
+        <div className="absolute top-1/3 -end-48 w-80 h-80 rounded-full bg-accent/[0.05] blur-3xl" />
       </div>
       <header className="sticky top-0 z-30 border-b border-border/40 bg-background/70 backdrop-blur-xl">
         <div className="flex items-center justify-between px-4 lg:px-6 py-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-sm">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
               <Shield className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-sm font-bold text-foreground tracking-tight">Root Admin</h1>
+              <h1 className="text-sm font-bold text-foreground tracking-tight font-display">Root Admin</h1>
               <p className="text-xs text-muted-foreground">Developer panel</p>
             </div>
           </div>
@@ -55,7 +55,7 @@ export default function AdminDashboard() {
         <main className="p-4 lg:p-6 max-w-7xl mx-auto space-y-6 relative">
           <div className="flex items-center gap-3 mb-2">
             <div className="h-px flex-1 bg-gradient-to-r from-border/0 via-border/40 to-border/0" />
-            <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/40">Platform Overview</span>
+            <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/40 tracking-tight">Platform Overview</span>
             <div className="h-px flex-1 bg-gradient-to-r from-border/0 via-border/40 to-border/0" />
           </div>
           <EarningsOverview />

@@ -138,17 +138,17 @@ export default function KitchenPage() {
       <header className="border-b border-border/40 bg-background/70 backdrop-blur-xl">
         <div className="flex items-center justify-between px-4 lg:px-6 py-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-amber-500/20">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-lg shadow-accent/20">
               <ChefHat className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-base font-bold text-foreground tracking-tight">{t("kitchen.title")}</h1>
+              <h1 className="text-base font-bold font-display text-foreground tracking-tight">{t("kitchen.title")}</h1>
               <p className="text-xs text-muted-foreground">{t("kitchen.subtitle")}</p>
             </div>
           </div>
 
           <div className="hidden md:flex items-center gap-4">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-accent/10 border border-accent/20">
               <Bell className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
               <span className="text-sm text-muted-foreground">
                 <span className="font-bold text-amber-500">{pendingOrders.length}</span> {t("kitchen.new")}
@@ -169,7 +169,7 @@ export default function KitchenPage() {
             </div>
             <ThemeToggle />
             <LanguageSwitcher />
-            <Link href="/pos" title={t("kitchen.posLink")} className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted/50 hover:bg-amber-500/20 hover:text-amber-500 text-muted-foreground/50 transition-colors">
+            <Link href="/pos" title={t("kitchen.posLink")} className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted/50 hover:bg-accent/20 hover:text-accent text-muted-foreground/50 transition-colors">
               <ExternalLink className="h-4 w-4" />
             </Link>
           </div>
@@ -192,14 +192,14 @@ export default function KitchenPage() {
                 <div className="flex items-center gap-3 mb-4">
                   <span className="flex h-3 w-3">
                     <span className="absolute inline-flex h-3 w-3 rounded-full bg-amber-400 opacity-75 animate-ping" />
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500" />
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-accent" />
                   </span>
-                  <h2 className="text-lg font-black text-amber-500 tracking-tight">{t("kitchen.newOrders")} ({pendingOrders.length})</h2>
+                  <h2 className="text-lg font-black font-display text-amber-500 tracking-tight">{t("kitchen.newOrders")} ({pendingOrders.length})</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
                   {pendingOrders.map(order => (
-                    <div key={order.id} className="group relative bg-gradient-to-br from-amber-500/10 to-transparent border-2 border-amber-500/30 rounded-2xl p-5 shadow-xl shadow-amber-500/5 hover:shadow-amber-500/15 hover:border-amber-500/50 transition-all">
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+                    <div key={order.id} className="group relative bg-gradient-to-br from-accent/5 to-transparent border border-accent/30 rounded-2xl p-5 shadow-xl shadow-accent/5 hover:shadow-accent/15 hover:border-accent/50 transition-all">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
                       <div className="flex justify-between items-start w-full mb-4 relative">
                         <div>
                           <div className="text-2xl font-black text-foreground text-start">
@@ -232,7 +232,7 @@ export default function KitchenPage() {
               <section>
                 <div className="flex items-center gap-3 mb-4">
                   <Timer className="w-4 h-4 text-sky-500" />
-                  <h2 className="text-lg font-black text-sky-500 tracking-tight">{t("kitchen.preparingOrders")} ({preparingOrders.length})</h2>
+                  <h2 className="text-lg font-black font-display text-sky-500 tracking-tight">{t("kitchen.preparingOrders")} ({preparingOrders.length})</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
                   {preparingOrders.map(order => (

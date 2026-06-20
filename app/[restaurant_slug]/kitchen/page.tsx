@@ -223,17 +223,17 @@ export default function KitchenPage() {
               <ChefHat className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-sm font-semibold text-foreground tracking-tight">{t("kitchen.title")}</h1>
+              <h1 className="text-sm font-semibold font-display text-foreground tracking-tight">{t("kitchen.title")}</h1>
               <p className="text-xs text-muted-foreground/60">{t("kitchen.subtitle")}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <div className="hidden md:flex items-center gap-2">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/15">
-                <Bell className="w-3.5 h-3.5 text-amber-400" />
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-accent/10 border border-accent/15">
+                <Bell className="w-3.5 h-3.5 text-accent" />
                 <span className="text-xs text-muted-foreground">
-                  <span className="font-bold text-amber-400">{pendingOrders.length}</span>
+                  <span className="font-bold text-accent">{pendingOrders.length}</span>
                   <span className="hidden lg:inline text-muted-foreground/50"> {t("kitchen.new")}</span>
                 </span>
               </div>
@@ -255,7 +255,7 @@ export default function KitchenPage() {
                 {countdown}s
               </div>
               <button onClick={() => setSoundOn(!soundOn)}
-                className="flex items-center justify-center h-9 w-9 rounded-lg text-muted-foreground/40 hover:text-amber-400 hover:bg-amber-500/10 transition-all active:scale-90">
+                className="flex items-center justify-center h-9 w-9 rounded-lg text-muted-foreground/40 hover:text-accent hover:bg-accent/10 transition-all active:scale-90">
                 {soundOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
               </button>
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/30 text-muted-foreground/50 text-xs font-mono tabular-nums">
@@ -290,13 +290,13 @@ export default function KitchenPage() {
                 <div className="flex items-center gap-3 mb-4 px-1">
                   <span className="relative flex h-2.5 w-2.5">
                     <span className="absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75 animate-ping" />
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent" />
                   </span>
-                  <h2 className="text-lg font-bold text-amber-500 tracking-tight">{t("kitchen.newOrders")} ({pendingOrders.length})</h2>
+                  <h2 className="text-lg font-bold font-display text-amber-500 tracking-tight">{t("kitchen.newOrders")} ({pendingOrders.length})</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
                   {pendingOrders.map(order => (
-                    <div data-testid="kds-order-card" key={order.id} className="premium-bezel border-amber-500/20 shadow-amber-500/5 hover:shadow-amber-500/10">
+                    <div data-testid="kds-order-card" key={order.id} className="premium-bezel border-accent/20 shadow-accent/5 hover:shadow-accent/10">
                       <div className="premium-bezel-inner p-5">
                         <div className="flex justify-between items-start w-full mb-4 relative">
                           <div>
@@ -317,13 +317,13 @@ export default function KitchenPage() {
                                   ? t("pos.delivery")
                                   : t("pos.dineIn")}
                             </span>
-                            <span className="text-xs font-mono text-amber-400/60 tabular-nums">{fmtTime(order.createdAt)}</span>
+                            <span className="text-xs font-mono text-accent/60 tabular-nums">{fmtTime(order.createdAt)}</span>
                           </div>
                         </div>
                         <div className="border-t border-amber-500/10 pt-4 space-y-2.5">
                           {order.items.map(item => (
                             <div key={item.id} className="flex items-center gap-3">
-                              <span className="text-base font-bold text-amber-400 min-w-[2.5rem] tabular-nums">{item.quantity}×</span>
+                              <span className="text-base font-bold text-accent min-w-[2.5rem] tabular-nums">{item.quantity}×</span>
                               <span className="text-sm text-foreground/80 font-medium">{item.name}</span>
                             </div>
                           ))}
@@ -352,7 +352,7 @@ export default function KitchenPage() {
               <section>
                 <div className="flex items-center gap-3 mb-4 px-1">
                   <Timer className="w-4 h-4 text-sky-500" />
-                  <h2 className="text-lg font-bold text-sky-500 tracking-tight">{t("kitchen.preparingOrders")} ({preparingOrders.length})</h2>
+                  <h2 className="text-lg font-bold font-display text-sky-500 tracking-tight">{t("kitchen.preparingOrders")} ({preparingOrders.length})</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
                   {preparingOrders.map(order => (

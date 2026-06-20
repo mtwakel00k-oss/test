@@ -145,7 +145,7 @@ export default function DriverManagePage({ params }: { params: Promise<{ order_i
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs mb-3 font-medium tracking-wide">
             Delivery
           </div>
-          <h1 className="text-xl font-bold tracking-tight">Order #{order.order_number}</h1>
+          <h1 className="text-xl font-bold font-display tracking-tight">Order #{order.order_number}</h1>
           <p className="text-sm text-muted-foreground">{order.customer_name}</p>
         </div>
 
@@ -212,7 +212,7 @@ export default function DriverManagePage({ params }: { params: Promise<{ order_i
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">Payment</span>
-                <span className={`text-sm font-medium ${order.payment_status === "paid" ? "text-emerald-400" : "text-amber-400"}`}>
+                <span className={`text-sm font-medium ${order.payment_status === "paid" ? "text-emerald-400" : "text-accent"}`}>
                   {order.payment_status === "paid" ? "Paid" : "Cash on delivery"}
                 </span>
               </div>
@@ -230,7 +230,7 @@ export default function DriverManagePage({ params }: { params: Promise<{ order_i
             </p>
 
             <button onClick={handleDelivered} disabled={confirming}
-              className="w-full rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white py-4 text-base font-bold hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97] shadow-lg shadow-emerald-500/20">
+              className="w-full rounded-xl bg-accent text-white py-4 text-base font-bold hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97] shadow-lg shadow-accent/20">
               {confirming ? (
                 <span className="flex items-center justify-center gap-2">
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

@@ -35,7 +35,7 @@ function OrderSkeleton() {
 }
 
 const STATUS_ICONS: Record<string, { icon: React.ReactNode; color: string; label: string }> = {
-  pending: { icon: <Clock className="w-5 h-5" />, color: "bg-amber-500", label: "track.pending" },
+  pending: { icon: <Clock className="w-5 h-5" />, color: "bg-accent", label: "track.pending" },
   preparing: { icon: <ChefHat className="w-5 h-5" />, color: "bg-sky-500", label: "track.preparing" },
   ready: { icon: <Package className="w-5 h-5" />, color: "bg-emerald-500", label: "track.ready" },
   out_for_delivery: { icon: <Bike className="w-5 h-5" />, color: "bg-violet-500", label: "track.outForDelivery" },
@@ -252,7 +252,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
               <line x1="15" y1="9" x2="15.01" y2="9" />
             </svg>
           </div>
-          <h1 className="text-xl font-bold text-foreground mb-1.5">{t("order.notFound")}</h1>
+          <h1 className="text-xl font-bold font-display text-foreground mb-1.5">{t("order.notFound")}</h1>
           {errorMsg && <p className="text-sm text-muted-foreground mb-1">{errorMsg}</p>}
           {process.env.NODE_ENV === "development" && errorDetail && (
             <p className="text-xs text-destructive/60 mb-6 break-all">{errorDetail}</p>
@@ -279,7 +279,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
             <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.color}`} />
             {t(statusInfo.label)}
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          <h1 className="text-2xl font-bold font-display tracking-tight text-foreground">
             {t("track.orderNumber")} <span className="text-primary">#{order.order_number ?? ""}</span>
           </h1>
           <p className="text-sm text-muted-foreground mt-1.5">
@@ -369,7 +369,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
             <div className="px-5 py-4 border-b border-border/30 bg-gradient-to-r from-primary-bg to-transparent">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-primary" />
-                <h2 className="text-sm font-semibold text-foreground">{t("order.rateMeals")}</h2>
+                <h2 className="text-sm font-semibold font-display text-foreground">{t("order.rateMeals")}</h2>
               </div>
               <p className="text-xs text-muted-foreground/70 mt-0.5">{t("order.rateSubtitle")}</p>
             </div>

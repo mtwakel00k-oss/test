@@ -54,12 +54,12 @@ export default function SettingsPage() {
           <Settings className="h-5 w-5" />
         </div>
         <div>
-          <h1 className="text-lg font-bold">Global Settings</h1>
+          <h1 className="text-lg font-bold tracking-tight font-display">Global Settings</h1>
           <p className="text-sm text-muted-foreground">System-wide configuration</p>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-border/40 bg-card p-6 space-y-5">
+      <div className="rounded-2xl border border-border/40 bg-card/50 backdrop-blur-xl p-6 space-y-5">
         <label className="flex items-center justify-between">
           <div>
             <p className="font-medium text-sm">Maintenance Mode</p>

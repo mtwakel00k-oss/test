@@ -171,7 +171,7 @@ export default function DriverPage() {
           <p className="text-sm leading-relaxed text-white/50">
             {error ?? t("driver.invalidLinkSub", LANG)}
           </p>
-          <button onClick={fetchOrders} className="inline-flex rounded-xl bg-amber-500 text-white px-6 py-3 text-sm font-bold hover:bg-amber-400 transition-all shadow-lg shadow-amber-500/20 active:scale-95">
+          <button onClick={fetchOrders} className="inline-flex rounded-xl bg-accent text-white px-6 py-3 text-sm font-bold hover:bg-amber-400 transition-all shadow-lg shadow-accent/20 active:scale-95">
             {t("driver.refresh", LANG)}
           </button>
         </div>
@@ -185,12 +185,12 @@ export default function DriverPage() {
       <div className="sticky top-0 z-20 bg-zinc-950/80 backdrop-blur-xl border-b border-white/5">
         <div className="flex items-center justify-between max-w-lg px-4 py-3 mx-auto">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-amber-500/20">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-amber-600 shadow-lg shadow-accent/20">
               <Truck className="size-5 text-white" />
             </div>
             <div>
               <p className="text-[10px] text-white/40 uppercase tracking-wider">{data.restaurant}</p>
-              <h1 className="text-base font-bold text-white">{data.driver.name}</h1>
+              <h1 className="text-base font-bold font-display text-white">{data.driver.name}</h1>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -208,7 +208,7 @@ export default function DriverPage() {
               </div>
             ) : null}
             <button onClick={fetchOrders}
-              className="flex items-center justify-center h-10 w-10 rounded-lg bg-white/5 hover:bg-amber-500/20 hover:text-amber-400 text-white/50 transition-all active:scale-90">
+              className="flex items-center justify-center h-10 w-10 rounded-lg bg-white/5 hover:bg-accent/20 hover:text-accent text-white/50 transition-all active:scale-90">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
@@ -242,7 +242,7 @@ export default function DriverPage() {
                 {/* Customer header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 bg-gradient-to-r from-white/[0.03] to-transparent">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500/20 border border-amber-500/30">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10 border border-accent/20">
                       <User className="size-5 text-amber-400" />
                     </div>
                     <div>

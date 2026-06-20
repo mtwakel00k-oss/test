@@ -66,7 +66,7 @@ export default function SetupPage() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-32 -start-32 w-96 h-96 rounded-full bg-primary/[0.03] blur-3xl" />
-        <div className="absolute -bottom-32 -end-32 w-80 h-80 rounded-full bg-amber-500/[0.03] blur-3xl" />
+        <div className="absolute -bottom-32 -end-32 w-80 h-80 rounded-full bg-accent/[0.05] blur-3xl" />
       </div>
       <div className="w-full max-w-sm relative">
         <div className="rounded-2xl border border-border/50 bg-card/50 backdrop-blur-xl p-8 shadow-xl">
@@ -76,7 +76,7 @@ export default function SetupPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
               </svg>
             </div>
-            <h1 className="text-xl font-bold text-foreground tracking-tight">Root Admin Setup</h1>
+            <h1 className="text-xl font-bold text-foreground tracking-tight font-display">Root Admin Setup</h1>
             <p className="text-sm text-muted-foreground/70 mt-1.5">Create the initial owner account</p>
           </div>
 
