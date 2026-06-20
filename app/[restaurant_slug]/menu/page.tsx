@@ -1,28 +1,28 @@
+import { Suspense } from "react"
 import { supabaseForSlugRSC } from "@/lib/tenant"
 import type { MenuProduct } from "@/lib/types"
 import { FoodDeliveryApp } from "@/components/food-delivery-app"
+import { MenuSkeleton } from "@/components/menu-skeleton"
 
-export default async function MenuPage({ params }: { params: Promise<{ restaurant_slug: string }> }) {
-  const { restaurant_slug } = await params
+async function MenuContent({ slug }: { slug: string }) {
   let initialProducts: MenuProduct[] = []
 
   try {
-    const sb = await supabaseForSlugRSC(restaurant_slug)
-    const { data } = await (sb.from("v_products_flat"))
-      .select("*")
-      .order("category")
-      .order("id")
+    const sb = await supabaseForSlugRSC(slug)
+    const [productsResult, availResult] = await Promise.all([
+      (sb.from("v_products_flat")).select("*").order("category").order("id"),
+      (async () => { try { return await sb.from("produits").select("id, is_available") } catch { return { data: null } } })(),
+    ])
 
+    const data = productsResult.data
     if (data) {
       const availability: Record<number, boolean> = {}
-      try {
-        const { data: avail } = await (sb.from("produits")).select("id, is_available")
-        if (avail) {
-          for (const row of avail) {
-            availability[row.id] = row.is_available !== false
-          }
+      const avail = availResult?.data
+      if (avail) {
+        for (const row of avail) {
+          availability[row.id] = row.is_available !== false
         }
-      } catch {}
+      }
 
       initialProducts = (data as MenuProduct[]).map(item => ({
         ...item,
@@ -33,5 +33,15 @@ export default async function MenuPage({ params }: { params: Promise<{ restauran
     // Fall back to client-side fetch
   }
 
-  return <FoodDeliveryApp initialProducts={initialProducts} slug={restaurant_slug} />
+  return <FoodDeliveryApp initialProducts={initialProducts} slug={slug} />
+}
+
+export default async function MenuPage({ params }: { params: Promise<{ restaurant_slug: string }> }) {
+  const { restaurant_slug } = await params
+
+  return (
+    <Suspense fallback={<MenuSkeleton />}>
+      <MenuContent slug={restaurant_slug} />
+    </Suspense>
+  )
 }

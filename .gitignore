@@ -68,3 +68,5 @@ debug-*.png
 snapshot*.txt
 .env.production
 .env.preview
+trace*.json*
+*.json.gz

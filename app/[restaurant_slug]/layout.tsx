@@ -13,6 +13,9 @@ export async function generateMetadata({ params }: { params: Promise<{ restauran
   return {
     title: `${tenant.name} - Order Your Favorites`,
     description: `Order your favorite meals from ${tenant.name}`,
+    alternates: {
+      canonical: `https://simploo.vercel.app/${restaurant_slug}/menu`,
+    },
   }
 }
 

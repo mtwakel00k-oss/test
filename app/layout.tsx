@@ -29,6 +29,9 @@ export const metadata: Metadata = {
   creator: "RestoOS",
   publisher: "RestoOS",
   robots: "index, follow",
+  alternates: {
+    canonical: "https://simploo.vercel.app",
+  },
   openGraph: {
     type: "website",
     url: "https://simploo.vercel.app",
