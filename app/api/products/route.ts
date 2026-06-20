@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
     try {
       await (sb.from("produits")).select("id, is_available").limit(1)
     } catch {
-      logger.warn("is_available column missing — defaulting to true")
+      logger.warn("is_available column missing — defaulting to true. Run tenant migration SQL in Supabase Dashboard to fix.")
     }
 
     const session = parseSession(req.headers.get("cookie") || "")

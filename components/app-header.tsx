@@ -94,7 +94,7 @@ export function AppHeader({ cartItemCount, onCart }: AppHeaderProps) {
               transition={{ duration: 0.5, delay: 0.12, ease: [0.32, 0.72, 0, 1] }}
               className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.15em] text-primary"
             >
-              <span className="size-1.5 rounded-full bg-primary animate-pulse" />
+              <span className="size-1.5 rounded-full bg-primary animate-pulse" aria-hidden="true" />
               مفتوح الآن
             </motion.span>
           </div>
@@ -112,6 +112,7 @@ export function AppHeader({ cartItemCount, onCart }: AppHeaderProps) {
           </button>
           <button
             onClick={onCart}
+            aria-label={`${cartItemCount > 0 ? cartItemCount + " items in " : ""}Cart`}
             className="relative grid size-10 place-items-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-md),var(--shadow-glow)] transition-all duration-500 hover:scale-[1.03] active:scale-[0.97]"
           >
             <ShoppingBag className="size-[18px]" strokeWidth={1.5} />

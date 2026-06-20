@@ -8,6 +8,7 @@ import { Geist, Instrument_Serif } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { scopeFromPath, scopedCookieKey } from "@/lib/i18n-scope";
 import { OfflineDetector } from "@/components/offline-detector"
+import { SentryBoundary } from "@/components/sentry-boundary"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
 const instrumentSerif = Instrument_Serif({
@@ -114,9 +115,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
       </head>
       <body className="antialiased bg-background text-foreground font-sans">
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-lg focus:outline-none">
+          تخطي إلى المحتوى الرئيسي
+        </a>
         <LangProvider lang={lang}>
           <ThemeProvider>
-            {children}
+            <SentryBoundary>
+              <div id="main-content" role="main" tabIndex={-1}>
+                {children}
+              </div>
+            </SentryBoundary>
             <Toaster />
             <OfflineDetector />
           </ThemeProvider>

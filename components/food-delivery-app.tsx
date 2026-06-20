@@ -235,7 +235,7 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
   return (
     <ErrorBoundary>
       <div className="min-h-[100dvh] app-surface relative">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
           <div className="absolute -top-48 -right-48 h-[32rem] w-[32rem] rounded-full bg-primary/4 blur-[120px]" />
           <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-accent/4 blur-[100px]" />
         </div>
@@ -254,7 +254,7 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
 
         <AppHeader cartItemCount={itemCount} onCart={() => setCheckoutOpen(true)} />
 
-        <main className="relative mx-auto max-w-5xl px-4 pb-32 pt-8 md:px-6">
+        <main className="relative mx-auto max-w-5xl px-4 pb-32 pt-8 md:px-6" aria-label="Menu content">
           <div className="mb-10">
             <div className="animate-hero-enter">
               <span className="section-eyebrow mb-4">Menu</span>
@@ -280,7 +280,7 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
               >
                 <div className="premium-bezel">
                   <div className="premium-bezel-inner p-6">
-                    <ShoppingBag className="size-10 text-muted-foreground/20" strokeWidth={1} />
+                    <ShoppingBag className="size-10 text-muted-foreground/20" strokeWidth={1} aria-hidden="true" />
                   </div>
                 </div>
                 <div>

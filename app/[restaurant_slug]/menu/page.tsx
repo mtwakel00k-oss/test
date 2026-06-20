@@ -1,14 +1,21 @@
-import { Suspense } from "react"
-import { supabaseForSlugRSC } from "@/lib/tenant"
+import { Suspense, Fragment } from "react"
+import { supabaseForSlugRSC, getTenantConfigRSC } from "@/lib/tenant"
 import type { MenuProduct } from "@/lib/types"
 import { FoodDeliveryApp } from "@/components/food-delivery-app"
 import { MenuSkeleton } from "@/components/menu-skeleton"
+import { restaurantJsonLd, menuJsonLd, jsonLdScript } from "@/lib/json-ld"
 
 async function MenuContent({ slug }: { slug: string }) {
   let initialProducts: MenuProduct[] = []
+  let restaurantName = ""
 
   try {
-    const sb = await supabaseForSlugRSC(slug)
+    const [sb, tenant] = await Promise.all([
+      supabaseForSlugRSC(slug),
+      getTenantConfigRSC(slug),
+    ])
+    restaurantName = tenant?.name || ""
+
     const [productsResult, availResult] = await Promise.all([
       (sb.from("v_products_flat")).select("*").order("category").order("id"),
       (async () => { try { return await sb.from("produits").select("id, is_available") } catch { return { data: null } } })(),
@@ -33,7 +40,24 @@ async function MenuContent({ slug }: { slug: string }) {
     // Fall back to client-side fetch
   }
 
-  return <FoodDeliveryApp initialProducts={initialProducts} slug={slug} />
+  const ld = restaurantName ? [
+    restaurantJsonLd(restaurantName, slug, `Order your favorite meals from ${restaurantName}`),
+    menuJsonLd(initialProducts),
+  ] : []
+
+  return (
+    <Fragment>
+      {ld.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: jsonLdScript(ld.length === 1 ? ld[0] : { "@context": "https://schema.org", "@graph": ld }),
+          }}
+        />
+      )}
+      <FoodDeliveryApp initialProducts={initialProducts} slug={slug} />
+    </Fragment>
+  )
 }
 
 export default async function MenuPage({ params }: { params: Promise<{ restaurant_slug: string }> }) {

@@ -30,7 +30,7 @@ export function CategoryFilter({
 
   return (
     <div className="relative">
-      <div ref={scrollRef} className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 scroll-smooth snap-x snap-mandatory">
+      <div ref={scrollRef} className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 scroll-smooth snap-x snap-mandatory" role="tablist" aria-label="تصفية حسب التصنيف">
         {all.map((cat) => {
           const isSelected = cat === selectedCategory;
           return (
@@ -38,6 +38,8 @@ export function CategoryFilter({
               key={cat}
               ref={isSelected ? activeRef : null}
               onClick={() => onSelectCategory(cat)}
+              role="tab"
+              aria-selected={isSelected}
               className={`relative flex-shrink-0 snap-start whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-500 active:scale-95 ${
                 isSelected
                   ? "bg-primary text-primary-foreground shadow-[var(--shadow-md),var(--shadow-glow)]"
