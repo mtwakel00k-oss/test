@@ -71,31 +71,14 @@ const features = [
   },
 ]
 
-const containerVariants = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.08 } },
-}
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 40 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { type: 'spring' as const, stiffness: 100, damping: 20 },
-  },
-}
-
-const iconPulse = {
-  scale: [1, 1.1, 1],
-  transition: { duration: 3, repeat: Infinity, ease: 'easeInOut' as const },
-}
-
 function TiltCard({
   children,
   className,
+  accent,
 }: {
   children: React.ReactNode
   className?: string
+  accent?: 'primary' | 'accent'
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const [tilt, setTilt] = useState({ x: 0, y: 0 })
@@ -115,23 +98,31 @@ function TiltCard({
     setGlow({ x: 50, y: 50 })
   }
 
+  const glowColor =
+    accent === 'accent'
+      ? 'rgba(255,56,100,0.15)'
+      : 'rgba(45,212,191,0.15)'
+
   return (
     <motion.div
       ref={ref}
-      variants={itemVariants}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      whileHover={{ scale: 1.02, y: -4 }}
+      whileHover={{ scale: 1.03, y: -6 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      initial={{ opacity: 0, y: 60, scale: 0.95 }}
+      viewport={{ once: true, margin: '-60px' }}
+      transition={{ type: 'spring', stiffness: 90, damping: 16 }}
       style={{ perspective: '800px' }}
       className={cn(
-        'group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.03] p-6 backdrop-blur-xl transition-colors duration-500 hover:border-white/[0.12] md:p-8',
+        'group relative overflow-hidden rounded-2xl border border-border/50 bg-card backdrop-blur-xl p-6 shadow-xl shadow-black/20 transition-all duration-500 hover:border-border/80 md:p-8',
         className,
       )}
     >
       <div
-        className="pointer-events-none absolute -inset-pz rounded-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
         style={{
-          background: `radial-gradient(600px circle at ${glow.x}% ${glow.y}%, rgba(212,167,62,0.08), transparent 40%)`,
+          background: `radial-gradient(600px circle at ${glow.x}% ${glow.y}%, ${glowColor}, transparent 40%)`,
         }}
       />
       <div
@@ -150,10 +141,29 @@ function TiltCard({
 export function Features() {
   return (
     <section id="features" className="relative overflow-hidden py-32 md:py-44">
-      <div className="pointer-events-none absolute -left-1/4 top-1/4 size-[600px] rounded-full bg-accent/5 blur-3xl" />
-      <div className="pointer-events-none absolute -right-1/4 bottom-1/4 size-[500px] rounded-full bg-primary/5 blur-3xl" />
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          25% { transform: translate(40px, -60px) scale(1.05); }
+          50% { transform: translate(-20px, 40px) scale(0.95); }
+          75% { transform: translate(-50px, -30px) scale(1.02); }
+        }
+        @keyframes float-slow {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(30px, 50px) scale(1.03); }
+          66% { transform: translate(-40px, -20px) scale(0.97); }
+        }
+      `}</style>
 
-      <div className="pointer-events-none absolute left-1/2 top-0 h-px w-1/2 -translate-x-1/2 bg-gradient-to-r from-transparent via-accent/30 to-transparent" />
+      {/* Animated gradient orbs */}
+      <div className="pointer-events-none absolute -left-48 -top-48 size-[800px] animate-[float_14s_ease-in-out_infinite] rounded-full bg-primary/15 blur-[140px]" />
+      <div className="pointer-events-none absolute -bottom-48 -right-48 size-[700px] animate-[float-slow_18s_ease-in-out_infinite] rounded-full bg-accent/15 blur-[140px]" />
+      <div className="pointer-events-none absolute left-1/4 top-1/3 size-[500px] animate-[float_20s_ease-in-out_infinite_3s] rounded-full bg-primary/8 blur-[120px]" />
+      <div className="pointer-events-none absolute right-1/4 bottom-1/3 size-[450px] animate-[float-slow_22s_ease-in-out_infinite_5s] rounded-full bg-accent/8 blur-[120px]" />
+
+      {/* Gradient border line */}
+      <div className="pointer-events-none absolute left-1/2 top-0 h-px w-3/4 -translate-x-1/2 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+      <div className="pointer-events-none absolute left-1/2 bottom-0 h-px w-3/4 -translate-x-1/2 bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
 
       <div className="mx-auto max-w-7xl px-4 md:px-8" dir="rtl">
         <div className="mx-auto max-w-2xl text-center">
@@ -163,7 +173,7 @@ export function Features() {
             viewport={{ once: true }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="mx-auto mb-6 h-1 w-16 rounded-full bg-accent" />
+            <div className="mx-auto mb-6 h-1 w-16 rounded-full bg-primary" />
             <h2 className="font-display text-[clamp(2rem,4vw,3.5rem)] font-normal leading-[1.15] tracking-tight text-foreground">
               كل ما تحتاجه في منصة واحدة
             </h2>
@@ -173,25 +183,24 @@ export function Features() {
           </motion.div>
         </div>
 
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, margin: '-80px' }}
-          className="relative mt-24 grid grid-cols-1 gap-5 md:mt-32 md:grid-cols-3 md:grid-rows-[auto_auto_auto]"
-        >
-          <TiltCard className="md:col-span-2 md:row-span-2">
+        <div className="relative mt-24 grid grid-cols-1 gap-5 md:mt-32 md:grid-cols-3 md:grid-rows-[auto_auto_auto]">
+          {/* Hero card — large, teal */}
+          <TiltCard className="md:col-span-2 md:row-span-2" accent="primary">
             <div className="flex h-full flex-col justify-between gap-6">
               <div className="flex items-center gap-3">
                 <div className="relative">
-                  <div className="absolute inset-0 rounded-xl bg-accent/20 blur-xl" />
-                  <div className="relative grid size-12 place-items-center rounded-xl bg-accent text-white md:size-14">
-                    <motion.div animate={iconPulse} className="size-6 md:size-7">
+                  <div className="absolute inset-0 rounded-xl bg-primary/30 blur-xl" />
+                  <div className="relative grid size-12 place-items-center rounded-xl bg-primary text-white shadow-lg shadow-primary/20 md:size-14">
+                    <motion.div
+                      animate={{ scale: [1, 1.12, 1] }}
+                      transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                      className="size-6 md:size-7"
+                    >
                       {features[0].svg}
                     </motion.div>
                   </div>
                 </div>
-                <span className="text-[11px] font-semibold tracking-[0.15em] text-accent uppercase">
+                <span className="text-[11px] font-semibold tracking-[0.15em] text-primary uppercase">
                   الميزة الأساسية
                 </span>
               </div>
@@ -206,12 +215,17 @@ export function Features() {
             </div>
           </TiltCard>
 
-          <TiltCard>
+          {/* POS — magenta */}
+          <TiltCard accent="accent">
             <div className="flex flex-col gap-4">
               <div className="relative">
-                <div className="absolute inset-0 rounded-xl bg-primary/10 blur-lg" />
-                <div className="relative grid size-10 place-items-center rounded-lg bg-primary text-white md:size-12">
-                  <motion.div animate={iconPulse} className="size-5 md:size-6">
+                <div className="absolute inset-0 rounded-xl bg-accent/30 blur-lg" />
+                <div className="relative grid size-10 place-items-center rounded-lg bg-accent text-white shadow-lg shadow-accent/20 md:size-12">
+                  <motion.div
+                    animate={{ scale: [1, 1.12, 1] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                    className="size-5 md:size-6"
+                  >
                     {features[1].svg}
                   </motion.div>
                 </div>
@@ -225,12 +239,17 @@ export function Features() {
             </div>
           </TiltCard>
 
-          <TiltCard>
+          {/* KDS — teal */}
+          <TiltCard accent="primary">
             <div className="flex flex-col gap-4">
               <div className="relative">
-                <div className="absolute inset-0 rounded-xl bg-primary/10 blur-lg" />
-                <div className="relative grid size-10 place-items-center rounded-lg bg-primary text-white md:size-12">
-                  <motion.div animate={iconPulse} className="size-5 md:size-6">
+                <div className="absolute inset-0 rounded-xl bg-primary/30 blur-lg" />
+                <div className="relative grid size-10 place-items-center rounded-lg bg-primary text-white shadow-lg shadow-primary/20 md:size-12">
+                  <motion.div
+                    animate={{ scale: [1, 1.12, 1] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                    className="size-5 md:size-6"
+                  >
                     {features[2].svg}
                   </motion.div>
                 </div>
@@ -244,12 +263,17 @@ export function Features() {
             </div>
           </TiltCard>
 
-          <TiltCard className="md:col-span-2">
+          {/* Dashboard — magenta, wide */}
+          <TiltCard className="md:col-span-2" accent="accent">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-8">
               <div className="relative shrink-0">
-                <div className="absolute inset-0 rounded-xl bg-accent/15 blur-xl" />
-                <div className="relative grid size-12 place-items-center rounded-xl bg-accent text-white md:size-14">
-                  <motion.div animate={iconPulse} className="size-6 md:size-7">
+                <div className="absolute inset-0 rounded-xl bg-accent/30 blur-xl" />
+                <div className="relative grid size-12 place-items-center rounded-xl bg-accent text-white shadow-lg shadow-accent/20 md:size-14">
+                  <motion.div
+                    animate={{ scale: [1, 1.12, 1] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                    className="size-6 md:size-7"
+                  >
                     {features[3].svg}
                   </motion.div>
                 </div>
@@ -265,12 +289,17 @@ export function Features() {
             </div>
           </TiltCard>
 
-          <TiltCard>
+          {/* Languages — teal */}
+          <TiltCard accent="primary">
             <div className="flex flex-col gap-4">
               <div className="relative">
-                <div className="absolute inset-0 rounded-xl bg-primary/10 blur-lg" />
-                <div className="relative grid size-10 place-items-center rounded-lg bg-primary text-white md:size-12">
-                  <motion.div animate={iconPulse} className="size-5 md:size-6">
+                <div className="absolute inset-0 rounded-xl bg-primary/30 blur-lg" />
+                <div className="relative grid size-10 place-items-center rounded-lg bg-primary text-white shadow-lg shadow-primary/20 md:size-12">
+                  <motion.div
+                    animate={{ scale: [1, 1.12, 1] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                    className="size-5 md:size-6"
+                  >
                     {features[4].svg}
                   </motion.div>
                 </div>
@@ -284,12 +313,17 @@ export function Features() {
             </div>
           </TiltCard>
 
-          <TiltCard>
+          {/* Security — magenta */}
+          <TiltCard accent="accent">
             <div className="flex flex-col gap-4">
               <div className="relative">
-                <div className="absolute inset-0 rounded-xl bg-primary/10 blur-lg" />
-                <div className="relative grid size-10 place-items-center rounded-lg bg-primary text-white md:size-12">
-                  <motion.div animate={iconPulse} className="size-5 md:size-6">
+                <div className="absolute inset-0 rounded-xl bg-accent/30 blur-lg" />
+                <div className="relative grid size-10 place-items-center rounded-lg bg-accent text-white shadow-lg shadow-accent/20 md:size-12">
+                  <motion.div
+                    animate={{ scale: [1, 1.12, 1] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                    className="size-5 md:size-6"
+                  >
                     {features[5].svg}
                   </motion.div>
                 </div>
@@ -302,7 +336,7 @@ export function Features() {
               </p>
             </div>
           </TiltCard>
-        </motion.div>
+        </div>
       </div>
     </section>
   )

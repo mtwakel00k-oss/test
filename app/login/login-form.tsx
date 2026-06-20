@@ -111,7 +111,6 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
   const visibleRoles: PageRole[] = slugProp ? ["cashier", "chef", "admin"] : ["admin", "owner"]
   const activeRole = ROLE_CONFIG[page]
 
-  // ── Desktop brand panel (left column) ───────────────────────────
   const BrandPanel = () => {
     const shapes = [
       { type: "circle", size: 220, x: "5%", y: "10%", dur: 9, rotDur: 30 },
@@ -126,30 +125,27 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-        className="relative hidden md:flex flex-col items-center justify-center bg-primary p-12 overflow-hidden min-h-screen select-none"
+        className="relative hidden md:flex flex-col items-center justify-center bg-zinc-950 p-12 overflow-hidden min-h-screen select-none"
       >
-        {/* Grid overlay */}
         <div
-          className="pointer-events-none absolute inset-0 opacity-[0.04]"
+          className="pointer-events-none absolute inset-0 opacity-[0.06]"
           style={{
             backgroundImage: [
-              "linear-gradient(rgba(255,255,255,.12) 1px, transparent 1px)",
-              "linear-gradient(90deg, rgba(255,255,255,.12) 1px, transparent 1px)",
+              "linear-gradient(rgba(0,200,200,.15) 1px, transparent 1px)",
+              "linear-gradient(90deg, rgba(0,200,200,.15) 1px, transparent 1px)",
             ].join(","),
             backgroundSize: "32px 32px",
           }}
         />
 
-        {/* Ambient glow orbs */}
-        <div className="pointer-events-none absolute -top-48 -right-48 h-[600px] w-[600px] rounded-full bg-white/8 blur-[150px]" />
-        <div className="pointer-events-none absolute -bottom-48 -left-48 h-[500px] w-[500px] rounded-full bg-accent/10 blur-[120px]" />
+        <div className="pointer-events-none absolute -top-48 -right-48 h-[600px] w-[600px] rounded-full bg-primary/10 blur-[150px]" />
+        <div className="pointer-events-none absolute -bottom-48 -left-48 h-[500px] w-[500px] rounded-full bg-accent/8 blur-[120px]" />
 
-        {/* Floating geometric shapes */}
         {shapes.map((s, i) => (
           <motion.div
             key={i}
             className={cn(
-              "pointer-events-none absolute border border-white/10",
+              "pointer-events-none absolute border border-primary/15",
               s.type === "circle" ? "rounded-full" : "rounded-[2px]"
             )}
             style={{
@@ -169,12 +165,11 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
           />
         ))}
 
-        {/* Animated floating dots that pulse and fade */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           {Array.from({ length: 24 }).map((_, i) => (
             <motion.div
               key={`dot-${i}`}
-              className="absolute h-1.5 w-1.5 rounded-full bg-white/20"
+              className="absolute h-1.5 w-1.5 rounded-full bg-primary/25"
               style={{
                 left: `${(i % 8) * 14 + 4}%`,
                 top: `${Math.floor(i / 8) * 30 + 12}%`,
@@ -194,32 +189,29 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
           ))}
         </div>
 
-        {/* Brand content */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 100, damping: 18, delay: 0.3 }}
           className="relative z-10 flex flex-col items-center text-center"
         >
-          {/* Frosted glass logo box */}
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 120, damping: 14, delay: 0.5 }}
-            className="mb-10 grid size-28 place-items-center rounded-3xl bg-white/10 ring-1 ring-white/20 shadow-2xl backdrop-blur-xl"
+            className="mb-10 grid size-28 place-items-center rounded-3xl bg-white/5 ring-1 ring-primary/20 shadow-2xl backdrop-blur-xl"
           >
-            <svg className="size-14 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+            <svg className="size-14 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
           </motion.div>
 
-          {/* RestoOS brand */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 100, damping: 16, delay: 0.6 }}
-            className="font-display text-[3rem] font-normal leading-none tracking-tight text-primary-foreground"
+            className="font-display text-[3rem] font-normal leading-none tracking-tight text-white"
           >
             RestoOS
           </motion.h1>
@@ -228,20 +220,18 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
             transition={{ type: "spring", stiffness: 80, damping: 14, delay: 0.8 }}
-            className="my-5 h-px w-16 origin-center bg-white/15"
+            className="my-5 h-px w-16 origin-center bg-primary/30"
           />
 
-          {/* Poetic tagline */}
           <motion.p
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 90, damping: 15, delay: 0.9 }}
-            className="text-base text-primary-foreground/65 max-w-[16rem] leading-relaxed"
+            className="text-base text-white/65 max-w-[16rem] leading-relaxed"
           >
             حيث تُكتب قصص النكهات
           </motion.p>
 
-          {/* Animated dots indicator */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -251,9 +241,9 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
             {[0, 1, 2, 3, 4].map((i) => (
               <motion.span
                 key={i}
-                className="size-1.5 rounded-full bg-white/20"
+                className="size-1.5 rounded-full bg-primary/30"
                 animate={{
-                  opacity: [0.2, 0.6, 0.2],
+                  opacity: [0.2, 0.8, 0.2],
                   scale: [1, 1.3, 1],
                 }}
                 transition={{
@@ -266,12 +256,11 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
             ))}
           </motion.div>
 
-          {/* Footer */}
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.4, duration: 0.6 }}
-            className="mt-4 text-[11px] font-medium tracking-[0.2em] uppercase text-primary-foreground/25"
+            className="mt-4 text-[11px] font-medium tracking-[0.2em] uppercase text-white/25"
           >
             Smart POS System
           </motion.p>
@@ -280,22 +269,28 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
     )
   }
 
-  // ── Two-column / single-column layout shell ────────────────────
   const PageShell = ({ children }: { children: ReactNode }) => (
-    <div className="min-h-[100dvh] app-surface md:grid md:grid-cols-[43%_57%] overflow-hidden">
+    <div dir="rtl" className="min-h-[100dvh] bg-zinc-950 md:grid md:grid-cols-[43%_57%] overflow-hidden">
       <BrandPanel />
       <div className="relative min-h-[100dvh] flex flex-col">
-        {/* Mobile brand strip */}
-        <div className="md:hidden flex items-center gap-3 bg-primary px-5 py-4">
-          <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-white/10">
-            <svg className="size-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        {/* Scan line overlay on right panel */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.03] z-0"
+          style={{
+            backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,200,200,.06) 2px, rgba(0,200,200,.06) 4px)",
+          }}
+        />
+
+        <div className="md:hidden flex items-center gap-3 bg-zinc-950 px-5 py-4 border-b border-white/5">
+          <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-white/5 ring-1 ring-primary/20">
+            <svg className="size-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <span className="font-display text-base text-primary-foreground">RestoOS</span>
-            <p className="text-[11px] text-primary-foreground/60 truncate">نظام نقاط البيع الذكي</p>
+            <span className="font-display text-base text-white">RestoOS</span>
+            <p className="text-[11px] text-white/60 truncate">نظام نقاط البيع الذكي</p>
           </div>
           <div className="flex items-center gap-1 shrink-0">
             <ThemeToggle />
@@ -303,17 +298,15 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
           </div>
         </div>
 
-        {/* Desktop top bar */}
         <div className="hidden md:flex absolute top-6 ltr:right-6 rtl:left-6 items-center gap-3 z-10">
           <ThemeToggle />
           <LanguageSwitcher />
         </div>
 
-        {/* Content area */}
-        <div className="relative flex flex-1 flex-col items-center justify-center p-4 md:p-8 overflow-hidden">
+        <div className="relative flex flex-1 flex-col items-center justify-center p-4 md:p-8 overflow-hidden z-10">
           <div className="pointer-events-none absolute inset-0">
-            <div className="absolute -top-24 end-0 h-80 w-80 rounded-full bg-primary/8 blur-[90px]" />
-            <div className="absolute -bottom-24 start-0 h-72 w-72 rounded-full bg-accent/6 blur-[80px]" />
+            <div className="absolute -top-24 end-0 h-80 w-80 rounded-full bg-primary/5 blur-[90px]" />
+            <div className="absolute -bottom-24 start-0 h-72 w-72 rounded-full bg-accent/5 blur-[80px]" />
           </div>
           {children}
         </div>
@@ -321,7 +314,6 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
     </div>
   )
 
-  // ── Tenant selection page ───────────────────────────────────────
   if (!slugProp && tenants && tenants.length > 0) {
     if (showOwnerForm) {
       return (
@@ -344,7 +336,7 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 120, damping: 14, delay: 0.2 }}
-              className="mx-auto mb-6 grid size-16 place-items-center rounded-2xl bg-primary/10 shadow-[var(--shadow-md)]"
+              className="mx-auto mb-6 grid size-16 place-items-center rounded-2xl bg-primary/10 ring-1 ring-primary/20 shadow-lg"
             >
               <svg className="size-8 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -355,7 +347,7 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ type: "spring", stiffness: 100, damping: 16, delay: 0.3 }}
-              className="font-display text-3xl font-normal tracking-tight text-foreground"
+              className="font-display text-3xl font-normal tracking-tight text-white"
             >
               {t("login.pickRestaurant")}
             </motion.h1>
@@ -363,7 +355,7 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.6 }}
-              className="mt-3 text-sm text-muted-foreground"
+              className="mt-3 text-sm text-white/50"
             >
               {t("login.pickRestaurantSub")}
             </motion.p>
@@ -378,7 +370,7 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
                 onClick={() => router.push(`/${tenant.slug}/login`)}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
-                className="group flex w-full items-center justify-between rounded-2xl border border-border/50 bg-card/70 px-5 py-4 text-right shadow-sm transition-all duration-500 hover:border-primary/20 hover:shadow-[var(--shadow-md)]"
+                className="group flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl px-5 py-4 text-right shadow-sm transition-all duration-500 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5"
               >
                 <div className="flex items-center gap-4">
                   <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary/8 text-primary transition-transform duration-500 group-hover:scale-105">
@@ -388,11 +380,11 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
                     </svg>
                   </div>
                   <div className="text-right">
-                    <span className="text-sm font-semibold text-foreground">{tenant.name}</span>
-                    <Badge variant="secondary" className="mt-1.5 font-mono text-[10px]">/{tenant.slug}</Badge>
+                    <span className="text-sm font-semibold text-white">{tenant.name}</span>
+                    <Badge className="mt-1.5 font-mono text-[10px] bg-white/5 text-white/50 border-white/10">/{tenant.slug}</Badge>
                   </div>
                 </div>
-                <svg className="size-5 text-muted-foreground/30 transition-all duration-500 group-hover:text-primary ltr:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="size-5 text-white/20 transition-all duration-500 group-hover:text-primary ltr:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
                 </svg>
               </motion.button>
@@ -401,10 +393,10 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
           <div className="mt-8 text-center">
             <div className="relative mb-4">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border/30" />
+                <div className="w-full border-t border-white/10" />
               </div>
               <div className="relative flex justify-center">
-                <span className="bg-background px-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground/40">{t("login.or")}</span>
+                <span className="bg-zinc-950 px-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-white/30">{t("login.or")}</span>
               </div>
             </div>
             <motion.button
@@ -412,7 +404,7 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               transition={{ type: "spring", stiffness: 150, damping: 20 }}
-              className="group inline-flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-5 py-3 text-sm font-semibold text-primary transition-all duration-500 hover:border-primary/40 hover:bg-primary/10"
+              className="group inline-flex items-center gap-2 rounded-xl border border-primary/25 bg-primary/5 px-5 py-3 text-sm font-semibold text-primary transition-all duration-500 hover:border-primary/40 hover:bg-primary/10"
             >
               <RoleIcon role="owner" />
               <span>{t("login.owner")}</span>
@@ -423,7 +415,6 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
     )
   }
 
-  // ── Login form card ─────────────────────────────────────────────
   function LoginCard() {
     return (
       <motion.div
@@ -438,11 +429,11 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
         }
         className="relative w-full max-w-sm px-4"
       >
-        <div className="overflow-hidden rounded-2xl border border-border/40 bg-card/70 backdrop-blur-xl shadow-[var(--shadow-xl)]">
+        <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl shadow-2xl shadow-primary/5">
           {(slugProp || showOwnerForm) && (
             <div className="px-6 pt-5">
               <button onClick={() => showOwnerForm ? setShowOwnerForm(false) : router.push("/login")}
-                className="flex items-center gap-2 text-xs font-medium text-muted-foreground/60 transition-colors hover:text-foreground">
+                className="flex items-center gap-2 text-xs font-medium text-white/40 transition-colors hover:text-white">
                 <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
@@ -456,18 +447,18 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", stiffness: 120, damping: 14 }}
-              className="mx-auto mb-5 grid size-16 place-items-center rounded-2xl bg-primary/8 text-primary"
+              className="mx-auto mb-5 grid size-16 place-items-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20"
             >
               <RoleIcon role={page} />
             </motion.div>
-            <h1 className="font-display text-2xl font-normal tracking-tight text-foreground">{t(`${activeRole.labelKey}`)}</h1>
-            <p className="mt-1.5 text-sm text-muted-foreground/60">{t("login.subtitle")}</p>
+            <h1 className="font-display text-2xl font-normal tracking-tight text-white">{t(`${activeRole.labelKey}`)}</h1>
+            <p className="mt-1.5 text-sm text-white/50">{t("login.subtitle")}</p>
           </div>
 
           <div className="px-6 pb-6">
             {visibleRoles.length > 1 && (
               <LayoutGroup>
-                <div className="mb-5 flex gap-1 rounded-full border border-border/30 bg-muted/40 p-1">
+                <div className="mb-5 flex gap-1 rounded-full border border-white/10 bg-white/[0.02] p-1 backdrop-blur-xl">
                   {visibleRoles.map(key => (
                     <button
                       key={key}
@@ -476,18 +467,18 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
                       className={cn(
                         "relative flex flex-1 items-center justify-center gap-2 rounded-full py-2 transition-colors",
                         page === key
-                          ? "text-foreground"
-                          : "text-muted-foreground/50 hover:text-foreground",
+                          ? "text-white"
+                          : "text-white/40 hover:text-white/70",
                       )}
                     >
                       {page === key && (
                         <motion.div
                           layoutId="active-tab-bg"
-                          className="absolute inset-0 rounded-full bg-card shadow-sm"
+                          className="absolute inset-0 rounded-full bg-white/10 ring-1 ring-primary/30 shadow-lg shadow-primary/10"
                           transition={{ type: "spring", stiffness: 150, damping: 20 }}
                         />
                       )}
-                      <span className={cn("relative z-10 transition-colors", page === key ? "text-primary" : "text-muted-foreground/40")}>
+                      <span className={cn("relative z-10 transition-colors", page === key ? "text-primary" : "text-white/40")}>
                         <RoleIcon role={key} />
                       </span>
                       <span className="relative z-10 text-xs font-semibold">{t(ROLE_CONFIG[key].labelKey)}</span>
@@ -498,7 +489,6 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
             )}
 
             <div className="space-y-3.5">
-              {/* Username input with glow */}
               <div className="relative">
                 <Input
                   data-testid="username-input"
@@ -509,11 +499,16 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
                   onFocus={() => setFocusedInput("username")}
                   onBlur={() => setFocusedInput(null)}
                   placeholder={t("login.usernamePlaceholder")}
-                  className={cn("relative z-10", error && "border-destructive/50")}
+                  className={cn(
+                    "relative z-10 bg-white/5 border-white/10 text-white placeholder:text-white/30",
+                    "focus-visible:ring-primary/50 focus-visible:border-primary/50",
+                    "focus-visible:shadow-[0_0_12px_-2px_oklch(0.62_0.18_195/0.3)]",
+                    error && "border-destructive/50"
+                  )}
                   autoFocus
                 />
                 <motion.div
-                  className="pointer-events-none absolute -inset-0.5 rounded-xl bg-primary/10 blur-md"
+                  className="pointer-events-none absolute -inset-0.5 rounded-xl bg-primary/15 blur-md"
                   initial={false}
                   animate={{
                     opacity: focusedInput === "username" ? 1 : 0,
@@ -523,7 +518,6 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
                 />
               </div>
 
-              {/* Password input with glow */}
               <div className="relative">
                 <Input
                   data-testid="password-input"
@@ -534,10 +528,15 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
                   onFocus={() => setFocusedInput("password")}
                   onBlur={() => setFocusedInput(null)}
                   placeholder={t("login.passwordPlaceholder")}
-                  className={cn("relative z-10", error && "border-destructive/50")}
+                  className={cn(
+                    "relative z-10 bg-white/5 border-white/10 text-white placeholder:text-white/30",
+                    "focus-visible:ring-primary/50 focus-visible:border-primary/50",
+                    "focus-visible:shadow-[0_0_12px_-2px_oklch(0.62_0.18_195/0.3)]",
+                    error && "border-destructive/50"
+                  )}
                 />
                 <motion.div
-                  className="pointer-events-none absolute -inset-0.5 rounded-xl bg-primary/10 blur-md"
+                  className="pointer-events-none absolute -inset-0.5 rounded-xl bg-primary/15 blur-md"
                   initial={false}
                   animate={{
                     opacity: focusedInput === "password" ? 1 : 0,
@@ -569,7 +568,7 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
                   onClick={handleLogin}
                   disabled={loading || !username || !password}
                   size="lg"
-                  className="w-full h-12 rounded-xl text-sm font-semibold shadow-[var(--shadow-md)]"
+                  className="w-full h-12 rounded-xl text-sm font-semibold bg-primary text-white shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40"
                 >
                   {loading ? (
                     <span className="flex items-center justify-center gap-2.5">
@@ -589,7 +588,6 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
     )
   }
 
-  // ── Default: login form ─────────────────────────────────────────
   return (
     <PageShell>
       <LoginCard />
