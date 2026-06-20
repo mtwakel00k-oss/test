@@ -14,8 +14,8 @@ interface MealCardProps {
   sauceId: number | null;
   quantity: number;
   priority?: boolean;
-  onSizeChange: (s: string) => void;
-  onSauceChange: (id: number | null) => void;
+  onSizeChange: (productId: number, s: string) => void;
+  onSauceChange: (productId: number, id: number | null) => void;
   onAdd: () => void;
   onUpdateQuantity: (delta: number) => void;
 }
@@ -100,7 +100,7 @@ export const MealCard = memo(function MealCard({
             {avSizes.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-1.5">
                 {avSizes.map(s => (
-                  <button key={s} onClick={() => onSizeChange(s)}
+                  <button key={s} onClick={() => onSizeChange(product.id, s)}
                     className={`rounded-full px-4 py-1.5 text-[11px] font-bold transition-all duration-500 ${
                       size === s
                         ? "bg-primary text-primary-foreground shadow-[var(--shadow-sm)] ring-1 ring-primary/30"
@@ -115,7 +115,7 @@ export const MealCard = memo(function MealCard({
             {showSauce && (
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {SAUCES.map(s => (
-                  <button key={s.id} onClick={() => onSauceChange(s.id)}
+                  <button key={s.id} onClick={() => onSauceChange(product.id, s.id)}
                     className={`rounded-full px-3.5 py-1.5 text-[11px] font-semibold transition-all duration-500 ${
                       sauceId === s.id
                         ? "bg-primary text-primary-foreground shadow-[var(--shadow-sm)]"

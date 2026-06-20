@@ -1,9 +1,8 @@
 "use client"
 
-import { useEffect, useMemo, useState, useRef, useCallback, useDeferredValue, startTransition, Component, type ReactNode } from "react"
+import { useEffect, useMemo, useState, useRef, useCallback, useDeferredValue, Component, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
-import { motion } from "framer-motion"
 
 import { useTranslation } from "@/lib/use-translation"
 import { logger } from "@/lib/logger"
@@ -145,45 +144,75 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
     }, {} as Record<string, number>)
   , [items])
 
+  const handleSizeChange = useCallback((productId: number, s: string) => {
+    setSizes(prev => ({ ...prev, [productId]: s }))
+  }, [])
+
+  const handleSauceChange = useCallback((productId: number, s: number | null) => {
+    setSauces(prev => ({ ...prev, [productId]: s }))
+  }, [])
+
   useEffect(() => {
     if (initialProducts && initialProducts.length > 0) {
-      startTransition(() => {
-        setCategories([...new Set(initialProducts.map(p => p.category).filter(Boolean))] as string[])
-        const initSauces: Record<number, number | null> = {}
-        initialProducts.forEach(p => { initSauces[p.id] = p.has_white_sauce ? 1 : null })
-        setSauces(initSauces)
-        const initSizes: Record<number, string> = {}
-        initialProducts.forEach(p => {
-          const avSizes = p.prices ? Object.keys(p.prices).filter(s => {
-            const sp = p.prices[s]
-            return sp.sauce_tomate != null || sp.creme_fraiche != null || sp.standard != null
-          }) : []
-          initSizes[p.id] = avSizes[0] || "L"
-        })
-        setSizes(initSizes)
-        setLoading(false)
-      })
+      const prod = initialProducts
+      const catSet = new Set<string>()
+      const initSauces: Record<number, number | null> = {}
+      const initSizes: Record<number, string> = {}
+      for (let i = 0; i < prod.length; i++) {
+        const p = prod[i]
+        if (p.category) catSet.add(p.category)
+        initSauces[p.id] = p.has_white_sauce ? 1 : null
+        if (p.prices) {
+          const keys = Object.keys(p.prices)
+          let found = ""
+          for (let j = 0; j < keys.length; j++) {
+            const sp = p.prices[keys[j]]
+            if (sp.sauce_tomate != null || sp.creme_fraiche != null || sp.standard != null) {
+              found = keys[j]; break
+            }
+          }
+          initSizes[p.id] = found || "L"
+        } else {
+          initSizes[p.id] = "L"
+        }
+      }
+      setCategories([...catSet] as string[])
+      setSauces(initSauces)
+      setSizes(initSizes)
+      setLoading(false)
     } else {
       fetchApi("/api/products").then(r => {
         if (!r.ok) throw new Error(`Products API returned ${r.status}`)
         return r.json()
       }).then(data => {
         if (!Array.isArray(data)) return
-        const available = data.filter((p: { is_available?: boolean }) => p.is_available !== false) as MenuProduct[]
-        setProducts(available)
-        const cats = [...new Set(available.map(p => p.category).filter(Boolean))] as string[]
-        setCategories(cats)
+        const available: MenuProduct[] = []
+        const catSet = new Set<string>()
         const initSauces: Record<number, number | null> = {}
-        available.forEach(p => { initSauces[p.id] = p.has_white_sauce ? 1 : null })
-        setSauces(initSauces)
         const initSizes: Record<number, string> = {}
-        available.forEach(p => {
-          const avSizes = p.prices ? Object.keys(p.prices).filter(s => {
-            const sp = p.prices[s]
-            return sp.sauce_tomate != null || sp.creme_fraiche != null || sp.standard != null
-          }) : []
-          initSizes[p.id] = avSizes[0] || "L"
-        })
+        for (let i = 0; i < data.length; i++) {
+          const p = data[i]
+          if (p.is_available === false) continue
+          available.push(p)
+          if (p.category) catSet.add(p.category)
+          initSauces[p.id] = p.has_white_sauce ? 1 : null
+          if (p.prices) {
+            const keys = Object.keys(p.prices)
+            let found = ""
+            for (let j = 0; j < keys.length; j++) {
+              const sp = p.prices[keys[j]]
+              if (sp.sauce_tomate != null || sp.creme_fraiche != null || sp.standard != null) {
+                found = keys[j]; break
+              }
+            }
+            initSizes[p.id] = found || "L"
+          } else {
+            initSizes[p.id] = "L"
+          }
+        }
+        setProducts(available)
+        setCategories([...catSet] as string[])
+        setSauces(initSauces)
         setSizes(initSizes)
       }).catch(e => {
         logger.error("Failed to fetch products", e)
@@ -227,15 +256,11 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
 
         <main className="relative mx-auto max-w-5xl px-4 pb-32 pt-8 md:px-6">
           <div className="mb-10">
-            <motion.div
-              initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
-            >
+            <div className="animate-hero-enter">
               <span className="section-eyebrow mb-4">Menu</span>
               <h1 className="font-display text-[clamp(2rem,4vw,2.75rem)] font-normal tracking-tight text-foreground">القائمة</h1>
               <p className="mt-3 text-sm text-muted-foreground max-w-md">اختر وجبتك المفضلة من قائمتنا المتنوعة</p>
-            </motion.div>
+            </div>
           </div>
 
           <div className="mb-8">
@@ -250,11 +275,8 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
                 <SkeletonCard />
               </>
             ) : filtered.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                className="col-span-full flex flex-col items-center justify-center py-28 text-center gap-6"
+              <div
+                className="animate-empty-enter col-span-full flex flex-col items-center justify-center py-28 text-center gap-6"
               >
                 <div className="premium-bezel">
                   <div className="premium-bezel-inner p-6">
@@ -265,32 +287,27 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
                   <p className="text-xl font-semibold text-foreground">لا توجد منتجات</p>
                   <p className="text-sm text-muted-foreground/60 mt-2 max-w-xs">عذراً، لا توجد منتجات متوفرة في هذا القسم حالياً.</p>
                 </div>
-              </motion.div>
+              </div>
             ) : (
               filtered.map((p, idx) => {
                 const k = `${p.id}_${sizes[p.id] || "L"}_${sauces[p.id] ?? null}`
                 return (
-                  <motion.div
+                  <div
                     key={p.id}
-                    initial={{ opacity: 0, y: 24 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                      duration: 0.5,
-                      ease: [0.16, 1, 0.3, 1],
-                      delay: 0.1 + idx * 0.06,
-                    }}
+                    className="animate-card-enter"
+                    style={{ animationDelay: `${0.1 + idx * 0.03}s` }}
                   >
                     <MealCard product={p}
                       size={sizes[p.id] || "L"}
                       sauceId={sauces[p.id] ?? null}
                       quantity={isOpen ? cartQuantities[k] || 0 : 0}
                       priority={idx < 6}
-                      onSizeChange={(s) => setSizes(prev => ({ ...prev, [p.id]: s }))}
-                      onSauceChange={(s) => setSauces(prev => ({ ...prev, [p.id]: s }))}
+                      onSizeChange={handleSizeChange}
+                      onSauceChange={handleSauceChange}
                       onAdd={isOpen ? () => debouncedAdd(() => { addItem(p, sizes[p.id] || "L", sauces[p.id] ?? null); logger.info("Added", { name: p.name }) }) : () => {}}
                       onUpdateQuantity={isOpen ? (d) => { updateQuantity(p.id, sizes[p.id] || "L", sauces[p.id] ?? null, d) } : () => {}}
                     />
-                  </motion.div>
+                  </div>
                 )
               })
             )}
