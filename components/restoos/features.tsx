@@ -1,5 +1,6 @@
 'use client'
 
+import { useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
@@ -70,10 +71,80 @@ const features = [
   },
 ]
 
-const container = { hidden: {}, show: { transition: { staggerChildren: 0.08 } } }
-const item = {
-  hidden: { opacity: 0, y: 32 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] as const } },
+const containerVariants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.08 } },
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 40 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { type: 'spring' as const, stiffness: 100, damping: 20 },
+  },
+}
+
+const iconPulse = {
+  scale: [1, 1.1, 1],
+  transition: { duration: 3, repeat: Infinity, ease: 'easeInOut' as const },
+}
+
+function TiltCard({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [tilt, setTilt] = useState({ x: 0, y: 0 })
+  const [glow, setGlow] = useState({ x: 50, y: 50 })
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!ref.current) return
+    const rect = ref.current.getBoundingClientRect()
+    const x = (e.clientX - rect.left) / rect.width
+    const y = (e.clientY - rect.top) / rect.height
+    setTilt({ x: (y - 0.5) * -10, y: (x - 0.5) * 10 })
+    setGlow({ x: x * 100, y: y * 100 })
+  }
+
+  const handleMouseLeave = () => {
+    setTilt({ x: 0, y: 0 })
+    setGlow({ x: 50, y: 50 })
+  }
+
+  return (
+    <motion.div
+      ref={ref}
+      variants={itemVariants}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      whileHover={{ scale: 1.02, y: -4 }}
+      style={{ perspective: '800px' }}
+      className={cn(
+        'group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.03] p-6 backdrop-blur-xl transition-colors duration-500 hover:border-white/[0.12] md:p-8',
+        className,
+      )}
+    >
+      <div
+        className="pointer-events-none absolute -inset-pz rounded-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        style={{
+          background: `radial-gradient(600px circle at ${glow.x}% ${glow.y}%, rgba(212,167,62,0.08), transparent 40%)`,
+        }}
+      />
+      <div
+        className="relative h-full"
+        style={{
+          transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
+          transition: 'transform 0.15s ease-out',
+        }}
+      >
+        {children}
+      </div>
+    </motion.div>
+  )
 }
 
 export function Features() {
@@ -82,59 +153,155 @@ export function Features() {
       <div className="pointer-events-none absolute -left-1/4 top-1/4 size-[600px] rounded-full bg-accent/5 blur-3xl" />
       <div className="pointer-events-none absolute -right-1/4 bottom-1/4 size-[500px] rounded-full bg-primary/5 blur-3xl" />
 
-      <div className="mx-auto max-w-7xl px-4 md:px-8">
+      <div className="pointer-events-none absolute left-1/2 top-0 h-px w-1/2 -translate-x-1/2 bg-gradient-to-r from-transparent via-accent/30 to-transparent" />
+
+      <div className="mx-auto max-w-7xl px-4 md:px-8" dir="rtl">
         <div className="mx-auto max-w-2xl text-center">
-          <div className="mx-auto mb-6 h-1 w-16 rounded-full bg-accent" />
-          <h2 className="font-display text-[clamp(2rem,4vw,3.5rem)] font-normal leading-[1.15] tracking-tight text-foreground">
-            كل ما تحتاجه في منصة واحدة
-          </h2>
-          <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
-            أدوات متكاملة صُممت خصيصاً لتسريع عمل مطعمك من الطلب حتى التقرير.
-          </p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="mx-auto mb-6 h-1 w-16 rounded-full bg-accent" />
+            <h2 className="font-display text-[clamp(2rem,4vw,3.5rem)] font-normal leading-[1.15] tracking-tight text-foreground">
+              كل ما تحتاجه في منصة واحدة
+            </h2>
+            <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
+              أدوات متكاملة صُممت خصيصاً لتسريع عمل مطعمك من الطلب حتى التقرير.
+            </p>
+          </motion.div>
         </div>
 
         <motion.div
-          variants={container}
+          variants={containerVariants}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: '-80px' }}
-          className="relative mt-24 md:mt-32"
+          className="relative mt-24 grid grid-cols-1 gap-5 md:mt-32 md:grid-cols-3 md:grid-rows-[auto_auto_auto]"
         >
-          {features.map((f, i) => (
-            <motion.div key={f.title} variants={item}>
-              <div
-                className={cn(
-                  'flex flex-col items-center gap-6 border-b border-border/20 pb-12 pt-12 text-center first:pt-0 last:border-0 last:pb-0',
-                  'md:flex-row md:gap-16 md:pb-20 md:pt-20 md:text-right',
-                  i % 2 === 1 && 'md:flex-row-reverse md:text-left',
-                )}
-              >
-                <div className="relative shrink-0">
-                  {i % 2 === 0 ? (
-                    <>
-                      <div className="absolute -inset-8 rounded-full bg-accent/10 blur-3xl transition-all duration-700 group-hover:bg-accent/15" />
-                      <div className="relative grid size-16 place-items-center rounded-2xl bg-accent text-white md:size-20">
-                        {f.svg}
-                      </div>
-                    </>
-                  ) : (
-                    <div className="grid size-14 place-items-center rounded-xl bg-primary/10 text-primary transition-all duration-500 md:size-16">
-                      {f.svg}
-                    </div>
-                  )}
+          <TiltCard className="md:col-span-2 md:row-span-2">
+            <div className="flex h-full flex-col justify-between gap-6">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="absolute inset-0 rounded-xl bg-accent/20 blur-xl" />
+                  <div className="relative grid size-12 place-items-center rounded-xl bg-accent text-white md:size-14">
+                    <motion.div animate={iconPulse} className="size-6 md:size-7">
+                      {features[0].svg}
+                    </motion.div>
+                  </div>
                 </div>
+                <span className="text-[11px] font-semibold tracking-[0.15em] text-accent uppercase">
+                  الميزة الأساسية
+                </span>
+              </div>
+              <div>
+                <h3 className="font-display text-2xl font-normal leading-snug text-foreground md:text-3xl">
+                  {features[0].title}
+                </h3>
+                <p className="mt-3 max-w-lg text-base leading-relaxed text-muted-foreground md:text-lg">
+                  {features[0].desc}
+                </p>
+              </div>
+            </div>
+          </TiltCard>
 
-                <div className="flex-1">
-                  <h3 className="font-display text-2xl font-normal leading-snug text-foreground md:text-3xl">
-                    {f.title}
-                  </h3>
-                  <p className="mt-3 max-w-lg text-base leading-relaxed text-muted-foreground md:text-lg">
-                    {f.desc}
-                  </p>
+          <TiltCard>
+            <div className="flex flex-col gap-4">
+              <div className="relative">
+                <div className="absolute inset-0 rounded-xl bg-primary/10 blur-lg" />
+                <div className="relative grid size-10 place-items-center rounded-lg bg-primary text-white md:size-12">
+                  <motion.div animate={iconPulse} className="size-5 md:size-6">
+                    {features[1].svg}
+                  </motion.div>
                 </div>
               </div>
-            </motion.div>
-          ))}
+              <h3 className="font-display text-lg font-normal text-foreground md:text-xl">
+                {features[1].title}
+              </h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {features[1].desc}
+              </p>
+            </div>
+          </TiltCard>
+
+          <TiltCard>
+            <div className="flex flex-col gap-4">
+              <div className="relative">
+                <div className="absolute inset-0 rounded-xl bg-primary/10 blur-lg" />
+                <div className="relative grid size-10 place-items-center rounded-lg bg-primary text-white md:size-12">
+                  <motion.div animate={iconPulse} className="size-5 md:size-6">
+                    {features[2].svg}
+                  </motion.div>
+                </div>
+              </div>
+              <h3 className="font-display text-lg font-normal text-foreground md:text-xl">
+                {features[2].title}
+              </h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {features[2].desc}
+              </p>
+            </div>
+          </TiltCard>
+
+          <TiltCard className="md:col-span-2">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-8">
+              <div className="relative shrink-0">
+                <div className="absolute inset-0 rounded-xl bg-accent/15 blur-xl" />
+                <div className="relative grid size-12 place-items-center rounded-xl bg-accent text-white md:size-14">
+                  <motion.div animate={iconPulse} className="size-6 md:size-7">
+                    {features[3].svg}
+                  </motion.div>
+                </div>
+              </div>
+              <div>
+                <h3 className="font-display text-xl font-normal text-foreground md:text-2xl">
+                  {features[3].title}
+                </h3>
+                <p className="mt-2 max-w-lg text-sm leading-relaxed text-muted-foreground md:text-base">
+                  {features[3].desc}
+                </p>
+              </div>
+            </div>
+          </TiltCard>
+
+          <TiltCard>
+            <div className="flex flex-col gap-4">
+              <div className="relative">
+                <div className="absolute inset-0 rounded-xl bg-primary/10 blur-lg" />
+                <div className="relative grid size-10 place-items-center rounded-lg bg-primary text-white md:size-12">
+                  <motion.div animate={iconPulse} className="size-5 md:size-6">
+                    {features[4].svg}
+                  </motion.div>
+                </div>
+              </div>
+              <h3 className="font-display text-lg font-normal text-foreground md:text-xl">
+                {features[4].title}
+              </h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {features[4].desc}
+              </p>
+            </div>
+          </TiltCard>
+
+          <TiltCard>
+            <div className="flex flex-col gap-4">
+              <div className="relative">
+                <div className="absolute inset-0 rounded-xl bg-primary/10 blur-lg" />
+                <div className="relative grid size-10 place-items-center rounded-lg bg-primary text-white md:size-12">
+                  <motion.div animate={iconPulse} className="size-5 md:size-6">
+                    {features[5].svg}
+                  </motion.div>
+                </div>
+              </div>
+              <h3 className="font-display text-lg font-normal text-foreground md:text-xl">
+                {features[5].title}
+              </h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {features[5].desc}
+              </p>
+            </div>
+          </TiltCard>
         </motion.div>
       </div>
     </section>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 
 const navLinks = [
   { label: 'الميزات', href: '#features' },
@@ -11,13 +11,20 @@ const navLinks = [
   { label: 'الأسئلة', href: '#faq' },
 ]
 
+const springHover = { type: 'spring' as const, stiffness: 300, damping: 25 }
+const springTap = { type: 'spring' as const, stiffness: 400, damping: 17 }
+const springLayout = { type: 'spring' as const, bounce: 0.15, duration: 0.55 }
+
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('')
 
+  const { scrollY } = useScroll()
+  const backdropOpacity = useTransform(scrollY, [0, 50], [0, 1])
+
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24)
+    const onScroll = () => setScrolled(window.scrollY > 50)
     window.addEventListener('scroll', onScroll, { passive: true })
 
     const observer = new IntersectionObserver(
@@ -42,17 +49,31 @@ export function Navbar() {
 
   return (
     <header className="fixed inset-x-0 top-0 z-50">
+      <motion.div
+        className={cn(
+          'absolute inset-0 border-b backdrop-blur-xl',
+          scrolled ? 'border-border' : 'border-transparent',
+        )}
+        style={{ opacity: backdropOpacity }}
+      >
+        <div className="size-full bg-background/80" />
+      </motion.div>
+
       <nav
         className={cn(
-          'mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-3.5 transition-all duration-500 md:px-8',
-          scrolled
-            ? 'border-b border-border bg-background/80 backdrop-blur-xl'
-            : 'border-b border-transparent',
+          'relative mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4 transition-all duration-500 md:px-8',
+          scrolled && 'py-3',
         )}
       >
-        <a href="/" className="flex items-center gap-2.5">
-          <span className="grid size-8 place-items-center rounded-full bg-primary text-primary-foreground">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <motion.a
+          href="/"
+          className="flex shrink-0 items-center gap-2.5"
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          transition={springHover}
+        >
+          <span className="grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2" />
               <path d="M5 2v20" />
               <path d="M9 2v20" />
@@ -63,68 +84,80 @@ export function Navbar() {
           <span className="font-display text-xl tracking-tight text-foreground">
             Resto<span className="text-primary">OS</span>
           </span>
-        </a>
+        </motion.a>
 
         <div className="hidden items-center gap-0.5 md:flex">
           {navLinks.map((l) => (
-            <a
+            <motion.a
               key={l.href}
               href={l.href}
               className={cn(
-                'relative px-4 py-2 text-sm font-medium transition-colors duration-300',
+                'relative rounded-lg px-4 py-2 text-sm font-medium transition-colors',
                 activeSection === l.href.slice(1)
                   ? 'text-primary'
                   : 'text-muted-foreground hover:text-foreground',
               )}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              transition={springHover}
             >
               {l.label}
               {activeSection === l.href.slice(1) && (
                 <motion.span
                   layoutId="activeNav"
-                  className="absolute bottom-0 left-4 right-4 h-0.5 rounded-full bg-primary"
-                  transition={{ type: 'spring', bounce: 0.15, duration: 0.55 }}
+                  className="absolute inset-x-4 bottom-0 h-0.5 rounded-full bg-primary"
+                  transition={springLayout}
                 />
               )}
-            </a>
+            </motion.a>
           ))}
         </div>
 
         <div className="flex items-center gap-3">
-          <a
+          <motion.a
             href="#login"
-            className="hidden rounded-full border border-border px-5 py-2 text-sm font-medium text-muted-foreground transition-all duration-300 hover:border-primary hover:text-primary md:inline-flex"
+            className="hidden rounded-full border border-border px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary md:inline-flex"
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            transition={springHover}
           >
             تسجيل الدخول
-          </a>
-          <a
+          </motion.a>
+          <motion.a
             href="#cta"
-            className="group hidden items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-all duration-300 hover:shadow-md active:scale-[0.98] md:inline-flex"
+            className="group hidden items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-amber-600 hover:shadow-md md:inline-flex"
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            transition={springHover}
           >
             تواصل معنا
-            <svg className="size-4 rtl:rotate-180 transition-transform duration-300 group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-          </a>
-          <button
+            <svg className="size-4 rtl:rotate-180 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+          </motion.a>
+
+          <motion.button
             type="button"
             aria-label="القائمة"
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
             className="relative grid size-10 place-items-center rounded-full border border-border/50 bg-card/80 md:hidden"
+            whileTap={{ scale: 0.9 }}
+            transition={springTap}
           >
-            <span className={cn('absolute h-0.5 w-5 rounded-full bg-foreground transition-all duration-500', open ? 'rotate-45' : '-translate-y-1.5')} />
-            <span className={cn('absolute h-0.5 w-5 rounded-full bg-foreground transition-all duration-500', open ? 'opacity-0' : 'opacity-100')} />
-            <span className={cn('absolute h-0.5 w-5 rounded-full bg-foreground transition-all duration-500', open ? '-rotate-45' : 'translate-y-1.5')} />
-          </button>
+            <span className={cn('absolute h-0.5 w-5 rounded-full bg-foreground transition-all duration-300', open ? 'rotate-45' : '-translate-y-1.5')} />
+            <span className={cn('absolute h-0.5 w-5 rounded-full bg-foreground transition-all duration-300', open ? 'opacity-0' : 'opacity-100')} />
+            <span className={cn('absolute h-0.5 w-5 rounded-full bg-foreground transition-all duration-300', open ? '-rotate-45' : 'translate-y-1.5')} />
+          </motion.button>
         </div>
       </nav>
 
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -8, scale: 0.97 }}
+            initial={{ opacity: 0, y: -12, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.97 }}
-            transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-            className="mx-auto mt-2 max-w-sm overflow-hidden rounded-2xl border border-border/50 bg-background/95 backdrop-blur-xl p-3 shadow-lg md:hidden"
+            exit={{ opacity: 0, y: -12, scale: 0.96 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+            className="mx-auto mt-3 max-w-sm overflow-hidden rounded-2xl border border-border/50 bg-background/95 backdrop-blur-xl p-3 shadow-lg md:hidden"
           >
             <nav className="flex flex-col gap-1">
               {navLinks.map((l, i) => (
@@ -134,30 +167,38 @@ export function Navbar() {
                   onClick={() => setOpen(false)}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.03 + i * 0.04 }}
+                  transition={{ delay: 0.03 + i * 0.04, ...springHover }}
                   className={cn(
                     'rounded-xl px-4 py-3 text-sm font-medium transition-colors',
                     activeSection === l.href.slice(1) ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-muted',
                   )}
+                  whileHover={{ scale: 1.02, x: 4 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   {l.label}
                 </motion.a>
               ))}
               <div className="mt-2 flex flex-col gap-2">
-                <a
+                <motion.a
                   href="#login"
                   onClick={() => setOpen(false)}
                   className="flex items-center justify-center gap-2 rounded-full border border-border px-6 py-3 text-center text-sm font-medium text-foreground"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={springHover}
                 >
                   تسجيل الدخول
-                </a>
-                <a
+                </motion.a>
+                <motion.a
                   href="#cta"
                   onClick={() => setOpen(false)}
                   className="flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-center text-sm font-semibold text-primary-foreground"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={springHover}
                 >
                   تواصل معنا
-                </a>
+                </motion.a>
               </div>
             </nav>
           </motion.div>

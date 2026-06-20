@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "@/hooks/use-toast"
-import { motion } from "framer-motion"
+import { motion, LayoutGroup } from "framer-motion"
 
 type PageRole = "cashier" | "chef" | "admin" | "owner"
 const ROLE_PAGE: Record<PageRole, string> = { cashier: "pos", chef: "kitchen", admin: "admin", owner: "admin" }
@@ -66,6 +66,7 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
   const [error, setError] = useState("")
   const [shaking, setShaking] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [focusedInput, setFocusedInput] = useState<"username" | "password" | null>(null)
   const router = useRouter()
   const { t } = useTranslation()
 
@@ -111,47 +112,173 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
   const activeRole = ROLE_CONFIG[page]
 
   // ── Desktop brand panel (left column) ───────────────────────────
-  const BrandPanel = () => (
-    <div className="relative hidden md:flex flex-col items-center justify-center bg-primary p-12 overflow-hidden min-h-screen select-none">
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.04]"
-        style={{
-          backgroundImage: [
-            "linear-gradient(rgba(255,255,255,.12) 1px, transparent 1px)",
-            "linear-gradient(90deg, rgba(255,255,255,.12) 1px, transparent 1px)",
-          ].join(","),
-          backgroundSize: "32px 32px",
-        }}
-      />
-      <div className="pointer-events-none absolute -top-48 -right-48 h-[600px] w-[600px] rounded-full bg-white/8 blur-[150px]" />
-      <div className="pointer-events-none absolute -bottom-48 -left-48 h-[500px] w-[500px] rounded-full bg-accent/10 blur-[120px]" />
-      <div className="relative z-10 flex flex-col items-center text-center">
-        <div className="mb-10 grid size-28 place-items-center rounded-3xl bg-white/10 ring-1 ring-white/20 shadow-2xl backdrop-blur-sm">
-          <svg className="size-14 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-            <polyline points="9 22 9 12 15 12 15 22" />
-          </svg>
+  const BrandPanel = () => {
+    const shapes = [
+      { type: "circle", size: 220, x: "5%", y: "10%", dur: 9, rotDur: 30 },
+      { type: "diamond", size: 130, x: "72%", y: "15%", dur: 11, rotDur: 22 },
+      { type: "circle", size: 90, x: "18%", y: "68%", dur: 7, rotDur: 18 },
+      { type: "diamond", size: 170, x: "78%", y: "74%", dur: 13, rotDur: 35 },
+      { type: "circle", size: 55, x: "52%", y: "28%", dur: 8, rotDur: 20 },
+    ]
+
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        className="relative hidden md:flex flex-col items-center justify-center bg-primary p-12 overflow-hidden min-h-screen select-none"
+      >
+        {/* Grid overlay */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.04]"
+          style={{
+            backgroundImage: [
+              "linear-gradient(rgba(255,255,255,.12) 1px, transparent 1px)",
+              "linear-gradient(90deg, rgba(255,255,255,.12) 1px, transparent 1px)",
+            ].join(","),
+            backgroundSize: "32px 32px",
+          }}
+        />
+
+        {/* Ambient glow orbs */}
+        <div className="pointer-events-none absolute -top-48 -right-48 h-[600px] w-[600px] rounded-full bg-white/8 blur-[150px]" />
+        <div className="pointer-events-none absolute -bottom-48 -left-48 h-[500px] w-[500px] rounded-full bg-accent/10 blur-[120px]" />
+
+        {/* Floating geometric shapes */}
+        {shapes.map((s, i) => (
+          <motion.div
+            key={i}
+            className={cn(
+              "pointer-events-none absolute border border-white/10",
+              s.type === "circle" ? "rounded-full" : "rounded-[2px]"
+            )}
+            style={{
+              width: s.size,
+              height: s.size,
+              left: s.x,
+              top: s.y,
+            }}
+            animate={{
+              y: [0, -(20 + i * 5), 0],
+              rotate: s.type === "circle" ? [0, 360] : [45, 405],
+            }}
+            transition={{
+              y: { duration: s.dur, repeat: Infinity, ease: "easeInOut" },
+              rotate: { duration: s.rotDur, repeat: Infinity, ease: "linear" },
+            }}
+          />
+        ))}
+
+        {/* Animated floating dots that pulse and fade */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          {Array.from({ length: 24 }).map((_, i) => (
+            <motion.div
+              key={`dot-${i}`}
+              className="absolute h-1.5 w-1.5 rounded-full bg-white/20"
+              style={{
+                left: `${(i % 8) * 14 + 4}%`,
+                top: `${Math.floor(i / 8) * 30 + 12}%`,
+              }}
+              animate={{
+                opacity: [0, 0.5, 0],
+                scale: [0, 1.3, 0],
+                y: [0, -10, 0],
+              }}
+              transition={{
+                duration: 4 + (i % 3),
+                repeat: Infinity,
+                delay: (i * 0.4) % 5,
+                ease: "easeInOut",
+              }}
+            />
+          ))}
         </div>
-        <h1 className="font-display text-[2.75rem] font-normal leading-none tracking-tight text-primary-foreground">
-          RestoOS
-        </h1>
-        <div className="my-5 h-px w-12 bg-white/15" />
-        <p className="text-base text-primary-foreground/65 max-w-[14rem] leading-relaxed">
-          نظام نقاط البيع الذكي
-        </p>
-        <div className="mt-16 flex items-center gap-2">
-          <span className="size-1.5 rounded-full bg-white/15" />
-          <span className="size-1.5 rounded-full bg-white/25" />
-          <span className="size-1.5 rounded-full bg-white/35" />
-          <span className="size-1.5 rounded-full bg-white/25" />
-          <span className="size-1.5 rounded-full bg-white/15" />
-        </div>
-        <p className="mt-4 text-[11px] font-medium tracking-[0.2em] uppercase text-primary-foreground/25">
-          Smart POS System
-        </p>
-      </div>
-    </div>
-  )
+
+        {/* Brand content */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 100, damping: 18, delay: 0.3 }}
+          className="relative z-10 flex flex-col items-center text-center"
+        >
+          {/* Frosted glass logo box */}
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 120, damping: 14, delay: 0.5 }}
+            className="mb-10 grid size-28 place-items-center rounded-3xl bg-white/10 ring-1 ring-white/20 shadow-2xl backdrop-blur-xl"
+          >
+            <svg className="size-14 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+          </motion.div>
+
+          {/* RestoOS brand */}
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 100, damping: 16, delay: 0.6 }}
+            className="font-display text-[3rem] font-normal leading-none tracking-tight text-primary-foreground"
+          >
+            RestoOS
+          </motion.h1>
+
+          <motion.div
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={{ type: "spring", stiffness: 80, damping: 14, delay: 0.8 }}
+            className="my-5 h-px w-16 origin-center bg-white/15"
+          />
+
+          {/* Poetic tagline */}
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 90, damping: 15, delay: 0.9 }}
+            className="text-base text-primary-foreground/65 max-w-[16rem] leading-relaxed"
+          >
+            حيث تُكتب قصص النكهات
+          </motion.p>
+
+          {/* Animated dots indicator */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2, duration: 0.6 }}
+            className="mt-16 flex items-center gap-2"
+          >
+            {[0, 1, 2, 3, 4].map((i) => (
+              <motion.span
+                key={i}
+                className="size-1.5 rounded-full bg-white/20"
+                animate={{
+                  opacity: [0.2, 0.6, 0.2],
+                  scale: [1, 1.3, 1],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  delay: i * 0.3,
+                  ease: "easeInOut",
+                }}
+              />
+            ))}
+          </motion.div>
+
+          {/* Footer */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.4, duration: 0.6 }}
+            className="mt-4 text-[11px] font-medium tracking-[0.2em] uppercase text-primary-foreground/25"
+          >
+            Smart POS System
+          </motion.p>
+        </motion.div>
+      </motion.div>
+    )
+  }
 
   // ── Two-column / single-column layout shell ────────────────────
   const PageShell = ({ children }: { children: ReactNode }) => (
@@ -213,14 +340,33 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
           className="relative w-full max-w-md px-4"
         >
           <div className="mb-12 text-center">
-            <div className="mx-auto mb-6 grid size-16 place-items-center rounded-2xl bg-primary/10 shadow-[var(--shadow-md)]">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 120, damping: 14, delay: 0.2 }}
+              className="mx-auto mb-6 grid size-16 place-items-center rounded-2xl bg-primary/10 shadow-[var(--shadow-md)]"
+            >
               <svg className="size-8 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                 <polyline points="9 22 9 12 15 12 15 22" />
               </svg>
-            </div>
-            <h1 className="font-display text-3xl font-normal tracking-tight text-foreground">{t("login.pickRestaurant")}</h1>
-            <p className="mt-3 text-sm text-muted-foreground">{t("login.pickRestaurantSub")}</p>
+            </motion.div>
+            <motion.h1
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: "spring", stiffness: 100, damping: 16, delay: 0.3 }}
+              className="font-display text-3xl font-normal tracking-tight text-foreground"
+            >
+              {t("login.pickRestaurant")}
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+              className="mt-3 text-sm text-muted-foreground"
+            >
+              {t("login.pickRestaurantSub")}
+            </motion.p>
           </div>
           <div className="space-y-3">
             {tenants.map((tenant, i) => (
@@ -230,7 +376,9 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 + i * 0.06, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                 onClick={() => router.push(`/${tenant.slug}/login`)}
-                className="group flex w-full items-center justify-between rounded-2xl border border-border/50 bg-card/70 px-5 py-4 text-right shadow-sm transition-all duration-500 hover:border-primary/20 hover:shadow-[var(--shadow-md)] active:scale-[0.99]"
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                className="group flex w-full items-center justify-between rounded-2xl border border-border/50 bg-card/70 px-5 py-4 text-right shadow-sm transition-all duration-500 hover:border-primary/20 hover:shadow-[var(--shadow-md)]"
               >
                 <div className="flex items-center gap-4">
                   <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary/8 text-primary transition-transform duration-500 group-hover:scale-105">
@@ -259,12 +407,16 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
                 <span className="bg-background px-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground/40">{t("login.or")}</span>
               </div>
             </div>
-            <button onClick={() => { setShowOwnerForm(true); setPage("owner") }}
-              className="group inline-flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-5 py-3 text-sm font-semibold text-primary transition-all duration-500 hover:border-primary/40 hover:bg-primary/10 active:scale-[0.98]"
+            <motion.button
+              onClick={() => { setShowOwnerForm(true); setPage("owner") }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 150, damping: 20 }}
+              className="group inline-flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-5 py-3 text-sm font-semibold text-primary transition-all duration-500 hover:border-primary/40 hover:bg-primary/10"
             >
               <RoleIcon role="owner" />
               <span>{t("login.owner")}</span>
-            </button>
+            </motion.button>
           </div>
         </motion.div>
       </PageShell>
@@ -276,11 +428,17 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
     return (
       <motion.div
         initial={{ opacity: 0, y: 24, filter: 'blur(8px)' }}
-        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-        transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
-        className={cn("relative w-full max-w-sm px-4", shaking && "animate-shake")}
+        animate={shaking
+          ? { x: [0, -8, 8, -6, 6, -3, 3, 0], opacity: 1, y: 0, filter: 'blur(0px)' }
+          : { x: 0, opacity: 1, y: 0, filter: 'blur(0px)' }
+        }
+        transition={shaking
+          ? { type: "spring", stiffness: 200, damping: 6 }
+          : { duration: 0.85, ease: [0.22, 1, 0.36, 1] }
+        }
+        className="relative w-full max-w-sm px-4"
       >
-        <div className="overflow-hidden rounded-2xl border border-border/40 bg-card shadow-[var(--shadow-xl)]">
+        <div className="overflow-hidden rounded-2xl border border-border/40 bg-card/70 backdrop-blur-xl shadow-[var(--shadow-xl)]">
           {(slugProp || showOwnerForm) && (
             <div className="px-6 pt-5">
               <button onClick={() => showOwnerForm ? setShowOwnerForm(false) : router.push("/login")}
@@ -294,77 +452,136 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
           )}
 
           <div className="px-6 pt-6 pb-5 text-center">
-            <div className="mx-auto mb-5 grid size-16 place-items-center rounded-2xl bg-primary/8 text-primary transition-transform duration-500">
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 120, damping: 14 }}
+              className="mx-auto mb-5 grid size-16 place-items-center rounded-2xl bg-primary/8 text-primary"
+            >
               <RoleIcon role={page} />
-            </div>
+            </motion.div>
             <h1 className="font-display text-2xl font-normal tracking-tight text-foreground">{t(`${activeRole.labelKey}`)}</h1>
             <p className="mt-1.5 text-sm text-muted-foreground/60">{t("login.subtitle")}</p>
           </div>
 
           <div className="px-6 pb-6">
             {visibleRoles.length > 1 && (
-              <div className="mb-5 flex gap-1 rounded-full border border-border/30 bg-muted/40 p-1">
-                {visibleRoles.map(key => (
-                  <button key={key} data-testid={`role-tab-${key}`} onClick={() => { setPage(key); setError("") }}
-                    className={cn(
-                      "flex flex-1 items-center justify-center gap-2 rounded-full py-2 transition-all duration-500",
-                      page === key
-                        ? "bg-card text-foreground shadow-sm"
-                        : "text-muted-foreground/50 hover:text-foreground",
-                    )}>
-                    <span className={cn("transition-colors", page === key ? "text-primary" : "text-muted-foreground/40")}>
-                      <RoleIcon role={key} />
-                    </span>
-                    <span className="text-xs font-semibold">{t(ROLE_CONFIG[key].labelKey)}</span>
-                  </button>
-                ))}
-              </div>
+              <LayoutGroup>
+                <div className="mb-5 flex gap-1 rounded-full border border-border/30 bg-muted/40 p-1">
+                  {visibleRoles.map(key => (
+                    <button
+                      key={key}
+                      data-testid={`role-tab-${key}`}
+                      onClick={() => { setPage(key); setError("") }}
+                      className={cn(
+                        "relative flex flex-1 items-center justify-center gap-2 rounded-full py-2 transition-colors",
+                        page === key
+                          ? "text-foreground"
+                          : "text-muted-foreground/50 hover:text-foreground",
+                      )}
+                    >
+                      {page === key && (
+                        <motion.div
+                          layoutId="active-tab-bg"
+                          className="absolute inset-0 rounded-full bg-card shadow-sm"
+                          transition={{ type: "spring", stiffness: 150, damping: 20 }}
+                        />
+                      )}
+                      <span className={cn("relative z-10 transition-colors", page === key ? "text-primary" : "text-muted-foreground/40")}>
+                        <RoleIcon role={key} />
+                      </span>
+                      <span className="relative z-10 text-xs font-semibold">{t(ROLE_CONFIG[key].labelKey)}</span>
+                    </button>
+                  ))}
+                </div>
+              </LayoutGroup>
             )}
 
-            <div className="space-y-3">
-              <Input
-                data-testid="username-input"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                placeholder={t("login.usernamePlaceholder")}
-                className={cn(error && "border-destructive/50")}
-                autoFocus
-              />
-              <Input
-                data-testid="password-input"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                placeholder={t("login.passwordPlaceholder")}
-                className={cn(error && "border-destructive/50")}
-              />
+            <div className="space-y-3.5">
+              {/* Username input with glow */}
+              <div className="relative">
+                <Input
+                  data-testid="username-input"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                  onFocus={() => setFocusedInput("username")}
+                  onBlur={() => setFocusedInput(null)}
+                  placeholder={t("login.usernamePlaceholder")}
+                  className={cn("relative z-10", error && "border-destructive/50")}
+                  autoFocus
+                />
+                <motion.div
+                  className="pointer-events-none absolute -inset-0.5 rounded-xl bg-primary/10 blur-md"
+                  initial={false}
+                  animate={{
+                    opacity: focusedInput === "username" ? 1 : 0,
+                    scale: focusedInput === "username" ? 1 : 0.95,
+                  }}
+                  transition={{ type: "spring", stiffness: 150, damping: 20 }}
+                />
+              </div>
+
+              {/* Password input with glow */}
+              <div className="relative">
+                <Input
+                  data-testid="password-input"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                  onFocus={() => setFocusedInput("password")}
+                  onBlur={() => setFocusedInput(null)}
+                  placeholder={t("login.passwordPlaceholder")}
+                  className={cn("relative z-10", error && "border-destructive/50")}
+                />
+                <motion.div
+                  className="pointer-events-none absolute -inset-0.5 rounded-xl bg-primary/10 blur-md"
+                  initial={false}
+                  animate={{
+                    opacity: focusedInput === "password" ? 1 : 0,
+                    scale: focusedInput === "password" ? 1 : 0.95,
+                  }}
+                  transition={{ type: "spring", stiffness: 150, damping: 20 }}
+                />
+              </div>
 
               {error && (
-                <p data-testid="login-error" className="text-center text-xs font-medium text-destructive">
+                <motion.p
+                  data-testid="login-error"
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ type: "spring", stiffness: 150, damping: 16 }}
+                  className="text-center text-xs font-medium text-destructive"
+                >
                   {error}
-                </p>
+                </motion.p>
               )}
 
-              <Button
-                data-testid="login-submit"
-                onClick={handleLogin}
-                disabled={loading || !username || !password}
-                size="lg"
-                className="w-full h-12 rounded-xl text-sm font-semibold shadow-[var(--shadow-md)]"
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: "spring", stiffness: 150, damping: 20 }}
               >
-                {loading ? (
-                  <span className="flex items-center justify-center gap-2.5">
-                    <svg className="size-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    {t("login.loggingIn")}
-                  </span>
-                ) : t("login.logIn")}
-              </Button>
+                <Button
+                  data-testid="login-submit"
+                  onClick={handleLogin}
+                  disabled={loading || !username || !password}
+                  size="lg"
+                  className="w-full h-12 rounded-xl text-sm font-semibold shadow-[var(--shadow-md)]"
+                >
+                  {loading ? (
+                    <span className="flex items-center justify-center gap-2.5">
+                      <svg className="size-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      {t("login.loggingIn")}
+                    </span>
+                  ) : t("login.logIn")}
+                </Button>
+              </motion.div>
             </div>
           </div>
         </div>

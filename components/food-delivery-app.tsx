@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useRef, useCallback, useDeferredValue, Component, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
+import { motion, AnimatePresence } from "framer-motion"
 
 import { useTranslation } from "@/lib/use-translation"
 import { logger } from "@/lib/logger"
@@ -64,17 +65,23 @@ class ErrorBoundary extends Component<
 
 function SkeletonCard() {
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-border/30 bg-card shadow-sm">
-      <div className="aspect-[4/3] bg-gradient-to-br from-primary/5 to-primary/10 animate-pulse" />
-      <div className="space-y-3 p-5">
-        <div className="h-5 w-2/3 rounded-full bg-muted/50 animate-pulse" />
-        <div className="h-3 w-full rounded-full bg-muted/20 animate-pulse" />
-        <div className="h-3 w-3/4 rounded-full bg-muted/20 animate-pulse" />
-        <div className="flex gap-2 pt-2">
-          <div className="h-8 w-14 rounded-full bg-muted/30 animate-pulse" />
-          <div className="h-8 w-14 rounded-full bg-muted/30 animate-pulse" />
+    <div className="group relative overflow-hidden rounded-2xl border border-border/20 bg-card shadow-sm">
+      <div className="aspect-[4/3] bg-gradient-to-br from-primary/[0.03] via-primary/[0.06] to-primary/[0.02] relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.05] to-transparent animate-pulse" />
+      </div>
+      <div className="space-y-3.5 p-5">
+        <div className="flex items-center gap-2">
+          <div className="h-4 w-16 rounded-md bg-muted/30 animate-pulse" />
+          <div className="h-4 w-20 rounded-md bg-muted/20 animate-pulse" />
         </div>
-        <div className="h-12 w-full rounded-full bg-muted/30 animate-pulse" />
+        <div className="h-5 w-2/3 rounded-lg bg-muted/30 animate-pulse" />
+        <div className="h-3 w-full rounded-md bg-muted/20 animate-pulse mt-3" />
+        <div className="h-3 w-3/4 rounded-md bg-muted/20 animate-pulse" />
+        <div className="flex gap-2 pt-2">
+          <div className="h-7 w-14 rounded-full bg-muted/20 animate-pulse" />
+          <div className="h-7 w-16 rounded-full bg-muted/20 animate-pulse" />
+        </div>
+        <div className="h-11 w-full rounded-full bg-muted/20 animate-pulse mt-4" />
       </div>
     </div>
   )
@@ -244,47 +251,108 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
 
   return (
     <ErrorBoundary>
-      <div className="min-h-[100dvh] bg-background relative">
+      <div className="min-h-[100dvh] bg-background relative" dir="rtl">
+        {/* Ambient background orbs */}
         <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
-          <div className="absolute -top-48 -right-48 h-[36rem] w-[36rem] rounded-full bg-primary/[0.035] blur-[140px]" />
-          <div className="absolute -bottom-40 -left-40 h-[30rem] w-[30rem] rounded-full bg-accent/[0.04] blur-[120px]" />
-          <div className="absolute top-1/3 left-1/4 h-64 w-64 rounded-full bg-primary/[0.02] blur-[100px]" />
+          <motion.div
+            className="absolute -top-48 -right-48 h-[36rem] w-[36rem] rounded-full bg-primary/[0.035] blur-[140px]"
+            animate={{ scale: [1, 1.08, 1], opacity: [0.5, 0.7, 0.5] }}
+            transition={{ duration: 8, ease: "easeInOut", repeat: Infinity }}
+          />
+          <motion.div
+            className="absolute -bottom-40 -left-40 h-[30rem] w-[30rem] rounded-full bg-accent/[0.04] blur-[120px]"
+            animate={{ scale: [1, 1.12, 1], opacity: [0.35, 0.55, 0.35] }}
+            transition={{ duration: 10, ease: "easeInOut", repeat: Infinity, delay: 1 }}
+          />
+          <motion.div
+            className="absolute top-1/3 left-1/4 h-64 w-64 rounded-full bg-primary/[0.02] blur-[100px]"
+            animate={{ scale: [1, 1.15, 1], opacity: [0.25, 0.45, 0.25] }}
+            transition={{ duration: 12, ease: "easeInOut", repeat: Infinity, delay: 2 }}
+          />
         </div>
 
-        {!isOpen && (
-          <div className="relative mx-auto max-w-5xl px-4 pt-4 md:px-8">
-            <div className="rounded-2xl border border-rose-500/20 bg-gradient-to-r from-rose-500/8 to-rose-500/4 px-5 py-4 flex items-center gap-3 text-rose-600 shadow-sm backdrop-blur-sm">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-rose-500/10">
-                <DoorClosed className="size-5" strokeWidth={1.5} />
+        <AnimatePresence>
+          {!isOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              transition={{ type: "spring", stiffness: 100, damping: 20 }}
+              className="relative mx-auto max-w-5xl px-4 pt-4 md:px-8"
+            >
+              <div className="rounded-2xl border border-rose-500/20 bg-gradient-to-r from-rose-500/8 to-rose-500/4 px-5 py-4 flex items-center gap-3 text-rose-600 shadow-sm backdrop-blur-sm">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-rose-500/10">
+                  <DoorClosed className="size-5" strokeWidth={1.5} />
+                </div>
+                <div>
+                  <p className="text-sm font-bold">{t("menu.restaurantClosed")}</p>
+                  <p className="text-xs text-rose-500/70">{t("menu.closedMessage")}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-bold">{t("menu.restaurantClosed")}</p>
-                <p className="text-xs text-rose-500/70">{t("menu.closedMessage")}</p>
-              </div>
-            </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <AppHeader cartItemCount={itemCount} onCart={() => setCheckoutOpen(true)} />
 
         <main className="relative mx-auto max-w-5xl px-4 pb-36 pt-10 md:px-8 md:pt-14" aria-label="Menu content">
-          <div className="mb-10 md:mb-14 animate-hero-enter">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="h-px w-10 bg-accent/60" aria-hidden="true" />
-              <Leaf className="size-3.5 text-accent" strokeWidth={1.5} aria-hidden="true" />
+          {/* Hero / Section header */}
+          <motion.div
+            initial={{ opacity: 0, y: 28 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.08 }}
+            className="mb-10 md:mb-14"
+          >
+            <div className="flex items-center gap-3 mb-5">
+              <motion.span
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.18 }}
+                className="h-px w-14 bg-accent/70"
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.22 }}
+              >
+                <Leaf className="size-4 text-accent" strokeWidth={1.5} />
+              </motion.div>
+              <motion.span
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.18 }}
+                className="h-px w-8 bg-accent/40"
+              />
             </div>
-            <h1 className="font-display text-[clamp(2.25rem,5vw,3.25rem)] font-light leading-[1.08] tracking-tight text-foreground">
+            <motion.h1
+              initial={{ opacity: 0, y: 22 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.12 }}
+              className="font-display text-[clamp(2.5rem,6vw,3.75rem)] font-light leading-[1.06] tracking-tight text-foreground"
+            >
               القائمة
-            </h1>
-            <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground/70">
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.17 }}
+              className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground/60"
+            >
               اختر وجبتك المفضلة من قائمتنا المتنوعة — كل طبق يُحضر بعناية ليجمع بين النكهة الأصيلة والمذاق الاستثنائي
-            </p>
-          </div>
+            </motion.p>
+          </motion.div>
 
-          <div className="mb-10 md:mb-12">
+          {/* Category filter */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.25 }}
+            className="mb-10 md:mb-12"
+          >
             <CategoryFilter categories={categories} selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
-          </div>
+          </motion.div>
 
+          {/* Menu grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-7">
             {loading ? (
               <>
@@ -296,7 +364,11 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
                 <SkeletonCard />
               </>
             ) : filtered.length === 0 ? (
-              <div className="col-span-full flex flex-col items-center justify-center py-32 text-center gap-6"
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                className="col-span-full flex flex-col items-center justify-center py-32 text-center gap-6"
               >
                 <div className="relative">
                   <div className="absolute inset-0 rounded-[2rem] bg-accent/8 blur-2xl" />
@@ -308,15 +380,17 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
                   <p className="font-display text-xl font-semibold text-foreground">لا توجد منتجات</p>
                   <p className="mt-2 text-sm text-muted-foreground/60 max-w-xs leading-relaxed">عذراً، لا توجد منتجات متوفرة في هذا القسم حالياً.</p>
                 </div>
-              </div>
+              </motion.div>
             ) : (
               filtered.map((p, idx) => {
                 const k = `${p.id}_${sizes[p.id] || "L"}_${sauces[p.id] ?? null}`
                 return (
-                  <div
+                  <motion.div
                     key={p.id}
-                    className="animate-card-enter"
-                    style={{ animationDelay: `${0.08 + idx * 0.035}s` }}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-40px" }}
+                    transition={{ type: "spring", stiffness: 100, damping: 20, delay: idx * 0.04 }}
                   >
                     <MealCard product={p}
                       size={sizes[p.id] || "L"}
@@ -328,14 +402,27 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
                       onAdd={isOpen ? () => debouncedAdd(() => { addItem(p, sizes[p.id] || "L", sauces[p.id] ?? null); logger.info("Added", { name: p.name }) }) : () => {}}
                       onUpdateQuantity={isOpen ? (d) => { updateQuantity(p.id, sizes[p.id] || "L", sauces[p.id] ?? null, d) } : () => {}}
                     />
-                  </div>
+                  </motion.div>
                 )
               })
             )}
           </div>
         </main>
 
-        <OrderBar onCheckout={() => isOpen && setCheckoutOpen(true)} disabled={!isOpen} />
+        {/* Order bar — slides up when items exist */}
+        <AnimatePresence>
+          {itemCount > 0 && (
+            <motion.div
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 200, damping: 25 }}
+              className="fixed bottom-0 inset-x-0 z-50"
+            >
+              <OrderBar onCheckout={() => isOpen && setCheckoutOpen(true)} disabled={!isOpen} />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {checkoutOpen && (
           <CheckoutModal

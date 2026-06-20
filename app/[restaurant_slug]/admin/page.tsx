@@ -9,11 +9,10 @@ import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useSlug } from "@/lib/use-slug"
 import { useTranslation } from "@/lib/use-translation"
-import { motion } from "framer-motion"
+import { motion, LayoutGroup } from "framer-motion"
 import { StatCard } from "@/components/admin/stat-card"
 import { ReviewsFeed } from "@/components/admin/reviews-feed"
 import { TopProducts } from "@/components/admin/top-products"
-import { staggerContainer, fadeInUp } from "@/components/page-transition"
 
 const SalesChart = dynamic(() => import("@/components/admin/sales-chart").then(m => ({ default: m.SalesChart })), {
   loading: () => <div className="h-72 rounded-2xl bg-white/5 animate-pulse" />,
@@ -49,26 +48,20 @@ interface ReviewItem {
   timestamp: Date | string
 }
 
+const springCard = (delay: number) => ({
+  initial: { opacity: 0, y: 24 },
+  animate: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 70, damping: 16, delay } },
+})
+
+const springRow = (delay: number) => ({
+  initial: { opacity: 0, x: -8 },
+  animate: { opacity: 1, x: 0, transition: { type: "spring" as const, stiffness: 90, damping: 18, delay } },
+})
+
 export default function AdminPage() {
   const { t, lang, dir } = useTranslation()
   const router = useRouter()
   const slug = useSlug()
-
-  useEffect(() => {
-    fetchApi("/api/me").then(r => r.ok ? r.json() : null).then(data => {
-      if (!data || (data.role !== "admin" && data.role !== "owner")) {
-        router.push(`/${slug}/login`)
-      } else {
-        setUserRole(data.role)
-      }
-    }).catch(() => router.push(`/${slug}/login`))
-  }, [router, slug])
-
-  const PERIOD_LABELS: Record<Period, string> = {
-    "7d": t("admin.week"), "30d": t("admin.month"), "6m": t("admin.sixMonths"), "12m": t("admin.year"),
-  }
-  const fmtNum = (n: number) => n.toLocaleString(lang === "fr" ? "fr-FR" : "en-US")
-  const currency = lang === "ar" ? "د.ج" : "DA"
 
   const [period, setPeriod] = useState<Period>("30d")
   const [loadingStats, setLoadingStats] = useState(true)
@@ -87,6 +80,22 @@ export default function AdminPage() {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [userRole, setUserRole] = useState<string | null>(null)
   const [adminTab, setAdminTab] = useState<"overview" | "products" | "orders" | "audit">("overview")
+
+  useEffect(() => {
+    fetchApi("/api/me").then(r => r.ok ? r.json() : null).then(data => {
+      if (!data || (data.role !== "admin" && data.role !== "owner")) {
+        router.push(`/${slug}/login`)
+      } else {
+        setUserRole(data.role)
+      }
+    }).catch(() => router.push(`/${slug}/login`))
+  }, [router, slug])
+
+  const PERIOD_LABELS: Record<Period, string> = {
+    "7d": t("admin.week"), "30d": t("admin.month"), "6m": t("admin.sixMonths"), "12m": t("admin.year"),
+  }
+  const fmtNum = (n: number) => n.toLocaleString(lang === "fr" ? "fr-FR" : "en-US")
+  const currency = lang === "ar" ? "د.ج" : "DA"
 
   const handleViewOrder = useCallback((orderId: string) => {
     setSheetOrderId(orderId)
@@ -184,16 +193,37 @@ export default function AdminPage() {
     )
   }
 
+  const adminTabs = ["overview", "products", "orders", "audit"] as const
+
   return (
     <div className="admin-surface" dir={dir}>
-      <header className="sticky top-0 z-30 border-b border-white/6 px-4 py-3 backdrop-blur-xl lg:px-6">
+      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-0" aria-hidden="true">
+        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-primary/10 blur-[120px] animate-orb" />
+        <div className="absolute top-1/3 -left-40 w-[400px] h-[400px] rounded-full bg-accent/8 blur-[100px] animate-orb" style={{ animationDelay: "-6s" }} />
+        <div className="absolute -bottom-40 left-1/3 w-[600px] h-[600px] rounded-full bg-primary/8 blur-[150px] animate-orb" style={{ animationDelay: "-12s" }} />
+      </div>
+
+      <motion.header
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 80, damping: 15 }}
+        className="sticky top-0 z-30 border-b border-white/6 px-4 py-3 backdrop-blur-xl lg:px-6"
+      >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="grid size-10 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-[var(--shadow-glow)]">
               <ChartNoAxesColumn className="size-4" strokeWidth={1.5} />
             </div>
             <div>
-              <h1 className="font-display text-base font-medium tracking-tight text-white">{t("admin.dashboard")}</h1>
+              <div className="flex items-center gap-3">
+                <h1 className="font-display text-base font-medium tracking-tight text-white">{t("admin.dashboard")}</h1>
+                <motion.div
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.3 }}
+                  className="h-0.5 w-8 rounded-full bg-gradient-to-r from-accent/0 via-accent to-accent/0 origin-left"
+                />
+              </div>
               <p className="text-[10px] text-white/40">{slug}</p>
             </div>
           </div>
@@ -211,22 +241,30 @@ export default function AdminPage() {
             </button>
           </div>
         </div>
-      </header>
+      </motion.header>
 
-      <main className="max-w-7xl mx-auto p-4 lg:p-6 space-y-6">
-        <div className="flex w-fit items-center gap-1 rounded-full border border-white/6 bg-white/[0.03] p-0.5 backdrop-blur-sm">
-          {(["overview", "products", "orders", "audit"] as const).map((tab) => (
-            <button key={tab} onClick={() => setAdminTab(tab)}
-              className={`rounded-full px-5 py-2 text-xs font-semibold transition-all duration-500 ${
-                adminTab === tab ? "bg-accent/15 text-accent shadow-[var(--shadow-sm)]" : "text-white/40 hover:text-white/70"
-              }`}>
-              {tab === "overview" ? t("admin.overview") : tab === "products" ? t("admin.products") : tab === "orders" ? t("admin.orders") : t("admin.audit")}
-            </button>
-          ))}
-        </div>
+      <main className="relative max-w-7xl mx-auto p-4 lg:p-6 space-y-6">
+        <LayoutGroup id="admin-tabs">
+          <div className="flex w-fit items-center gap-1 rounded-full border border-white/6 bg-white/[0.03] p-0.5 backdrop-blur-sm relative">
+            {adminTabs.map((tab) => (
+              <button key={tab} onClick={() => setAdminTab(tab)} className="relative rounded-full px-5 py-2 text-xs font-semibold transition-colors z-10">
+                {adminTab === tab && (
+                  <motion.div
+                    layoutId="admin-tab-bg"
+                    className="absolute inset-0 rounded-full bg-accent/15"
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  />
+                )}
+                <span className={`relative ${adminTab === tab ? "text-accent" : "text-white/40 hover:text-white/70"}`}>
+                  {tab === "overview" ? t("admin.overview") : tab === "products" ? t("admin.products") : tab === "orders" ? t("admin.orders") : t("admin.audit")}
+                </span>
+              </button>
+            ))}
+          </div>
+        </LayoutGroup>
 
         {adminTab === "overview" && (
-          <div className="flex w-fit items-center gap-1 rounded-full border border-white/6 bg-white/[0.03] p-0.5">
+          <div className="flex w-fit items-center gap-1 rounded-full border border-white/6 bg-white/[0.03] p-0.5 backdrop-blur-sm">
             {(Object.entries(PERIOD_LABELS) as [Period, string][]).map(([key, label]) => (
               <button key={key} onClick={() => setPeriod(key)}
                 className={`rounded-full px-5 py-2 text-xs font-semibold transition-all duration-500 ${
@@ -238,33 +276,53 @@ export default function AdminPage() {
           </div>
         )}
 
-        <motion.div variants={staggerContainer} initial="initial" animate="animate" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        <motion.div
+          initial="initial"
+          animate="animate"
+          variants={{ animate: { transition: { staggerChildren: 0.06, delayChildren: 0.05 } } }}
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3"
+        >
           {loadingStats ? (
             <>
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="bg-card/40 border border-white/5 rounded-2xl p-5 space-y-4 animate-pulse">
+                <motion.div key={i} variants={springCard(i * 0.04)} className="bg-card/40 border border-white/5 rounded-2xl p-5 space-y-4 animate-pulse">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-primary/10" />
                     <div className="h-3 w-24 rounded-full bg-white/5" />
                   </div>
                   <div className="h-7 w-32 rounded-full bg-white/8" />
                   <div className="h-3 w-20 rounded-full bg-white/5" />
-                </div>
+                </motion.div>
               ))}
             </>
           ) : (
             <>
-              <motion.div variants={fadeInUp(0)}><StatCard icon={<DollarSign className="w-4 h-4" />} title={t("admin.totalRevenue")} value={`${fmtNum(totalRevenue)} ${currency}`} change={0} trend="up" /></motion.div>
-              <motion.div variants={fadeInUp(0.04)}><StatCard icon={<ShoppingBag className="w-4 h-4" />} title={t("admin.totalOrders")} value={totalOrders.toString()} change={0} trend="up" /></motion.div>
-              <motion.div variants={fadeInUp(0.08)}><StatCard icon={<TrendingUp className="w-4 h-4" />} title={t("admin.avgOrder")} value={`${fmtNum(avgOrderValue)} ${currency}`} change={0} trend="up" /></motion.div>
-              <motion.div variants={fadeInUp(0.12)}><StatCard icon={<Star className="w-4 h-4" />} title={t("admin.avgRating")} value={avgRating.toFixed(1)} change={0} trend="up" /></motion.div>
-              <motion.div variants={fadeInUp(0.16)}><StatCard icon={<CalendarClock className="w-4 h-4" />} title={t("admin.dailyRevenue")} value={`${fmtNum(dailyRevenue)} ${currency}`} change={0} trend="up" /></motion.div>
+              <motion.div variants={springCard(0)}>
+                <StatCard icon={<DollarSign className="w-4 h-4" />} title={t("admin.totalRevenue")} value={`${fmtNum(totalRevenue)} ${currency}`} change={0} trend="up" />
+              </motion.div>
+              <motion.div variants={springCard(0.04)}>
+                <StatCard icon={<ShoppingBag className="w-4 h-4" />} title={t("admin.totalOrders")} value={totalOrders.toString()} change={0} trend="up" />
+              </motion.div>
+              <motion.div variants={springCard(0.08)}>
+                <StatCard icon={<TrendingUp className="w-4 h-4" />} title={t("admin.avgOrder")} value={`${fmtNum(avgOrderValue)} ${currency}`} change={0} trend="up" />
+              </motion.div>
+              <motion.div variants={springCard(0.12)}>
+                <StatCard icon={<Star className="w-4 h-4" />} title={t("admin.avgRating")} value={avgRating.toFixed(1)} change={0} trend="up" />
+              </motion.div>
+              <motion.div variants={springCard(0.16)}>
+                <StatCard icon={<CalendarClock className="w-4 h-4" />} title={t("admin.dailyRevenue")} value={`${fmtNum(dailyRevenue)} ${currency}`} change={0} trend="up" />
+              </motion.div>
             </>
           )}
         </motion.div>
 
         {adminTab === "overview" && driverStats.length > 0 && (
-          <div className="bg-card/40 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-sm card-hover">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 70, damping: 16, delay: 0.1 }}
+            className="bg-card/40 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-sm shadow-sm card-hover"
+          >
             <div className="px-5 py-3.5 border-b border-white/5 flex items-center gap-2.5">
               <span className="w-1 h-1 rounded-full bg-accent/60" />
               <h3 className="font-display text-sm font-semibold text-white/80">{t("admin.driverPerformance")}</h3>
@@ -272,16 +330,18 @@ export default function AdminPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-white/5">
+                  <tr className="border-b border-accent/20">
                     <th className="text-right px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.driver")}</th>
                     <th className="text-center px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.deliveries")}</th>
                     <th className="text-center px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.revenue")}</th>
                     <th className="text-center px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.avgOrder")}</th>
                   </tr>
                 </thead>
-                <tbody>
+                <motion.tbody initial="initial" animate="animate">
                   {driverStats.map((d, i) => (
-                    <tr key={d.id} className={`${i < driverStats.length - 1 ? "border-b border-white/[0.02]" : ""} hover:bg-white/[0.015] transition-colors`}>
+                    <motion.tr key={d.id} variants={springRow(i * 0.03)}
+                      className={`${i < driverStats.length - 1 ? "border-b border-white/[0.02]" : ""} hover:bg-white/[0.015] transition-colors`}
+                    >
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-2.5">
                           <div className="w-8 h-8 rounded-full bg-primary/10 text-primary/60 flex items-center justify-center text-xs font-semibold">
@@ -299,16 +359,21 @@ export default function AdminPage() {
                       <td className="text-center px-5 py-3">
                         <span className="text-white/40">{d.deliveries > 0 ? fmtNum(Math.round(d.revenue / d.deliveries)) : 0} {currency}</span>
                       </td>
-                    </tr>
+                    </motion.tr>
                   ))}
-                </tbody>
+                </motion.tbody>
               </table>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {adminTab === "overview" && cashierStats.length > 0 && (
-          <div className="bg-card/40 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-sm card-hover">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 70, damping: 16, delay: 0.15 }}
+            className="bg-card/40 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-sm shadow-sm card-hover"
+          >
             <div className="px-5 py-3.5 border-b border-white/5 flex items-center gap-2.5">
               <span className="w-1 h-1 rounded-full bg-accent/60" />
               <h3 className="font-display text-sm font-semibold text-white/80">{t("admin.cashierPerformance")}</h3>
@@ -316,15 +381,17 @@ export default function AdminPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-white/5">
+                  <tr className="border-b border-accent/20">
                     <th className="text-right px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.cashier")}</th>
                     <th className="text-center px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.orders")}</th>
                     <th className="text-center px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.revenue")}</th>
                   </tr>
                 </thead>
-                <tbody>
+                <motion.tbody initial="initial" animate="animate">
                   {cashierStats.map((c, i) => (
-                    <tr key={c.id} className={`${i < cashierStats.length - 1 ? "border-b border-white/[0.02]" : ""} hover:bg-white/[0.015] transition-colors`}>
+                    <motion.tr key={c.id} variants={springRow(i * 0.03)}
+                      className={`${i < cashierStats.length - 1 ? "border-b border-white/[0.02]" : ""} hover:bg-white/[0.015] transition-colors`}
+                    >
                       <td className="px-5 py-3">
                         <span className="font-medium text-white/80 text-sm">{c.name}</span>
                       </td>
@@ -334,29 +401,45 @@ export default function AdminPage() {
                       <td className="text-center px-5 py-3">
                         <span className="font-medium text-emerald-400/80">{fmtNum(c.revenue)} {currency}</span>
                       </td>
-                    </tr>
+                    </motion.tr>
                   ))}
-                </tbody>
+                </motion.tbody>
               </table>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {adminTab === "overview" && (
           <>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: "spring", stiffness: 70, damping: 16, delay: 0.2 }}
+              className="grid grid-cols-1 lg:grid-cols-3 gap-5"
+            >
               <div className="lg:col-span-2">
                 <SalesChart data={salesData} period={period} onPeriodChange={setPeriod} />
               </div>
               <PeakHoursChart data={peakHours} />
-            </div>
+            </motion.div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: "spring", stiffness: 70, damping: 16, delay: 0.25 }}
+              className="grid grid-cols-1 lg:grid-cols-2 gap-5"
+            >
               <TopProducts data={topProducts} />
               <ReviewsFeed reviews={reviews} />
-            </div>
+            </motion.div>
 
-            <RestaurantSettings />
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: "spring", stiffness: 70, damping: 16, delay: 0.3 }}
+            >
+              <RestaurantSettings />
+            </motion.div>
           </>
         )}
         {adminTab === "products" && <ProductManager />}
