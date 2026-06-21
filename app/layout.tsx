@@ -118,6 +118,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-lg focus:outline-none">
           تخطي إلى المحتوى الرئيسي
         </a>
+        <div id="bg-orbs" aria-hidden="true" className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+          <div className="orb-1 absolute rounded-full" />
+          <div className="orb-2 absolute rounded-full" />
+          <div className="orb-3 absolute rounded-full" />
+          <div className="orb-4 absolute rounded-full" />
+        </div>
         <LangProvider lang={lang}>
           <ThemeProvider>
             <SentryBoundary>
