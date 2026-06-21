@@ -9,22 +9,22 @@ function FloatingOrbs() {
   return (
     <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
       <motion.div
-        animate={{ y: [0, -20, 0], opacity: [0.15, 0.25, 0.15] }}
+        animate={{ y: [0, -20, 0], opacity: [0.06, 0.1, 0.06] }}
         transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
         className="absolute -top-40 -right-32 h-[600px] w-[600px] rounded-full bg-accent blur-[160px]"
       />
       <motion.div
-        animate={{ y: [0, 20, 0], opacity: [0.12, 0.2, 0.12] }}
+        animate={{ y: [0, 20, 0], opacity: [0.05, 0.08, 0.05] }}
         transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
         className="absolute -bottom-40 -left-32 h-[500px] w-[500px] rounded-full bg-primary blur-[140px]"
       />
       <motion.div
-        animate={{ y: [0, -12, 0], opacity: [0.08, 0.15, 0.08] }}
+        animate={{ y: [0, -12, 0], opacity: [0.03, 0.06, 0.03] }}
         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-        className="absolute top-1/4 left-1/3 h-[300px] w-[300px] rounded-full bg-accent/70 blur-[120px]"
+        className="absolute top-1/4 left-1/3 h-[300px] w-[300px] rounded-full bg-accent/50 blur-[120px]"
       />
       <div
-        className="absolute inset-0 opacity-[0.04]"
+        className="absolute inset-0 opacity-[0.02]"
         style={{
           backgroundImage: 'radial-gradient(circle, currentColor 0.5px, transparent 0.5px)',
           backgroundSize: '24px 24px',
@@ -137,14 +137,14 @@ function FloatingMockup() {
                 <svg viewBox="0 0 320 90" className="w-full" preserveAspectRatio="none">
                   <defs>
                     <linearGradient id="chartFill2" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="oklch(0.62 0.18 195)" stopOpacity="0.35" />
-                      <stop offset="100%" stopColor="oklch(0.62 0.18 195)" stopOpacity="0" />
+                      <stop offset="0%" stopColor="oklch(0.4 0.14 260)" stopOpacity="0.25" />
+                      <stop offset="100%" stopColor="oklch(0.4 0.14 260)" stopOpacity="0" />
                     </linearGradient>
                   </defs>
                   <motion.path
                     d="M0 70 C 40 60, 60 30, 100 38 S 170 10, 210 28 S 280 55, 320 22"
                     fill="none"
-                    stroke="oklch(0.62 0.18 195)"
+                    stroke="oklch(0.4 0.14 260)"
                     strokeWidth="2.5"
                     strokeLinecap="round"
                     initial={{ pathLength: 0 }}
@@ -170,7 +170,7 @@ function FloatingMockup() {
 
 export function Hero() {
   return (
-    <section className="relative min-h-screen overflow-hidden bg-zinc-950 pt-32 md:pt-40">
+    <section className="relative min-h-screen overflow-hidden bg-background pt-32 md:pt-40">
       <FloatingOrbs />
 
       <div className="mx-auto max-w-7xl px-4 md:px-8">
@@ -249,7 +249,7 @@ export function Hero() {
                   <motion.span
                     key={a.label}
                     whileHover={{ scale: 1.1, y: -2 }}
-                    className={`grid size-11 place-items-center rounded-full border-2 border-zinc-950 ${a.bg} text-sm font-bold text-white shadow-lg`}
+                    className={`grid size-11 place-items-center rounded-full border-2 border-background ${a.bg} text-sm font-bold text-white shadow-lg`}
                   >
                     {a.label}
                   </motion.span>
