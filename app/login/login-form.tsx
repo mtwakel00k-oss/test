@@ -131,8 +131,8 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
           className="pointer-events-none absolute inset-0 opacity-[0.06]"
           style={{
             backgroundImage: [
-              "linear-gradient(rgba(42,180,80,.12) 1px, transparent 1px)",
-              "linear-gradient(90deg, rgba(42,180,80,.12) 1px, transparent 1px)",
+              "linear-gradient(rgba(20,20,40,.08) 1px, transparent 1px)",
+              "linear-gradient(90deg, rgba(20,20,40,.08) 1px, transparent 1px)",
             ].join(","),
             backgroundSize: "32px 32px",
           }}
@@ -277,7 +277,7 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.02] z-0"
           style={{
-            backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, oklch(0.42 0.16 145 / 0.04) 2px, oklch(0.42 0.16 145 / 0.04) 4px)",
+            backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, oklch(0.25 0.025 260 / 0.03) 2px, oklch(0.25 0.025 260 / 0.03) 4px)",
           }}
         />
 
@@ -556,7 +556,7 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
                   className={cn(
                     "relative z-10 bg-background border-input text-foreground placeholder:text-muted-foreground",
                     "focus-visible:ring-primary/50 focus-visible:border-primary/50",
-                    "focus-visible:shadow-[0_0_12px_-2px_oklch(0.42_0.16_145/0.25)]",
+                    "focus-visible:shadow-[0_0_12px_-2px_oklch(0.25_0.025_260/0.2)]",
                     error && "border-destructive/50"
                   )}
                 />
