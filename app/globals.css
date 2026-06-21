@@ -370,72 +370,226 @@ html[data-locale="fr"] body {
   50% { opacity: 0.8; }
 }
 
-@keyframes glass-shimmer {
-  0% { background-position: 100% 0; }
-  100% { background-position: -100% 0; }
+@keyframes liquid-flow {
+  0% { background-position: 0% 0%, 100% 100%, 50% 50%; }
+  33% { background-position: 60% 40%, 20% 80%, 80% 20%; }
+  66% { background-position: 80% 70%, 60% 10%, 10% 90%; }
+  100% { background-position: 0% 0%, 100% 100%, 50% 50%; }
 }
 
-@keyframes glass-glow {
+@keyframes liquid-sheen {
+  0% { transform: translateX(-120%) translateY(-50%) rotate(25deg); opacity: 0; }
+  8% { opacity: 0.5; }
+  20% { opacity: 0.08; }
+  50% { transform: translateX(250%) translateY(50%) rotate(25deg); opacity: 0; }
+  100% { transform: translateX(250%) translateY(50%) rotate(25deg); opacity: 0; }
+}
+
+@keyframes liquid-ripple {
+  0% { transform: scale(0.8); opacity: 0.08; }
+  25% { transform: scale(1.2); opacity: 0.03; }
+  50% { transform: scale(0.9); opacity: 0.06; }
+  75% { transform: scale(1.1); opacity: 0.02; }
+  100% { transform: scale(0.8); opacity: 0.08; }
+}
+
+@keyframes liquid-edge {
   0%, 100% {
-    border-color: oklch(0.25 0.025 260 / 0.2);
-    box-shadow: 0 0 18px oklch(0.25 0.025 260 / 0.04), var(--shadow-md), inset 0 1px 0 oklch(1 0 0 / 0.5);
+    border-color: oklch(0.25 0.025 260 / 0.1);
+    box-shadow:
+      0 0 10px oklch(0.25 0.025 260 / 0.02),
+      0 4px 24px oklch(0 0 0 / 0.05),
+      inset 0 1px 0 oklch(1 0 0 / 0.55);
+  }
+  25% {
+    border-color: oklch(0.28 0.03 240 / 0.2);
+    box-shadow:
+      0 0 20px oklch(0.28 0.03 240 / 0.04),
+      0 4px 28px oklch(0 0 0 / 0.06),
+      inset 0 1px 0 oklch(1 0 0 / 0.6);
   }
   50% {
-    border-color: oklch(0.25 0.025 260 / 0.35);
-    box-shadow: 0 0 28px oklch(0.25 0.025 260 / 0.08), var(--shadow-md), inset 0 1px 0 oklch(1 0 0 / 0.6);
+    border-color: oklch(0.22 0.025 270 / 0.16);
+    box-shadow:
+      0 0 26px oklch(0.22 0.025 270 / 0.03),
+      0 4px 24px oklch(0 0 0 / 0.05),
+      inset 0 1px 0 oklch(1 0 0 / 0.5);
+  }
+  75% {
+    border-color: oklch(0.3 0.03 250 / 0.22);
+    box-shadow:
+      0 0 22px oklch(0.3 0.03 250 / 0.05),
+      0 4px 28px oklch(0 0 0 / 0.06),
+      inset 0 1px 0 oklch(1 0 0 / 0.6);
   }
 }
 
-@keyframes glass-glow-dark {
+@keyframes liquid-edge-dark {
   0%, 100% {
-    border-color: oklch(0.45 0.08 260 / 0.2);
-    box-shadow: 0 0 18px oklch(0.45 0.08 260 / 0.04), var(--shadow-md), inset 0 1px 0 oklch(1 0 0 / 0.04);
+    border-color: oklch(0.45 0.08 260 / 0.12);
+    box-shadow:
+      0 0 10px oklch(0.45 0.08 260 / 0.02),
+      0 4px 24px oklch(0 0 0 / 0.3),
+      inset 0 1px 0 oklch(1 0 0 / 0.03);
+  }
+  25% {
+    border-color: oklch(0.5 0.08 240 / 0.2);
+    box-shadow:
+      0 0 20px oklch(0.5 0.08 240 / 0.04),
+      0 4px 28px oklch(0 0 0 / 0.35),
+      inset 0 1px 0 oklch(1 0 0 / 0.05);
   }
   50% {
-    border-color: oklch(0.45 0.08 260 / 0.35);
-    box-shadow: 0 0 28px oklch(0.45 0.08 260 / 0.08), var(--shadow-md), inset 0 1px 0 oklch(1 0 0 / 0.06);
+    border-color: oklch(0.4 0.07 270 / 0.16);
+    box-shadow:
+      0 0 26px oklch(0.4 0.07 270 / 0.03),
+      0 4px 24px oklch(0 0 0 / 0.3),
+      inset 0 1px 0 oklch(1 0 0 / 0.03);
+  }
+  75% {
+    border-color: oklch(0.52 0.09 250 / 0.22);
+    box-shadow:
+      0 0 22px oklch(0.52 0.09 250 / 0.05),
+      0 4px 28px oklch(0 0 0 / 0.35),
+      inset 0 1px 0 oklch(1 0 0 / 0.05);
   }
 }
+
 .animate-badge-pulse {
   animation: badge-pulse 2s var(--ease-premium) infinite;
 }
 
 .glass {
-  background: oklch(0.97 0.008 240 / 0.4);
+  position: relative;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 30%, oklch(0.25 0.025 260 / 0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 80% 70%, oklch(0.45 0.015 260 / 0.03) 0%, transparent 50%),
+    linear-gradient(
+      120deg,
+      oklch(0.98 0.006 230 / 0.4) 0%,
+      oklch(0.96 0.01 250 / 0.35) 25%,
+      oklch(0.97 0.008 240 / 0.4) 50%,
+      oklch(0.95 0.012 260 / 0.35) 75%,
+      oklch(0.98 0.006 230 / 0.4) 100%
+    );
+  background-size: 200% 200%, 200% 200%, 200% 200%;
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid oklch(0.25 0.025 260 / 0.15);
-  box-shadow: var(--shadow-md), inset 0 1px 0 oklch(1 0 0 / 0.5);
-  animation: glass-glow 4s var(--ease-premium) infinite;
+  border: 1px solid oklch(0.25 0.025 260 / 0.1);
+  animation: liquid-edge 6s var(--ease-premium) infinite;
+  overflow: hidden;
+  isolation: isolate;
+}
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(circle at 50% 50%, oklch(1 0 0 / 0.05) 0%, transparent 50%);
+  animation: liquid-ripple 8s var(--ease-premium) infinite;
+  pointer-events: none;
+}
+.glass::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(
+    115deg,
+    transparent 25%,
+    oklch(1 0 0 / 0.06) 35%,
+    oklch(1 0 0 / 0.02) 45%,
+    transparent 55%
+  );
+  background-size: 200% 100%;
+  animation: liquid-flow 14s ease-in-out infinite;
+  pointer-events: none;
 }
 .dark .glass {
-  background: oklch(0.1 0.01 260 / 0.55);
-  border: 1px solid oklch(0.45 0.08 260 / 0.2);
-  box-shadow: var(--shadow-lg), inset 0 1px 0 oklch(1 0 0 / 0.04);
-  animation: glass-glow-dark 4s var(--ease-premium) infinite;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 30%, oklch(0.45 0.08 260 / 0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 80% 70%, oklch(0.55 0.015 260 / 0.04) 0%, transparent 50%),
+    linear-gradient(
+      120deg,
+      oklch(0.12 0.015 260 / 0.45) 0%,
+      oklch(0.1 0.01 240 / 0.5) 25%,
+      oklch(0.11 0.012 250 / 0.45) 50%,
+      oklch(0.09 0.015 270 / 0.5) 75%,
+      oklch(0.12 0.015 260 / 0.45) 100%
+    );
+  background-size: 200% 200%, 200% 200%, 200% 200%;
+  border: 1px solid oklch(0.45 0.08 260 / 0.12);
+  animation: liquid-edge-dark 6s var(--ease-premium) infinite;
+}
+.dark .glass::before {
+  background: radial-gradient(circle at 50% 50%, oklch(1 0 0 / 0.03) 0%, transparent 50%);
 }
 
 .glass-input {
-  background: oklch(0.96 0.008 240 / 0.35);
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 30%, oklch(0.25 0.025 260 / 0.03) 0%, transparent 60%),
+    linear-gradient(
+      120deg,
+      oklch(0.98 0.006 230 / 0.3) 0%,
+      oklch(0.95 0.01 250 / 0.25) 25%,
+      oklch(0.96 0.008 240 / 0.3) 50%,
+      oklch(0.94 0.012 260 / 0.25) 75%,
+      oklch(0.98 0.006 230 / 0.3) 100%
+    );
+  background-size: 200% 200%, 200% 200%;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid oklch(0.25 0.025 260 / 0.15);
-  box-shadow: 0 0 18px oklch(0.25 0.025 260 / 0.02), var(--shadow-sm), inset 0 1px 0 oklch(1 0 0 / 0.6);
+  border: 1px solid oklch(0.25 0.025 260 / 0.1);
+  box-shadow: 0 0 10px oklch(0.25 0.025 260 / 0.02), var(--shadow-sm), inset 0 1px 0 oklch(1 0 0 / 0.6);
+  animation: liquid-edge 6s var(--ease-premium) infinite;
   transition: border-color 0.5s var(--ease-premium), box-shadow 0.5s var(--ease-premium), background 0.5s var(--ease-premium);
 }
 .glass-input:focus {
-  background: oklch(0.94 0.01 240 / 0.45);
-  border-color: oklch(0.25 0.025 260 / 0.3);
-  box-shadow: 0 0 30px oklch(0.25 0.025 260 / 0.08), var(--shadow-md), inset 0 1px 0 oklch(1 0 0 / 0.7);
+  background:
+    radial-gradient(ellipse 60% 50% at 30% 40%, oklch(0.25 0.025 260 / 0.06) 0%, transparent 60%),
+    linear-gradient(
+      120deg,
+      oklch(0.96 0.008 230 / 0.4) 0%,
+      oklch(0.93 0.012 250 / 0.35) 25%,
+      oklch(0.94 0.01 240 / 0.4) 50%,
+      oklch(0.92 0.014 260 / 0.35) 75%,
+      oklch(0.96 0.008 230 / 0.4) 100%
+    );
+  background-size: 200% 200%, 200% 200%;
+  border-color: oklch(0.25 0.025 260 / 0.25);
+  box-shadow: 0 0 28px oklch(0.25 0.025 260 / 0.06), var(--shadow-md), inset 0 1px 0 oklch(1 0 0 / 0.7);
 }
 .dark .glass-input {
-  background: oklch(0.08 0.01 260 / 0.45);
-  border-color: oklch(0.45 0.08 260 / 0.2);
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 30%, oklch(0.45 0.08 260 / 0.04) 0%, transparent 60%),
+    linear-gradient(
+      120deg,
+      oklch(0.09 0.012 260 / 0.35) 0%,
+      oklch(0.07 0.008 240 / 0.4) 25%,
+      oklch(0.08 0.01 250 / 0.35) 50%,
+      oklch(0.06 0.015 270 / 0.4) 75%,
+      oklch(0.09 0.012 260 / 0.35) 100%
+    );
+  background-size: 200% 200%, 200% 200%;
+  border-color: oklch(0.45 0.08 260 / 0.12);
+  box-shadow: 0 0 10px oklch(0.45 0.08 260 / 0.02), var(--shadow-sm);
+  animation: liquid-edge-dark 6s var(--ease-premium) infinite;
 }
 .dark .glass-input:focus {
-  background: oklch(0.1 0.012 260 / 0.55);
-  border-color: oklch(0.45 0.08 260 / 0.35);
-  box-shadow: 0 0 30px oklch(0.45 0.08 260 / 0.08), var(--shadow-md), inset 0 1px 0 oklch(1 0 0 / 0.04);
+  background:
+    radial-gradient(ellipse 60% 50% at 30% 40%, oklch(0.45 0.08 260 / 0.07) 0%, transparent 60%),
+    linear-gradient(
+      120deg,
+      oklch(0.11 0.014 260 / 0.45) 0%,
+      oklch(0.09 0.01 240 / 0.5) 25%,
+      oklch(0.1 0.012 250 / 0.45) 50%,
+      oklch(0.08 0.017 270 / 0.5) 75%,
+      oklch(0.11 0.014 260 / 0.45) 100%
+    );
+  background-size: 200% 200%, 200% 200%;
+  border-color: oklch(0.45 0.08 260 / 0.28);
+  box-shadow: 0 0 28px oklch(0.45 0.08 260 / 0.06), var(--shadow-md), inset 0 1px 0 oklch(1 0 0 / 0.04);
 }
 
 .hero-gradient {
@@ -558,10 +712,10 @@ html[data-locale="fr"] body {
 
 .card-hover {
   transition: all 0.4s var(--ease-premium);
-  animation: glass-glow 4s var(--ease-premium) infinite;
+  animation: liquid-edge 6s var(--ease-premium) infinite;
 }
 .dark .card-hover {
-  animation: glass-glow-dark 4s var(--ease-premium) infinite;
+  animation: liquid-edge-dark 6s var(--ease-premium) infinite;
 }
 .card-hover:hover {
   transform: translateY(-3px);
@@ -571,12 +725,40 @@ html[data-locale="fr"] body {
 
 .status-pending { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-primary/15 text-primary; }
 
-/* Liquid glass glow on all card containers */
-[class*="bg-card"][class*="rounded-"]:not(.glass-input):not(.animate-skeleton) {
-  animation: glass-glow 4s var(--ease-premium) infinite;
+/* Liquid glass on all card containers */
+[class*="bg-card"][class*="rounded-"]:not(.glass-input):not(.animate-skeleton):not(.glass) {
+  background-image:
+    radial-gradient(ellipse 60% 50% at 20% 30%, oklch(0.25 0.025 260 / 0.03) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 80% 70%, oklch(0.45 0.015 260 / 0.02) 0%, transparent 50%),
+    linear-gradient(
+      120deg,
+      oklch(0.98 0.006 230 / 0.3) 0%,
+      oklch(0.96 0.01 250 / 0.25) 25%,
+      oklch(0.97 0.008 240 / 0.3) 50%,
+      oklch(0.95 0.012 260 / 0.25) 75%,
+      oklch(0.98 0.006 230 / 0.3) 100%
+    );
+  background-size: 200% 200%, 200% 200%, 200% 200%;
+  animation:
+    liquid-edge 6s var(--ease-premium) infinite,
+    liquid-flow 14s ease-in-out infinite;
 }
-.dark [class*="bg-card"][class*="rounded-"]:not(.glass-input):not(.animate-skeleton) {
-  animation: glass-glow-dark 4s var(--ease-premium) infinite;
+.dark [class*="bg-card"][class*="rounded-"]:not(.glass-input):not(.animate-skeleton):not(.glass) {
+  background-image:
+    radial-gradient(ellipse 60% 50% at 20% 30%, oklch(0.45 0.08 260 / 0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 80% 70%, oklch(0.55 0.015 260 / 0.03) 0%, transparent 50%),
+    linear-gradient(
+      120deg,
+      oklch(0.12 0.015 260 / 0.35) 0%,
+      oklch(0.1 0.01 240 / 0.4) 25%,
+      oklch(0.11 0.012 250 / 0.35) 50%,
+      oklch(0.09 0.015 270 / 0.4) 75%,
+      oklch(0.12 0.015 260 / 0.35) 100%
+    );
+  background-size: 200% 200%, 200% 200%, 200% 200%;
+  animation:
+    liquid-edge-dark 6s var(--ease-premium) infinite,
+    liquid-flow 14s ease-in-out infinite;
 }
 .status-preparing { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-sky-500/15 text-sky-400; }
 .status-ready { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-emerald-500/15 text-emerald-400; }
