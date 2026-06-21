@@ -500,10 +500,35 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
                   onBlur={() => setFocusedInput(null)}
                   placeholder={t("login.usernamePlaceholder")}
                   className={cn(
-                    "relative z-10 bg-background border-input text-foreground placeholder:text-muted-foreground",
-                    "focus-visible:ring-primary/50 focus-visible:border-primary/50",
-                    "focus-visible:shadow-[0_0_12px_-2px_oklch(0.42_0.16_145/0.25)]",
-                    error && "border-destructive/50"
+                    "relative z-10 text-foreground placeholder:text-muted-foreground",
+                    error && "!border-destructive/50",
+                  )}
+                  autoFocus
+                />
+                <motion.div
+                  className="pointer-events-none absolute -inset-0.5 rounded-xl bg-primary/15 blur-md"
+                  initial={false}
+                  animate={{
+                    opacity: focusedInput === "username" ? 1 : 0,
+                    scale: focusedInput === "username" ? 1 : 0.95,
+                  }}
+                  transition={{ type: "spring", stiffness: 150, damping: 20 }}
+                />
+              </div>
+
+              <div className="relative">
+                <Input
+                  data-testid="password-input"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                  onFocus={() => setFocusedInput("password")}
+                  onBlur={() => setFocusedInput(null)}
+                  placeholder={t("login.passwordPlaceholder")}
+                  className={cn(
+                    "relative z-10 text-foreground placeholder:text-muted-foreground",
+                    error && "!border-destructive/50",
                   )}
                   autoFocus
                 />

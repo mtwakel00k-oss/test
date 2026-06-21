@@ -36,8 +36,8 @@ export function Select({ value, onChange, options, className }: SelectProps) {
         type="button"
         onClick={() => setOpen(!open)}
         className={cn(
-          "border-input flex h-9 w-32 items-center justify-between rounded-md border bg-card px-2 py-1 text-sm shadow-xs",
-          open && "border-ring ring-3 ring-ring/50",
+          "flex h-9 w-32 items-center justify-between rounded-xl glass-input px-2 py-1 text-sm",
+          open && "!border-primary/40",
           className
         )}
       >
@@ -45,7 +45,7 @@ export function Select({ value, onChange, options, className }: SelectProps) {
         <ChevronDown className={cn("h-3.5 w-3.5 text-muted-foreground transition-transform", open && "rotate-180")} />
       </button>
       {open && (
-        <div className="absolute top-full left-0 z-50 mt-1 w-32 overflow-hidden rounded-lg border border-border bg-card shadow-lg">
+        <div className="absolute top-full left-0 z-50 mt-1 w-32 overflow-hidden rounded-xl border border-border/50 bg-card/80 backdrop-blur-xl shadow-lg animate-in fade-in zoom-in-95">
           {options.map((opt) => (
             <button
               key={opt.value}
