@@ -43,7 +43,7 @@ export function CategoryFilter({
               aria-selected={isSelected}
               className={`relative flex-shrink-0 snap-start whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-500 active:scale-95 ${
                 isSelected
-                  ? "bg-accent text-accent-foreground shadow-[0_0_20px_oklch(0.65_0.14_55/0.25)]"
+                  ? "bg-accent text-accent-foreground shadow-[0_0_20px_oklch(0.45_0.015_260/0.2)]"
                   : "border border-border/30 bg-card/50 text-muted-foreground/70 hover:border-accent/30 hover:text-foreground hover:bg-accent/5"
               }`}
             >
