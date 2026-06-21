@@ -13,7 +13,7 @@ import type { Order, OrderItem } from "@/lib/types"
 import { OrderStatusTracker } from "@/components/order-status-tracker"
 import { OrderDetails } from "@/components/order-details"
 const RatingWidget = dynamic(() => import("@/components/RatingWidget"), { ssr: false })
-import { CheckCircle, Clock, ChefHat, Bike, Sparkles, Package, MapPin } from "lucide-react"
+import { CheckCircle, Clock, ChefHat, Bike, Sparkles, Package, MapPin, XCircle } from "lucide-react"
 
 const LiveDriverMap = dynamic(() => import("@/components/live-driver-map"), { ssr: false })
 
@@ -35,11 +35,12 @@ function OrderSkeleton() {
 }
 
 const STATUS_ICONS: Record<string, { icon: React.ReactNode; color: string; label: string }> = {
-  pending: { icon: <Clock className="w-5 h-5" />, color: "bg-accent", label: "track.pending" },
+  pending: { icon: <Clock className="w-5 h-5" />, color: "bg-success", label: "track.pending" },
   preparing: { icon: <ChefHat className="w-5 h-5" />, color: "bg-sky-500", label: "track.preparing" },
   ready: { icon: <Package className="w-5 h-5" />, color: "bg-emerald-500", label: "track.ready" },
   out_for_delivery: { icon: <Bike className="w-5 h-5" />, color: "bg-violet-500", label: "track.outForDelivery" },
   completed: { icon: <Sparkles className="w-5 h-5" />, color: "bg-neutral-400", label: "track.completed" },
+  cancelled: { icon: <XCircle className="w-5 h-5" />, color: "bg-destructive", label: "track.cancelled" },
 }
 
 export default function OrderTrackingPage({ params }: { params: Promise<{ restaurant_slug: string; id: string }> }) {

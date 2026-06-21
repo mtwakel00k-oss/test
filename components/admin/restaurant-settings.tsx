@@ -333,7 +333,7 @@ export function RestaurantSettings() {
               <div key={driver.id}
                 className="flex items-center justify-between p-3 rounded-xl border border-border bg-secondary/30">
                 <div className="flex items-center gap-3">
-                  <div className={`w-2.5 h-2.5 rounded-full ${driver.is_active ? "bg-emerald-500" : "bg-muted-foreground/40"}`} />
+                  <div className={`w-2.5 h-2.5 rounded-full ${driver.is_active ? "bg-success" : "bg-destructive/50"}`} />
                   <div>
                     <p className="text-sm font-semibold text-foreground">{driver.name}</p>
                     <p className="text-xs text-muted-foreground" dir="ltr">+{driver.phone}</p>

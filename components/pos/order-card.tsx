@@ -35,12 +35,12 @@ function formatTimeAgo(date: Date, t: (key: string) => string): string {
 }
 
 const STATUS_STYLES = {
-  pending: { label: "statusNew", badge: "badge-amber", dot: "bg-amber-500", bar: "bg-amber-500", shadow: "shadow-amber-500/10" },
+  pending: { label: "statusNew", badge: "badge-success", dot: "bg-success", bar: "bg-success", shadow: "shadow-success/10" },
   preparing: { label: "statusPreparing", badge: "badge-sky", dot: "bg-sky-500", bar: "bg-sky-500", shadow: "shadow-sky-500/10" },
   ready: { label: "statusReady", badge: "badge-emerald", dot: "bg-emerald-500", bar: "bg-emerald-500", shadow: "shadow-emerald-500/10" },
   out_for_delivery: { label: "statusOutForDelivery", badge: "badge-violet", dot: "bg-violet-500", bar: "bg-violet-500", shadow: "shadow-violet-500/10" },
   completed: { label: "statusCompleted", badge: "badge-neutral", dot: "bg-neutral-400", bar: "bg-neutral-400", shadow: "" },
-  cancelled: { label: "statusCancelled", badge: "badge-rose", dot: "bg-rose-500", bar: "bg-rose-500", shadow: "" },
+  cancelled: { label: "statusCancelled", badge: "badge-destructive", dot: "bg-destructive", bar: "bg-destructive", shadow: "" },
 } as const
 
 export function OrderCard(props: OrderCardProps) {

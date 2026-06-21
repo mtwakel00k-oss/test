@@ -77,9 +77,9 @@ export function POSHeader({ totalOrders: _totalOrders, activeOrders, todayRevenu
 
         <div className="flex items-center gap-2">
           {activeStaff && (
-            <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-              <span className="text-[11px] text-amber-400 font-semibold whitespace-nowrap">
+            <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg bg-success/10 border border-success/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-success" />
+              <span className="text-[11px] text-success font-semibold whitespace-nowrap">
                 {lang === "ar" ? "الكاشير:" : lang === "fr" ? "Caissier:" : "Cashier:"} {activeStaff.name}
               </span>
             </div>

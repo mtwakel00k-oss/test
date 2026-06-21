@@ -13,7 +13,7 @@ interface OrderFiltersProps {
 const FILTER_CONFIG: Record<string, { label: string; color: string }> = {
   pending: {
     label: "filterNew",
-    color: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-700",
+    color: "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-700",
   },
   preparing: {
     label: "filterPreparing",

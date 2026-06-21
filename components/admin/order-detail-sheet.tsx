@@ -60,7 +60,7 @@ const resolveOrderStatus = (status: string | null | undefined, paymentStatus: st
   if (s === "preparing") return { label: t("order.status.preparing"), color: "blue" }
   if (s === "ready") return { label: t("order.status.ready"), color: "green" }
   if (s === "out_for_delivery") return { label: t("order.status.onTheWay"), color: "purple" }
-  if (s === "pending") return { label: t("order.status.pending"), color: "yellow" }
+  if (s === "pending") return { label: t("order.status.pending"), color: "green" }
   if (s === "completed" || s === "delivered") return { label: t("order.status.completed"), color: "green" }
   return { label: t("common.unknown"), color: "gray" }
 }

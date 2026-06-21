@@ -149,9 +149,9 @@ export default function KitchenPage() {
 
           <div className="hidden md:flex items-center gap-4">
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-accent/10 border border-accent/20">
-              <Bell className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+              <Bell className="w-3.5 h-3.5 text-success animate-pulse" />
               <span className="text-sm text-muted-foreground">
-                <span className="font-bold text-amber-500">{pendingOrders.length}</span> {t("kitchen.new")}
+                <span className="font-bold text-success">{pendingOrders.length}</span> {t("kitchen.new")}
               </span>
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-sky-500/10 border border-sky-500/20">
@@ -191,10 +191,10 @@ export default function KitchenPage() {
               <section className="mb-8">
                 <div className="flex items-center gap-3 mb-4">
                   <span className="flex h-3 w-3">
-                    <span className="absolute inline-flex h-3 w-3 rounded-full bg-amber-400 opacity-75 animate-ping" />
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-accent" />
+                    <span className="absolute inline-flex h-3 w-3 rounded-full bg-success opacity-75 animate-ping" />
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-success" />
                   </span>
-                  <h2 className="text-lg font-black font-display text-amber-500 tracking-tight">{t("kitchen.newOrders")} ({pendingOrders.length})</h2>
+                  <h2 className="text-lg font-black font-display text-success tracking-tight">{t("kitchen.newOrders")} ({pendingOrders.length})</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
                   {pendingOrders.map(order => (
@@ -211,13 +211,13 @@ export default function KitchenPage() {
                           <span className="inline-flex px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-500/10 text-purple-600 dark:text-purple-300 border border-purple-500/20 dark:border-purple-500/30">
                             {order.orderType === "takeaway" ? t("pos.takeaway") : t("pos.dineIn")}
                           </span>
-                          <span className="text-sm font-mono text-amber-500/70 tabular-nums">{fmtTime(order.createdAt)}</span>
+                          <span className="text-sm font-mono text-success/70 tabular-nums">{fmtTime(order.createdAt)}</span>
                         </div>
                       </div>
-                      <div className="border-t border-amber-500/10 pt-4 space-y-2.5 relative">
+                      <div className="border-t border-success/10 pt-4 space-y-2.5 relative">
                         {order.items.map(item => (
                           <div key={item.id} className="flex items-center gap-3">
-                            <span className="text-lg font-black text-amber-500 min-w-[3rem]">{item.quantity}×</span>
+                            <span className="text-lg font-black text-success min-w-[3rem]">{item.quantity}×</span>
                             <span className="text-sm text-foreground/80 font-medium">{item.name}</span>
                           </div>
                         ))}

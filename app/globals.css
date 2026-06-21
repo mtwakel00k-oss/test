@@ -729,7 +729,9 @@ html[data-locale="fr"] body {
   box-shadow: 0 12px 40px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.5);
 }
 
-.status-pending { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-primary/15 text-primary; }
+.status-pending { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-success/15 text-success; }
+.status-active { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-success/15 text-success; }
+.status-inactive { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-destructive/15 text-destructive; }
 
 @keyframes card-blob-flow {
   0% { background-position: 20% 30%, 80% 70%, 50% 50%; }
@@ -763,4 +765,4 @@ html[data-locale="fr"] body {
 .status-ready { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-emerald-500/15 text-emerald-400; }
 .status-delivery { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-violet-500/15 text-violet-400; }
 .status-completed { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-muted text-muted-foreground; }
-.status-cancelled { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-rose-500/15 text-rose-400; }
+.status-cancelled { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-destructive/15 text-destructive; }

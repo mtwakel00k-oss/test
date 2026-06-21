@@ -289,10 +289,10 @@ export default function KitchenPage() {
               <section className="mb-8">
                 <div className="flex items-center gap-3 mb-4 px-1">
                   <span className="relative flex h-2.5 w-2.5">
-                    <span className="absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75 animate-ping" />
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent" />
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-success opacity-75 animate-ping" />
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success" />
                   </span>
-                  <h2 className="text-lg font-bold font-display text-amber-500 tracking-tight">{t("kitchen.newOrders")} ({pendingOrders.length})</h2>
+                  <h2 className="text-lg font-bold font-display text-success tracking-tight">{t("kitchen.newOrders")} ({pendingOrders.length})</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
                   {pendingOrders.map(order => (

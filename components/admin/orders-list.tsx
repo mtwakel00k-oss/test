@@ -76,7 +76,7 @@ const resolveOrderStatus = (status: string | null | undefined, paymentStatus: st
     return { label: t("order.status.onTheWay"), color: "purple", icon: "truck" }
   }
   if (s === "pending") {
-    return { label: t("order.status.pending"), color: "yellow", icon: "hourglass" }
+    return { label: t("order.status.pending"), color: "green", icon: "hourglass" }
   }
   if (s === "completed" || s === "delivered") {
     return { label: t("order.status.completed"), color: "green", icon: "check" }
