@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react"
 import type { MenuProduct, CartItem } from "@/lib/types"
 import { getPrice } from "@/lib/types"
+import { logger } from "@/lib/logger"
 
 interface Ctx {
   items: CartItem[]
@@ -38,7 +39,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const parsed = JSON.parse(saved)
         queueMicrotask(() => { if (Array.isArray(parsed)) setItems(parsed) })
       }
-    } catch { /* ignore corrupt data */ }
+    } catch (e) { logger.warn("Failed to hydrate cart from localStorage — corrupt data", e) }
     queueMicrotask(() => setHydrated(true))
   }, [])
 

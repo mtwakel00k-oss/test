@@ -1,6 +1,7 @@
 "use client"
 
 import { Component, type ReactNode } from "react"
+import { logger } from "@/lib/logger"
 
 interface Props { children: ReactNode; fallback?: ReactNode }
 interface State { hasError: boolean }
@@ -19,7 +20,7 @@ export class SentryBoundary extends Component<Props, State> {
         const s = w.__SENTRY__ as { captureException?: (e: Error) => void }
         s.captureException?.(error)
       }
-    } catch {}
+    } catch (e) { logger.warn("Sentry captureException failed", e) }
   }
 
   render() {

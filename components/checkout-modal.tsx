@@ -110,7 +110,8 @@ export function CheckoutModal({
           if (data.display_name) {
             startTransition(() => setForm(f => ({ ...f, deliveryAddress: data.display_name })))
           }
-        } catch {
+        } catch (e) {
+          logger.warn("Failed to reverse-geocode location", e)
         }
       })
       .catch(() => {

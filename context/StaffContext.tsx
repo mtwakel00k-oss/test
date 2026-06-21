@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, startTransition, type ReactNode } from "react"
 import { fetchApi } from "@/lib/tenant"
+import { logger } from "@/lib/logger"
 
 export interface StaffMember {
   id: string
@@ -31,7 +32,7 @@ export function StaffProvider({ children }: { children: ReactNode }) {
     try {
       const saved = localStorage.getItem(STAFF_KEY)
       if (saved) startTransition(() => setActiveStaffState(JSON.parse(saved)))
-    } catch {}
+    } catch (e) { logger.warn("Failed to restore active staff from localStorage", e) }
     fetchApi("/api/restaurant-staff")
       .then(r => (r.ok ? r.json() : []))
       .then(data => {
@@ -46,7 +47,7 @@ export function StaffProvider({ children }: { children: ReactNode }) {
     try {
       if (staff) localStorage.setItem(STAFF_KEY, JSON.stringify(staff))
       else localStorage.removeItem(STAFF_KEY)
-    } catch {}
+    } catch (e) { logger.warn("Failed to persist active staff to localStorage", e) }
   }, [])
 
   return (

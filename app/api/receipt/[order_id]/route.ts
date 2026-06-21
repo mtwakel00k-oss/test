@@ -86,8 +86,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ orde
 
     const sb = await supabaseForRequest(req)
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: order, error } = await (sb.from("orders") as any)
+    const { data: order, error } = await sb
+      .from("orders")
       .select("*, items:order_items(*)")
       .eq("id", order_id)
       .maybeSingle()

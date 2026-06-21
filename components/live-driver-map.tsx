@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef } from "react"
+import type { Map as LeafMap, Marker, Polyline } from "leaflet"
 
 interface LiveMapProps {
   driverLat: number | null
@@ -76,17 +77,14 @@ function MapLoading() {
   )
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type LeafletAny = any
-
 export default function LiveDriverMap(props: LiveMapProps) {
   const { driverLat, driverLng, customerLat, customerLng, lastUpdated } = props
   const mapRef = useRef<HTMLDivElement>(null)
-  const mapInstanceRef = useRef<LeafletAny>(null)
-  const driverMarkerRef = useRef<LeafletAny>(null)
-  const customerMarkerRef = useRef<LeafletAny>(null)
-  const polylineRef = useRef<LeafletAny>(null)
-  const leafletRef = useRef<LeafletAny>(null)
+  const mapInstanceRef = useRef<LeafMap | null>(null)
+  const driverMarkerRef = useRef<Marker | null>(null)
+  const customerMarkerRef = useRef<Marker | null>(null)
+  const polylineRef = useRef<Polyline | null>(null)
+  const leafletRef = useRef<typeof import("leaflet") | null>(null)
 
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return

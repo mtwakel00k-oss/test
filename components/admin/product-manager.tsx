@@ -489,8 +489,8 @@ export function ProductManager() {
           setCategories((prev) => [...prev, data as Category])
           return data.id
         }
-      } catch {
-        // fall through to temp id
+      } catch (e) {
+        logger.warn("Failed to create category via API, falling through to temp id", e)
       }
       return -(Math.abs(trimmed.length * 997) % 1000 + 100)
     },

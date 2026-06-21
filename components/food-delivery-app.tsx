@@ -129,14 +129,14 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
         setIsOpen(config.is_open !== false)
         return
       }
-    } catch {}
+      } catch (e) { logger.warn("Failed to parse tenant-config element", e) }
     try {
       const config = (window as unknown as Record<string, unknown>).__TENANT_CONFIG__ as { slug?: string; is_open?: boolean }
       if (config) {
         setSlug(config.slug || "")
         setIsOpen(config.is_open !== false)
       }
-    } catch {}
+    } catch (e) { logger.warn("Failed to read __TENANT_CONFIG__", e) }
   }, [propSlug])
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)

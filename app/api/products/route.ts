@@ -22,7 +22,7 @@ async function getTenantServiceClient(slug: string) {
   try {
     const { data: tRow } = await masterSb.from("tenants").select("supabase_service_key").eq("slug", slug).maybeSingle()
     if (tRow?.supabase_service_key) svcKey = tRow.supabase_service_key
-  } catch {}
+  } catch (e) { logger.warn("Failed to get tenant service key from master DB", e) }
   if (svcKey) return createClient(config.supabase_url, svcKey)
   const isSameProject = config.supabase_url === env.NEXT_PUBLIC_SUPABASE_URL
   return isSameProject ? createClient(config.supabase_url, env.SUPABASE_SERVICE_ROLE_KEY!) : null
@@ -286,12 +286,12 @@ export async function DELETE(req: NextRequest) {
     try {
       const { data: product } = await (pxDel.from("produits")).select("image_url").eq("id", id).single()
       if (product?.image_url) imageUrl = product.image_url
-    } catch {}
+    } catch (e) { logger.warn("Failed to fetch product image_url for deletion", e) }
     if (imageUrl) {
       try {
         const path = imageUrl.split("/product-images/")[1]
         if (path) await pxDel.storage.from("product-images").remove([path])
-      } catch {}
+      } catch (e2) { logger.warn("Failed to remove storage image", e2) }
     }
 
     const { error: prixErr } = await (pxDel.from("prix")).delete().eq("produit_id", id)

@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
         usernameMap.set(p.id, p.username)
       }
     }
-  } catch { /* profiles table may not exist */ }
+  } catch (e) { logger.warn("profiles table may not exist", e) }
 
   // For users without profile username, fetch from auth metadata
   const missingIds = (users as { user_id: string }[]).filter((u) => !usernameMap.has(u.user_id)).map((u) => u.user_id)
@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
           usernameMap.set(u.id, u.user_metadata.username as string)
         }
       }
-    } catch { /* may not have permission */ }
+    } catch (e) { logger.warn("may not have permission to list auth users", e) }
   }
 
   const list = (users as { user_id: string; role: string }[]).map((u) => ({
@@ -176,7 +176,7 @@ export async function DELETE(req: NextRequest) {
     try {
       await masterClient.from("restaurant_staff").update({ is_active: false })
         .eq("tenant_slug", slug).eq("name", profile.username)
-    } catch { /* table may not exist */ }
+    } catch (e) { logger.warn("restaurant_staff table may not exist", e) }
   }
 
   logger.info("Cashier removed", { userId, slug })

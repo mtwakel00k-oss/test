@@ -48,7 +48,7 @@ export default async function RestaurantLayout({
       is_open: tenant.is_open ?? true,
     }
     configStr = JSON.stringify(config)
-  } catch {}
+  } catch (e) { console.warn("Failed to stringify tenant config", e) }
 
   const tenantUrl = isShared ? MASTER_URL : tenant.supabase_url
 

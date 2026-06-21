@@ -31,7 +31,7 @@ export default async function LoginPage(props: { searchParams: Promise<{ redirec
         redirect(dest)
       }
     }
-  } catch {}
+  } catch (e) { console.warn("Login redirect check failed", e) }
 
   const tenants = await getTenants()
   return (

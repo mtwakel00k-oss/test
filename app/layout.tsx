@@ -83,7 +83,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     const c = await cookies()
     const theme = c.get("theme")?.value
     if (theme === "dark") htmlClass = "dark"
-  } catch {}
+  } catch (e) { console.warn("Failed to read theme cookie", e) }
 
   return (
       <html suppressHydrationWarning lang={lang} dir={dir} data-locale={lang} className={cn(htmlClass, geist.variable, instrumentSerif.variable)}>

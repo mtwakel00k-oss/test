@@ -36,8 +36,8 @@ async function MenuContent({ slug }: { slug: string }) {
         is_available: item.id in availability ? availability[item.id] : true,
       }))
     }
-  } catch {
-    // Fall back to client-side fetch
+  } catch (e) {
+    console.warn("Failed to fetch products server-side, falling back to client-side fetch", e)
   }
 
   const ld = restaurantName ? [

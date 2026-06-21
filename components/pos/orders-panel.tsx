@@ -57,10 +57,10 @@ function getCancelledSet(): Set<string | number> {
   try { const stored = localStorage.getItem("cancelled_orders"); return new Set(stored ? JSON.parse(stored) : []) } catch { return new Set() }
 }
 function addCancelledId(id: string | number) {
-  try { const set = getCancelledSet(); set.add(id); localStorage.setItem("cancelled_orders", JSON.stringify([...set])) } catch {}
+  try { const set = getCancelledSet(); set.add(id); localStorage.setItem("cancelled_orders", JSON.stringify([...set])) } catch (e) { logger.warn("Failed to add cancelled order to localStorage", e) }
 }
 function removeCancelledId(id: string | number) {
-  try { const set = getCancelledSet(); set.delete(id); localStorage.setItem("cancelled_orders", JSON.stringify([...set])) } catch {}
+  try { const set = getCancelledSet(); set.delete(id); localStorage.setItem("cancelled_orders", JSON.stringify([...set])) } catch (e) { logger.warn("Failed to remove cancelled order from localStorage", e) }
 }
 
 interface DeliveryMan { id: string; name: string; whatsapp_number: string; is_busy: boolean }

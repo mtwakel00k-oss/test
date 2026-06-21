@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import { History, ChevronLeft, ChevronRight, RefreshCw, Eye } from "lucide-react"
 import { fetchApi } from "@/lib/tenant"
+import { logger } from "@/lib/logger"
 import { useTranslation } from "@/lib/use-translation"
 import type { AuditLogRow } from "@/app/api/admin/audit-log/route"
 
@@ -48,7 +49,7 @@ export function AuditLog() {
       const json = await res.json()
       setData(json.data || [])
       setCount(json.count || 0)
-    } catch {} finally { queueMicrotask(() => setLoading(false)) }
+    } catch (e) { logger.warn("Failed to fetch audit log", e) } finally { queueMicrotask(() => setLoading(false)) }
   }, [page, tableFilter, operationFilter])
 
   useEffect(() => { queueMicrotask(() => fetchLogs()) }, [fetchLogs])

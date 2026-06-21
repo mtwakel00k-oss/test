@@ -198,7 +198,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
           setDriverLat(Number(o.driver_lat))
           setDriverLng(Number(o.driver_lng))
         }
-      } catch {}
+      } catch (e) { logger.warn("Failed to poll driver location for live tracking", e) }
     }, 8000)
     return () => { if (pollingRef.current) clearInterval(pollingRef.current) }
   }, [id, slug, hasLiveTracking])
@@ -224,7 +224,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
           setDriverLat(Number(o.driver_lat))
           setDriverLng(Number(o.driver_lng))
         }
-      } catch {}
+      } catch (e) { logger.warn("Failed to poll order status for non-live tracking", e) }
     }, 60000)
     return () => { if (refreshRef.current) clearInterval(refreshRef.current) }
   }, [id, slug, hasLiveTracking])

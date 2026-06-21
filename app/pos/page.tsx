@@ -95,7 +95,7 @@ function addCancelledId(id: string | number) {
     const set = getCancelledSet()
     set.add(id)
     localStorage.setItem("cancelled_orders", JSON.stringify([...set]))
-  } catch {}
+  } catch (e) { logger.warn("Failed to add cancelled order to localStorage", e) }
 }
 
 function removeCancelledId(id: string | number) {
@@ -103,7 +103,7 @@ function removeCancelledId(id: string | number) {
     const set = getCancelledSet()
     set.delete(id)
     localStorage.setItem("cancelled_orders", JSON.stringify([...set]))
-  } catch {}
+  } catch (e) { logger.warn("Failed to remove cancelled order from localStorage", e) }
 }
 
 export default function POSPage() {

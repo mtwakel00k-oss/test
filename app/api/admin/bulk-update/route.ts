@@ -21,7 +21,7 @@ async function getTenantServiceClient(slug: string) {
   try {
     const { data: tRow } = await masterSb.from("tenants").select("supabase_service_key").eq("slug", slug).maybeSingle()
     if (tRow?.supabase_service_key) svcKey = tRow.supabase_service_key
-  } catch {}
+  } catch (e) { logger.warn("Failed to get tenant service key from master DB", e) }
   if (svcKey) return createClient(config.supabase_url, svcKey)
   const isSameProject = config.supabase_url === env.NEXT_PUBLIC_SUPABASE_URL
   return isSameProject ? createClient(config.supabase_url, env.SUPABASE_SERVICE_ROLE_KEY!) : null
