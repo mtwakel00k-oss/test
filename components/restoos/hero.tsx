@@ -137,14 +137,14 @@ function FloatingMockup() {
                 <svg viewBox="0 0 320 90" className="w-full" preserveAspectRatio="none">
                   <defs>
                     <linearGradient id="chartFill2" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="oklch(0.4 0.14 260)" stopOpacity="0.25" />
-                      <stop offset="100%" stopColor="oklch(0.4 0.14 260)" stopOpacity="0" />
+                      <stop offset="0%" stopColor="oklch(0.42 0.16 145)" stopOpacity="0.2" />
+                      <stop offset="100%" stopColor="oklch(0.42 0.16 145)" stopOpacity="0" />
                     </linearGradient>
                   </defs>
                   <motion.path
                     d="M0 70 C 40 60, 60 30, 100 38 S 170 10, 210 28 S 280 55, 320 22"
                     fill="none"
-                    stroke="oklch(0.4 0.14 260)"
+                    stroke="oklch(0.42 0.16 145)"
                     strokeWidth="2.5"
                     strokeLinecap="round"
                     initial={{ pathLength: 0 }}

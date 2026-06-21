@@ -100,8 +100,8 @@ function TiltCard({
 
   const glowColor =
     accent === 'accent'
-      ? 'oklch(0.6 0.16 60 / 0.12)'
-      : 'oklch(0.4 0.14 260 / 0.12)'
+      ? 'oklch(0.55 0.14 65 / 0.1)'
+      : 'oklch(0.42 0.16 145 / 0.1)'
 
   return (
     <motion.div
