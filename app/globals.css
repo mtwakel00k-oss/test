@@ -558,6 +558,10 @@ html[data-locale="fr"] body {
 
 .card-hover {
   transition: all 0.4s var(--ease-premium);
+  animation: glass-glow 4s var(--ease-premium) infinite;
+}
+.dark .card-hover {
+  animation: glass-glow-dark 4s var(--ease-premium) infinite;
 }
 .card-hover:hover {
   transform: translateY(-3px);
@@ -566,6 +570,14 @@ html[data-locale="fr"] body {
 }
 
 .status-pending { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-primary/15 text-primary; }
+
+/* Liquid glass glow on all card containers */
+[class*="bg-card"][class*="rounded-"]:not(.glass-input):not(.animate-skeleton) {
+  animation: glass-glow 4s var(--ease-premium) infinite;
+}
+.dark [class*="bg-card"][class*="rounded-"]:not(.glass-input):not(.animate-skeleton) {
+  animation: glass-glow-dark 4s var(--ease-premium) infinite;
+}
 .status-preparing { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-sky-500/15 text-sky-400; }
 .status-ready { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-emerald-500/15 text-emerald-400; }
 .status-delivery { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-violet-500/15 text-violet-400; }
