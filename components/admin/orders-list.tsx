@@ -3,7 +3,8 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { XCircle, Printer, Eye, RefreshCw, ChevronDown, ChevronUp } from "lucide-react"
+import { XCircle, Printer, Eye, RefreshCw, ChevronDown, ChevronUp, ClipboardList } from "lucide-react"
+import { EmptyState } from "@/components/empty-state"
 import { logger } from "@/lib/logger"
 import { printReceipt } from "@/lib/print-receipt"
 import { useTranslation } from "@/lib/use-translation"
@@ -279,7 +280,7 @@ export function OrdersList({ onViewOrder }: OrdersListProps) {
       >
         <CardContent className="pt-4">
           {orders.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">{t("order.noOrders")}</p>
+            <EmptyState icon={<ClipboardList />} title={t("admin.noOrders.title")} description={t("admin.noOrders.desc")} />
           ) : visibleOrders.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">{t("order.allCancelled")}</p>
           ) : (

@@ -107,7 +107,7 @@ export function NewOrderPanel({ products, onOrderCreated, onCancel, hasDelivery 
   }, [newName, newTable, newPhone, newOrderItems, newOrderType, t, cashier, activeStaff, onOrderCreated])
 
   return (
-    <div className="flex flex-1 flex-col lg:flex-row min-h-0">
+    <div className="flex flex-1 flex-col md:flex-row min-h-0">
       <ProductGrid
         products={products}
         orderItems={newOrderItems}

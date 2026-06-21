@@ -729,6 +729,22 @@ html[data-locale="fr"] body {
   box-shadow: 0 12px 40px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.5);
 }
 
+.btn-brand {
+  background-color: var(--brand, #f97316) !important;
+  color: var(--brand-text, #ffffff) !important;
+}
+.text-brand {
+  color: var(--brand, #f97316) !important;
+}
+.border-brand {
+  border-color: var(--brand, #f97316) !important;
+}
+.bg-brand {
+  background-color: var(--brand, #f97316) !important;
+}
+.badge-takeaway {
+  background-color: color-mix(in srgb, var(--brand, #f97316) 10%, transparent);
+}
 .status-pending { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-success/15 text-success dark:bg-success/20 dark:text-success-foreground; }
 .status-active { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-success/15 text-success dark:bg-success/20 dark:text-success-foreground; }
 .status-inactive { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-destructive/15 text-destructive dark:bg-destructive/20 dark:text-destructive-foreground; }
@@ -766,3 +782,28 @@ html[data-locale="fr"] body {
 .status-delivery { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-violet-500/15 text-violet-400 dark:bg-violet-500/20 dark:text-violet-200; }
 .status-completed { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-muted text-muted-foreground dark:bg-muted/50 dark:text-muted-foreground/80; }
 .status-cancelled { @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-destructive/15 text-destructive dark:bg-destructive/20 dark:text-destructive-foreground; }
+
+@keyframes pulse-border {
+  0%, 100% { border-left-color: hsl(var(--primary)); }
+  50% { border-left-color: hsl(var(--primary) / 0.4); }
+}
+
+.order-card-pending {
+  border-left: 4px solid hsl(var(--warning, 55));
+}
+.order-card-preparing {
+  border-left: 4px solid hsl(var(--primary));
+  animation: pulse-border 2s infinite;
+}
+.order-card-ready {
+  border-left: 4px solid hsl(var(--success));
+  background: hsl(var(--success) / 0.05);
+}
+
+@keyframes flash {
+  0% { background: hsl(var(--success) / 0.3); }
+  100% { background: transparent; }
+}
+.flash-green {
+  animation: flash 1.5s ease;
+}

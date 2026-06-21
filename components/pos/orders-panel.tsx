@@ -11,6 +11,7 @@ import { printReceipt } from "@/lib/print-receipt"
 import type { PosOrder, PosOrderStatus, Driver } from "@/lib/pos-types"
 import { cn } from "@/lib/utils"
 import { ClipboardList, AlertTriangle, Truck } from "lucide-react"
+import { EmptyState } from "@/components/empty-state"
 import { DB_STATUS_TO_POS, POS_STATUS_TO_DB } from "@/lib/constants"
 import { toast } from "@/hooks/use-toast"
 import { OrderTabs } from "@/components/pos/order-tabs"
@@ -249,18 +250,9 @@ export function OrdersPanel({ onNewOrder }: { onNewOrder: () => void }) {
       {activeTab === "active" && <OrderFilters activeFilter={statusFilter} onFilterChange={setStatusFilter} counts={counts} />}
 
       <div className="flex h-full">
-        <div className={cn("flex-1 p-4 lg:p-6 space-y-3", showCheckout ? "hidden lg:block" : "block")}>
+        <div className={cn("flex-1 p-4 lg:p-6 space-y-3 min-w-0", showCheckout ? "hidden md:block" : "block")}>
           {filteredOrders.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground animate-fade-in-up">
-              <div className="relative mb-6">
-                <svg className="w-20 h-20 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={0.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-                <ClipboardList className="absolute -bottom-1 -end-1 size-5 text-muted-foreground/30" />
-              </div>
-              <p className="text-lg font-medium text-foreground/60">{activeTab === "active" ? t("pos.noActiveOrders") : t("pos.noCompletedOrders")}</p>
-              <p className="text-sm mt-1 text-muted-foreground/70">{activeTab === "active" ? t("pos.newOrdersHere") : t("pos.completedOrdersHere")}</p>
-            </div>
+            <EmptyState icon={<ClipboardList />} title={activeTab === "active" ? t("pos.noActiveOrders") : t("pos.noCompletedOrders")} description={activeTab === "active" ? t("pos.newOrdersHere") : t("pos.completedOrdersHere")} />
           ) : (
             filteredOrders.map(order => (
               <OrderCard key={order.id} order={order} isSelected={selectedOrder?.id === order.id}
@@ -286,7 +278,7 @@ export function OrdersPanel({ onNewOrder }: { onNewOrder: () => void }) {
         </div>
 
         {selectedOrder && (
-          <div className={cn("w-full lg:w-96 border-l border-border bg-card", showCheckout ? "block" : "hidden lg:block")}>
+          <div className={cn("w-full md:w-[38%] md:border-l border-border bg-card", showCheckout ? "block" : "hidden md:block")}>
             <div className="h-full flex flex-col">
               <div className="flex items-center justify-between p-4 border-b border-border">
                 <div>

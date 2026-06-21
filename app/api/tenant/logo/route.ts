@@ -34,9 +34,9 @@ export async function GET(req: NextRequest) {
     const supabase = getSupabase()
     if (!supabase) return NextResponse.json({ name: "", logo_url: null })
 
-    const { data: tenantRow } = await supabase.from("tenants").select("name, logo_url").eq("slug", slug).maybeSingle<{ name: string; logo_url: string | null }>()
+    const { data: tenantRow } = await supabase.from("tenants").select("name, logo_url, brand_color, brand_text_color").eq("slug", slug).maybeSingle<{ name: string; logo_url: string | null; brand_color: string | null; brand_text_color: string | null }>()
     if (tenantRow) {
-      return NextResponse.json({ name: tenantRow.name || "", logo_url: tenantRow.logo_url || null, slug })
+      return NextResponse.json({ name: tenantRow.name || "", logo_url: tenantRow.logo_url || null, slug, brand_color: tenantRow.brand_color || null, brand_text_color: tenantRow.brand_text_color || null })
     }
 
     // Fallback: try storage bucket
@@ -70,6 +70,8 @@ export async function PATCH(req: NextRequest) {
     const updates: Record<string, string | null> = {}
     if (typeof body.name === "string" && body.name.trim()) updates.name = body.name.trim()
     if (body.logo_url !== undefined) updates.logo_url = body.logo_url
+    if (typeof body.brand_color === "string") updates.brand_color = body.brand_color
+    if (typeof body.brand_text_color === "string") updates.brand_text_color = body.brand_text_color
     if (!Object.keys(updates).length) return NextResponse.json({ error: "No valid fields" }, { status: 400 })
     const supabase = getSupabase()
     if (!supabase) return NextResponse.json({ error: "Server config error" }, { status: 500 })

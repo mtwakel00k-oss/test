@@ -16,6 +16,7 @@ import { CategoryFilter } from "./category-filter"
 import { MealCard } from "./meal-card"
 import { OrderBar } from "./order-bar"
 import { ShoppingBag, DoorClosed, Leaf, Sparkles } from "lucide-react"
+import { EmptyState } from "@/components/empty-state"
 
 const CheckoutModal = dynamic(
   () => import("./checkout-modal").then(m => ({ default: m.CheckoutModal })),
@@ -364,23 +365,9 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
                 <SkeletonCard />
               </>
             ) : filtered.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ type: "spring", stiffness: 100, damping: 20 }}
-                className="col-span-full flex flex-col items-center justify-center py-32 text-center gap-6"
-              >
-                <div className="relative">
-                  <div className="absolute inset-0 rounded-[2rem] bg-accent/8 blur-2xl" />
-                  <div className="relative flex size-20 items-center justify-center rounded-[2rem] border border-border/30 bg-card shadow-sm">
-                    <ShoppingBag className="size-9 text-muted-foreground/30" strokeWidth={1} aria-hidden="true" />
-                  </div>
-                </div>
-                <div>
-                  <p className="font-display text-xl font-semibold text-foreground">لا توجد منتجات</p>
-                  <p className="mt-2 text-sm text-muted-foreground/60 max-w-xs leading-relaxed">عذراً، لا توجد منتجات متوفرة في هذا القسم حالياً.</p>
-                </div>
-              </motion.div>
+              <div className="col-span-full">
+                <EmptyState icon={<ShoppingBag className="size-9" />} title="لا توجد منتجات" description="عذراً، لا توجد منتجات متوفرة في هذا القسم حالياً." />
+              </div>
             ) : (
               filtered.map((p, idx) => {
                 const k = `${p.id}_${sizes[p.id] || "L"}_${sauces[p.id] ?? null}`

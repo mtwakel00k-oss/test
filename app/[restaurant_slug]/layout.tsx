@@ -46,9 +46,11 @@ export default async function RestaurantLayout({
       logo_url: tenant.logo_url ?? null,
       plan_type: tenant.plan_type ?? "starter",
       is_open: tenant.is_open ?? true,
+      brand_color: tenant.brand_color ?? null,
+      brand_text_color: tenant.brand_text_color ?? null,
     }
     configStr = JSON.stringify(config)
-  } catch (e) { console.warn("Failed to stringify tenant config", e) }
+    } catch {} /* config fallback */
 
   const tenantUrl = isShared ? MASTER_URL : tenant.supabase_url
 
@@ -57,6 +59,14 @@ export default async function RestaurantLayout({
       <link rel="preconnect" href={tenantUrl} crossOrigin="anonymous" />
       {configStr && (
         <script id="tenant-config" type="application/json" dangerouslySetInnerHTML={{ __html: configStr }} />
+      )}
+      {tenant.brand_color && (
+        <style>{`
+          :root {
+            --brand: ${tenant.brand_color};
+            --brand-text: ${tenant.brand_text_color ?? '#ffffff'};
+          }
+        `}</style>
       )}
       <ServiceWorkerRegister />
       {children}

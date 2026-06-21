@@ -59,13 +59,18 @@ export function RestaurantSettings() {
   const [qrTable, setQrTable] = useState("")
   const [qrSvg, setQrSvg] = useState<string | null>(null)
   const [qrLoading, setQrLoading] = useState(false)
+  const [brandColor, setBrandColor] = useState("#f97316")
+  const [brandTextColor, setBrandTextColor] = useState("#ffffff")
+  const [savingBrand, setSavingBrand] = useState(false)
 
   useEffect(() => {
     fetchApi("/api/tenant/logo")
       .then((r) => r.json())
-      .then((data: { name?: string; logo_url?: string | null }) => {
+      .then((data: { name?: string; logo_url?: string | null; brand_color?: string | null; brand_text_color?: string | null }) => {
         if (data.name) { setName(data.name); setOriginalName(data.name) }
         if (data.logo_url) setLogoUrl(data.logo_url);
+        if (data.brand_color) setBrandColor(data.brand_color);
+        if (data.brand_text_color) setBrandTextColor(data.brand_text_color);
       })
       .catch(() => {})
       .finally(() => setIsLoading(false));
@@ -270,6 +275,57 @@ export function RestaurantSettings() {
                 <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">{T(lang, "انقر لتغيير الشعار", "Click to change", "Cliquez pour changer")}</p>
               </div>
               <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleFile} />
+            </div>
+
+            <div className="space-y-4">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 px-1">
+                {T(lang, "ألوان العلامة التجارية", "Brand Colors", "Couleurs de la marque")}
+              </label>
+              <div className="flex items-center gap-4">
+                <div className="flex-1 space-y-2">
+                  <label className="text-xs text-muted-foreground">
+                    {T(lang, "اللون الأساسي", "Brand Color", "Couleur principale")}
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={brandColor} onChange={e => setBrandColor(e.target.value)}
+                      className="h-10 w-16 rounded-xl border border-border/50 bg-background cursor-pointer" />
+                    <input type="text" value={brandColor} onChange={e => setBrandColor(e.target.value)}
+                      className="flex-1 h-10 px-3 rounded-xl border border-border/50 bg-background text-sm font-mono text-foreground" />
+                  </div>
+                </div>
+                <div className="flex-1 space-y-2">
+                  <label className="text-xs text-muted-foreground">
+                    {T(lang, "لون النص", "Text Color", "Couleur du texte")}
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={brandTextColor} onChange={e => setBrandTextColor(e.target.value)}
+                      className="h-10 w-16 rounded-xl border border-border/50 bg-background cursor-pointer" />
+                    <input type="text" value={brandTextColor} onChange={e => setBrandTextColor(e.target.value)}
+                      className="flex-1 h-10 px-3 rounded-xl border border-border/50 bg-background text-sm font-mono text-foreground" />
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-4 rounded-xl border border-border/50" style={{ backgroundColor: brandColor, color: brandTextColor }}>
+                <span className="text-sm font-bold px-3 py-1 rounded-lg" style={{ backgroundColor: brandTextColor, color: brandColor }}>
+                  {T(lang, "معاينة", "Preview", "Aperçu")}
+                </span>
+                <span className="text-sm">{T(lang, "نص تجريبي", "Sample brand text", "Texte de marque")}</span>
+              </div>
+              <button onClick={async () => {
+                setSavingBrand(true)
+                try {
+                  const res = await fetchApi("/api/tenant/logo", {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ brand_color: brandColor, brand_text_color: brandTextColor }),
+                  })
+                  if (res.ok) toast({ title: T(lang, "تم حفظ الألوان", "Brand colors saved", "Couleurs enregistrées") })
+                } finally { setSavingBrand(false) }
+              }}
+                disabled={savingBrand}
+                className="h-10 px-5 rounded-xl bg-foreground text-background text-xs font-bold hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50">
+                {savingBrand ? "..." : T(lang, "حفظ الألوان", "Save Colors", "Enregistrer")}
+              </button>
             </div>
 
             <div className="space-y-4">

@@ -53,8 +53,8 @@ export function CartSidebar({
 
   return (
     <aside className={cn(
-      "w-full lg:w-96 shrink-0 bg-background lg:border-r border-border/50 flex flex-col shadow-2xl z-20",
-      "lg:h-full max-h-[60vh] lg:max-h-none border-t lg:border-t-0"
+      "w-full md:w-[38%] shrink-0 bg-background md:border-r border-border/50 flex flex-col shadow-2xl z-20",
+      "md:h-full max-h-[60vh] md:max-h-none border-t md:border-t-0"
     )}>
       <div className="flex items-center justify-between px-6 py-5 border-b border-border/50 bg-muted/5">
         <div className="flex items-center gap-3">

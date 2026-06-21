@@ -36,9 +36,7 @@ async function MenuContent({ slug }: { slug: string }) {
         is_available: item.id in availability ? availability[item.id] : true,
       }))
     }
-  } catch (e) {
-    console.warn("Failed to fetch products server-side, falling back to client-side fetch", e)
-  }
+  } catch {} /* fall back to client-side fetch */
 
   const ld = restaurantName ? [
     restaurantJsonLd(restaurantName, slug, `Order your favorite meals from ${restaurantName}`),

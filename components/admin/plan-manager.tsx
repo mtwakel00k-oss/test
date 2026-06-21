@@ -273,7 +273,7 @@ export function PlanManager() {
                     value={addPlan}
                     onChange={setAddPlan}
                     options={PLANS}
-                    className="w-full border-orange-200 focus:border-orange-400 dark:border-orange-800"
+                    className="w-full"
                   />
                 </div>
                 {addError && <p className="text-sm text-destructive">{addError}</p>}

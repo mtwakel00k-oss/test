@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react"
 import type { Map as LeafMap, Marker, Polyline } from "leaflet"
+import { useTheme } from "@/lib/theme"
 
 interface LiveMapProps {
   driverLat: number | null
@@ -79,6 +80,7 @@ function MapLoading() {
 
 export default function LiveDriverMap(props: LiveMapProps) {
   const { driverLat, driverLng, customerLat, customerLng, lastUpdated } = props
+  const isDark = useTheme().resolved === "dark"
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<LeafMap | null>(null)
   const driverMarkerRef = useRef<Marker | null>(null)
@@ -106,9 +108,13 @@ export default function LiveDriverMap(props: LiveMapProps) {
 
       map = L.map(mapRef.current, { zoomControl: true, attributionControl: false })
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-      }).addTo(map)
+      const tileUrl = isDark
+        ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+        : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      const attribution = isDark
+        ? '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>'
+        : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      L.tileLayer(tileUrl, { maxZoom: 19, attribution }).addTo(map)
 
       const redIcon = L.divIcon({
         html: `<div style="background:#ef4444;width:14px;height:14px;border-radius:50%;border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.3)"></div>`,

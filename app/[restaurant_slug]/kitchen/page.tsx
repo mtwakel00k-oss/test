@@ -78,6 +78,7 @@ export default function KitchenPage() {
   const [currentTime, setCurrentTime] = useState("")
   const [soundOn, setSoundOn] = useState(true)
   const prevOrderIdsRef = useRef<Set<string | number>>(new Set())
+  const prevStatusMapRef = useRef<Record<string, string>>({})
   const [now, setNow] = useState(() => Date.now())
   const [countdown, setCountdown] = useState(10)
   const countdownRef = useRef(10)
@@ -143,6 +144,11 @@ export default function KitchenPage() {
         const newOrders = mapped.filter(o => !prevOrderIdsRef.current.has(o.id))
         if (newOrders.length > 0) playNewOrderSound()
       }
+      const newStatusMap: Record<string, string> = {}
+      for (const o of mapped) {
+        newStatusMap[String(o.id)] = o.status
+      }
+      prevStatusMapRef.current = newStatusMap
       prevOrderIdsRef.current = new Set(mapped.map(o => o.id))
       return mapped
     } catch {
@@ -296,7 +302,7 @@ export default function KitchenPage() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
                   {pendingOrders.map(order => (
-                    <div data-testid="kds-order-card" key={order.id} className="premium-bezel border-accent/20 shadow-accent/5 hover:shadow-accent/10">
+                    <div data-testid="kds-order-card" key={order.id} className="premium-bezel order-card-pending border-accent/20 shadow-accent/5 hover:shadow-accent/10">
                       <div className="premium-bezel-inner p-5">
                         <div className="flex justify-between items-start w-full mb-4 relative">
                           <div>
@@ -356,7 +362,7 @@ export default function KitchenPage() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
                   {preparingOrders.map(order => (
-                    <div key={order.id} className="premium-bezel border-sky-500/15 shadow-sky-500/5 hover:shadow-sky-500/10">
+                    <div key={order.id} className="premium-bezel order-card-preparing border-sky-500/15 shadow-sky-500/5 hover:shadow-sky-500/10">
                       <div className="premium-bezel-inner p-5">
                         <div className="flex justify-between items-start w-full mb-4">
                           <div>

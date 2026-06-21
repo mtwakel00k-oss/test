@@ -18,6 +18,8 @@ export interface TenantConfig {
   created_at: string
   logo_url: string | null
   plan_type?: string | null
+  brand_color?: string
+  brand_text_color?: string
 }
 
 export class TenantMismatchError extends Error {
@@ -102,7 +104,7 @@ export async function getTenantConfig(slug: string): Promise<TenantConfig | null
   let result: Record<string, unknown> | null = null
   let qErr: unknown = null
 
-  const cols = ["id", "slug", "name", "supabase_url", "supabase_anon_key", "is_active", "is_open", "created_at", "logo_url", "plan_type"]
+  const cols = ["id", "slug", "name", "supabase_url", "supabase_anon_key", "is_active", "is_open", "created_at", "logo_url", "plan_type", "brand_color", "brand_text_color"]
   const { data: d1, error: e1 } = await (_masterClient.from("tenants"))
     .select(cols.join(","))
     .eq("slug", slug)
@@ -301,7 +303,7 @@ async function lookupTenantByEmail(email: string): Promise<TenantConfig | null> 
 
   let result: Record<string, unknown> | null = null
   let qErr: unknown = null
-  const cols = ["id", "slug", "name", "supabase_url", "supabase_anon_key", "is_active", "is_open", "created_at", "logo_url"]
+  const cols = ["id", "slug", "name", "supabase_url", "supabase_anon_key", "is_active", "is_open", "created_at", "logo_url", "brand_color", "brand_text_color"]
 
   const { data: d1, error: e1 } = await (_masterClient.from("tenants"))
     .select(cols.join(","))

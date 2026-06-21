@@ -3,6 +3,7 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useTranslation } from "@/lib/use-translation"
+import { useTheme } from "@/lib/theme"
 
 type Period = "7d" | "30d" | "6m" | "12m"
 
@@ -14,6 +15,7 @@ interface SalesChartProps {
 
 export function SalesChart({ data, period, onPeriodChange }: SalesChartProps) {
   const { t, lang } = useTranslation()
+  const isDark = useTheme().resolved === "dark"
 
   const periods: { key: Period; label: string }[] = [
     { key: "7d", label: t("admin.week") },
@@ -64,10 +66,10 @@ export function SalesChart({ data, period, onPeriodChange }: SalesChartProps) {
                 </filter>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-<XAxis dataKey="date" tick={{ fill: '#a1a1aa' }} stroke="#374151" fontSize={12} tickLine={false} axisLine={false} dy={10} />
+<XAxis dataKey="date" tick={{ fill: isDark ? '#9ca3af' : '#a1a1aa' }} stroke={isDark ? '#374151' : '#e5e7eb'} fontSize={12} tickLine={false} axisLine={false} dy={10} />
 <YAxis
-  tick={{ fill: '#a1a1aa' }}
-  stroke="#374151"
+  tick={{ fill: isDark ? '#9ca3af' : '#a1a1aa' }}
+  stroke={isDark ? '#374151' : '#e5e7eb'}
   fontSize={12}
   tickLine={false}
   axisLine={false}
@@ -91,10 +93,10 @@ export function SalesChart({ data, period, onPeriodChange }: SalesChartProps) {
               <Line
                 type="monotone"
                 dataKey="revenue"
-                stroke="#22c55e"
+                stroke="hsl(var(--success))"
                 strokeWidth={3}
-                dot={{ fill: "#22c55e", r: 4, stroke: "#16a34a", strokeWidth: 2 }}
-                activeDot={{ r: 8, fill: "#22c55e", stroke: "#15803d", strokeWidth: 2 }}
+                dot={{ fill: "hsl(var(--success))", r: 4, stroke: "hsl(var(--success-foreground))", strokeWidth: 2 }}
+                activeDot={{ r: 8, fill: "hsl(var(--success))", stroke: "hsl(var(--success-foreground))", strokeWidth: 2 }}
                 filter="url(#glow)"
               />
             </LineChart>

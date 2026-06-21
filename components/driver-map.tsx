@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react"
 import type L from "leaflet"
+import { useTheme } from "@/lib/theme"
 
 interface DriverMapProps {
   driverLat: number
@@ -11,6 +12,7 @@ interface DriverMapProps {
 }
 
 export default function DriverMap({ driverLat, driverLng, customerLat, customerLng }: DriverMapProps) {
+  const isDark = useTheme().resolved === "dark"
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<L.Map | null>(null)
   const driverMarkerRef = useRef<L.Marker | null>(null)
@@ -33,9 +35,13 @@ export default function DriverMap({ driverLat, driverLng, customerLat, customerL
         attributionControl: false,
       }).setView([driverLat, driverLng], 14)
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-      }).addTo(map)
+      const tileUrl = isDark
+        ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+        : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      const attribution = isDark
+        ? '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>'
+        : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      L.tileLayer(tileUrl, { maxZoom: 19, attribution }).addTo(map)
 
       const driverIcon = L.divIcon({
         className: "",

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Star, Clock } from "lucide-react"
+import { EmptyState } from "@/components/empty-state"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
@@ -94,11 +95,7 @@ export function ReviewsFeed({ reviews }: ReviewsFeedProps) {
       <CardContent className="flex-1 pt-0 overflow-hidden">
         <ScrollArea className="h-[420px] pe-4">
           {items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-              <Star className="h-12 w-12 mb-3 opacity-30" />
-              <p className="text-sm font-medium">{t("admin.noReviews")}</p>
-              <p className="text-xs mt-1">{t("admin.reviewsHere")}</p>
-            </div>
+            <EmptyState icon={<Star className="h-16 w-16" />} title={t("admin.noReviews")} description={t("admin.reviewsHere")} />
           ) : (
             <div className="space-y-4 px-2">
               {items.map((review) => (

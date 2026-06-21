@@ -58,7 +58,7 @@ const OrderCardInner = memo(function OrderCardInner({
   const orderTypeInfo = (() => {
     const base = {
       delivery: { icon: <Truck className="size-5" />, label: t("pos.delivery"), badge: "bg-violet-500/10 text-violet-600 dark:text-violet-300 border-violet-500/20" },
-      takeaway: { icon: <ShoppingBag className="size-5" />, label: t("pos.takeaway"), badge: "bg-orange-500/10 text-orange-600 dark:text-orange-300 border-orange-500/20" },
+      takeaway: { icon: <ShoppingBag className="size-5" />, label: t("pos.takeaway"), badge: "badge-takeaway" },
       dine_in: { icon: <UtensilsCrossed className="size-5" />, label: order.tableNumber ? `${t("pos.table")} ${order.tableNumber}` : t("pos.dineIn"), badge: "bg-blue-500/10 text-blue-600 dark:text-blue-300 border-blue-500/20" },
     }
     return base[order.orderType as keyof typeof base] || base.dine_in
