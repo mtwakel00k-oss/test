@@ -93,11 +93,11 @@ export const MealCard = memo(function MealCard({
 
       <div className="flex flex-1 flex-col p-5">
         <div className="flex-1">
-          <h3 className="line-clamp-1 font-display text-lg font-semibold leading-snug text-foreground transition-colors duration-300 group-hover:text-primary">
+          <h3 className="line-clamp-1 font-display text-lg font-bold leading-snug text-foreground transition-colors duration-300 group-hover:text-primary">
             {product.name}
           </h3>
           {product.description && (
-            <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground/60">
+            <p className="mt-2 line-clamp-2 text-sm leading-[1.7] text-muted-foreground/70">
               {product.description}
             </p>
           )}
@@ -106,7 +106,7 @@ export const MealCard = memo(function MealCard({
             <div className="mt-5 flex flex-wrap gap-2">
               {avSizes.map(s => (
                 <button key={s} onClick={() => onSizeChange(product.id, s)}
-                  className={`rounded-full px-4 py-1.5 text-xs font-bold transition-all duration-500 ${
+                  className={`rounded-full px-4 py-2.5 text-xs font-bold transition-all duration-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                     size === s
                       ? "bg-primary text-primary-foreground shadow-sm ring-1 ring-primary/20"
                       : "bg-secondary/40 text-muted-foreground/60 hover:bg-secondary hover:text-foreground border border-border/20"
@@ -121,7 +121,7 @@ export const MealCard = memo(function MealCard({
             <div className="mt-3 flex flex-wrap gap-2">
               {SAUCES.map(s => (
                 <button key={s.id} onClick={() => onSauceChange(product.id, s.id)}
-                  className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all duration-500 ${
+                  className={`rounded-full px-3.5 py-2.5 text-xs font-semibold transition-all duration-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                     sauceId === s.id
                       ? "bg-primary text-primary-foreground shadow-sm"
                       : "bg-secondary/40 text-muted-foreground/60 hover:bg-secondary hover:text-foreground border border-border/20"
@@ -139,16 +139,16 @@ export const MealCard = memo(function MealCard({
               onClick={onAdd}
               disabled={!product.is_available}
               aria-label={t("menu.add")}
-              className="group/btn inline-flex w-full items-center justify-center gap-2.5 rounded-full border border-primary/20 bg-primary/[0.04] px-5 py-3 text-sm font-semibold text-primary transition-all duration-500 hover:bg-primary hover:text-primary-foreground hover:shadow-md disabled:opacity-40 disabled:pointer-events-none active:scale-[0.98]"
+              className="group/btn inline-flex w-full items-center justify-center gap-2.5 rounded-full bg-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 transition-all duration-500 hover:brightness-110 hover:shadow-xl hover:shadow-primary/30 disabled:opacity-40 disabled:pointer-events-none active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
-              <Plus className="size-4 transition-transform duration-300 group-hover/btn:rotate-90" strokeWidth={2} />
+              <Plus className="size-4 transition-transform duration-300 group-hover/btn:rotate-90" strokeWidth={2.5} />
               {t("menu.add")}
             </button>
           ) : (
-            <div className="flex items-center justify-between gap-3 rounded-full bg-secondary/30 p-1.5">
+            <div className="flex items-center justify-between gap-3 rounded-full bg-secondary/30 p-1">
               <button
                 onClick={() => onUpdateQuantity(-1)}
-                className="grid size-10 place-items-center rounded-full bg-card text-foreground shadow-sm transition-all duration-300 active:scale-90 hover:bg-muted"
+                className="grid size-11 place-items-center rounded-full bg-card text-foreground shadow-sm transition-all duration-300 active:scale-90 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <Minus className="size-4" strokeWidth={2} />
               </button>
@@ -157,9 +157,9 @@ export const MealCard = memo(function MealCard({
               </span>
               <button
                 onClick={() => onUpdateQuantity(1)}
-                className="grid size-10 place-items-center rounded-full bg-primary text-primary-foreground shadow-md transition-all duration-300 active:scale-90 hover:brightness-110"
+                className="grid size-11 place-items-center rounded-full bg-primary text-primary-foreground shadow-md shadow-primary/20 transition-all duration-300 active:scale-90 hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
-                <Plus className="size-4" strokeWidth={2} />
+                <Plus className="size-4" strokeWidth={2.5} />
               </button>
             </div>
           )}

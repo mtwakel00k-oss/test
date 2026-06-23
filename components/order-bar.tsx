@@ -76,7 +76,7 @@ export function OrderBar({ onCheckout, disabled }: OrderBarProps) {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setExpanded(!expanded)}
-              className="relative size-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors bg-primary/8 hover:bg-primary/15"
+              className="relative size-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors bg-primary/10 hover:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               <ShoppingBag className="w-5 h-5 text-primary" />
               <span className="absolute -top-1.5 -end-1.5 size-5 bg-accent text-accent-foreground text-[9px] font-bold rounded-full flex items-center justify-center ring-2 ring-background">
@@ -87,7 +87,7 @@ export function OrderBar({ onCheckout, disabled }: OrderBarProps) {
             <div className="flex-1 min-w-0">
               <button
                 onClick={() => setExpanded(!expanded)}
-                className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground/40 uppercase tracking-[0.1em]"
+                className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground/40 uppercase tracking-[0.1em] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg"
               >
                 {t("menu.viewOrder")}
                 <ChevronRight
@@ -107,7 +107,7 @@ export function OrderBar({ onCheckout, disabled }: OrderBarProps) {
             <button
               onClick={onCheckout}
               disabled={disabled}
-              className="inline-flex items-center gap-2.5 rounded-full bg-accent px-5 py-3 text-sm font-bold text-accent-foreground shadow-md shadow-accent/20 transition-all duration-500 hover:brightness-110 active:scale-[0.97] disabled:opacity-50 disabled:grayscale"
+              className="inline-flex items-center gap-2.5 rounded-full bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 transition-all duration-500 hover:brightness-110 active:scale-[0.97] disabled:opacity-50 disabled:grayscale focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               {t("menu.confirmOrder")}
               <ChevronRight className="w-4 h-4" />

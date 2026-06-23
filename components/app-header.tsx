@@ -104,7 +104,7 @@ export function AppHeader({ cartItemCount, onCart }: AppHeaderProps) {
           <LanguageSwitcher />
           <button
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="grid size-10 place-items-center rounded-full border border-border/40 bg-background/60 text-muted-foreground transition-all duration-500 hover:text-foreground active:scale-95"
+            className="grid size-11 place-items-center rounded-full border border-border/40 bg-background/60 text-muted-foreground transition-all duration-500 hover:text-foreground active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             aria-label="Toggle theme"
           >
             <Sun className="size-[18px] hidden dark:block" strokeWidth={1.5} />
@@ -113,7 +113,7 @@ export function AppHeader({ cartItemCount, onCart }: AppHeaderProps) {
           <button
             onClick={onCart}
             aria-label={`${cartItemCount > 0 ? cartItemCount + " items in " : ""}Cart`}
-            className="relative grid size-10 place-items-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-md),var(--shadow-glow)] transition-all duration-500 hover:scale-[1.03] active:scale-[0.97]"
+            className="relative grid size-11 place-items-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-md),var(--shadow-glow)] transition-all duration-500 hover:scale-[1.03] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             <ShoppingBag className="size-[18px]" strokeWidth={1.5} />
             {cartItemCount > 0 && (

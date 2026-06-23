@@ -41,10 +41,10 @@ export function CategoryFilter({
               onClick={() => onSelectCategory(cat)}
               role="tab"
               aria-selected={isSelected}
-              className={`relative flex-shrink-0 snap-start whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-500 active:scale-95 ${
+              className={`relative flex-shrink-0 snap-start whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-bold transition-all duration-500 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                 isSelected
-                  ? "bg-card/70 backdrop-blur-xl border border-primary/20 shadow-[0_0_24px_oklch(0.25_0.025_260/0.12)] text-foreground"
-                  : "border border-border/30 bg-transparent text-muted-foreground/70 hover:border-accent/30 hover:text-foreground hover:bg-accent/5"
+                  ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25 border border-primary/20"
+                  : "border border-border/30 bg-card/80 text-muted-foreground hover:border-primary/30 hover:text-foreground hover:bg-primary/5"
               }`}
             >
               {cat === "All" ? t("menu.all") : cat}

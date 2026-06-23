@@ -259,7 +259,7 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
 
         <AppHeader cartItemCount={itemCount} onCart={() => setCheckoutOpen(true)} />
 
-        <main className="relative mx-auto max-w-5xl px-4 pb-36 pt-10 md:px-8 md:pt-14" aria-label="Menu content">
+        <main className="relative mx-auto max-w-5xl px-4 pb-44 pt-10 md:px-8 md:pt-14" aria-label="Menu content">
           {/* Hero / Section header */}
           <motion.div
             initial={{ opacity: 0, y: 28 }}
@@ -316,23 +316,72 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
             <CategoryFilter categories={categories} selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
           </motion.div>
 
-          {/* Menu grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-7">
-            {loading ? (
-              <>
-                <SkeletonCard />
-                <SkeletonCard />
-                <SkeletonCard />
-                <SkeletonCard />
-                <SkeletonCard />
-                <SkeletonCard />
-              </>
-            ) : filtered.length === 0 ? (
-              <div className="col-span-full">
-                <EmptyState icon={<ShoppingBag className="size-9" />} title="لا توجد منتجات" description="عذراً، لا توجد منتجات متوفرة في هذا القسم حالياً." />
-              </div>
-            ) : (
-              filtered.map((p, idx) => {
+          {/* Menu grid — grouped by category when "All" selected */}
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+              <SkeletonCard />
+              <SkeletonCard />
+              <SkeletonCard />
+              <SkeletonCard />
+              <SkeletonCard />
+              <SkeletonCard />
+            </div>
+          ) : filtered.length === 0 ? (
+            <EmptyState icon={<ShoppingBag className="size-9" />} title="لا توجد منتجات" description="عذراً، لا توجد منتجات متوفرة في هذا القسم حالياً." />
+          ) : selectedCategory === "All" ? (
+            <>
+              {categories.map((cat, catIdx) => {
+                const catProducts = filtered.filter(p => p.category === cat)
+                if (catProducts.length === 0) return null
+                return (
+                  <motion.section
+                    key={cat}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ type: "spring", stiffness: 80, damping: 18, delay: catIdx * 0.06 }}
+                    className="mb-8 last:mb-0"
+                  >
+                    {catIdx > 0 && (
+                      <div className="border-b border-border/20 mb-8" />
+                    )}
+                    <div className="flex items-center gap-3 mb-5">
+                      <h2 className="font-display text-xl font-bold text-foreground">{cat}</h2>
+                      <div className="h-px flex-1 bg-gradient-to-r from-border/60 to-transparent" />
+                      <span className="text-xs font-medium text-muted-foreground/60">{catProducts.length} items</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                      {catProducts.map((p, idx) => {
+                        const k = `${p.id}_${sizes[p.id] || "L"}_${sauces[p.id] ?? null}`
+                        return (
+                          <motion.div
+                            key={p.id}
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, margin: "-40px" }}
+                            transition={{ type: "spring", stiffness: 100, damping: 20, delay: idx * 0.04 }}
+                          >
+                            <MealCard product={p}
+                              size={sizes[p.id] || "L"}
+                              sauceId={sauces[p.id] ?? null}
+                              quantity={isOpen ? cartQuantities[k] || 0 : 0}
+                              priority={idx < 6}
+                              onSizeChange={handleSizeChange}
+                              onSauceChange={handleSauceChange}
+                              onAdd={isOpen ? () => debouncedAdd(() => { addItem(p, sizes[p.id] || "L", sauces[p.id] ?? null); logger.info("Added", { name: p.name }) }) : () => {}}
+                              onUpdateQuantity={isOpen ? (d) => { updateQuantity(p.id, sizes[p.id] || "L", sauces[p.id] ?? null, d) } : () => {}}
+                            />
+                          </motion.div>
+                        )
+                      })}
+                    </div>
+                  </motion.section>
+                )
+              })}
+            </>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+              {filtered.map((p, idx) => {
                 const k = `${p.id}_${sizes[p.id] || "L"}_${sauces[p.id] ?? null}`
                 return (
                   <motion.div
@@ -354,9 +403,9 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
                     />
                   </motion.div>
                 )
-              })
-            )}
-          </div>
+              })}
+            </div>
+          )}
         </main>
 
         {/* Order bar — slides up when items exist */}

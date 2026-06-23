@@ -55,6 +55,8 @@ export const T: Dict = {
   "login.loggingIn": { ar: "جارٍ تسجيل الدخول...", en: "Logging in...", fr: "Connexion en cours..." },
   "login.logIn": { ar: "تسجيل الدخول", en: "Log in", fr: "Se connecter" },
   "login.logOut": { ar: "تسجيل الخروج", en: "Log out", fr: "Se déconnecter" },
+  "login.tagline": { ar: "نظام نقاط البيع والمطاعم الذكي", en: "Smart POS & Restaurant System", fr: "Système de PDV et restauration intelligent" },
+  "login.selectRestaurant": { ar: "اختر المطعم", en: "Select a restaurant", fr: "Sélectionnez un restaurant" },
 
   // ── Guest ──────────────────────────────────────────
   "guest.name": { ar: "زائر", en: "Guest", fr: "Invité" },

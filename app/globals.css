@@ -10,15 +10,15 @@
   --popover: oklch(0.99 0.003 70);
   --popover-foreground: oklch(0.12 0.01 65);
 
-  --primary: oklch(0.25 0.025 260);
-  --primary-foreground: oklch(0.99 0.002 70);
+  --primary: oklch(0.22 0.045 260);
+  --primary-foreground: oklch(0.995 0.002 70);
   --primary-light: oklch(0.92 0.01 260);
   --primary-bg: oklch(0.96 0.008 260);
 
   --secondary: oklch(0.92 0.004 70);
   --secondary-foreground: oklch(0.2 0.01 65);
 
-  --accent: oklch(0.45 0.015 260);
+  --accent: oklch(0.48 0.025 260);
   --accent-foreground: oklch(0.12 0.01 65);
 
   --destructive: oklch(0.5 0.22 10);
@@ -31,7 +31,7 @@
   --warning-foreground: oklch(0.12 0.012 65);
 
   --muted: oklch(0.94 0.004 70);
-  --muted-foreground: oklch(0.5 0.01 65);
+  --muted-foreground: oklch(0.42 0.012 65);
 
   --border: oklch(0.88 0.006 70);
   --input: oklch(0.9 0.005 70);
@@ -82,13 +82,13 @@
   --card-foreground: oklch(0.92 0.004 70);
   --popover: oklch(0.09 0.01 260);
   --popover-foreground: oklch(0.92 0.004 70);
-  --primary: oklch(0.45 0.08 260);
+  --primary: oklch(0.48 0.09 260);
   --primary-foreground: oklch(0.99 0.002 70);
   --primary-light: oklch(0.18 0.02 260);
   --primary-bg: oklch(0.12 0.015 260);
   --secondary: oklch(0.14 0.008 70);
   --secondary-foreground: oklch(0.85 0.004 70);
-  --accent: oklch(0.55 0.015 260);
+  --accent: oklch(0.55 0.025 260);
   --accent-foreground: oklch(0.92 0.004 70);
   --destructive: oklch(0.58 0.18 10);
   --destructive-foreground: oklch(0.99 0.002 70);
@@ -97,7 +97,7 @@
   --warning: oklch(0.5 0.14 55);
   --warning-foreground: oklch(0.12 0.012 65);
   --muted: oklch(0.14 0.006 70);
-  --muted-foreground: oklch(0.6 0.005 70);
+  --muted-foreground: oklch(0.55 0.008 70);
   --border: oklch(0.2 0.006 70);
   --input: oklch(0.16 0.005 70);
   --ring: oklch(0.45 0.08 260 / 0.5);
@@ -235,11 +235,20 @@
   *:focus-visible {
     @apply outline-none ring-2 ring-primary/40 ring-offset-2 ring-offset-background;
   }
+  input:focus-visible, textarea:focus-visible, select:focus-visible {
+    @apply ring-2 ring-primary/30 ring-offset-2 ring-offset-background;
+  }
+  button:not(:disabled), a:not(:disabled) {
+    cursor: pointer;
+  }
+  a:focus-visible, button:focus-visible, [role="button"]:focus-visible {
+    @apply outline-none ring-2 ring-primary/40 ring-offset-2 ring-offset-background;
+  }
+  button, [role="button"], a {
+    min-height: 44px;
+  }
   input, textarea, select {
     transition: border-color 0.25s var(--ease-premium), box-shadow 0.25s var(--ease-premium);
-  }
-  button:not(:disabled) {
-    cursor: pointer;
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {

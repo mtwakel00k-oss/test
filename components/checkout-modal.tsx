@@ -257,7 +257,7 @@ export function CheckoutModal({
             </div>
           )}
           <button onClick={() => { if (orderId) onSuccess(orderId, slug, orderNumber) }}
-            className="w-full rounded-2xl bg-emerald-600 text-white py-3 font-black text-sm uppercase tracking-wider hover:bg-emerald-500 transition-colors shadow-lg shadow-emerald-600/20">
+            className="w-full rounded-2xl bg-emerald-600 text-white py-3 font-black text-sm uppercase tracking-wider hover:bg-emerald-500 transition-colors shadow-lg shadow-emerald-600/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-background">
             {t("menu.trackOrder")}
           </button>
         </motion.div>
@@ -299,7 +299,7 @@ export function CheckoutModal({
               <button key={type} type="button"
                 disabled={isDisabled}
                 onClick={() => { if (!isDisabled) { setOrderType(type); setErrors({}) } }}
-                className={`flex-1 py-2.5 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all ${
+                className={`flex-1 py-2.5 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                   orderType === type
                     ? "bg-background text-primary shadow-lg shadow-primary/5 ring-1 ring-border/20"
                     : isDisabled
@@ -361,7 +361,7 @@ export function CheckoutModal({
             <input
               value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
               onKeyDown={e => e.key === "Enter" && !submitting && handleSubmit()}
-              className="w-full h-12 rounded-xl border border-border/40 bg-muted/20 px-5 text-sm font-medium text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 focus:bg-background transition-all disabled:opacity-50"
+              className="w-full h-12 rounded-xl border border-border/40 bg-muted/20 px-5 text-sm font-medium text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 focus:bg-background transition-all disabled:opacity-50"
               placeholder={t("menu.namePlaceholder") || "أدخل اسمك"}
               disabled={submitting} autoFocus />
             {errors.name && <p className="text-xs font-medium text-rose-500 mt-1.5 px-1">{errors.name}</p>}
@@ -392,13 +392,13 @@ export function CheckoutModal({
                   <input type="tel" value={form.phone} maxLength={10}
                     onChange={e => setForm(f => ({ ...f, phone: maskPhone(e.target.value) }))}
                     onKeyDown={e => e.key === "Enter" && !submitting && handleSubmit()}
-                    className="w-full h-11 rounded-xl border border-border/40 bg-muted/20 px-4 text-sm font-bold text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/30 transition-all disabled:opacity-50"
+                    className="w-full h-12 rounded-xl border border-border/40 bg-muted/20 px-5 text-sm font-bold text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/40 transition-all disabled:opacity-50"
                     placeholder="0555123456" disabled={submitting} />
                   {errors.phone && <p className="text-[10px] font-black uppercase tracking-widest text-rose-500 mt-1.5 px-1">{errors.phone}</p>}
                 </div>
                 {geoStatus === "idle" && (
                   <button type="button" onClick={getLocation}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl border border-border/40 bg-muted/20 py-3 text-sm font-bold text-muted-foreground hover:bg-muted/40 transition-colors">
+                    className="w-full flex items-center justify-center gap-2 rounded-xl border border-border/40 bg-muted/20 py-3 text-sm font-bold text-muted-foreground hover:bg-muted/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background">
                     <MapPin className="w-4 h-4" />
                     {t("menu.detectLocation")}
                   </button>
@@ -416,14 +416,14 @@ export function CheckoutModal({
                       <p className="text-sm text-foreground">{form.deliveryAddress}</p>
                     </div>
                     <button type="button" onClick={() => setGeoStatus("idle")}
-                      className="w-full rounded-xl border border-border/40 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-secondary transition-colors">
+                      className="w-full rounded-xl border border-border/40 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background">
                       {t("pos.redetect") || t("menu.updateLocation")}
                     </button>
                   </div>
                 )}
                 {geoStatus === "error" && (
                   <button type="button" onClick={getLocation}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/5 py-3 text-sm font-bold text-rose-500 hover:bg-rose-500/10 transition-colors">
+                    className="w-full flex items-center justify-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/5 py-3 text-sm font-bold text-rose-500 hover:bg-rose-500/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background">
                     {t("pos.locationFailed") || t("menu.locationFailed")}
                   </button>
                 )}
@@ -444,7 +444,7 @@ export function CheckoutModal({
                 <input type="number" min="1" value={form.table}
                   onChange={e => setForm(f => ({ ...f, table: e.target.value }))}
                   onKeyDown={e => e.key === "Enter" && !submitting && handleSubmit()}
-                  className="w-full h-12 rounded-xl border border-border/40 bg-muted/20 px-5 text-sm font-medium text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 focus:bg-background transition-all disabled:opacity-50"
+                  className="w-full h-12 rounded-xl border border-border/40 bg-muted/20 px-5 text-sm font-medium text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 focus:bg-background transition-all disabled:opacity-50"
                   placeholder="مثال: 5" disabled={submitting} />
                 {errors.table && <p className="text-xs font-medium text-rose-500 mt-1.5 px-1">{errors.table}</p>}
               </motion.div>
@@ -464,7 +464,7 @@ export function CheckoutModal({
                 <input type="tel" value={form.phone} maxLength={10}
                   onChange={e => setForm(f => ({ ...f, phone: maskPhone(e.target.value) }))}
                   onKeyDown={e => e.key === "Enter" && !submitting && handleSubmit()}
-                  className="w-full h-12 rounded-xl border border-border/40 bg-muted/20 px-5 text-sm font-medium text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 focus:bg-background transition-all disabled:opacity-50"
+                  className="w-full h-12 rounded-xl border border-border/40 bg-muted/20 px-5 text-sm font-medium text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 focus:bg-background transition-all disabled:opacity-50"
                   placeholder="0555123456" disabled={submitting} />
               </motion.div>
             )}
@@ -483,11 +483,11 @@ export function CheckoutModal({
 
         <div className="mt-6 flex gap-3">
           <button type="button" onClick={onClose} disabled={submitting}
-            className="flex-1 rounded-xl border border-border/40 py-3 text-sm font-semibold text-muted-foreground hover:bg-secondary disabled:opacity-50 transition-colors">
+            className="flex-1 rounded-xl border border-border/40 py-3.5 text-sm font-semibold text-muted-foreground hover:bg-secondary disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background">
             {t("common.cancel")}
           </button>
           <button type="button" onClick={handleSubmit} disabled={submitting}
-            className="flex-1 rounded-xl bg-primary text-primary-foreground py-3 text-sm font-semibold hover:brightness-110 disabled:opacity-60 transition-all shadow-[var(--shadow-md),var(--shadow-glow)] active:scale-[0.97]">
+            className="flex-1 rounded-xl bg-primary text-primary-foreground py-3.5 text-sm font-bold hover:brightness-110 disabled:opacity-60 transition-all shadow-lg shadow-primary/25 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background">
             {submitting ? (
               <span className="flex items-center justify-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin" />
