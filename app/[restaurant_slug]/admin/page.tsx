@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useState, useCallback, startTransition } from "react"
+import { useEffect, useState, useCallback, useMemo, startTransition } from "react"
 import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
-import { DollarSign, TrendingUp, ShoppingBag, Star, CalendarClock, LogOut, ChartNoAxesColumn, Shield } from "lucide-react"
+import { DollarSign, TrendingUp, ShoppingBag, Star, CalendarClock, LogOut, ChartNoAxesColumn, Shield, DoorOpen, DoorClosed } from "lucide-react"
 import { supabase, resetTenantClient, fetchApi } from "@/lib/tenant"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -67,7 +67,6 @@ export default function AdminPage() {
   const [loadingStats, setLoadingStats] = useState(true)
   const [totalRevenue, setTotalRevenue] = useState(0)
   const [totalOrders, setTotalOrders] = useState(0)
-  const [avgOrderValue, setAvgOrderValue] = useState(0)
   const [avgRating, setAvgRating] = useState(0)
   const [salesData, setSalesData] = useState<{ date: string; revenue: number; orders: number }[]>([])
   const [topProducts, setTopProducts] = useState<{ name: string; quantity: number; revenue: number }[]>([])
@@ -80,6 +79,8 @@ export default function AdminPage() {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [userRole, setUserRole] = useState<string | null>(null)
   const [adminTab, setAdminTab] = useState<"overview" | "products" | "orders" | "audit">("overview")
+  const [isOpen, setIsOpen] = useState(true)
+  const [togglingOpen, setTogglingOpen] = useState(false)
 
   useEffect(() => {
     fetchApi("/api/me").then(r => r.ok ? r.json() : null).then(data => {
@@ -112,7 +113,6 @@ export default function AdminPage() {
     if (!result) return
     setTotalRevenue(result.totalRevenue)
     setTotalOrders(result.totalOrders)
-    setAvgOrderValue(result.avgOrderValue)
     setDailyRevenue(result.dailyRevenue)
     setTopProducts(result.topProducts)
     setSalesData(result.salesData)
@@ -132,8 +132,39 @@ export default function AdminPage() {
     } catch { return null } finally { setLoadingStats(false) }
   }, [period])
 
+  const avgOrderChange = useMemo(() => {
+    if (salesData.length < 2) return 0
+    const days = [...salesData].sort((a, b) => a.date.localeCompare(b.date)).filter(d => d.orders > 0)
+    if (days.length < 2) return 0
+    const latest = days[days.length - 1]
+    const prev = days[days.length - 2]
+    const latestAov = latest.revenue / latest.orders
+    const prevAov = prev.revenue / prev.orders
+    if (!prevAov) return 0
+    return Math.round(((latestAov - prevAov) / prevAov) * 100)
+  }, [salesData])
+
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchStats().then(data => startTransition(() => setStatsFromResult(data))) }, [fetchStats])
+
+  useEffect(() => {
+    const cfg = (window as unknown as Record<string, unknown>).__TENANT_CONFIG__ as { is_open?: boolean } | undefined
+    if (cfg && typeof cfg.is_open === "boolean") { setIsOpen(cfg.is_open) } // eslint-disable-line react-hooks/set-state-in-effect
+  }, [])
+
+  const toggleOpen = useCallback(async () => {
+    setTogglingOpen(true)
+    try {
+      const res = await fetchApi("/api/tenant/logo", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_open: !isOpen }),
+      })
+      if (res.ok) {
+        setIsOpen(!isOpen)
+      }
+    } catch { /* ignore */ } finally { setTogglingOpen(false) }
+  }, [isOpen])
 
   useEffect(() => {
     const channel = supabase()
@@ -229,6 +260,18 @@ export default function AdminPage() {
           </div>
           <div className="flex items-center gap-2">
             <ClearData onCleared={() => fetchStats().then(setStatsFromResult)} />
+            <button
+              onClick={toggleOpen}
+              disabled={togglingOpen}
+              className={`h-8 px-3 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
+                isOpen
+                  ? "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
+                  : "bg-rose-500/10 text-rose-400 hover:bg-rose-500/20"
+              }`}
+            >
+              {isOpen ? <DoorOpen className="w-3.5 h-3.5" /> : <DoorClosed className="w-3.5 h-3.5" />}
+              <span className="hidden sm:inline">{isOpen ? "مفتوح" : "مغلق"}</span>
+            </button>
             <ThemeToggle />
             <LanguageSwitcher />
             <button onClick={async () => {
@@ -312,7 +355,7 @@ export default function AdminPage() {
                       <StatCard icon={<ShoppingBag className="w-4 h-4" />} title={t("admin.totalOrders")} value={totalOrders.toString()} change={0} trend="up" />
                     </motion.div>
                     <motion.div variants={springCard(0.08)}>
-                      <StatCard icon={<TrendingUp className="w-4 h-4" />} title={t("admin.avgOrder")} value={`${fmtNum(avgOrderValue)} ${currency}`} change={0} trend="up" />
+                      <StatCard icon={<TrendingUp className="w-4 h-4" />} title={t("admin.avgOrder")} value={`${avgOrderChange >= 0 ? "↑" : "↓"} ${Math.abs(avgOrderChange)}%`} change={avgOrderChange} trend={avgOrderChange >= 0 ? "up" : "down"} />
                     </motion.div>
                     <motion.div variants={springCard(0.12)}>
                       <StatCard icon={<Star className="w-4 h-4" />} title={t("admin.avgRating")} value={avgRating.toFixed(1)} change={0} trend="up" />
