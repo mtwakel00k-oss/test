@@ -94,6 +94,25 @@ const CACHE_TTL = 10_000
 
 export function invalidateTenantConfig(slug: string): void {
   configCache.delete(slug)
+  openCache.delete(slug)
+}
+
+const openCache = new Map<string, { value: boolean; expiry: number }>()
+const OPEN_TTL = 2_000
+
+export async function getIsOpen(slug: string): Promise<boolean> {
+  const cached = openCache.get(slug)
+  if (cached && cached.expiry > Date.now()) return cached.value
+  const { data, error } = await _masterClient.from("tenants").select("is_open").eq("slug", slug).maybeSingle()
+  if (error?.message?.includes("does not exist") || error?.code === "42703") {
+    const stored = await readIsOpenFromStorage(slug)
+    const val = stored ?? true
+    openCache.set(slug, { value: val, expiry: Date.now() + OPEN_TTL })
+    return val
+  }
+  const val = data ? (data as { is_open: boolean | null }).is_open ?? true : true
+  openCache.set(slug, { value: val, expiry: Date.now() + OPEN_TTL })
+  return val
 }
 
 export async function getTenantConfig(slug: string): Promise<TenantConfig | null> {

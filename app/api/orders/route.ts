@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabaseForRequest, isTenantMismatch, parseSession, getTenantConfig } from "@/lib/tenant"
+import { supabaseForRequest, isTenantMismatch, parseSession, getTenantConfig, getIsOpen } from "@/lib/tenant"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 import { logAudit } from "@/lib/audit"
@@ -152,8 +152,8 @@ export async function POST(req: NextRequest) {
     const refSlug = refMatch && !knownPages.has(refMatch[1]) ? refMatch[1] : ""
     const checkSlug = session.slug || headerSlug || refSlug
     if (checkSlug) {
-      const tenantConfig = await getTenantConfig(checkSlug)
-      if (tenantConfig && tenantConfig.is_open === false) {
+      const isOpen = await getIsOpen(checkSlug)
+      if (!isOpen) {
         return NextResponse.json({ error: "المطعم مغلق حالياً. لا يمكن تقديم الطلبات الآن.", code: "RESTAURANT_CLOSED" }, { status: 403 })
       }
     }

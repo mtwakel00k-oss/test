@@ -158,7 +158,7 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
         const res = await fetchApi("/api/tenant/logo")
         if (res.ok) { const j = await res.json(); if (typeof j.is_open === "boolean") setIsOpen(j.is_open) }
       } catch { /* ignore */ }
-    }, 45000)
+    }, 10000)
     return () => clearInterval(id)
   }, [])
 
