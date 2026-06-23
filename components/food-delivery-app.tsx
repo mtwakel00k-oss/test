@@ -294,7 +294,7 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
               transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.12 }}
               className="font-display text-[clamp(2.5rem,6vw,3.75rem)] font-light leading-[1.06] tracking-tight text-foreground"
             >
-              القائمة
+              اختر وجبتك
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 16 }}
@@ -302,7 +302,7 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
               transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.17 }}
               className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground/60"
             >
-              اختر وجبتك المفضلة من قائمتنا المتنوعة — كل طبق يُحضر بعناية ليجمع بين النكهة الأصيلة والمذاق الاستثنائي
+              كل طبق يُحضر بعناية ليجمع بين النكهة الأصيلة والمذاق الاستثنائي
             </motion.p>
           </motion.div>
 
