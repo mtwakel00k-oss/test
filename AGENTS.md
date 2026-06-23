@@ -87,6 +87,34 @@ Deploy the stable app to production with all tests passing, fix login 500 error,
 2. Fix React hydration error #418.
 <!-- END:session-2025-06-18 -->
 
+<!-- BEGIN:session-2025-06-23 -->
+## Session Progress (Jun 23) — Invisible Text Fixes
+
+### Goal
+Eliminate invisible text in light/dark mode by replacing hardcoded `text-white`/`text-black` with semantic `text-foreground`/`text-muted-foreground`.
+
+### Done
+1. **CSS vars contrast fixed** in `globals.css`:
+   - Light: `--background: oklch(1 0 0)` (pure white), `--foreground: oklch(0.1 0 0)` (~10% black)
+   - Dark: `--background: oklch(0.06 0.008 260)` (~6% charcoal), `--foreground: oklch(0.97 0.003 70)` (~97% white)
+   - `--muted-foreground` darkened in light mode; `--accent-foreground`/`--warning-foreground` synced to `--foreground` per mode
+2. **`.glass` class** fixed: added `color: inherit` so text color inherits from parent container (not hardcoded white)
+3. **`.dark .glass` border** raised from `rgba(255,255,255,0.08)` → `rgba(255,255,255,0.12)` for visibility against charcoal
+4. **`performance-reports.tsx`**: all `text-white` on glass cards replaced with `text-foreground` / `text-muted-foreground` (headings, stats, empty states)
+5. **TypeScript compiles with zero errors**
+6. Remaining `text-white` instances verified as intentional (hover states, badges, icons on dark overlays, colored number bubbles)
+
+### Remaining hardcoded color instances (all intentional)
+- `audit-log.tsx`: `bg-neutral-800 text-white` active filter pills (dark bg always, high contrast)
+- `restaurant-settings.tsx`: camera icons on `bg-black/40` overlay
+- `product-manager.tsx`: hover `hover:bg-primary hover:text-white`, red badge `bg-red-500 text-white`
+- `top-products.tsx`: colored number bubbles with `text-white`
+- `clear-data.tsx`: hover `hover:bg-rose-500 hover:text-white`
+
+### Blocked
+- (none — awaiting user's "ارفع" to deploy)
+<!-- END:session-2025-06-23 -->
+
 <!-- BEGIN:session-2025-06-19 -->
 ## Session Progress (Jun 19) — Code Audit Fixes
 
@@ -105,3 +133,41 @@ Address all issues from the code audit report (`75/100`): secure `/api/run-sql`,
 ### To apply tenant migration
 Open `https://supabase.com/dashboard/project/zordvqqjnlmxgtbkrspp` → SQL Editor → paste contents of `scripts/apply-tenant-migration.sql` → Run.
 <!-- END:session-2025-06-19 -->
+
+<!-- BEGIN:session-2025-06-23-p2 -->
+## Session Progress (Jun 23) — Elite Analytics Dashboard
+
+### Goal
+Build the "Elite Analytics Dashboard" (`components/admin/premium-analytics.tsx`) for Pro/Elite tiers focusing on Advanced Financials, Kitchen Bottlenecks, Driver Gamification, and Revenue Leakage.
+
+### Done
+1. **`GET /api/admin/premium-analytics` route** (`app/api/admin/premium-analytics/route.ts`) — aggregations for:
+   - **Avg Ticket**: total_revenue / total_orders, with `% change` vs previous period
+   - **Dead Stock**: `produits` left-joined with `order_items` — products with 0 sales in period
+   - **Cancellations**: count + value + rate, grouped by `order_type` with horizontal progress bars
+   - **Kitchen Red Zone**: audit_log timeline from `preparing` → `ready`, counts orders > 30 min
+   - **Driver Hero**: driver with most completed orders (tie-break: fewest cancelled)
+   - **Driver Fail Rate**: `cancelledOrders` per driver column
+   - **Tier guard**: `requirePremiumTier(slug)` → 403 for starter
+   - **Session guard**: admin/owner role check
+2. **`components/admin/premium-analytics.tsx`** — all Arabic native text (RTL):
+   - Financial Insights card: avg ticket with trend, cancellations summary, dead stock count
+   - Dead Stock detail: amber product chips with "لم يتم طلبها مؤخراً — فكر في إزالتها" warning
+   - Cancellation breakdown by type: horizontal progress bars with rose-500 fill
+   - Kitchen Red Zone: destructive-colored alert card with count + "راجع كفاءة المطبخ" warning (emerald success state when clear)
+   - Driver Leaderboard: hero card with MedalIcon + CrownIcon "بطل التوصيل" badge, table with completed + cancelled columns
+   - Matches existing glass card styling (inline backdrop-filter, white/6 borders, neutral-500/15 icons)
+   - Uses existing `springCard`, `springRow`, `AnimatePresence mode="wait"` patterns
+   - Period switcher: 7d/30d/6m/12m
+3. **`app/[restaurant_slug]/admin/page.tsx`** — wired as new `"analytics"` tab:
+   - Dynamic import with pulse loading
+   - Added to `premiumTabs` (hidden for `starter`)
+   - Tab label: "التحليلات المتقدمة"
+   - Tier check: `plan_type === "starter"` resets tab to "overview" if analytics was selected
+4. **TypeScript**: `tsc --noEmit` passes with zero errors
+
+### Relevant Files
+- `app/api/admin/premium-analytics/route.ts`: all aggregation logic
+- `components/admin/premium-analytics.tsx`: full RTL Arabic UI, glass cards, driver gamification
+- `app/[restaurant_slug]/admin/page.tsx`: tab wiring + tier gating
+<!-- END:session-2025-06-23-p2 -->

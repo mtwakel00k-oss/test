@@ -41,6 +41,9 @@ const AuditLog = dynamic(() => import("@/components/admin/audit-log").then(m => 
 const PerformanceReports = dynamic(() => import("@/components/admin/performance-reports").then(m => ({ default: m.PerformanceReports })), {
   loading: () => <div className="h-96 rounded-2xl bg-white/5 animate-pulse" />,
 })
+const PremiumAnalytics = dynamic(() => import("@/components/admin/premium-analytics").then(m => ({ default: m.PremiumAnalytics })), {
+  loading: () => <div className="h-96 rounded-2xl bg-white/5 animate-pulse" />,
+})
 
 type Period = "7d" | "30d" | "6m" | "12m"
 
@@ -245,10 +248,10 @@ export default function AdminPage() {
     )
   }
 
-  const premiumTabs = ["audit", "reports"] as const
+  const premiumTabs = ["audit", "reports", "analytics"] as const
   const isBasic = planType === "starter"
   const adminTabs = useMemo(() => {
-    const all = ["overview", "products", "orders", "audit", "reports"] as const
+    const all = ["overview", "products", "orders", "audit", "reports", "analytics"] as const
     if (isBasic) return all.filter(t => !(premiumTabs as readonly string[]).includes(t))
     return all
   }, [isBasic])
@@ -326,7 +329,7 @@ export default function AdminPage() {
                   />
                 )}
                 <span className={`relative ${adminTab === tab ? "text-accent" : "text-white/40 hover:text-white/70"}`}>
-                  {tab === "overview" ? t("admin.overview") : tab === "products" ? t("admin.products") : tab === "orders" ? t("admin.orders") : tab === "audit" ? t("admin.audit") : t("admin.reports") || "التقارير"}
+                  {tab === "overview" ? t("admin.overview") : tab === "products" ? t("admin.products") : tab === "orders" ? t("admin.orders") : tab === "audit" ? t("admin.audit") : tab === "reports" ? t("admin.reports") || "التقارير" : "التحليلات المتقدمة"}
                 </span>
               </button>
             ))}
@@ -546,6 +549,16 @@ export default function AdminPage() {
               transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             >
               <PerformanceReports />
+            </motion.div>
+          ) : adminTab === "analytics" ? (
+            <motion.div
+              key="analytics"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <PremiumAnalytics />
             </motion.div>
           ) : (
             <motion.div

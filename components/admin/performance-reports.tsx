@@ -265,16 +265,16 @@ export function PerformanceReports() {
                   <TimerIcon className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-display text-base font-semibold text-white">{t("admin.avgPrepTime") || "متوسط وقت التحضير"}</h3>
-                  <p className="text-[10px] text-white/40">{t("admin.fromOrderToReady") || "من الطلب إلى الجاهز"}</p>
+                  <h3 className="font-display text-base font-semibold text-foreground">{t("admin.avgPrepTime") || "متوسط وقت التحضير"}</h3>
+                  <p className="text-[10px] text-muted-foreground">{t("admin.fromOrderToReady") || "من الطلب إلى الجاهز"}</p>
                 </div>
               </div>
 
               {data.kitchen.avgPrepTimeMinutes !== null ? (
                 <div className="space-y-3">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-5xl font-bold tracking-tight text-white tabular-nums">{fmtNum(data.kitchen.avgPrepTimeMinutes)}</span>
-                    <span className="text-lg font-medium text-white/50">{t("admin.minutesShort") || "د"}</span>
+                    <span className="text-5xl font-bold tracking-tight text-foreground tabular-nums">{fmtNum(data.kitchen.avgPrepTimeMinutes)}</span>
+                    <span className="text-lg font-medium text-muted-foreground">{t("admin.minutesShort") || "د"}</span>
                   </div>
                   {prepAlert && (
                     <div className={`flex items-center gap-2 ${prepAlert.color}`}>
@@ -282,7 +282,7 @@ export function PerformanceReports() {
                       <span className="text-sm font-semibold">{prepAlert.text}</span>
                     </div>
                   )}
-                  <p className="text-xs text-white/30">
+                  <p className="text-xs text-muted-foreground/60">
                     {t("admin.basedOnOrders") || "بناءً على"} {fmtNum(data.kitchen.ordersTracked)} {t("admin.orders") || "طلبات"}
                   </p>
                 </div>
@@ -301,10 +301,10 @@ export function PerformanceReports() {
                   style={{ backdropFilter: "blur(32px) saturate(180%) brightness(1.08)", background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.25)", borderRadius: "24px" }}
                   className="p-4 text-center space-y-2"
                 >
-                  <span className={`text-2xl font-bold tabular-nums block ${STATUS_COLORS[s.status] || "text-white"}`}>
+                  <span className={`text-2xl font-bold tabular-nums block ${STATUS_COLORS[s.status] || "text-foreground"}`}>
                     {fmtNum(s.count)}
                   </span>
-                  <span className="text-[10px] font-medium text-white/50 block leading-tight">
+                  <span className="text-[10px] font-medium text-muted-foreground block leading-tight">
                     {STATUS_LABELS[s.status] || s.status}
                   </span>
                 </div>
@@ -395,11 +395,11 @@ export function PerformanceReports() {
                             </td>
                             <td className="text-center px-5 py-3">
                               {d.avgTransitTimeMinutes !== null ? (
-                                <span className="font-mono text-sm font-semibold tabular-nums text-white/70">
+                                <span className="font-mono text-sm font-semibold tabular-nums text-muted-foreground">
                                   {fmtNum(d.avgTransitTimeMinutes)} {t("admin.minutesShort") || "د"}
                                 </span>
                               ) : (
-                                <span className="text-xs text-white/30">—</span>
+                                <span className="text-xs text-muted-foreground/50">—</span>
                               )}
                             </td>
                             <td className="text-center px-5 py-3">
@@ -421,7 +421,7 @@ export function PerformanceReports() {
                                   </span>
                                 )
                               ) : (
-                                <span className="text-[10px] text-white/30">{t("admin.noData") || "—"}</span>
+                                <span className="text-[10px] text-muted-foreground/50">{t("admin.noData") || "—"}</span>
                               )}
                             </td>
                           </motion.tr>
@@ -440,9 +440,9 @@ export function PerformanceReports() {
                       <div className="grid size-8 place-items-center rounded-xl bg-neutral-500/15 text-neutral-300">
                         <BikeIcon className="w-4 h-4" />
                       </div>
-                      <span className="text-[10px] font-semibold uppercase tracking-wider text-white/40">{t("admin.activeDrivers") || "السائقون النشطون"}</span>
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t("admin.activeDrivers") || "السائقون النشطون"}</span>
                     </div>
-                    <p className="text-2xl font-bold text-white tabular-nums">{fmtNum(data.delivery.drivers.length)}</p>
+                    <p className="text-2xl font-bold text-foreground tabular-nums">{fmtNum(data.delivery.drivers.length)}</p>
                   </div>
                   <div
                     style={{ backdropFilter: "blur(32px) saturate(180%) brightness(1.08)", background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.25)", borderRadius: "24px" }}
@@ -452,9 +452,9 @@ export function PerformanceReports() {
                       <div className="grid size-8 place-items-center rounded-xl bg-neutral-500/15 text-neutral-300">
                         <PackageIcon className="w-4 h-4" />
                       </div>
-                      <span className="text-[10px] font-semibold uppercase tracking-wider text-white/40">{t("admin.totalDeliveries") || "إجمالي التوصيل"}</span>
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t("admin.totalDeliveries") || "إجمالي التوصيل"}</span>
                     </div>
-                    <p className="text-2xl font-bold text-white tabular-nums">
+                    <p className="text-2xl font-bold text-foreground tabular-nums">
                       {fmtNum(data.delivery.drivers.reduce((s, d) => s + d.completedOrders, 0))}
                     </p>
                   </div>
@@ -466,9 +466,9 @@ export function PerformanceReports() {
                       <div className="grid size-8 place-items-center rounded-xl bg-neutral-500/15 text-neutral-300">
                         <TrendingUpIcon className="w-4 h-4" />
                       </div>
-                      <span className="text-[10px] font-semibold uppercase tracking-wider text-white/40">{t("admin.avgTransitTime") || "معدل التوصيل"}</span>
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t("admin.avgTransitTime") || "معدل التوصيل"}</span>
                     </div>
-                    <p className="text-2xl font-bold text-white tabular-nums">
+                    <p className="text-2xl font-bold text-foreground tabular-nums">
                       {(() => {
                         const tracked = data.delivery.drivers.filter(d => d.avgTransitTimeMinutes !== null)
                         if (tracked.length === 0) return "—"

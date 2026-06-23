@@ -3,12 +3,12 @@
 @import "shadcn/tailwind.css";
 
 :root {
-  --background: oklch(0.985 0.003 70);
-  --foreground: oklch(0.12 0.01 65);
-  --card: oklch(0.995 0.002 70);
-  --card-foreground: oklch(0.12 0.01 65);
-  --popover: oklch(0.99 0.003 70);
-  --popover-foreground: oklch(0.12 0.01 65);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.1 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.1 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.1 0 0);
 
   --primary: oklch(0.22 0.045 260);
   --primary-foreground: oklch(0.995 0.002 70);
@@ -19,7 +19,7 @@
   --secondary-foreground: oklch(0.2 0.01 65);
 
   --accent: oklch(0.48 0.025 260);
-  --accent-foreground: oklch(0.12 0.01 65);
+  --accent-foreground: oklch(0.1 0 0);
 
   --destructive: oklch(0.5 0.22 10);
   --destructive-foreground: oklch(0.99 0.002 70);
@@ -28,12 +28,12 @@
   --success-foreground: oklch(0.99 0.002 70);
 
   --warning: oklch(0.6 0.15 55);
-  --warning-foreground: oklch(0.12 0.012 65);
+  --warning-foreground: oklch(0.1 0 0);
 
   --muted: oklch(0.94 0.004 70);
-  --muted-foreground: oklch(0.42 0.012 65);
+  --muted-foreground: oklch(0.35 0.005 65);
 
-  --border: oklch(0.88 0.006 70);
+  --border: oklch(0.85 0.005 70);
   --input: oklch(0.9 0.005 70);
   --ring: oklch(0.25 0.025 260 / 0.4);
   --radius: 0.875rem;
@@ -77,28 +77,28 @@
 
 .dark {
   --background: oklch(0.06 0.008 260);
-  --foreground: oklch(0.92 0.004 70);
-  --card: oklch(0.1 0.01 260);
-  --card-foreground: oklch(0.92 0.004 70);
-  --popover: oklch(0.09 0.01 260);
-  --popover-foreground: oklch(0.92 0.004 70);
+  --foreground: oklch(0.97 0.003 70);
+  --card: oklch(0.09 0.01 260);
+  --card-foreground: oklch(0.97 0.003 70);
+  --popover: oklch(0.08 0.01 260);
+  --popover-foreground: oklch(0.97 0.003 70);
   --primary: oklch(0.48 0.09 260);
   --primary-foreground: oklch(0.99 0.002 70);
   --primary-light: oklch(0.18 0.02 260);
   --primary-bg: oklch(0.12 0.015 260);
   --secondary: oklch(0.14 0.008 70);
-  --secondary-foreground: oklch(0.85 0.004 70);
+  --secondary-foreground: oklch(0.9 0.004 70);
   --accent: oklch(0.55 0.025 260);
-  --accent-foreground: oklch(0.92 0.004 70);
+  --accent-foreground: oklch(0.97 0.003 70);
   --destructive: oklch(0.58 0.18 10);
   --destructive-foreground: oklch(0.99 0.002 70);
   --success: oklch(0.6 0.14 145);
   --success-foreground: oklch(0.99 0.002 70);
   --warning: oklch(0.5 0.14 55);
-  --warning-foreground: oklch(0.12 0.012 65);
+  --warning-foreground: oklch(0.97 0.003 70);
   --muted: oklch(0.14 0.006 70);
-  --muted-foreground: oklch(0.55 0.008 70);
-  --border: oklch(0.2 0.006 70);
+  --muted-foreground: oklch(0.6 0.008 70);
+  --border: oklch(0.22 0.006 70);
   --input: oklch(0.16 0.005 70);
   --ring: oklch(0.45 0.08 260 / 0.5);
   --sidebar: oklch(0.05 0.008 260);
@@ -518,6 +518,7 @@ html[data-locale="fr"] body {
 
 .glass {
   position: relative;
+  color: inherit;
   background: rgba(255,255,255,0.12);
   backdrop-filter: blur(32px) saturate(180%) brightness(1.08);
   -webkit-backdrop-filter: blur(32px) saturate(180%) brightness(1.08);
@@ -542,7 +543,7 @@ html[data-locale="fr"] body {
 }
 .dark .glass {
   background: rgba(0,0,0,0.3);
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
   box-shadow:
     0 8px 32px rgba(0,0,0,0.2),
     inset 0 1px 0 rgba(255,255,255,0.04);
@@ -567,7 +568,7 @@ html[data-locale="fr"] body {
 }
 .dark .glass-input {
   background: rgba(0,0,0,0.2);
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
   box-shadow: 0 4px 16px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.03);
 }
 .dark .glass-input:focus {
@@ -734,7 +735,7 @@ html[data-locale="fr"] body {
 }
 .card-hover:hover {
   transform: translateY(-4px);
-  border-color: rgba(255,255,255,0.35);
+  border-color: rgba(255,255,255,0.25);
   box-shadow: 0 12px 40px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.5);
 }
 
