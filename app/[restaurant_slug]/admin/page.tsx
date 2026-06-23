@@ -153,16 +153,15 @@ export default function AdminPage() {
   }, [])
 
   const toggleOpen = useCallback(async () => {
+    const next = !isOpen
     setTogglingOpen(true)
+    setIsOpen(next)
     try {
-      const res = await fetchApi("/api/tenant/logo", {
+      await fetchApi("/api/tenant/logo", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ is_open: !isOpen }),
+        body: JSON.stringify({ is_open: next }),
       })
-      if (res.ok) {
-        setIsOpen(!isOpen)
-      }
     } catch { /* ignore */ } finally { setTogglingOpen(false) }
   }, [isOpen])
 

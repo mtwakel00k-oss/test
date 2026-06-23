@@ -20,7 +20,9 @@ function getSupabase() {
 
 function getSession(req: NextRequest) {
   const session = parseSession(req.headers.get("cookie") || "")
-  return session.role ? session : null
+  if (!session.role) return null
+  if (!session.slug) session.slug = req.headers.get("x-tenant-slug") || ""
+  return session
 }
 
 function isAdmin(session: { role?: string } | null): boolean {
@@ -76,7 +78,8 @@ export async function PATCH(req: NextRequest) {
 
     const session = await getSession(req)
     if (!isAdmin(session)) return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
-    const slug = session!.slug
+    let slug = session!.slug
+    if (!slug) slug = req.headers.get("x-tenant-slug") || ""
     if (!slug) return NextResponse.json({ error: "Missing slug" }, { status: 400 })
     const body = await req.json()
     const updates: Record<string, string | null | boolean> = {}
@@ -134,7 +137,7 @@ export async function POST(req: NextRequest) {
 
     const session = await getSession(req)
     if (!isAdmin(session)) return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
-    slug = session!.slug!
+    slug = session!.slug || req.headers.get("x-tenant-slug") || ""
     if (!slug) return NextResponse.json({ error: "Missing slug" }, { status: 400 })
 
     const formData = await req.formData()
