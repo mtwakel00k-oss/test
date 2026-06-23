@@ -143,7 +143,7 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
   const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [loading, setLoading] = useState(() => !(initialProducts && initialProducts.length > 0))
   const [slug] = useState(() => propSlug || (readConfig() as { slug?: string })?.slug || "")
-  const [isOpen] = useState(() => (readConfig() as { is_open?: boolean })?.is_open !== false)
+  const [isOpen, setIsOpen] = useState(() => (readConfig() as { is_open?: boolean })?.is_open !== false)
   const { items, addItem, updateQuantity, itemCount, clear, total, removeProduct: _removeProduct } = useCart()
 
   const itemsRef = useRef(items)
@@ -151,6 +151,16 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
 
   useEffect(() => { itemsRef.current = items }, [items])
   useEffect(() => { removeProductRef.current = _removeProduct }, [_removeProduct])
+
+  useEffect(() => {
+    const id = setInterval(async () => {
+      try {
+        const res = await fetchApi("/api/tenant/logo")
+        if (res.ok) { const j = await res.json(); if (typeof j.is_open === "boolean") setIsOpen(j.is_open) }
+      } catch { /* ignore */ }
+    }, 45000)
+    return () => clearInterval(id)
+  }, [])
 
   useEffect(() => {
     if (initialProducts && initialProducts.length > 0) return

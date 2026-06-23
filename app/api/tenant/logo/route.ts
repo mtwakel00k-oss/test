@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { invalidateTenantConfig, parseSession, readIsOpenFromStorage, writeIsOpenToStorage } from "@/lib/tenant"
+import { invalidateTenantConfig, parseSession, getTenantConfig, readIsOpenFromStorage, writeIsOpenToStorage } from "@/lib/tenant"
+import { logAudit } from "@/lib/audit"
 import { logger } from "@/lib/logger"
 import { env } from "@/lib/env"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
@@ -94,6 +95,7 @@ export async function PATCH(req: NextRequest) {
       const ok = await writeIsOpenToStorage(slug, body.is_open)
       if (!ok) return NextResponse.json({ error: "Storage fallback failed" }, { status: 500 })
       invalidateTenantConfig(slug)
+      logStatusToggle(req, slug, body.is_open)
       return NextResponse.json({ ok: true, is_open: body.is_open })
     }
     if (error) {
@@ -102,10 +104,25 @@ export async function PATCH(req: NextRequest) {
     }
 
     invalidateTenantConfig(slug)
+    if (typeof body.is_open === "boolean") logStatusToggle(req, slug, body.is_open)
     logger.info("Tenant PATCH", { slug, updates: Object.keys(updates) })
     return NextResponse.json({ ok: true, ...updates })
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "Update failed" }, { status: 500 })
+  }
+
+  async function logStatusToggle(req: NextRequest, slug: string, isOpen: boolean): Promise<void> {
+    try {
+      const cfg = await getTenantConfig(slug)
+      if (!cfg) return
+      const tenantSb = createClient(cfg.supabase_url, cfg.supabase_anon_key)
+      logAudit(tenantSb, req, {
+        table_name: "tenants",
+        record_id: slug,
+        operation: "UPDATE",
+        new_data: { is_open: isOpen, action: "status_toggle" },
+      })
+    } catch { /* fire-and-forget */ }
   }
 }
 

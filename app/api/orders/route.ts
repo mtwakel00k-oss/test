@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { supabaseForRequest, isTenantMismatch, parseSession, getTenantConfig } from "@/lib/tenant"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
+import { logAudit } from "@/lib/audit"
 import { logger } from "@/lib/logger"
 import type { OrderType, MenuProduct } from "@/lib/types"
 import { getPrice } from "@/lib/types"
@@ -348,6 +349,8 @@ export async function POST(req: NextRequest) {
     }
 
     const finalTotal = total
+    logAudit(sb, req, { table_name: "orders", record_id: order.id as string, operation: "INSERT", new_data: { total: finalTotal, itemCount: orderItems.length, orderNumber, order_type: payload.order_type, customer_name: payload.customer_name } })
+
     const elapsed = Date.now() - startTime
     logger.info("Order created", { id: order.id, total: finalTotal, itemCount: orderItems.length, removedCount: removedProductIds.length, orderNumber, elapsedMs: elapsed })
     return NextResponse.json({

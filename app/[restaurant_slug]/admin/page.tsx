@@ -175,6 +175,16 @@ export default function AdminPage() {
     return () => { supabase().removeChannel(channel); clearInterval(poll) }
   }, [fetchStats])
 
+  useEffect(() => {
+    const id = setInterval(async () => {
+      try {
+        const res = await fetchApi("/api/tenant/logo")
+        if (res.ok) { const j = await res.json(); if (typeof j.is_open === "boolean") setIsOpen(j.is_open) }
+      } catch { /* ignore */ }
+    }, 30000)
+    return () => clearInterval(id)
+  }, [])
+
   if (slug === "developer") {
     return (
       <div className="admin-surface" dir={dir}>

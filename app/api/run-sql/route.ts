@@ -179,10 +179,16 @@ CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at DESC
 CREATE INDEX IF NOT EXISTS idx_audit_log_table_name ON audit_log(table_name);
 CREATE INDEX IF NOT EXISTS idx_audit_log_record_id ON audit_log(record_id);
 ALTER TABLE audit_log ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "audit_log_select_admin" ON audit_log;
 DROP POLICY IF EXISTS "audit_log_select_authenticated" ON audit_log;
-CREATE POLICY "audit_log_select_authenticated" ON audit_log FOR SELECT USING (true);
+CREATE POLICY "audit_log_select_admin" ON audit_log FOR SELECT USING (true);
+DROP POLICY IF EXISTS "audit_log_insert_all" ON audit_log;
 DROP POLICY IF EXISTS "audit_log_insert_admin" ON audit_log;
-CREATE POLICY "audit_log_insert_admin" ON audit_log FOR INSERT WITH CHECK (true);
+CREATE POLICY "audit_log_insert_all" ON audit_log FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "audit_log_update_deny" ON audit_log;
+CREATE POLICY "audit_log_update_deny" ON audit_log FOR UPDATE USING (false);
+DROP POLICY IF EXISTS "audit_log_delete_deny" ON audit_log;
+CREATE POLICY "audit_log_delete_deny" ON audit_log FOR DELETE USING (false);
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'audit_log') THEN
     ALTER PUBLICATION supabase_realtime ADD TABLE audit_log;

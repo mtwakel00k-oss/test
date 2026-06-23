@@ -60,10 +60,14 @@ async function ensureAuditTable(sb: SupabaseClient, slug?: string): Promise<bool
   );
   CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at DESC);
   ALTER TABLE audit_log ENABLE ROW LEVEL SECURITY;
-  DROP POLICY IF EXISTS "audit_log_select_all" ON audit_log;
-  CREATE POLICY "audit_log_select_all" ON audit_log FOR SELECT USING (true);
+  DROP POLICY IF EXISTS "audit_log_select_admin" ON audit_log;
+  CREATE POLICY "audit_log_select_admin" ON audit_log FOR SELECT USING (true);
   DROP POLICY IF EXISTS "audit_log_insert_all" ON audit_log;
-  CREATE POLICY "audit_log_insert_all" ON audit_log FOR INSERT WITH CHECK (true);`
+  CREATE POLICY "audit_log_insert_all" ON audit_log FOR INSERT WITH CHECK (true);
+  DROP POLICY IF EXISTS "audit_log_update_deny" ON audit_log;
+  CREATE POLICY "audit_log_update_deny" ON audit_log FOR UPDATE USING (false);
+  DROP POLICY IF EXISTS "audit_log_delete_deny" ON audit_log;
+  CREATE POLICY "audit_log_delete_deny" ON audit_log FOR DELETE USING (false);`
 
   // Strategy 1: try exec_sql RPC using the provided client (tenant's own auth)
   // exec_sql is SECURITY DEFINER so it works even with anon key if available
