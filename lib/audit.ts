@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { createClient } from "@supabase/supabase-js"
-import { parseSession } from "@/lib/tenant"
+import { parseSession, getTenantConfig } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 import { env } from "@/lib/env"
 
@@ -38,13 +38,8 @@ export function getMemoryAuditLog(): StoredAuditEntry[] {
   return _memoryStore
 }
 
-async function ensureAuditTable(sb: SupabaseClient): Promise<boolean> {
+async function ensureAuditTable(sb: SupabaseClient, slug?: string): Promise<boolean> {
   const supabaseUrl = (sb as unknown as { supabaseUrl?: string }).supabaseUrl
-  const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY
-  if (!supabaseUrl || !serviceKey) {
-    logger.warn("Cannot create audit_log table: missing supabaseUrl or service key")
-    return false
-  }
 
   const sql = `CREATE TABLE IF NOT EXISTS audit_log (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -65,32 +60,39 @@ async function ensureAuditTable(sb: SupabaseClient): Promise<boolean> {
   DROP POLICY IF EXISTS "audit_log_insert_all" ON audit_log;
   CREATE POLICY "audit_log_insert_all" ON audit_log FOR INSERT WITH CHECK (true);`
 
+  // Strategy 1: try exec_sql RPC using the provided client (tenant's own auth)
+  // exec_sql is SECURITY DEFINER so it works even with anon key if available
   try {
-    // Try exec_sql RPC first (available on Supabase projects that have used SQL editor)
-    const svc = createClient(supabaseUrl, serviceKey)
-    const { error: rpcErr } = await svc.rpc("exec_sql", { query_text: sql })
+    const { error: rpcErr } = await sb.rpc("exec_sql", { query_text: sql })
     if (!rpcErr) return true
-    logger.warn("exec_sql RPC not available, trying Management API", rpcErr)
+    logger.warn("exec_sql RPC via tenant client failed", rpcErr)
   } catch {
-    logger.warn("exec_sql RPC threw")
+    logger.warn("exec_sql RPC via tenant client threw")
   }
 
-  // Fallback: try Management API (requires SUPABASE_ACCESS_TOKEN)
-  const mgmtKey = env.SUPABASE_ACCESS_TOKEN
-  if (!mgmtKey) return false
-
-  try {
-    const ref = supabaseUrl.replace("https://", "").split(".")[0]
-    const res = await fetch(`https://api.supabase.com/v1/projects/${ref}/database/query`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${mgmtKey}` },
-      body: JSON.stringify({ query: sql }),
-    })
-    return res.ok
-  } catch (e) {
-    logger.warn("Management API failed to create audit_log table", e)
-    return false
+  // Strategy 2: look up tenant and use its own service key
+  if (slug && supabaseUrl) {
+    try {
+      const config = await getTenantConfig(slug)
+      if (config?.supabase_service_key) {
+        const svc = createClient(supabaseUrl, config.supabase_service_key)
+        const { error: svcErr } = await svc.rpc("exec_sql", { query_text: sql })
+        if (!svcErr) return true
+        logger.warn("exec_sql RPC via tenant service key failed", svcErr)
+      }
+    } catch { /* ignore */ }
   }
+
+  // Strategy 3: try master service key (works if tenant shares master project)
+  if (supabaseUrl && env.SUPABASE_SERVICE_ROLE_KEY) {
+    try {
+      const svc = createClient(supabaseUrl, env.SUPABASE_SERVICE_ROLE_KEY)
+      const { error: svcErr } = await svc.rpc("exec_sql", { query_text: sql })
+      if (!svcErr) return true
+    } catch { /* ignore */ }
+  }
+
+  return false
 }
 
 export async function logAudit(
@@ -100,6 +102,7 @@ export async function logAudit(
 ): Promise<void> {
   try {
     const session = parseSession(req.headers.get("cookie") || "")
+    const slug = session.slug || req.headers.get("x-tenant-slug") || ""
     const ip =
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       req.headers.get("x-real-ip") ||
@@ -120,7 +123,7 @@ export async function logAudit(
     if (!error) return
 
     if (error.message?.includes("does not exist") || error.message?.includes("relation")) {
-      const created = await ensureAuditTable(sb)
+      const created = await ensureAuditTable(sb, slug)
       if (created) {
         const { error: retryErr } = await sb.from("audit_log").insert(payload)
         if (!retryErr) return
