@@ -192,6 +192,10 @@ END $$;
 
 const MASTER_SQL = `
 -- Master project migration — self-healing
+
+-- 0) exec_sql helper — needed for programmatic migration
+CREATE OR REPLACE FUNCTION exec_sql(query_text TEXT) RETURNS VOID AS $$ BEGIN EXECUTE query_text; END; $$ LANGUAGE plpgsql SECURITY DEFINER;
+
 ALTER TABLE produits ADD COLUMN IF NOT EXISTS image_url TEXT;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_type TEXT NOT NULL DEFAULT 'dine_in';
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_number INT;
@@ -204,6 +208,9 @@ CREATE POLICY "public_select_categories" ON categories FOR SELECT USING (true);
 
 -- V3: Cron job support (service key for external tenants)
 ALTER TABLE tenants ADD COLUMN IF NOT EXISTS supabase_service_key TEXT;
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS is_open BOOLEAN DEFAULT TRUE;
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS brand_color TEXT;
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS brand_text_color TEXT;
 -- Run this to populate your own tenant's service key:
 -- UPDATE tenants SET supabase_service_key = '<your_tenant_svc_key>' WHERE supabase_url = '<tenant_supabase_url>';
 `
@@ -283,6 +290,32 @@ export async function POST(req: NextRequest) {
 
   if (!slug) {
     return NextResponse.json({ error: "Missing slug" }, { status: 400 })
+  }
+
+  // Special slug "__master__" runs MASTER_SQL on the master project
+  if (slug === "__master__") {
+    const masterUrl = env.NEXT_PUBLIC_SUPABASE_URL
+    const masterKey = env.SUPABASE_SERVICE_ROLE_KEY
+    if (!masterUrl || !masterKey) {
+      return NextResponse.json({ error: "Master DB not configured" }, { status: 500 })
+    }
+    try {
+      const masterSvc = createClient(masterUrl, masterKey)
+      const { error } = await masterSvc.rpc("exec_sql", { query_text: MASTER_SQL })
+      if (error) {
+        logger.error("Master migration exec_sql failed", error)
+        return NextResponse.json({
+          error: "exec_sql RPC not available on master",
+          detail: `Run manually in master Supabase Dashboard SQL editor:\n\n${MASTER_SQL}`,
+        }, { status: 400 })
+      }
+      return NextResponse.json({ success: true, slug: "__master__" })
+    } catch {
+      return NextResponse.json({
+        error: "Could not execute SQL on master",
+        detail: `Run manually in master Supabase Dashboard SQL editor:\n\n${MASTER_SQL}`,
+      }, { status: 500 })
+    }
   }
 
   const tenant = await getTenantConfig(slug)
