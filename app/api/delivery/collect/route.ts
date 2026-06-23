@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { markOrderAsCollected } from "@/lib/collect"
 import { requireStaff, resolveTenantSlug, isErrorResponse } from "@/lib/api-auth"
+import { supabaseForRequest } from "@/lib/tenant"
+import { logAudit } from "@/lib/audit"
 import { logger } from "@/lib/logger"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
@@ -26,6 +28,9 @@ export async function POST(req: NextRequest) {
     if (!result.success) {
       return NextResponse.json({ error: result.error || "Failed" }, { status: 500 })
     }
+
+    const sb = await supabaseForRequest(req)
+    logAudit(sb, req, { table_name: "orders", record_id: order_id, operation: "UPDATE", new_data: { status: "completed", action: "driver_collected" } })
 
     return NextResponse.json({ success: true })
   } catch (e) {
