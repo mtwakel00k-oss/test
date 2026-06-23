@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js"
 import { supabaseForRequest, parseSession, isTenantMismatch } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 import { env } from "@/lib/env"
+import { requirePremiumTier } from "@/lib/require-premium"
 
 type Period = "1d" | "7d" | "30d"
 const PERIOD_DAYS: Record<Period, number> = { "1d": 1, "7d": 7, "30d": 30 }
@@ -37,8 +38,12 @@ export async function GET(req: NextRequest) {
     const days = PERIOD_DAYS[periodParam] || 7
     const since = new Date(Date.now() - days * 86400000).toISOString()
 
-    const sb = await supabaseForRequest(req)
     const slug = session.slug || searchParams.get("slug") || ""
+
+    const tierCheck = await requirePremiumTier(slug)
+    if (tierCheck) return tierCheck
+
+    const sb = await supabaseForRequest(req)
 
     const [ordersResult, auditResult] = await Promise.allSettled([
       sb.from("orders").select("id, status, total, created_at, driver_id").gte("created_at", since).limit(200).returns<OrderRow[]>(),

@@ -81,9 +81,10 @@ export default function AdminPage() {
   const [sheetOrderId, setSheetOrderId] = useState<string | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [userRole, setUserRole] = useState<string | null>(null)
-  const [adminTab, setAdminTab] = useState<"overview" | "products" | "orders" | "audit" | "reports">("overview")
+  const [adminTab, setAdminTab] = useState<string>("overview")
   const [isOpen, setIsOpen] = useState(true)
   const [togglingOpen, setTogglingOpen] = useState(false)
+  const [planType, setPlanType] = useState<string | null>(null)
 
   useEffect(() => {
     fetchApi("/api/me").then(r => r.ok ? r.json() : null).then(data => {
@@ -151,9 +152,17 @@ export default function AdminPage() {
   useEffect(() => { fetchStats().then(data => startTransition(() => setStatsFromResult(data))) }, [fetchStats])
 
   useEffect(() => {
-    const cfg = (window as unknown as Record<string, unknown>).__TENANT_CONFIG__ as { is_open?: boolean } | undefined
-    if (cfg && typeof cfg.is_open === "boolean") { setIsOpen(cfg.is_open) } // eslint-disable-line react-hooks/set-state-in-effect
-  }, [])
+    const cfg = (window as unknown as Record<string, unknown>).__TENANT_CONFIG__ as { is_open?: boolean; plan_type?: string } | undefined
+    if (cfg) {
+      if (typeof cfg.is_open === "boolean") setIsOpen(cfg.is_open)
+      if (cfg.plan_type) {
+        setPlanType(cfg.plan_type)
+        if (cfg.plan_type === "starter" && (premiumTabs as readonly string[]).includes(adminTab)) {
+          setAdminTab("overview")
+        }
+      }
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleOpen = useCallback(async () => {
     const next = !isOpen
@@ -236,7 +245,13 @@ export default function AdminPage() {
     )
   }
 
-  const adminTabs = ["overview", "products", "orders", "audit", "reports"] as const
+  const premiumTabs = ["audit", "reports"] as const
+  const isBasic = planType === "starter"
+  const adminTabs = useMemo(() => {
+    const all = ["overview", "products", "orders", "audit", "reports"] as const
+    if (isBasic) return all.filter(t => !(premiumTabs as readonly string[]).includes(t))
+    return all
+  }, [isBasic])
 
   return (
     <div className="admin-surface" dir={dir}>
