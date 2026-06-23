@@ -11,6 +11,9 @@ const TENANT_MIGRATION = `
 --  Safe to re-run; all statements use IF NOT EXISTS / DROP IF
 -- ============================================================
 
+-- 0) exec_sql helper — enables programmatic migration for future runs
+CREATE OR REPLACE FUNCTION exec_sql(query_text TEXT) RETURNS VOID AS $$ BEGIN EXECUTE query_text; END; $$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- 1) Missing columns on orders
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status TEXT NOT NULL DEFAULT 'unpaid';
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_type TEXT NOT NULL DEFAULT 'dine_in';

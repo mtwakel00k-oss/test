@@ -3,6 +3,9 @@
 --  SQL Editor ← لصق ← Run
 -- ============================================================
 
+-- 0) exec_sql helper (enables programmatic migration for future runs)
+CREATE OR REPLACE FUNCTION exec_sql(query_text TEXT) RETURNS VOID AS $$ BEGIN EXECUTE query_text; END; $$ LANGUAGE plpgsql SECURITY DEFINER;
+
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status TEXT NOT NULL DEFAULT 'unpaid';
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_type TEXT NOT NULL DEFAULT 'dine_in';
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_number INT;
