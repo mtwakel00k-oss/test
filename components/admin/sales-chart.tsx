@@ -3,7 +3,6 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useTranslation } from "@/lib/use-translation"
-import { useTheme } from "@/lib/theme"
 
 type Period = "7d" | "30d" | "6m" | "12m"
 
@@ -15,7 +14,6 @@ interface SalesChartProps {
 
 export function SalesChart({ data, period, onPeriodChange }: SalesChartProps) {
   const { t, lang } = useTranslation()
-  const isDark = useTheme().resolved === "dark"
 
   const periods: { key: Period; label: string }[] = [
     { key: "7d", label: t("admin.week") },
@@ -66,10 +64,10 @@ export function SalesChart({ data, period, onPeriodChange }: SalesChartProps) {
                 </filter>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-<XAxis dataKey="date" tick={{ fill: isDark ? '#9ca3af' : '#a1a1aa' }} stroke={isDark ? '#374151' : '#e5e7eb'} fontSize={12} tickLine={false} axisLine={false} dy={10} />
+<XAxis dataKey="date" tick={{ fill: 'hsl(var(--muted-foreground))' }} stroke="hsl(var(--border))" fontSize={12} tickLine={false} axisLine={false} dy={10} />
 <YAxis
-  tick={{ fill: isDark ? '#9ca3af' : '#a1a1aa' }}
-  stroke={isDark ? '#374151' : '#e5e7eb'}
+  tick={{ fill: 'hsl(var(--muted-foreground))' }}
+  stroke="hsl(var(--border))"
   fontSize={12}
   tickLine={false}
   axisLine={false}

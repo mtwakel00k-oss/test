@@ -3,7 +3,6 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useTranslation } from "@/lib/use-translation"
-import { useTheme } from "@/lib/theme"
 
 interface PeakHour {
   hour: number
@@ -16,7 +15,6 @@ interface PeakHoursChartProps {
 
 export function PeakHoursChart({ data }: PeakHoursChartProps) {
   const { t } = useTranslation()
-  const isDark = useTheme().resolved === "dark"
 
   const chartData = Array.from({ length: 24 }, (_, h) => {
     const found = (data || []).find((d) => d.hour === h)
@@ -36,7 +34,7 @@ export function PeakHoursChart({ data }: PeakHoursChartProps) {
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.3} />
               <XAxis
                 dataKey="hour"
-                tick={{ fill: isDark ? '#9ca3af' : '#a1a1aa', fontSize: 10, fontWeight: 700 }}
+                tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontWeight: 700 }}
                 stroke="transparent"
                 tickLine={false}
                 axisLine={false}
@@ -44,7 +42,7 @@ export function PeakHoursChart({ data }: PeakHoursChartProps) {
                 interval={2}
               />
               <YAxis
-                tick={{ fill: isDark ? '#9ca3af' : '#a1a1aa', fontSize: 10, fontWeight: 700 }}
+                tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontWeight: 700 }}
                 stroke="transparent"
                 tickLine={false}
                 axisLine={false}
