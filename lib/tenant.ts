@@ -114,7 +114,7 @@ export async function getTenantConfig(slug: string): Promise<TenantConfig | null
   if (d1) {
     result = d1 as unknown as Record<string, unknown>
   } else if (e1 && ((e1 as { message?: string }).message?.includes("does not exist") || (e1 as { code?: string }).code === "42703")) {
-    const fallbackCols = cols.filter((c) => c !== "is_open")
+    const fallbackCols = cols.filter((c) => c !== "is_open" && c !== "brand_color" && c !== "brand_text_color")
     const { data: d2, error: e2 } = await (_masterClient.from("tenants"))
       .select(fallbackCols.join(","))
       .eq("slug", slug)
