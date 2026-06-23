@@ -41,7 +41,12 @@ export function getMemoryAuditLog(): StoredAuditEntry[] {
 async function ensureAuditTable(sb: SupabaseClient, slug?: string): Promise<boolean> {
   const supabaseUrl = (sb as unknown as { supabaseUrl?: string }).supabaseUrl
 
-  const sql = `CREATE TABLE IF NOT EXISTS audit_log (
+  const sql = `DO $$ BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'audit_log' AND column_name = 'user_id') THEN
+      DROP TABLE IF EXISTS audit_log CASCADE;
+    END IF;
+  END $$;
+  CREATE TABLE IF NOT EXISTS audit_log (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     table_name TEXT NOT NULL,
     record_id TEXT,
@@ -122,7 +127,7 @@ export async function logAudit(
     const { error } = await sb.from("audit_log").insert(payload)
     if (!error) return
 
-    if (error.message?.includes("does not exist") || error.message?.includes("relation")) {
+    if (error.message?.includes("does not exist") || error.message?.includes("relation") || error.message?.includes("column")) {
       const created = await ensureAuditTable(sb, slug)
       if (created) {
         const { error: retryErr } = await sb.from("audit_log").insert(payload)

@@ -121,7 +121,12 @@ BEGIN
 END;
 $$;
 
--- V13: Audit log table
+-- V13: Audit log table (drops old schema if columns mismatch)
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'audit_log' AND column_name = 'user_id') THEN
+    DROP TABLE IF EXISTS audit_log CASCADE;
+  END IF;
+END $$;
 CREATE TABLE IF NOT EXISTS audit_log (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   table_name    TEXT NOT NULL,
