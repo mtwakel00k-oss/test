@@ -267,7 +267,7 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
           )}
         </AnimatePresence>
 
-        <AppHeader cartItemCount={itemCount} onCart={() => setCheckoutOpen(true)} />
+        <AppHeader cartItemCount={itemCount} onCart={() => setCheckoutOpen(true)} isOpen={isOpen} />
 
         <main className="relative mx-auto max-w-5xl px-4 pb-44 pt-10 md:px-8 md:pt-14" aria-label="Menu content">
           {/* Category filter */}

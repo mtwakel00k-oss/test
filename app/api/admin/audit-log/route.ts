@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
     const offset = Number(searchParams.get("offset")) || 0
     const tableFilter = searchParams.get("table") || ""
     const operationFilter = searchParams.get("operation") || ""
+    const slug = session.slug || searchParams.get("slug") || ""
 
     const sb = await supabaseForRequest(req)
 
@@ -41,10 +42,9 @@ export async function GET(req: NextRequest) {
 
     const { data, error, count } = await query.returns<AuditLogRow[]>()
     if (error) {
-      // Table may not exist or wrong schema — fall back to in-memory store
       if (error.message?.includes("does not exist") || error.message?.includes("relation") || error.message?.includes("column")) {
         logger.warn("Audit log query failed — using memory store", { error: error.message })
-        let memEntries = getMemoryAuditLog()
+        let memEntries = getMemoryAuditLog(slug)
         if (tableFilter) memEntries = memEntries.filter(e => e.table_name === tableFilter)
         if (operationFilter) memEntries = memEntries.filter(e => e.operation === operationFilter.toUpperCase())
         const paginated = memEntries.slice(offset, offset + limit)
@@ -53,14 +53,7 @@ export async function GET(req: NextRequest) {
       throw new Error(error.message)
     }
 
-    // Merge DB entries + memory entries (memory entries may have been created before DB table existed)
-    let memEntries = getMemoryAuditLog()
-    if (tableFilter) memEntries = memEntries.filter(e => e.table_name === tableFilter)
-    if (operationFilter) memEntries = memEntries.filter(e => e.operation === operationFilter.toUpperCase())
-    const merged = [...memEntries, ...(data || [])]
-    const total = merged.length
-    const paginated = merged.slice(offset, offset + limit)
-    return NextResponse.json({ data: paginated, count: total })
+    return NextResponse.json({ data: data || [], count: count || 0 })
   } catch (e) {
     const mismatch = isTenantMismatch(e)
     if (mismatch) return mismatch

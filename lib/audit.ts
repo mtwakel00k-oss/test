@@ -23,6 +23,7 @@ export interface StoredAuditEntry {
   changed_by_role: string
   ip_address: string
   created_at: string
+  slug?: string
 }
 
 /** In-memory fallback store for audit entries when the DB table doesn't exist. */
@@ -34,8 +35,9 @@ function addToMemoryStore(entry: StoredAuditEntry): void {
   if (_memoryStore.length > MAX_MEMORY_ENTRIES) _memoryStore.length = MAX_MEMORY_ENTRIES
 }
 
-export function getMemoryAuditLog(): StoredAuditEntry[] {
-  return _memoryStore
+export function getMemoryAuditLog(slug?: string): StoredAuditEntry[] {
+  if (!slug) return _memoryStore
+  return _memoryStore.filter(e => e.slug === slug)
 }
 
 async function ensureAuditTable(sb: SupabaseClient, slug?: string): Promise<boolean> {
@@ -154,6 +156,7 @@ export async function logAudit(
       changed_by_role: session.role || "",
       ip_address: ip,
       created_at: new Date().toISOString(),
+      slug,
     })
   } catch (e) {
     logger.warn("Audit log exception (silent)", e)

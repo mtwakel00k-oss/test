@@ -18,18 +18,22 @@ interface TenantData {
 interface AppHeaderProps {
   cartItemCount: number;
   onCart: () => void;
+  isOpen?: boolean;
 }
 
-export function AppHeader({ cartItemCount, onCart }: AppHeaderProps) {
+export function AppHeader({ cartItemCount, onCart, isOpen: propIsOpen }: AppHeaderProps) {
   const { theme, setTheme } = useTheme();
   const [tenant, setTenant] = useState<TenantData | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [fetchedIsOpen, setFetchedIsOpen] = useState(true);
+
+  const isOpen = propIsOpen !== undefined ? propIsOpen : fetchedIsOpen;
 
   useEffect(() => {
     fetchApi("/api/tenant/logo")
       .then((r) => r.json())
-      .then((data: { name?: string; logo_url?: string | null; slug?: string }) => {
+      .then((data: { name?: string; logo_url?: string | null; slug?: string; is_open?: boolean }) => {
         setTenant({
           name: data.name || "",
           slug: (data.slug as string) || "",
@@ -37,6 +41,7 @@ export function AppHeader({ cartItemCount, onCart }: AppHeaderProps) {
           role: "",
         });
         if (data.logo_url) setLogoUrl(data.logo_url);
+        if (typeof data.is_open === "boolean") setFetchedIsOpen(data.is_open);
       })
       .catch(() => {});
   }, []);
@@ -92,10 +97,10 @@ export function AppHeader({ cartItemCount, onCart }: AppHeaderProps) {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.12, ease: [0.32, 0.72, 0, 1] }}
-              className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.15em] text-primary"
+              className={`flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.15em] ${isOpen ? "text-success" : "text-destructive"}`}
             >
-              <span className="size-1.5 rounded-full bg-primary animate-pulse" aria-hidden="true" />
-              مفتوح الآن
+              <span className={`size-1.5 rounded-full ${isOpen ? "bg-success" : "bg-destructive"} animate-pulse`} aria-hidden="true" />
+              {isOpen ? "مفتوح الآن" : "مغلق"}
             </motion.span>
           </div>
         </div>
