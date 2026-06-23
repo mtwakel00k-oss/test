@@ -187,6 +187,9 @@ export function CheckoutModal({
           const data = await res.json().catch(() => ({}))
           if (!res.ok) {
             if (res.status === 403) {
+              if (data.code === "RESTAURANT_CLOSED") {
+                throw new Error(data.error || t("menu.restaurantClosed"))
+              }
               throw new Error(t("menu.forbiddenError") || "عذراً، حدث خطأ في التحقق من الصلاحية. يرجى المحاولة مرة أخرى.")
             }
             if (data.code === "ALL_PRODUCTS_STALE") {

@@ -144,9 +144,14 @@ export async function POST(req: NextRequest) {
     const sb = await supabaseForRequest(req)
 
     // ── Check if restaurant is open ──────────────────────
-    const sessionSlug = parseSession(req.headers.get("cookie") || "").slug
-    if (sessionSlug) {
-      const tenantConfig = await getTenantConfig(sessionSlug)
+    const session = parseSession(req.headers.get("cookie") || "")
+    const headerSlug = req.headers.get("x-tenant-slug") || ""
+    const refMatch = req.headers.get("referer")?.match(/\/([^/]+)\/(?:admin|menu|pos|kitchen|order|login)\b/)
+    const knownPages = new Set(["admin", "menu", "pos", "kitchen", "order", "login"])
+    const refSlug = refMatch && !knownPages.has(refMatch[1]) ? refMatch[1] : ""
+    const checkSlug = session.slug || headerSlug || refSlug
+    if (checkSlug) {
+      const tenantConfig = await getTenantConfig(checkSlug)
       if (tenantConfig && tenantConfig.is_open === false) {
         return NextResponse.json({ error: "المطعم مغلق حالياً. لا يمكن تقديم الطلبات الآن.", code: "RESTAURANT_CLOSED" }, { status: 403 })
       }
