@@ -19,11 +19,40 @@ interface TenantItem {
   name: string
 }
 
-const ROLE_CONFIG: Record<PageRole, { labelKey: string; icon: string }> = {
-  cashier: { labelKey: "login.cashier", icon: "💳" },
-  chef: { labelKey: "login.chef", icon: "🍳" },
-  admin: { labelKey: "login.admin", icon: "🛡️" },
-  owner: { labelKey: "login.owner", icon: "👑" },
+const ICONS = {
+  cashier: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="size-4">
+      <rect x="1" y="4" width="22" height="16" rx="2" />
+      <line x1="1" y1="10" x2="23" y2="10" />
+      <line x1="7" y1="15" x2="7" y2="15.01" />
+      <line x1="12" y1="15" x2="16" y2="15" />
+    </svg>
+  ),
+  chef: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="size-4">
+      <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6z" />
+      <line x1="6" y1="17" x2="18" y2="17" />
+    </svg>
+  ),
+  admin: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="size-4">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+  ),
+  owner: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="size-4">
+      <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z" />
+      <path d="M3 20h18" />
+    </svg>
+  ),
+}
+
+const ROLE_CONFIG: Record<PageRole, { labelKey: string; icon: React.ReactNode }> = {
+  cashier: { labelKey: "login.cashier", icon: ICONS.cashier },
+  chef: { labelKey: "login.chef", icon: ICONS.chef },
+  admin: { labelKey: "login.admin", icon: ICONS.admin },
+  owner: { labelKey: "login.owner", icon: ICONS.owner },
 }
 
 export default function LoginForm({ redirect: redirectProp, slug: slugProp, tenants }: { redirect?: string; slug?: string; tenants?: TenantItem[] }) {
@@ -251,75 +280,110 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
               </motion.div>
             )}
 
-            {/* Form fields */}
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.45, ease: [0.22, 1, 0.36, 1] }}
-              className="space-y-3"
-            >
-              <Input
-                data-testid="username-input"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                placeholder={t("login.usernamePlaceholder")}
-                className={cn(error && "!border-destructive/40")}
-                autoFocus
-              />
-
-              <Input
-                data-testid="password-input"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                placeholder={t("login.passwordPlaceholder")}
-                className={cn(error && "!border-destructive/40")}
-              />
-            </motion.div>
-
-            {/* Error */}
-            <AnimatePresence>
-              {error && (
-                <motion.p
-                  data-testid="login-error"
-                  initial={{ opacity: 0, y: -4 }}
+            {/* Animated transition between restaurant direct entry and login form */}
+            <AnimatePresence mode="wait">
+              {page === "admin" ? (
+                <motion.div
+                  key="restaurant"
+                  initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  transition={{ type: "spring", stiffness: 150, damping: 16 }}
-                  className="text-center text-xs font-medium text-destructive"
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  {error}
-                </motion.p>
+                  <Button
+                    data-testid="restaurant-continue"
+                    onClick={() => {
+                      const slug = selectedSlug || slugProp
+                      if (slug) window.location.href = `/${slug}/admin`
+                    }}
+                    disabled={!selectedSlug && !slugProp}
+                    size="lg"
+                    className="w-full h-12 rounded-xl text-sm font-bold bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {t("login.logIn") || "ادخل إلى لوحة التحكم"}
+                  </Button>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="login"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                  className="space-y-3"
+                >
+                  {/* Form fields */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                    className="space-y-3"
+                  >
+                    <Input
+                      data-testid="username-input"
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                      placeholder={t("login.usernamePlaceholder")}
+                      className={cn(error && "!border-destructive/40")}
+                      autoFocus
+                    />
+
+                    <Input
+                      data-testid="password-input"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                      placeholder={t("login.passwordPlaceholder")}
+                      className={cn(error && "!border-destructive/40")}
+                    />
+                  </motion.div>
+
+                  {/* Error */}
+                  <AnimatePresence>
+                    {error && (
+                      <motion.p
+                        data-testid="login-error"
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ type: "spring", stiffness: 150, damping: 16 }}
+                        className="text-center text-xs font-medium text-destructive"
+                      >
+                        {error}
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Submit */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <Button
+                      data-testid="login-submit"
+                      onClick={handleLogin}
+                      disabled={loading || !username || !password || (needsRestaurant && !selectedSlug)}
+                      size="lg"
+                      className="w-full h-12 rounded-xl text-sm font-bold bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loading ? (
+                        <span className="flex items-center justify-center gap-2.5">
+                          <svg className="size-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                          {t("login.loggingIn")}
+                        </span>
+                      ) : t("login.logIn")}
+                    </Button>
+                  </motion.div>
+                </motion.div>
               )}
             </AnimatePresence>
-
-            {/* Submit */}
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <Button
-                data-testid="login-submit"
-                onClick={handleLogin}
-                disabled={loading || !username || !password || (needsRestaurant && !selectedSlug)}
-                size="lg"
-                className="w-full h-12 rounded-xl text-sm font-bold bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <span className="flex items-center justify-center gap-2.5">
-                    <svg className="size-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    {t("login.loggingIn")}
-                  </span>
-                ) : t("login.logIn")}
-              </Button>
-            </motion.div>
           </div>
         </div>
       </motion.div>

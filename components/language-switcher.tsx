@@ -7,10 +7,33 @@ import { useLang } from "@/lib/lang-context"
 import type { Lang } from "@/lib/translations"
 import { motion, AnimatePresence } from "framer-motion"
 
-const LANGS: { code: Lang; flag: string; label: string }[] = [
-  { code: "ar", flag: "🇸🇦", label: "العربية" },
-  { code: "en", flag: "🇬🇧", label: "English" },
-  { code: "fr", flag: "🇫🇷", label: "Français" },
+const LANG_ICONS: Record<Lang, React.ReactNode> = {
+  ar: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="size-4">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 6v12" />
+      <path d="M6 12h12" />
+    </svg>
+  ),
+  en: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="size-4">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M2 12h20" />
+      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+    </svg>
+  ),
+  fr: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="size-4">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+    </svg>
+  ),
+}
+
+const LANGS: { code: Lang; label: string }[] = [
+  { code: "ar", label: "العربية" },
+  { code: "en", label: "English" },
+  { code: "fr", label: "Français" },
 ]
 
 const DIR: Record<Lang, "rtl" | "ltr"> = { ar: "rtl", en: "ltr", fr: "ltr" }
@@ -41,7 +64,7 @@ export function LanguageSwitcher() {
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
       >
-        <span className="text-base">{active.flag}</span>
+        <span className="text-base">{LANG_ICONS[active.code]}</span>
         <span className="hidden xs:inline font-medium">{active.label}</span>
         <svg
           className={`w-4 h-4 ml-1 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
@@ -75,7 +98,7 @@ export function LanguageSwitcher() {
                   }`}
                   whileHover={{ backgroundColor: l.code === current ? "rgb(var(--emerald-600), 0.08)" : "rgb(var(--secondary), 0.5)" }}
                 >
-                  <span className="text-lg">{l.flag}</span>
+                  <span className="text-base">{LANG_ICONS[l.code]}</span>
                   <span>{l.label}</span>
                   {l.code === current && (
                     <motion.div

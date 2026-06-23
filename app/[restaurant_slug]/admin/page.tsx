@@ -9,7 +9,7 @@ import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useSlug } from "@/lib/use-slug"
 import { useTranslation } from "@/lib/use-translation"
-import { motion, LayoutGroup } from "framer-motion"
+import { motion, AnimatePresence, LayoutGroup } from "framer-motion"
 import { StatCard } from "@/components/admin/stat-card"
 import { ReviewsFeed } from "@/components/admin/reviews-feed"
 import { TopProducts } from "@/components/admin/top-products"
@@ -263,188 +263,222 @@ export default function AdminPage() {
           </div>
         </LayoutGroup>
 
-        {adminTab === "overview" && (
-          <div className="flex w-fit items-center gap-1 rounded-full border border-white/6 bg-white/[0.03] p-0.5 backdrop-blur-sm">
-            {(Object.entries(PERIOD_LABELS) as [Period, string][]).map(([key, label]) => (
-              <button key={key} onClick={() => setPeriod(key)}
-                className={`rounded-full px-5 py-2 text-xs font-semibold transition-all duration-500 ${
-                  period === key ? "bg-accent/15 text-accent shadow-[var(--shadow-sm)]" : "text-white/40 hover:text-white/70"
-                }`}>
-                {label}
-              </button>
-            ))}
-          </div>
-        )}
-
-        <motion.div
-          initial="initial"
-          animate="animate"
-          variants={{ animate: { transition: { staggerChildren: 0.06, delayChildren: 0.05 } } }}
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3"
-        >
-          {loadingStats ? (
-            <>
-              {[...Array(5)].map((_, i) => (
-                <motion.div key={i} variants={springCard(i * 0.04)} className="bg-card/40 border border-white/5 rounded-2xl p-5 space-y-4 animate-pulse">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-primary/10" />
-                    <div className="h-3 w-24 rounded-full bg-white/5" />
-                  </div>
-                  <div className="h-7 w-32 rounded-full bg-white/8" />
-                  <div className="h-3 w-20 rounded-full bg-white/5" />
-                </motion.div>
-              ))}
-            </>
-          ) : (
-            <>
-              <motion.div variants={springCard(0)}>
-                <StatCard icon={<DollarSign className="w-4 h-4" />} title={t("admin.totalRevenue")} value={`${fmtNum(totalRevenue)} ${currency}`} change={0} trend="up" />
-              </motion.div>
-              <motion.div variants={springCard(0.04)}>
-                <StatCard icon={<ShoppingBag className="w-4 h-4" />} title={t("admin.totalOrders")} value={totalOrders.toString()} change={0} trend="up" />
-              </motion.div>
-              <motion.div variants={springCard(0.08)}>
-                <StatCard icon={<TrendingUp className="w-4 h-4" />} title={t("admin.avgOrder")} value={`${fmtNum(avgOrderValue)} ${currency}`} change={0} trend="up" />
-              </motion.div>
-              <motion.div variants={springCard(0.12)}>
-                <StatCard icon={<Star className="w-4 h-4" />} title={t("admin.avgRating")} value={avgRating.toFixed(1)} change={0} trend="up" />
-              </motion.div>
-              <motion.div variants={springCard(0.16)}>
-                <StatCard icon={<CalendarClock className="w-4 h-4" />} title={t("admin.dailyRevenue")} value={`${fmtNum(dailyRevenue)} ${currency}`} change={0} trend="up" />
-              </motion.div>
-            </>
-          )}
-        </motion.div>
-
-        {adminTab === "overview" && driverStats.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 70, damping: 16, delay: 0.1 }}
-            className="bg-card/40 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-sm shadow-sm card-hover"
-          >
-            <div className="px-5 py-3.5 border-b border-white/5 flex items-center gap-2.5">
-              <span className="w-1 h-1 rounded-full bg-accent/60" />
-              <h3 className="font-display text-sm font-semibold text-white/80">{t("admin.driverPerformance")}</h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-accent/20">
-                    <th className="text-right px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.driver")}</th>
-                    <th className="text-center px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.deliveries")}</th>
-                    <th className="text-center px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.revenue")}</th>
-                    <th className="text-center px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.avgOrder")}</th>
-                  </tr>
-                </thead>
-                <motion.tbody initial="initial" animate="animate">
-                  {driverStats.map((d, i) => (
-                    <motion.tr key={d.id} variants={springRow(i * 0.03)}
-                      className={`${i < driverStats.length - 1 ? "border-b border-white/[0.02]" : ""} hover:bg-white/[0.015] transition-colors`}
-                    >
-                      <td className="px-5 py-3">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-primary/10 text-primary/60 flex items-center justify-center text-xs font-semibold">
-                            {d.name.charAt(0)}
-                          </div>
-                          <span className="font-medium text-white/80 text-sm">{d.name}</span>
-                        </div>
-                      </td>
-                      <td className="text-center px-5 py-3">
-                        <span className="font-semibold text-white/80">{d.deliveries}</span>
-                      </td>
-                      <td className="text-center px-5 py-3">
-                        <span className="font-medium text-emerald-400/80">{fmtNum(d.revenue)} {currency}</span>
-                      </td>
-                      <td className="text-center px-5 py-3">
-                        <span className="text-white/40">{d.deliveries > 0 ? fmtNum(Math.round(d.revenue / d.deliveries)) : 0} {currency}</span>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </motion.tbody>
-              </table>
-            </div>
-          </motion.div>
-        )}
-
-        {adminTab === "overview" && cashierStats.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 70, damping: 16, delay: 0.15 }}
-            className="bg-card/40 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-sm shadow-sm card-hover"
-          >
-            <div className="px-5 py-3.5 border-b border-white/5 flex items-center gap-2.5">
-              <span className="w-1 h-1 rounded-full bg-accent/60" />
-              <h3 className="font-display text-sm font-semibold text-white/80">{t("admin.cashierPerformance")}</h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-accent/20">
-                    <th className="text-right px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.cashier")}</th>
-                    <th className="text-center px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.orders")}</th>
-                    <th className="text-center px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.revenue")}</th>
-                  </tr>
-                </thead>
-                <motion.tbody initial="initial" animate="animate">
-                  {cashierStats.map((c, i) => (
-                    <motion.tr key={c.id} variants={springRow(i * 0.03)}
-                      className={`${i < cashierStats.length - 1 ? "border-b border-white/[0.02]" : ""} hover:bg-white/[0.015] transition-colors`}
-                    >
-                      <td className="px-5 py-3">
-                        <span className="font-medium text-white/80 text-sm">{c.name}</span>
-                      </td>
-                      <td className="text-center px-5 py-3">
-                        <span className="font-semibold text-white/80">{c.orders}</span>
-                      </td>
-                      <td className="text-center px-5 py-3">
-                        <span className="font-medium text-emerald-400/80">{fmtNum(c.revenue)} {currency}</span>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </motion.tbody>
-              </table>
-            </div>
-          </motion.div>
-        )}
-
-        {adminTab === "overview" && (
-          <>
+        <AnimatePresence mode="wait">
+          {adminTab === "overview" ? (
             <motion.div
-              initial={{ opacity: 0, y: 16 }}
+              key="overview"
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ type: "spring", stiffness: 70, damping: 16, delay: 0.2 }}
-              className="grid grid-cols-1 lg:grid-cols-3 gap-5"
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              className="space-y-6"
             >
-              <div className="lg:col-span-2">
-                <SalesChart data={salesData} period={period} onPeriodChange={setPeriod} />
+              <div className="flex w-fit items-center gap-1 rounded-full border border-white/6 bg-white/[0.03] p-0.5 backdrop-blur-sm">
+                {(Object.entries(PERIOD_LABELS) as [Period, string][]).map(([key, label]) => (
+                  <button key={key} onClick={() => setPeriod(key)}
+                    className={`rounded-full px-5 py-2 text-xs font-semibold transition-all duration-500 ${
+                      period === key ? "bg-accent/15 text-accent shadow-[var(--shadow-sm)]" : "text-white/40 hover:text-white/70"
+                    }`}>
+                    {label}
+                  </button>
+                ))}
               </div>
-              <PeakHoursChart data={peakHours} />
-            </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ type: "spring", stiffness: 70, damping: 16, delay: 0.25 }}
-              className="grid grid-cols-1 lg:grid-cols-2 gap-5"
-            >
-              <TopProducts data={topProducts} />
-              <ReviewsFeed reviews={reviews} />
-            </motion.div>
+              <motion.div
+                initial="initial"
+                animate="animate"
+                variants={{ animate: { transition: { staggerChildren: 0.06, delayChildren: 0.05 } } }}
+                className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3"
+              >
+                {loadingStats ? (
+                  <>
+                    {[...Array(5)].map((_, i) => (
+                      <motion.div key={i} variants={springCard(i * 0.04)} className="bg-card/40 border border-white/5 rounded-2xl p-5 space-y-4 animate-pulse">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-primary/10" />
+                          <div className="h-3 w-24 rounded-full bg-white/5" />
+                        </div>
+                        <div className="h-7 w-32 rounded-full bg-white/8" />
+                        <div className="h-3 w-20 rounded-full bg-white/5" />
+                      </motion.div>
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    <motion.div variants={springCard(0)}>
+                      <StatCard icon={<DollarSign className="w-4 h-4" />} title={t("admin.totalRevenue")} value={`${fmtNum(totalRevenue)} ${currency}`} change={0} trend="up" />
+                    </motion.div>
+                    <motion.div variants={springCard(0.04)}>
+                      <StatCard icon={<ShoppingBag className="w-4 h-4" />} title={t("admin.totalOrders")} value={totalOrders.toString()} change={0} trend="up" />
+                    </motion.div>
+                    <motion.div variants={springCard(0.08)}>
+                      <StatCard icon={<TrendingUp className="w-4 h-4" />} title={t("admin.avgOrder")} value={`${fmtNum(avgOrderValue)} ${currency}`} change={0} trend="up" />
+                    </motion.div>
+                    <motion.div variants={springCard(0.12)}>
+                      <StatCard icon={<Star className="w-4 h-4" />} title={t("admin.avgRating")} value={avgRating.toFixed(1)} change={0} trend="up" />
+                    </motion.div>
+                    <motion.div variants={springCard(0.16)}>
+                      <StatCard icon={<CalendarClock className="w-4 h-4" />} title={t("admin.dailyRevenue")} value={`${fmtNum(dailyRevenue)} ${currency}`} change={0} trend="up" />
+                    </motion.div>
+                  </>
+                )}
+              </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ type: "spring", stiffness: 70, damping: 16, delay: 0.3 }}
-            >
-              <RestaurantSettings />
+              {driverStats.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ type: "spring", stiffness: 70, damping: 16, delay: 0.1 }}
+                  className="bg-card/40 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-sm shadow-sm card-hover"
+                >
+                  <div className="px-5 py-3.5 border-b border-white/5 flex items-center gap-2.5">
+                    <span className="w-1 h-1 rounded-full bg-accent/60" />
+                    <h3 className="font-display text-sm font-semibold text-white/80">{t("admin.driverPerformance")}</h3>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-accent/20">
+                          <th className="text-right px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.driver")}</th>
+                          <th className="text-center px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.deliveries")}</th>
+                          <th className="text-center px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.revenue")}</th>
+                          <th className="text-center px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.avgOrder")}</th>
+                        </tr>
+                      </thead>
+                      <motion.tbody initial="initial" animate="animate">
+                        {driverStats.map((d, i) => (
+                          <motion.tr key={d.id} variants={springRow(i * 0.03)}
+                            className={`${i < driverStats.length - 1 ? "border-b border-white/[0.02]" : ""} hover:bg-white/[0.015] transition-colors`}
+                          >
+                            <td className="px-5 py-3">
+                              <div className="flex items-center gap-2.5">
+                                <div className="w-8 h-8 rounded-full bg-primary/10 text-primary/60 flex items-center justify-center text-xs font-semibold">
+                                  {d.name.charAt(0)}
+                                </div>
+                                <span className="font-medium text-white/80 text-sm">{d.name}</span>
+                              </div>
+                            </td>
+                            <td className="text-center px-5 py-3">
+                              <span className="font-semibold text-white/80">{d.deliveries}</span>
+                            </td>
+                            <td className="text-center px-5 py-3">
+                              <span className="font-medium text-emerald-400/80">{fmtNum(d.revenue)} {currency}</span>
+                            </td>
+                            <td className="text-center px-5 py-3">
+                              <span className="text-white/40">{d.deliveries > 0 ? fmtNum(Math.round(d.revenue / d.deliveries)) : 0} {currency}</span>
+                            </td>
+                          </motion.tr>
+                        ))}
+                      </motion.tbody>
+                    </table>
+                  </div>
+                </motion.div>
+              )}
+
+              {cashierStats.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ type: "spring", stiffness: 70, damping: 16, delay: 0.15 }}
+                  className="bg-card/40 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-sm shadow-sm card-hover"
+                >
+                  <div className="px-5 py-3.5 border-b border-white/5 flex items-center gap-2.5">
+                    <span className="w-1 h-1 rounded-full bg-accent/60" />
+                    <h3 className="font-display text-sm font-semibold text-white/80">{t("admin.cashierPerformance")}</h3>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-accent/20">
+                          <th className="text-right px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.cashier")}</th>
+                          <th className="text-center px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.orders")}</th>
+                          <th className="text-center px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("admin.revenue")}</th>
+                        </tr>
+                      </thead>
+                      <motion.tbody initial="initial" animate="animate">
+                        {cashierStats.map((c, i) => (
+                          <motion.tr key={c.id} variants={springRow(i * 0.03)}
+                            className={`${i < cashierStats.length - 1 ? "border-b border-white/[0.02]" : ""} hover:bg-white/[0.015] transition-colors`}
+                          >
+                            <td className="px-5 py-3">
+                              <span className="font-medium text-white/80 text-sm">{c.name}</span>
+                            </td>
+                            <td className="text-center px-5 py-3">
+                              <span className="font-semibold text-white/80">{c.orders}</span>
+                            </td>
+                            <td className="text-center px-5 py-3">
+                              <span className="font-medium text-emerald-400/80">{fmtNum(c.revenue)} {currency}</span>
+                            </td>
+                          </motion.tr>
+                        ))}
+                      </motion.tbody>
+                    </table>
+                  </div>
+                </motion.div>
+              )}
+
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: "spring", stiffness: 70, damping: 16, delay: 0.2 }}
+                className="grid grid-cols-1 lg:grid-cols-3 gap-5"
+              >
+                <div className="lg:col-span-2">
+                  <SalesChart data={salesData} period={period} onPeriodChange={setPeriod} />
+                </div>
+                <PeakHoursChart data={peakHours} />
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: "spring", stiffness: 70, damping: 16, delay: 0.25 }}
+                className="grid grid-cols-1 lg:grid-cols-2 gap-5"
+              >
+                <TopProducts data={topProducts} />
+                <ReviewsFeed reviews={reviews} />
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: "spring", stiffness: 70, damping: 16, delay: 0.3 }}
+              >
+                <RestaurantSettings />
+              </motion.div>
             </motion.div>
-          </>
-        )}
-        {adminTab === "products" && <ProductManager />}
-        {adminTab === "orders" && <OrdersList onViewOrder={handleViewOrder} />}
-        {adminTab === "audit" && <AuditLog />}
+          ) : adminTab === "products" ? (
+            <motion.div
+              key="products"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <ProductManager />
+            </motion.div>
+          ) : adminTab === "orders" ? (
+            <motion.div
+              key="orders"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <OrdersList onViewOrder={handleViewOrder} />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="audit"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <AuditLog />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <OrderDetailSheet
           orderId={sheetOpen ? sheetOrderId : null}
