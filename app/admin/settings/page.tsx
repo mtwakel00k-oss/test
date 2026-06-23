@@ -12,7 +12,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState("")
   const [dbHealth, setDbHealth] = useState<{ tables: { name: string; existing_columns: string[]; missing_columns: string[]; status: string }[]; migration_sql: string | null } | null>(null)
-  const [dbLoading, setDbLoading] = useState(false)
+  const [dbLoading, setDbLoading] = useState(true)
   const [showSql, setShowSql] = useState(false)
 
   useEffect(() => {
@@ -31,7 +31,6 @@ export default function SettingsPage() {
   }, [router])
 
   useEffect(() => {
-    setDbLoading(true)
     fetch("/api/health/db-schema").then(r => r.ok ? r.json() : null).then(data => {
       setDbHealth(data)
     }).catch(() => {}).finally(() => setDbLoading(false))

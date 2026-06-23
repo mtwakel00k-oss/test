@@ -15,7 +15,7 @@ import { AppHeader } from "./app-header"
 import { CategoryFilter } from "./category-filter"
 import { MealCard } from "./meal-card"
 import { OrderBar } from "./order-bar"
-import { ShoppingBag, DoorClosed, Leaf, Sparkles } from "lucide-react"
+import { ShoppingBag, DoorClosed, Leaf } from "lucide-react"
 import { EmptyState } from "@/components/empty-state"
 
 const CheckoutModal = dynamic(
@@ -96,18 +96,54 @@ export function FoodDeliveryApp(props: { initialProducts?: MenuProduct[]; slug?:
   )
 }
 
+function initDerived(prods: MenuProduct[] | undefined) {
+  if (!prods || prods.length === 0) return null
+  const catSet = new Set<string>()
+  const sRec: Record<number, number | null> = {}
+  const szRec: Record<number, string> = {}
+  for (const p of prods) {
+    if (p.category) catSet.add(p.category)
+    sRec[p.id] = p.has_white_sauce ? 1 : null
+    if (p.prices) {
+      const keys = Object.keys(p.prices)
+      let found = ""
+      for (const k of keys) {
+        const sp = p.prices[k]
+        if (sp.sauce_tomate != null || sp.creme_fraiche != null || sp.standard != null) { found = k; break }
+      }
+      szRec[p.id] = found || "L"
+    } else {
+      szRec[p.id] = "L"
+    }
+  }
+  return { cats: [...catSet] as string[], sauces: sRec, sizes: szRec }
+}
+
+function readConfig() {
+  if (typeof window === "undefined") return null
+  try {
+    const el = document.getElementById("tenant-config")
+    if (el?.textContent) return JSON.parse(el.textContent)
+  } catch {}
+  try {
+    return (window as unknown as Record<string, unknown>).__TENANT_CONFIG__
+  } catch {}
+  return null
+}
+
 function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProducts?: MenuProduct[]; slug?: string }) {
   const router = useRouter()
   const { t } = useTranslation()
+  const initData = initDerived(initialProducts)
   const [products, setProducts] = useState<MenuProduct[]>(initialProducts || [])
-  const [categories, setCategories] = useState<string[]>([])
+  const [categories, setCategories] = useState<string[]>(initData?.cats || [])
   const [selectedCategory, setSelectedCategory] = useState("All")
-  const [sizes, setSizes] = useState<Record<number, string>>({})
-  const [sauces, setSauces] = useState<Record<number, number | null>>({})
+  const [sizes, setSizes] = useState<Record<number, string>>(initData?.sizes || {})
+  const [sauces, setSauces] = useState<Record<number, number | null>>(initData?.sauces || {})
   const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [loading, setLoading] = useState(() => !(initialProducts && initialProducts.length > 0))
-  const [slug, setSlug] = useState(propSlug || "")
-  const [isOpen, setIsOpen] = useState(true)
+  const [slug] = useState(() => propSlug || (readConfig() as { slug?: string })?.slug || "")
+  const [isOpen] = useState(() => (readConfig() as { is_open?: boolean })?.is_open !== false)
   const { items, addItem, updateQuantity, itemCount, clear, total, removeProduct: _removeProduct } = useCart()
 
   const itemsRef = useRef(items)
@@ -117,37 +153,32 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
   useEffect(() => { removeProductRef.current = _removeProduct }, [_removeProduct])
 
   useEffect(() => {
-    if (propSlug) {
-      setSlug(propSlug)
-      return
-    }
-    if (typeof window === "undefined") return
-    try {
-      const el = document.getElementById("tenant-config")
-      if (el?.textContent) {
-        const config = JSON.parse(el.textContent)
-        setSlug(config.slug || "")
-        setIsOpen(config.is_open !== false)
-        return
+    if (initialProducts && initialProducts.length > 0) return
+    fetchApi("/api/products").then(r => {
+      if (!r.ok) throw new Error(`Products API returned ${r.status}`)
+      return r.json()
+    }).then((data: MenuProduct[]) => {
+      const prod = Array.isArray(data) ? data : (data as { data: MenuProduct[] }).data || []
+      setProducts(prod)
+      if (prod.length > 0) {
+        const derived = initDerived(prod)
+        if (derived) {
+          setCategories(derived.cats)
+          setSauces(derived.sauces)
+          setSizes(derived.sizes)
+        }
       }
-      } catch (e) { logger.warn("Failed to parse tenant-config element", e) }
-    try {
-      const config = (window as unknown as Record<string, unknown>).__TENANT_CONFIG__ as { slug?: string; is_open?: boolean }
-      if (config) {
-        setSlug(config.slug || "")
-        setIsOpen(config.is_open !== false)
-      }
-    } catch (e) { logger.warn("Failed to read __TENANT_CONFIG__", e) }
-  }, [propSlug])
+      setLoading(false)
+    }).catch(e => { logger.warn("Failed to fetch products", e); setLoading(false) })
+  }, [initialProducts])
 
+  const filteredProducts = useDeferredValue(products)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const debouncedAdd = useCallback((fn: () => void) => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(fn, 300)
   }, [])
-
-  const filteredProducts = useDeferredValue(products)
 
   const filtered = useMemo(() => 
     selectedCategory === "All"
@@ -170,75 +201,7 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
     setSauces(prev => ({ ...prev, [productId]: s }))
   }, [])
 
-  useEffect(() => {
-    if (initialProducts && initialProducts.length > 0) {
-      const prod = initialProducts
-      const catSet = new Set<string>()
-      const initSauces: Record<number, number | null> = {}
-      const initSizes: Record<number, string> = {}
-      for (let i = 0; i < prod.length; i++) {
-        const p = prod[i]
-        if (p.category) catSet.add(p.category)
-        initSauces[p.id] = p.has_white_sauce ? 1 : null
-        if (p.prices) {
-          const keys = Object.keys(p.prices)
-          let found = ""
-          for (let j = 0; j < keys.length; j++) {
-            const sp = p.prices[keys[j]]
-            if (sp.sauce_tomate != null || sp.creme_fraiche != null || sp.standard != null) {
-              found = keys[j]; break
-            }
-          }
-          initSizes[p.id] = found || "L"
-        } else {
-          initSizes[p.id] = "L"
-        }
-      }
-      setCategories([...catSet] as string[])
-      setSauces(initSauces)
-      setSizes(initSizes)
-      setLoading(false)
-    } else {
-      fetchApi("/api/products").then(r => {
-        if (!r.ok) throw new Error(`Products API returned ${r.status}`)
-        return r.json()
-      }).then(data => {
-        if (!Array.isArray(data)) return
-        const available: MenuProduct[] = []
-        const catSet = new Set<string>()
-        const initSauces: Record<number, number | null> = {}
-        const initSizes: Record<number, string> = {}
-        for (let i = 0; i < data.length; i++) {
-          const p = data[i]
-          if (p.is_available === false) continue
-          available.push(p)
-          if (p.category) catSet.add(p.category)
-          initSauces[p.id] = p.has_white_sauce ? 1 : null
-          if (p.prices) {
-            const keys = Object.keys(p.prices)
-            let found = ""
-            for (let j = 0; j < keys.length; j++) {
-              const sp = p.prices[keys[j]]
-              if (sp.sauce_tomate != null || sp.creme_fraiche != null || sp.standard != null) {
-                found = keys[j]; break
-              }
-            }
-            initSizes[p.id] = found || "L"
-          } else {
-            initSizes[p.id] = "L"
-          }
-        }
-        setProducts(available)
-        setCategories([...catSet] as string[])
-        setSauces(initSauces)
-        setSizes(initSizes)
-      }).catch(e => {
-        logger.error("Failed to fetch products", e)
-      }).finally(() => {
-        setLoading(false)
-      })
-    }
-  }, [initialProducts])
+
 
   useEffect(() => {
     if (products.length === 0) return

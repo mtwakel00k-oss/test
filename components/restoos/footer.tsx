@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Separator } from '@/components/ui/separator'
 import { Phone, Mail } from 'lucide-react'
 
@@ -37,7 +38,7 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-20">
         <div className="grid gap-12 md:grid-cols-5">
           <div className="md:col-span-2">
-            <a href="/" className="flex items-center gap-2.5">
+            <Link href="/" className="flex items-center gap-2.5">
               <span className="grid size-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-md)]">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2" />
@@ -50,7 +51,7 @@ export function Footer() {
               <span className="font-display text-xl tracking-tight text-foreground">
                 Resto<span className="text-primary">OS</span>
               </span>
-            </a>
+            </Link>
             <p className="mt-5 max-w-xs leading-relaxed text-muted-foreground">
               نظام نقاط البيع الذكي والمتكامل لإدارة مطعمك من مكان واحد.
             </p>
@@ -71,7 +72,7 @@ export function Footer() {
                   <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
                   </svg>
-                </a>
+            </a>
               ))}
             </div>
           </div>
@@ -84,7 +85,7 @@ export function Footer() {
                   <li key={l.label}>
                     <a href={l.href} className="text-sm text-muted-foreground transition-colors duration-300 hover:text-primary">
                       {l.label}
-                    </a>
+            </a>
                   </li>
                 ))}
               </ul>

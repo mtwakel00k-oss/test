@@ -2,7 +2,7 @@
 
 import { useState, memo } from "react"
 import Image from "next/image"
-import { Plus, Minus, ShoppingBag, ChefHat } from "lucide-react";
+import { Plus, Minus, ChefHat } from "lucide-react";
 import type { MenuProduct } from "@/lib/types";
 import { getPrice, getAvailableSizes } from "@/lib/types";
 import { SAUCES } from "@/lib/constants";

@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef, startTransition } from "react"
 import { useParams } from "next/navigation"
 import { t, type Lang } from "@/lib/translations"
-import { Truck, CheckCircle, MapPin, Navigation, Phone, User } from "lucide-react"
+import { Truck, CheckCircle, MapPin, Navigation, User } from "lucide-react"
 
 const LANG: Lang = "ar"
 

@@ -1,10 +1,10 @@
 "use client"
 
-import { useEffect, useState, memo, type ReactNode } from "react"
+import { useEffect, useState, memo } from "react"
 import type { PosOrder, PosOrderStatus } from "@/lib/pos-types"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/lib/use-translation"
-import { Bike, ShoppingBag, UtensilsCrossed, AlertTriangle, Truck } from "lucide-react"
+import { ShoppingBag, UtensilsCrossed, AlertTriangle, Truck } from "lucide-react"
 
 interface DriverCard {
   id: string

@@ -2,7 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import { useTranslation } from "@/lib/use-translation";
-import { Sparkles } from "lucide-react";
+
 
 interface CategoryFilterProps {
   categories: string[];

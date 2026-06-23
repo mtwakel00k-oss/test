@@ -53,7 +53,7 @@ function StatCard({ icon: Icon, label, value, prev, format, dir }: {
 }
 
 export function EarningsOverview() {
-  const { t, lang, dir } = useTranslation()
+  const { t, dir } = useTranslation()
   const [data, setData] = useState<EarningsData | null>(null)
   const [error, setError] = useState(false)
 

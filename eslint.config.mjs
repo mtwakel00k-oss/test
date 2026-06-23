@@ -23,6 +23,7 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Test scripts
     "test-*.js",
+    "scripts/*.js",
     "scripts/*.mjs",
     "scripts/*.cjs",
   ]),
