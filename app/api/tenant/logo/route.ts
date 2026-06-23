@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { invalidateTenantConfig, parseSession } from "@/lib/tenant"
+import { invalidateTenantConfig, parseSession, readIsOpenFromStorage, writeIsOpenToStorage } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 import { env } from "@/lib/env"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
@@ -34,9 +34,20 @@ export async function GET(req: NextRequest) {
     const supabase = getSupabase()
     if (!supabase) return NextResponse.json({ name: "", logo_url: null })
 
-    const { data: tenantRow } = await supabase.from("tenants").select("name, logo_url, brand_color, brand_text_color, is_open").eq("slug", slug).maybeSingle<{ name: string; logo_url: string | null; brand_color: string | null; brand_text_color: string | null; is_open: boolean | null }>()
-    if (tenantRow) {
-      return NextResponse.json({ name: tenantRow.name || "", logo_url: tenantRow.logo_url || null, slug, brand_color: tenantRow.brand_color || null, brand_text_color: tenantRow.brand_text_color || null, is_open: tenantRow.is_open ?? true })
+    const { data: tenantRow, error: tenantErr } = await supabase.from("tenants").select("name, logo_url, brand_color, brand_text_color, is_open").eq("slug", slug).maybeSingle<{ name: string; logo_url: string | null; brand_color: string | null; brand_text_color: string | null; is_open: boolean | null }>()
+    if (tenantRow || tenantErr?.message?.includes("does not exist")) {
+      let isOpen = true
+      if (tenantRow && typeof tenantRow.is_open === "boolean") {
+        isOpen = tenantRow.is_open
+      } else {
+        const stored = await readIsOpenFromStorage(slug)
+        if (stored !== null) isOpen = stored
+      }
+      const name = tenantRow?.name || ""
+      const logoUrl = tenantRow?.logo_url || null
+      const brandColor = tenantRow?.brand_color || null
+      const brandTextColor = tenantRow?.brand_text_color || null
+      return NextResponse.json({ name, logo_url: logoUrl, slug, brand_color: brandColor, brand_text_color: brandTextColor, is_open: isOpen })
     }
 
     // Fallback: try storage bucket
@@ -77,7 +88,14 @@ export async function PATCH(req: NextRequest) {
     const supabase = getSupabase()
     if (!supabase) return NextResponse.json({ error: "Server config error" }, { status: 500 })
 
-    const { error } = await (supabase.from("tenants") as unknown as { update: (u: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<{ error: { message: string } | null }> } }).update(updates).eq("slug", slug)
+    let { error } = await (supabase.from("tenants") as unknown as { update: (u: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<{ error: { message: string } | null }> } }).update(updates).eq("slug", slug)
+    if (error?.message?.includes("does not exist") && typeof body.is_open === "boolean") {
+      logger.warn("Tenant PATCH column missing, falling back to storage", error)
+      const ok = await writeIsOpenToStorage(slug, body.is_open)
+      if (!ok) return NextResponse.json({ error: "Storage fallback failed" }, { status: 500 })
+      invalidateTenantConfig(slug)
+      return NextResponse.json({ ok: true, is_open: body.is_open })
+    }
     if (error) {
       logger.error("Tenant PATCH failed", error)
       return NextResponse.json({ error: error.message }, { status: 500 })

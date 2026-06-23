@@ -122,7 +122,8 @@ export async function getTenantConfig(slug: string): Promise<TenantConfig | null
     qErr = e2
     result = d2 as unknown as Record<string, unknown> | null
     if (result) {
-      result.is_open = true
+      const stored = await readIsOpenFromStorage(slug)
+      result.is_open = stored ?? true
     }
   }
 
@@ -142,6 +143,30 @@ export async function getTenantConfig(slug: string): Promise<TenantConfig | null
   const config = result as unknown as TenantConfig
   configCache.set(slug, { data: config, expiry: Date.now() + CACHE_TTL })
   return config
+}
+
+/**
+ * Storage-based fallback for is_open persistence.
+ * Used when the `is_open` column doesn't exist on the master tenants table yet.
+ */
+
+export async function readIsOpenFromStorage(slug: string): Promise<boolean | null> {
+  try {
+    const { data } = await _masterClient.storage.from("logos").download(`${slug}/.is_open`)
+    if (data) {
+      const text = await data.text()
+      return text === "true"
+    }
+  } catch { /* column doesn't exist — normal */ }
+  return null
+}
+
+export async function writeIsOpenToStorage(slug: string, value: boolean): Promise<boolean> {
+  try {
+    const blob = new Blob([String(value)], { type: "text/plain" })
+    const { error } = await _masterClient.storage.from("logos").upload(`${slug}/.is_open`, blob, { upsert: true, contentType: "text/plain" })
+    return !error
+  } catch { return false }
 }
 
 /** Fetch only the service key for a tenant (separate call — column may not exist on all DBs). */
