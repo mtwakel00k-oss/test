@@ -38,6 +38,9 @@ const EarningsOverview = dynamic(() => import("@/components/admin/earnings-overv
 const AuditLog = dynamic(() => import("@/components/admin/audit-log").then(m => ({ default: m.AuditLog })), {
   loading: () => <div className="h-96 rounded-2xl bg-white/5 animate-pulse" />,
 })
+const PerformanceReports = dynamic(() => import("@/components/admin/performance-reports").then(m => ({ default: m.PerformanceReports })), {
+  loading: () => <div className="h-96 rounded-2xl bg-white/5 animate-pulse" />,
+})
 
 type Period = "7d" | "30d" | "6m" | "12m"
 
@@ -78,7 +81,7 @@ export default function AdminPage() {
   const [sheetOrderId, setSheetOrderId] = useState<string | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [userRole, setUserRole] = useState<string | null>(null)
-  const [adminTab, setAdminTab] = useState<"overview" | "products" | "orders" | "audit">("overview")
+  const [adminTab, setAdminTab] = useState<"overview" | "products" | "orders" | "audit" | "reports">("overview")
   const [isOpen, setIsOpen] = useState(true)
   const [togglingOpen, setTogglingOpen] = useState(false)
 
@@ -233,7 +236,7 @@ export default function AdminPage() {
     )
   }
 
-  const adminTabs = ["overview", "products", "orders", "audit"] as const
+  const adminTabs = ["overview", "products", "orders", "audit", "reports"] as const
 
   return (
     <div className="admin-surface" dir={dir}>
@@ -308,7 +311,7 @@ export default function AdminPage() {
                   />
                 )}
                 <span className={`relative ${adminTab === tab ? "text-accent" : "text-white/40 hover:text-white/70"}`}>
-                  {tab === "overview" ? t("admin.overview") : tab === "products" ? t("admin.products") : tab === "orders" ? t("admin.orders") : t("admin.audit")}
+                  {tab === "overview" ? t("admin.overview") : tab === "products" ? t("admin.products") : tab === "orders" ? t("admin.orders") : tab === "audit" ? t("admin.audit") : t("admin.reports") || "التقارير"}
                 </span>
               </button>
             ))}
@@ -518,6 +521,16 @@ export default function AdminPage() {
               transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             >
               <OrdersList onViewOrder={handleViewOrder} />
+            </motion.div>
+          ) : adminTab === "reports" ? (
+            <motion.div
+              key="reports"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <PerformanceReports />
             </motion.div>
           ) : (
             <motion.div
