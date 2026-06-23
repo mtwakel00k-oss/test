@@ -32,6 +32,50 @@ const OPERATION_STYLES: Record<string, string> = {
   TOGGLE_RESTAURANT_STATUS: "text-amber-400 bg-amber-500/10 border-amber-500/20",
 }
 
+const ROLE_LABELS: Record<string, { label: string; icon: React.ReactNode }> = {
+  owner: {
+    label: "المدير",
+    icon: <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>,
+  },
+  admin: {
+    label: "المدير",
+    icon: <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>,
+  },
+  cashier: {
+    label: "الكاشير",
+    icon: <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>,
+  },
+  driver: {
+    label: "سائق التوصيل",
+    icon: <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="5.5" cy="17.5" r="3.5" /><circle cx="18.5" cy="17.5" r="3.5" /><line x1="15" y1="9" x2="19" y2="9" /><polyline points="9 17 9 5 3 5" /><path d="M3 5l4 4 3-4" /></svg>,
+  },
+  customer: {
+    label: "الزبون",
+    icon: <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>,
+  },
+}
+
+const KEY_LABELS: Record<string, string> = {
+  nom: "اسم المنتج",
+  name: "الاسم",
+  description: "الوصف",
+  price: "السعر",
+  image_url: "رابط الصورة",
+  categorie_id: "رقم القسم",
+  sizesCount: "عدد الأحجام",
+  is_open: "حالة المطعم",
+  is_available: "التوفر في المنيو",
+  status: "الحالة",
+  total: "الإجمالي",
+  order_type: "نوع الطلب",
+  order_number: "رقم الطلب",
+  customer_name: "اسم العميل",
+  itemCount: "عدد العناصر",
+  action: "الإجراء",
+  driver_id: "رقم السائق",
+  cashier_id: "رقم الكاشير",
+}
+
 function formatDateTime(iso: string) {
   const d = new Date(iso)
   return d.toLocaleDateString("en-US", {
@@ -48,6 +92,94 @@ function getOperationKey(row: AuditLogRow): string {
 
 function getActionLabel(row: AuditLogRow): string {
   return ACTION_LABELS[getOperationKey(row)] || row.operation
+}
+
+function parseData(raw: unknown): Record<string, unknown> {
+  if (!raw) return {}
+  if (typeof raw === "string") { try { return JSON.parse(raw) } catch { return {} } }
+  if (typeof raw === "object") return raw as Record<string, unknown>
+  return {}
+}
+
+function renderValue(key: string, val: unknown): { text: string; color: string } {
+  if (val === null || val === undefined || val === "") return { text: "—", color: "text-neutral-600" }
+
+  if (key === "is_open") {
+    return val === true
+      ? { text: "مفتوح", color: "text-emerald-400" }
+      : { text: "مغلق", color: "text-rose-400" }
+  }
+
+  if (key === "is_available") {
+    return val === true
+      ? { text: "متاح", color: "text-emerald-400" }
+      : { text: "غير متاح", color: "text-rose-400" }
+  }
+
+  if (key === "status") {
+    const statusMap: Record<string, { text: string; color: string }> = {
+      pending: { text: "قيد الانتظار", color: "text-amber-400" },
+      confirmed: { text: "مؤكد", color: "text-emerald-400" },
+      preparing: { text: "قيد التحضير", color: "text-sky-400" },
+      ready: { text: "جاهز", color: "text-emerald-400" },
+      out_for_delivery: { text: "قيد التوصيل", color: "text-blue-400" },
+      delivered: { text: "تم التوصيل", color: "text-emerald-400" },
+      completed: { text: "مكتمل", color: "text-emerald-400" },
+      cancelled: { text: "ملغي", color: "text-rose-400" },
+    }
+    const sv = String(val).toLowerCase()
+    return statusMap[sv] || { text: String(val), color: "text-neutral-300" }
+  }
+
+  if (typeof val === "boolean") {
+    return val
+      ? { text: "نعم", color: "text-emerald-400" }
+      : { text: "لا", color: "text-rose-400" }
+  }
+
+  if (typeof val === "number") {
+    return { text: val.toLocaleString("ar-DZ"), color: "text-neutral-100" }
+  }
+
+  return { text: String(val), color: "text-neutral-100" }
+}
+
+function DataGrid({ data, label }: { data: Record<string, unknown>; label: string }) {
+  const entries = Object.entries(parseData(data)).filter(([k]) => k !== "action")
+
+  if (entries.length === 0) return null
+
+  return (
+    <div>
+      <span className="text-[10px] text-neutral-600 block mb-2">{label}</span>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+        {entries.map(([key, val]) => {
+          const displayKey = KEY_LABELS[key] || key
+          const { text, color } = renderValue(key, val)
+          return (
+            <div
+              key={key}
+              className="flex flex-col gap-1 p-3 rounded-xl border border-white/[0.06] bg-white/[0.03]"
+            >
+              <span className="text-[11px] text-neutral-500">{displayKey}</span>
+              <span className={`text-sm font-medium ${color}`}>{text}</span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function RoleBadge({ role }: { role: string }) {
+  const rl = ROLE_LABELS[role.toLowerCase()]
+  if (!rl) return <span className="text-[10px] text-neutral-600">{role}</span>
+  return (
+    <span className="inline-flex items-center gap-1.5 bg-neutral-800 text-neutral-200 border border-neutral-700 rounded-md text-[11px] font-medium w-max px-2 py-0.5">
+      {rl.icon}
+      {rl.label}
+    </span>
+  )
 }
 
 export function AuditLog() {
@@ -116,7 +248,6 @@ export function AuditLog() {
 
       {/* Filters */}
       <div className="flex items-center gap-2.5 flex-wrap">
-        {/* Table filter */}
         <div className="flex items-center gap-1 p-1 rounded-xl border border-white/10 bg-white/[0.04]">
           {(["all", "orders", "produits", "categories"] as const).map((tbl) => {
             const active = tableFilter === tbl
@@ -137,7 +268,6 @@ export function AuditLog() {
           })}
         </div>
 
-        {/* Action filter */}
         <div className="flex items-center gap-1 p-1 rounded-xl border border-white/10 bg-white/[0.04]">
           {(["all", "INSERT", "UPDATE", "DELETE", "TOGGLE_RESTAURANT_STATUS"] as const).map((op) => {
             const active = operationFilter === op
@@ -195,7 +325,6 @@ export function AuditLog() {
             exit={{ opacity: 0 }}
             className="rounded-2xl border border-white/10 bg-white/[0.04] overflow-hidden backdrop-blur-sm"
           >
-            {/* Table */}
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -228,11 +357,11 @@ export function AuditLog() {
                             {getActionLabel(row)}
                           </span>
                         </td>
-                        <td className="px-4 py-3 max-w-[140px]">
-                          <div className="text-xs text-neutral-300 truncate">{row.changed_by || "—"}</div>
-                          {row.changed_by_role && (
-                            <div className="text-[10px] text-neutral-600">{row.changed_by_role}</div>
-                          )}
+                        <td className="px-4 py-3 max-w-[180px]">
+                          <div className="flex flex-col gap-1.5">
+                            {row.changed_by_role && <RoleBadge role={row.changed_by_role} />}
+                            <span className="text-sm font-medium text-neutral-300 truncate">{row.changed_by || "—"}</span>
+                          </div>
                         </td>
                         <td className="px-4 py-3">
                           <button
@@ -250,7 +379,6 @@ export function AuditLog() {
               </table>
             </div>
 
-            {/* Pagination */}
             {filtered.length > perPage && (
               <div className="flex items-center justify-between px-4 py-3 border-t border-white/[0.06]">
                 <span className="text-[11px] text-neutral-500">
@@ -285,6 +413,8 @@ export function AuditLog() {
         {expanded && (() => {
           const row = [...raw].find(r => r.id === expanded)
           if (!row) return null
+          const newData = parseData(row.new_data)
+          const oldData = parseData(row.old_data)
           return (
             <motion.div
               key="detail"
@@ -292,7 +422,7 @@ export function AuditLog() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -4, scale: 0.98 }}
               transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
-              className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 space-y-4 text-sm backdrop-blur-sm"
+              className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 space-y-5 text-sm backdrop-blur-sm"
             >
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-semibold text-neutral-300">التفاصيل</h4>
@@ -304,6 +434,8 @@ export function AuditLog() {
                   <X className="size-3.5" strokeWidth={1.5} />
                 </button>
               </div>
+
+              {/* Meta info row */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <span className="text-[10px] text-neutral-600 block mb-0.5">معرف السجل</span>
@@ -314,22 +446,21 @@ export function AuditLog() {
                   <span className="text-xs text-neutral-300 font-mono">{row.ip_address || "—"}</span>
                 </div>
               </div>
-              {row.new_data && (
-                <div>
-                  <span className="text-[10px] text-neutral-600 block mb-1.5">القيم الجديدة</span>
-                  <pre className="text-[10px] text-neutral-400 bg-black/30 rounded-xl p-4 overflow-x-auto max-h-48 leading-relaxed border border-white/[0.04]">
-                    {JSON.stringify(row.new_data, null, 2)}
-                  </pre>
+
+              {/* Changed by */}
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] text-neutral-600 block">المستخدم</span>
+                <div className="flex items-center gap-2.5">
+                  {row.changed_by_role && <RoleBadge role={row.changed_by_role} />}
+                  <span className="text-sm text-neutral-300">{row.changed_by || "—"}</span>
                 </div>
-              )}
-              {row.old_data && (
-                <div>
-                  <span className="text-[10px] text-neutral-600 block mb-1.5">القيم القديمة</span>
-                  <pre className="text-[10px] text-neutral-400 bg-black/30 rounded-xl p-4 overflow-x-auto max-h-48 leading-relaxed border border-white/[0.04]">
-                    {JSON.stringify(row.old_data, null, 2)}
-                  </pre>
-                </div>
-              )}
+              </div>
+
+              {/* New values grid */}
+              <DataGrid data={newData} label="القيم الجديدة" />
+
+              {/* Old values grid */}
+              <DataGrid data={oldData} label="القيم القديمة" />
             </motion.div>
           )
         })()}
