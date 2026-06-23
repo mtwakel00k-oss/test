@@ -142,4 +142,8 @@ DROP POLICY IF EXISTS "audit_log_select_authenticated" ON audit_log;
 CREATE POLICY "audit_log_select_authenticated" ON audit_log FOR SELECT USING (true);
 DROP POLICY IF EXISTS "audit_log_insert_admin" ON audit_log;
 CREATE POLICY "audit_log_insert_admin" ON audit_log FOR INSERT WITH CHECK (true);
-ALTER PUBLICATION supabase_realtime ADD TABLE IF NOT EXISTS audit_log;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'audit_log') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE audit_log;
+  END IF;
+END $$;
