@@ -15,7 +15,7 @@ import { AppHeader } from "./app-header"
 import { CategoryFilter } from "./category-filter"
 import { MealCard } from "./meal-card"
 import { OrderBar } from "./order-bar"
-import { ShoppingBag, DoorClosed, Leaf } from "lucide-react"
+import { ShoppingBag, DoorClosed } from "lucide-react"
 import { EmptyState } from "@/components/empty-state"
 
 const CheckoutModal = dynamic(
@@ -260,52 +260,6 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
         <AppHeader cartItemCount={itemCount} onCart={() => setCheckoutOpen(true)} />
 
         <main className="relative mx-auto max-w-5xl px-4 pb-44 pt-10 md:px-8 md:pt-14" aria-label="Menu content">
-          {/* Hero / Section header */}
-          <motion.div
-            initial={{ opacity: 0, y: 28 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.08 }}
-            className="mb-10 md:mb-14"
-          >
-            <div className="flex items-center gap-3 mb-5">
-              <motion.span
-                initial={{ scaleX: 0 }}
-                animate={{ scaleX: 1 }}
-                transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.18 }}
-                className="h-px w-14 bg-accent/70"
-              />
-              <motion.div
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.22 }}
-              >
-                <Leaf className="size-4 text-accent" strokeWidth={1.5} />
-              </motion.div>
-              <motion.span
-                initial={{ scaleX: 0 }}
-                animate={{ scaleX: 1 }}
-                transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.18 }}
-                className="h-px w-8 bg-accent/40"
-              />
-            </div>
-            <motion.h1
-              initial={{ opacity: 0, y: 22 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.12 }}
-              className="font-display text-[clamp(2.5rem,6vw,3.75rem)] font-light leading-[1.06] tracking-tight text-foreground"
-            >
-              اختر وجبتك
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.17 }}
-              className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground/60"
-            >
-              كل طبق يُحضر بعناية ليجمع بين النكهة الأصيلة والمذاق الاستثنائي
-            </motion.p>
-          </motion.div>
-
           {/* Category filter */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}

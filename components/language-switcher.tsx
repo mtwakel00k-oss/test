@@ -1,51 +1,26 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { getScope, setScopedCookieLang } from "@/lib/i18n-scope"
 import { useLang } from "@/lib/lang-context"
 import type { Lang } from "@/lib/translations"
-import { motion, AnimatePresence } from "framer-motion"
-
-const LANG_ICONS: Record<Lang, React.ReactNode> = {
-  ar: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="size-4">
-      <circle cx="12" cy="12" r="10" />
-      <path d="M12 6v12" />
-      <path d="M6 12h12" />
-    </svg>
-  ),
-  en: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="size-4">
-      <circle cx="12" cy="12" r="10" />
-      <path d="M2 12h20" />
-      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-    </svg>
-  ),
-  fr: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="size-4">
-      <circle cx="12" cy="12" r="10" />
-      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-    </svg>
-  ),
-}
+import { cn } from "@/lib/utils"
 
 const LANGS: { code: Lang; label: string }[] = [
-  { code: "ar", label: "العربية" },
-  { code: "en", label: "English" },
-  { code: "fr", label: "Français" },
+  { code: "ar", label: "AR" },
+  { code: "en", label: "EN" },
+  { code: "fr", label: "FR" },
 ]
 
 const DIR: Record<Lang, "rtl" | "ltr"> = { ar: "rtl", en: "ltr", fr: "ltr" }
 
 export function LanguageSwitcher() {
-  const [open, setOpen] = useState(false)
   const router = useRouter()
   const current = useLang()
 
   const switchLang = useCallback((lang: Lang) => {
     setScopedCookieLang(lang, getScope())
-    setOpen(false)
     document.documentElement.lang = lang
     document.documentElement.dir = DIR[lang]
     document.documentElement.dataset.locale = lang
@@ -53,78 +28,24 @@ export function LanguageSwitcher() {
     router.refresh()
   }, [router])
 
-  const active = LANGS.find((l) => l.code === current) || LANGS[0]
-
   return (
-    <div className="relative">
-      <motion.button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="h-10 px-3 rounded-xl bg-card/80 backdrop-blur-md border border-border/40 hover:bg-card/90 flex items-center gap-2 text-sm font-bold text-foreground transition-all duration-200 active:scale-[0.98] shadow-sm hover:shadow-md select-none"
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-      >
-        <span className="text-base">{LANG_ICONS[active.code]}</span>
-        <span className="hidden xs:inline font-medium">{active.label}</span>
-        <svg
-          className={`w-4 h-4 ml-1 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+    <div className="flex items-center gap-0.5 rounded-lg border border-border/30 bg-muted/20 p-0.5">
+      {LANGS.map((l) => (
+        <button
+          key={l.code}
+          type="button"
+          onClick={() => switchLang(l.code)}
+          className={cn(
+            "rounded-md px-2 py-1 text-[11px] font-bold tracking-wider transition-all duration-150",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background",
+            l.code === current
+              ? "bg-card text-foreground shadow-sm"
+              : "text-muted-foreground/50 hover:text-foreground"
+          )}
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </motion.button>
-
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -8 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -8 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="absolute top-full mt-2 end-0 z-50 min-w-[160px] rounded-2xl border border-border/40 bg-card/80 backdrop-blur-xl shadow-xl overflow-hidden ring-1 ring-black/5"
-          >
-            <div className="py-2">
-              {LANGS.map((l) => (
-                <motion.button
-                  key={l.code}
-                  type="button"
-                  onClick={() => switchLang(l.code)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all duration-150 active:scale-[0.98] select-none ${
-                    l.code === current
-                      ? "bg-emerald-600/10 text-emerald-600 font-black"
-                      : "text-foreground hover:bg-secondary/50 hover:text-emerald-600"
-                  }`}
-                  whileHover={{ backgroundColor: l.code === current ? "rgb(var(--emerald-600), 0.08)" : "rgb(var(--secondary), 0.5)" }}
-                >
-                  <span className="text-base">{LANG_ICONS[l.code]}</span>
-                  <span>{l.label}</span>
-                  {l.code === current && (
-                    <motion.div
-                      layoutId="activeIndicator"
-                      className="size-1.5 rounded-full bg-emerald-600 ml-auto"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                    />
-                  )}
-                </motion.button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {open && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
-          onClick={() => setOpen(false)}
-        />
-      )}
+          {l.label}
+        </button>
+      ))}
     </div>
   )
 }
