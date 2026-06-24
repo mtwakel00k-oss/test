@@ -20,7 +20,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const tenantSlug = session.slug
+    // Resolve tenant slug: session → x-tenant-slug header → Referer path
+    let tenantSlug = session.slug || req.headers.get("x-tenant-slug") || ""
+    if (!tenantSlug) {
+      const ref = req.headers.get("referer") || ""
+      const m = ref.match(/\/([^/]+)\/(?:admin|menu|pos|kitchen|order|login|driver)\b/)
+      if (m) tenantSlug = m[1]
+    }
     if (!tenantSlug) {
       return NextResponse.json({ error: "Invalid session" }, { status: 401 })
     }
