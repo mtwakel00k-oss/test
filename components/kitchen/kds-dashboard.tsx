@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useState, useRef, useCallback, useMemo, startTransition } from "react"
-import { ChefHat, Timer, Bell, Volume2, VolumeX, ExternalLink, Utensils } from "lucide-react"
+import { ChefHat, Timer, Bell, Volume2, VolumeX, ExternalLink, CheckCircle2, Play, ListChecks } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { fetchApi } from "@/lib/tenant"
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js"
@@ -60,7 +61,14 @@ const TERMINAL_STATUSES = ["ready", "completed", "cancelled"]
 const TIME_THRESHOLDS = {
   WARNING: 12 * 60 * 1000,
   DANGER: 20 * 60 * 1000,
+  MAX_VISIBLE: 30 * 60 * 1000,
 }
+
+const springCard = (delay: number) => ({
+  initial: { opacity: 0, y: 20, scale: 0.96 },
+  animate: { opacity: 1, y: 0, scale: 1, transition: { type: "spring" as const, stiffness: 70, damping: 16, delay } },
+  exit: { opacity: 0, scale: 0.92, transition: { duration: 0.2 } },
+})
 
 function extractModifiers(name: string, size: string | null, sauce: string | null): string[] {
   const mods: string[] = []
@@ -105,6 +113,8 @@ export function KdsDashboard() {
   const [now, setNow] = useState(() => Date.now())
   const [countdown, setCountdown] = useState(10)
   const [struckItems, setStruckItems] = useState<Set<string | number>>(new Set())
+  const [updatingStatus, setUpdatingStatus] = useState<Set<string | number>>(new Set())
+  const [newOrderIds, setNewOrderIds] = useState<Set<string | number>>(new Set())
 
   const prevOrderIdsRef = useRef<Set<string | number>>(new Set())
   const countdownRef = useRef(10)
@@ -147,6 +157,10 @@ export function KdsDashboard() {
     return "safe"
   }
 
+  function getProgressPct(date: Date): number {
+    return Math.min(100, ((now - date.getTime()) / TIME_THRESHOLDS.MAX_VISIBLE) * 100)
+  }
+
   function toggleStrike(itemId: string | number) {
     setStruckItems(prev => {
       const next = new Set(prev)
@@ -154,6 +168,25 @@ export function KdsDashboard() {
       else next.add(itemId)
       return next
     })
+  }
+
+  async function updateOrderStatus(orderId: string | number, newStatus: string) {
+    setUpdatingStatus(prev => new Set(prev).add(orderId))
+    try {
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus as "pending" | "preparing" } : o))
+      const res = await fetchApi(`/api/orders/${orderId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      })
+      if (!res.ok) {
+        debouncedRefreshRef.current?.()
+      }
+    } catch {
+      debouncedRefreshRef.current?.()
+    } finally {
+      setUpdatingStatus(prev => { const n = new Set(prev); n.delete(orderId); return n })
+    }
   }
 
   const fetchOrders = useCallback(async (): Promise<KdsOrder[]> => {
@@ -180,9 +213,13 @@ export function KdsDashboard() {
         createdAt: new Date(o.created_at),
       }))
 
-      if (prevOrderIdsRef.current.size > 0 && soundOn) {
-        const newOrders = mapped.filter(o => !prevOrderIdsRef.current.has(o.id))
-        if (newOrders.length > 0) playNewOrderSound()
+      const freshIds = new Set(mapped.filter(o => !prevOrderIdsRef.current.has(o.id)).map(o => o.id))
+      if (prevOrderIdsRef.current.size > 0 && freshIds.size > 0 && soundOn) {
+        playNewOrderSound()
+      }
+      if (freshIds.size > 0) {
+        setNewOrderIds(freshIds)
+        setTimeout(() => setNewOrderIds(new Set()), 4000)
       }
       prevOrderIdsRef.current = new Set(mapped.map(o => o.id))
       return mapped
@@ -279,34 +316,12 @@ export function KdsDashboard() {
     )
   }
 
-  function renderOrderTypeBadge(orderType: string, tableNumber: number | null) {
-    if (orderType === "takeaway") {
-      return (
-        <span className="inline-flex items-center gap-1.5 rounded-xl bg-amber-500/15 px-3 py-1.5 text-[11px] font-bold text-amber-400">
-          <Utensils className="w-3 h-3" strokeWidth={2} />
-          {t("pos.takeaway")}
-        </span>
-      )
-    }
-    if (orderType === "delivery") {
-      return (
-        <span className="inline-flex items-center gap-1.5 rounded-xl bg-sky-500/15 px-3 py-1.5 text-[11px] font-bold text-sky-400">
-          {t("pos.delivery")}
-        </span>
-      )
-    }
-    return (
-      <span className="inline-flex items-center gap-1.5 rounded-xl bg-accent/15 px-3 py-1.5 text-[11px] font-bold text-accent">
-        {t("pos.table")} {tableNumber ?? ""}
-      </span>
-    )
-  }
-
   function renderItem(item: KdsItem, index: number) {
     const isStruck = struckItems.has(item.id)
     return (
-      <button
+      <motion.button
         key={item.id}
+        layout
         onClick={() => toggleStrike(item.id)}
         className={cn(
           "flex w-full items-start gap-3 rounded-xl p-3 text-right transition-all",
@@ -328,7 +343,11 @@ export function KdsDashboard() {
             {item.name}
           </span>
           {item.modifiers.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-1.5">
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              className="flex flex-wrap gap-1.5 mt-1.5"
+            >
               {item.modifiers.map((mod, mi) => (
                 <span
                   key={mi}
@@ -337,15 +356,22 @@ export function KdsDashboard() {
                   {mod}
                 </span>
               ))}
-            </div>
+            </motion.div>
           )}
         </div>
-      </button>
+      </motion.button>
     )
   }
 
-  function renderOrderCard(order: KdsOrder) {
+  function renderOrderCard(order: KdsOrder, index: number) {
     const urgency = getUrgency(order.createdAt)
+    const progress = getProgressPct(order.createdAt)
+    const isNew = newOrderIds.has(order.id)
+    const isPending = order.status === "pending"
+    const isUpdating = updatingStatus.has(order.id)
+    const allStruck = order.items.length > 0 && order.items.every(it => struckItems.has(it.id))
+    const itemCount = order.items.length
+    const struckCount = order.items.filter(it => struckItems.has(it.id)).length
     const orderLabel = order.orderType === "takeaway"
       ? t("pos.takeaway")
       : order.orderType === "delivery"
@@ -353,44 +379,116 @@ export function KdsDashboard() {
         : `${t("pos.table")} ${order.tableNumber ?? ""}`
 
     return (
-      <UrgencyBorder key={order.id} urgency={urgency}>
-        <div className={cn(
-          "rounded-[calc(1.5rem-2px)] bg-[#18181b] p-5 space-y-4",
-          urgency === "danger" && "bg-[#18181b]",
-        )}>
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <UrgencyDot urgency={urgency} />
-              <div>
-                <div className="text-[22px] font-black leading-none text-white tracking-tight">
-                  {t("kitchen.orderHash")}{order.orderNumber || ""}
-                </div>
-                <div className="text-xs text-white/40 mt-1 font-medium">
-                  {orderLabel}
-                </div>
-              </div>
-            </div>
-            <div className={cn(
-              "text-right shrink-0",
-              urgency === "danger" ? "text-rose-400" : urgency === "warning" ? "text-amber-400" : "text-emerald-400",
-            )}>
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-white/30">
-                {t("time.minsAgo")}
-              </div>
-              <div className="text-base font-bold tabular-nums leading-tight mt-0.5">
-                {fmtTime(order.createdAt)}
-              </div>
-            </div>
-          </div>
-
+      <motion.div
+        key={order.id}
+        layout
+        {...springCard(index * 0.05)}
+      >
+        <UrgencyBorder urgency={urgency}>
           <div className={cn(
-            "border-t pt-3 space-y-0.5 divide-y divide-white/[0.04]",
-            urgency === "danger" ? "border-rose-500/20" : urgency === "warning" ? "border-amber-500/15" : "border-white/[0.06]",
+            "rounded-[calc(1.5rem-2px)] bg-[#18181b] overflow-hidden",
+            isNew && "ring-2 ring-emerald-500/30",
           )}>
-            {order.items.map((item, i) => renderItem(item, i))}
+            <div className="h-1 w-full bg-white/[0.03] relative overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.min(progress, 100)}%` }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className={cn(
+                  "absolute inset-y-0 left-0 rounded-full transition-colors duration-700",
+                  urgency === "danger" && "bg-rose-500",
+                  urgency === "warning" && "bg-amber-500",
+                  urgency === "safe" && "bg-emerald-500",
+                )}
+              />
+            </div>
+
+            <div className="p-5 space-y-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <UrgencyDot urgency={urgency} />
+                  <div>
+                    <div className="text-[22px] font-black leading-none text-white tracking-tight">
+                      {t("kitchen.orderHash")}{order.orderNumber || ""}
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs text-white/40 font-medium">
+                        {orderLabel}
+                      </span>
+                      <span className="text-[10px] text-white/20">·</span>
+                      <span className="text-[11px] text-white/30 font-medium flex items-center gap-1">
+                        <ListChecks className="w-3 h-3" strokeWidth={2} />
+                        {struckCount}/{itemCount}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className={cn(
+                    "text-[10px] font-semibold uppercase tracking-wider",
+                    urgency === "danger" ? "text-rose-400/60" : urgency === "warning" ? "text-amber-400/60" : "text-emerald-400/60",
+                  )}>
+                    {t("time.minsAgo")}
+                  </div>
+                  <div className={cn(
+                    "text-base font-bold tabular-nums leading-tight mt-0.5",
+                    urgency === "danger" ? "text-rose-400" : urgency === "warning" ? "text-amber-400" : "text-emerald-400",
+                  )}>
+                    {fmtTime(order.createdAt)}
+                  </div>
+                </div>
+              </div>
+
+              <div className={cn(
+                "border-t pt-3 space-y-0.5 divide-y divide-white/[0.04]",
+                urgency === "danger" ? "border-rose-500/20" : urgency === "warning" ? "border-amber-500/15" : "border-white/[0.06]",
+              )}>
+                {order.items.map((item, i) => renderItem(item, i))}
+              </div>
+
+              <div className="flex gap-2 pt-1">
+                {isPending ? (
+                  <button
+                    onClick={() => updateOrderStatus(order.id, "preparing")}
+                    disabled={isUpdating}
+                    className={cn(
+                      "flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-bold transition-all",
+                      "bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 active:scale-[0.97]",
+                      allStruck && "ring-1 ring-emerald-500/30",
+                      isUpdating && "opacity-50 pointer-events-none",
+                    )}
+                  >
+                    {isUpdating ? (
+                      <span className="w-3.5 h-3.5 rounded-full border-2 border-emerald-400/30 border-t-emerald-400 animate-spin" />
+                    ) : (
+                      <Play className="w-3.5 h-3.5" strokeWidth={2} />
+                    )}
+                    {t("kitchen.startPreparing")}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => updateOrderStatus(order.id, "ready")}
+                    disabled={isUpdating}
+                    className={cn(
+                      "flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-bold transition-all",
+                      "bg-sky-500/15 text-sky-400 hover:bg-sky-500/25 active:scale-[0.97]",
+                      allStruck && "ring-1 ring-sky-500/30",
+                      isUpdating && "opacity-50 pointer-events-none",
+                    )}
+                  >
+                    {isUpdating ? (
+                      <span className="w-3.5 h-3.5 rounded-full border-2 border-sky-400/30 border-t-sky-400 animate-spin" />
+                    ) : (
+                      <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2} />
+                    )}
+                    {t("kitchen.markReady")}
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-      </UrgencyBorder>
+        </UrgencyBorder>
+      </motion.div>
     )
   }
 
@@ -479,7 +577,9 @@ export function KdsDashboard() {
                   </h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 auto-rows-max">
-                  {pendingOrders.map(renderOrderCard)}
+                  <AnimatePresence mode="popLayout">
+                    {pendingOrders.map((o, i) => renderOrderCard(o, i))}
+                  </AnimatePresence>
                 </div>
               </section>
             )}
@@ -506,7 +606,9 @@ export function KdsDashboard() {
                   </h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 auto-rows-max">
-                  {preparingOrders.map(renderOrderCard)}
+                  <AnimatePresence mode="popLayout">
+                    {preparingOrders.map((o, i) => renderOrderCard(o, i))}
+                  </AnimatePresence>
                 </div>
               </section>
             )}

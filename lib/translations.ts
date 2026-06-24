@@ -156,6 +156,8 @@ export const T: Dict = {
   "kitchen.orderHash": { ar: "طلب #", en: "Order #", fr: "Commande #" },
   "kitchen.posLink": { ar: "نقطة البيع", en: "Point of Sale", fr: "Point de vente" },
   "kitchen.nextUp": { ar: "التالي", en: "Next Up", fr: "Suivant" },
+  "kitchen.startPreparing": { ar: "بدء التحضير", en: "Start Preparing", fr: "Commencer" },
+  "kitchen.markReady": { ar: "تجهيز", en: "Mark Ready", fr: "Prêt" },
 
   // ── Time ───────────────────────────────────────────
   "time.justNow": { ar: "الآن", en: "Just now", fr: "Maintenant" },
