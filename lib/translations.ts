@@ -340,6 +340,8 @@ export const T: Dict = {
   "analytics.driver": { ar: "السائق", en: "Driver", fr: "Livreur" },
   "analytics.orderTypeBreakdown": { ar: "توزيع أنواع الطلبات", en: "Order Type Breakdown", fr: "Répartition par type" },
   "analytics.total": { ar: "الإجمالي", en: "Total", fr: "Total" },
+  "analytics.ofTotal": { ar: "من الإجمالي", en: "of total", fr: "du total" },
+  "analytics.noOrders": { ar: "بدون طلبات", en: "No orders", fr: "Aucune commande" },
   "analytics.cashierPerformance": { ar: "أداء الكاشير", en: "Cashier Performance", fr: "Performance du caissier" },
   "analytics.cashier": { ar: "الكاشير", en: "Cashier", fr: "Caissier" },
   "analytics.cashierOrders": { ar: "الطلبات", en: "Orders", fr: "Commandes" },

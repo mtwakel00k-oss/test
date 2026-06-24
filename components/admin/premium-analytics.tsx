@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useMemo, startTransition } from "reac
 import { fetchApi } from "@/lib/tenant"
 import { motion, AnimatePresence } from "framer-motion"
 import { useTranslation } from "@/lib/use-translation"
-import { TrendingUp, TrendingDown, AlertTriangle, Medal, Crown, ShieldAlert, TimerOff, PackageX, Bike, Check, Users } from "lucide-react"
+import { TrendingUp, TrendingDown, AlertTriangle, Medal, Crown, ShieldAlert, TimerOff, PackageX, Bike, Check, Users, ShoppingBag, UtensilsCrossed, Truck } from "lucide-react"
 
 type Period = "7d" | "30d" | "6m" | "12m"
 
@@ -473,25 +473,50 @@ export function PremiumAnalytics() {
                   <span className="w-1 h-1 rounded-full bg-accent/60" />
                   <h3 className="font-display text-sm font-semibold text-white/80">{t("analytics.orderTypeBreakdown")}</h3>
                 </div>
-                <div className="p-5 space-y-4">
-                  {data.orderTypeBreakdown.items.map((ot) => (
-                    <div key={ot.type} className="space-y-1.5">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-medium text-foreground">{orderTypeLabel(ot.type)}</span>
-                        <span className="font-semibold text-foreground tabular-nums">{fmtNum(ot.count)}</span>
-                      </div>
-                      <div className="h-2 rounded-full bg-white/5 overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-accent/60 transition-all duration-700"
-                          style={{ width: `${(ot.count / data.orderTypeBreakdown.maxCount) * 100}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                  <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[10px]">
-                    <span className="text-muted-foreground/60">{t("analytics.total")}</span>
-                    <span className="font-semibold text-foreground tabular-nums">{fmtNum(data.orderTypeBreakdown.total)}</span>
-                  </div>
+                <motion.div
+                  initial="initial"
+                  animate="animate"
+                  variants={{ animate: { transition: { staggerChildren: 0.06, delayChildren: 0.05 } } }}
+                  className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-5"
+                >
+                  {(() => {
+                    const otIcons: Record<string, typeof ShoppingBag> = {
+                      dine_in: UtensilsCrossed,
+                      takeaway: ShoppingBag,
+                      delivery: Truck,
+                    }
+                    const otColors: Record<string, string> = {
+                      dine_in: "bg-emerald-500/10 text-emerald-500",
+                      takeaway: "bg-amber-500/10 text-amber-500",
+                      delivery: "bg-accent/10 text-accent",
+                    }
+                    return data.orderTypeBreakdown.items.map((ot) => {
+                      const Icon = otIcons[ot.type] || ShoppingBag
+                      const colors = otColors[ot.type] || "bg-primary/10 text-primary"
+                      return (
+                        <motion.div key={ot.type} variants={springCard(0)}>
+                          <div className="bg-card/40 border border-white/5 rounded-2xl p-5 space-y-3 backdrop-blur-sm card-hover h-full">
+                            <div className="flex items-center gap-2.5">
+                              <div className={`grid size-9 place-items-center rounded-xl ${colors}`}>
+                                <Icon className="w-4 h-4" strokeWidth={1.5} />
+                              </div>
+                              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/70">{orderTypeLabel(ot.type)}</p>
+                            </div>
+                            <h3 className="text-[1.625rem] font-semibold tracking-tight text-foreground tabular-nums">{fmtNum(ot.count)}</h3>
+                            <p className="text-[10px] text-muted-foreground/60">
+                              {ot.count > 0
+                                ? `${Math.round((ot.count / data.orderTypeBreakdown.total) * 100)}% ${t("analytics.ofTotal")}`
+                                : t("analytics.noOrders")}
+                            </p>
+                          </div>
+                        </motion.div>
+                      )
+                    })
+                  })()}
+                </motion.div>
+                <div className="px-5 pb-5 flex items-center justify-between text-[10px]">
+                  <span className="text-muted-foreground/60">{t("analytics.total")}</span>
+                  <span className="font-semibold text-foreground tabular-nums">{fmtNum(data.orderTypeBreakdown.total)}</span>
                 </div>
               </motion.div>
             )}
