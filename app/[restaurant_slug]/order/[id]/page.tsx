@@ -235,6 +235,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
 
     let cancelled = false
     let watchId: number | null = null
+    let fallbackDone = false
 
     const sendPosition = (lat: number, lng: number) => {
       if (cancelled) return
@@ -246,21 +247,21 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
       }).catch(() => {})
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => sendPosition(pos.coords.latitude, pos.coords.longitude),
-      () => {},
-      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 },
-    )
+    const start = (highAccuracy: boolean) => {
+      const opts: PositionOptions = { enableHighAccuracy: highAccuracy, timeout: 15000, maximumAge: 0 }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => { if (!cancelled) sendPosition(pos.coords.latitude, pos.coords.longitude) },
+        () => { if (!highAccuracy || fallbackDone) return; fallbackDone = true; start(false) },
+        opts,
+      )
+      watchId = navigator.geolocation.watchPosition(
+        (pos) => { if (!cancelled) sendPosition(pos.coords.latitude, pos.coords.longitude) },
+        () => {},
+        opts,
+      )
+    }
 
-    watchId = navigator.geolocation.watchPosition(
-      (pos) => {
-        if (pos.coords.accuracy <= 50) {
-          sendPosition(pos.coords.latitude, pos.coords.longitude)
-        }
-      },
-      () => {},
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
-    )
+    start(true)
 
     return () => {
       cancelled = true
