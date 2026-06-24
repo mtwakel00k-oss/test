@@ -9,10 +9,11 @@ import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useSlug } from "@/lib/use-slug"
 import { useTranslation } from "@/lib/use-translation"
-import { motion, AnimatePresence, LayoutGroup } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { StatCard } from "@/components/admin/stat-card"
 import { ReviewsFeed } from "@/components/admin/reviews-feed"
 import { TopProducts } from "@/components/admin/top-products"
+import { TenantSidebar } from "@/components/admin/tenant-sidebar"
 
 const SalesChart = dynamic(() => import("@/components/admin/sales-chart").then(m => ({ default: m.SalesChart })), {
   loading: () => <div className="h-72 rounded-2xl bg-white/5 animate-pulse" />,
@@ -313,27 +314,22 @@ export default function AdminPage() {
         </div>
       </motion.header>
 
-      <main className="relative max-w-7xl mx-auto p-4 lg:p-6 space-y-6">
-        <LayoutGroup id="admin-tabs">
-          <div className="flex w-fit items-center gap-1 rounded-full border border-white/6 bg-white/[0.03] p-0.5 backdrop-blur-sm relative">
-            {adminTabs.map((tab) => (
-              <button key={tab} onClick={() => setAdminTab(tab)} className="relative rounded-full px-5 py-2 text-xs font-semibold transition-colors z-10">
-                {adminTab === tab && (
-                  <motion.div
-                    layoutId="admin-tab-bg"
-                    className="absolute inset-0 rounded-full bg-accent/15"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  />
-                )}
-                <span className={`relative ${adminTab === tab ? "text-accent" : "text-white/40 hover:text-white/70"}`}>
-                  {tab === "overview" ? t("admin.overview") : tab === "products" ? t("admin.products") : tab === "orders" ? t("admin.orders") : tab === "audit" ? t("admin.audit") : t("analytics.premiumAnalytics")}
-                </span>
-              </button>
-            ))}
-          </div>
-        </LayoutGroup>
-
-        <AnimatePresence mode="wait">
+      <main className="relative max-w-7xl mx-auto p-4 lg:p-6">
+        <div className="flex gap-6">
+          <TenantSidebar
+            currentTab={adminTab}
+            onTabChange={setAdminTab}
+            userRole={userRole}
+            labels={{
+              overview: t("admin.overview"),
+              products: t("admin.products"),
+              orders: t("admin.orders"),
+              audit: t("admin.audit"),
+              analytics: t("analytics.premiumAnalytics"),
+            }}
+          />
+          <div className="flex-1 min-w-0 space-y-6">
+            <AnimatePresence mode="wait">
           {adminTab === "overview" ? (
             <motion.div
               key="overview"
@@ -560,12 +556,14 @@ export default function AdminPage() {
           )}
         </AnimatePresence>
 
-        <OrderDetailSheet
-          orderId={sheetOpen ? sheetOrderId : null}
-          open={sheetOpen}
-          onClose={() => setSheetOpen(false)}
-          onOrderUpdated={() => fetchStats().then(setStatsFromResult)}
-        />
+          <OrderDetailSheet
+            orderId={sheetOpen ? sheetOrderId : null}
+            open={sheetOpen}
+            onClose={() => setSheetOpen(false)}
+            onOrderUpdated={() => fetchStats().then(setStatsFromResult)}
+          />
+        </div>
+        </div>
       </main>
     </div>
   )

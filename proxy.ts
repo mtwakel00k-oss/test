@@ -5,6 +5,20 @@ const PUBLIC_PREFIXES = ["/login", "/_next", "/favicon.ico", "/api/auth", "/orde
 const PROTECTED_ROUTES = new Set(["/admin", "/pos", "/kitchen"])
 const MAX_BODY_SIZE = 2 * 1024 * 1024
 
+const ROLE_REDIRECTS: Record<string, (slug?: string) => string> = {
+  cashier: (slug) => slug ? `/${slug}/pos` : "/pos",
+  chef: (slug) => slug ? `/${slug}/kitchen` : "/kitchen",
+}
+
+function tryParseRole(request: NextRequest): string | null {
+  const cookie = request.cookies.get("session")?.value
+  if (!cookie) return null
+  if (cookie.startsWith("{")) {
+    try { return (JSON.parse(cookie) as { role?: string }).role || null } catch { return null }
+  }
+  return null
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const isDev = process.env.NODE_ENV === "development"
@@ -84,6 +98,14 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL(`/${slug}/login?redirect=${pathname}`, request.url))
     }
 
+    // Role-based redirect for admin pages
+    if (page === "admin") {
+      const role = tryParseRole(request)
+      if (role && role in ROLE_REDIRECTS) {
+        return NextResponse.redirect(new URL(ROLE_REDIRECTS[role](slug), request.url))
+      }
+    }
+
     return buildResponse()
   }
 
@@ -91,6 +113,13 @@ export async function proxy(request: NextRequest) {
   if (matchedRoute) {
     if (!hasSession) {
       return NextResponse.redirect(new URL(`/login?redirect=${pathname}`, request.url))
+    }
+    // Role-based redirect for top-level admin route
+    if (matchedRoute === "/admin") {
+      const role = tryParseRole(request)
+      if (role && role in ROLE_REDIRECTS) {
+        return NextResponse.redirect(new URL(ROLE_REDIRECTS[role](), request.url))
+      }
     }
     return buildResponse()
   }
