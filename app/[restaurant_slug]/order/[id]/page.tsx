@@ -229,6 +229,45 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
     return () => { if (refreshRef.current) clearInterval(refreshRef.current) }
   }, [id, slug, hasLiveTracking])
 
+  useEffect(() => {
+    if (!order || order.order_type !== "delivery") return
+    if (!navigator.geolocation) return
+
+    let cancelled = false
+    let watchId: number | null = null
+
+    const sendPosition = (lat: number, lng: number) => {
+      if (cancelled) return
+      setDeliveryCoords({ lat, lng })
+      fetch(`/api/orders/${id}/customer-location`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lat, lng }),
+      }).catch(() => {})
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => sendPosition(pos.coords.latitude, pos.coords.longitude),
+      () => {},
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 },
+    )
+
+    watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        if (pos.coords.accuracy <= 50) {
+          sendPosition(pos.coords.latitude, pos.coords.longitude)
+        }
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
+    )
+
+    return () => {
+      cancelled = true
+      if (watchId !== null) navigator.geolocation.clearWatch(watchId)
+    }
+  }, [order?.order_type, id])
+
   const getStage = (status: string, orderType: string): number => {
     if (orderType === "delivery") {
       const deliveryStages = ["pending", "preparing", "ready", "out_for_delivery", "completed"]

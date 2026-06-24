@@ -37,7 +37,7 @@ export const TIER_FEATURES: Record<SubscriptionTier, TierFeatures> = {
     hasKDS: true,
     hasDelivery: true,
     hasCustomTheme: false,
-    hasLiveTracking: false,
+    hasLiveTracking: true,
     hasRatings: true,
     maxBranches: 1,
   },
