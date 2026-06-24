@@ -335,6 +335,9 @@ export const T: Dict = {
   "analytics.noDriverData": { ar: "لا توجد بيانات سائقين في هذه الفترة", en: "No driver data this period", fr: "Aucune donnée de livreur cette période" },
   "analytics.noData": { ar: "لا توجد بيانات متاحة", en: "No data available", fr: "Aucune donnée disponible" },
   "analytics.premiumAnalytics": { ar: "التحليلات المتقدمة", en: "Premium Analytics", fr: "Analytique avancée" },
+  "analytics.drivers": { ar: "السائقون", en: "Drivers", fr: "Livreurs" },
+  "analytics.activeDrivers": { ar: "سائق نشط", en: "Active driver", fr: "Chauffeur actif" },
+  "analytics.driver": { ar: "السائق", en: "Driver", fr: "Livreur" },
 
   // ── Admin Driver/Cashier Performance ────────────────
   "admin.driverPerformance": { ar: "أداء السائقين", en: "Driver Performance", fr: "Performance des livreurs" },
