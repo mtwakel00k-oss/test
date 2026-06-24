@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useRef, useCallback, useMemo, startTransition } from "react"
-import { ChefHat, Timer, Bell, Volume2, VolumeX, ExternalLink, CheckCircle2, Play, ListChecks } from "lucide-react"
+import { ChefHat, Timer, Bell, Volume2, VolumeX, ExternalLink, CheckCircle2, Play } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { fetchApi } from "@/lib/tenant"
@@ -61,7 +61,6 @@ const TERMINAL_STATUSES = ["ready", "completed", "cancelled"]
 const TIME_THRESHOLDS = {
   WARNING: 12 * 60 * 1000,
   DANGER: 20 * 60 * 1000,
-  MAX_VISIBLE: 30 * 60 * 1000,
 }
 
 const springCard = (delay: number) => ({
@@ -155,10 +154,6 @@ export function KdsDashboard() {
     if (elapsed >= TIME_THRESHOLDS.DANGER) return "danger"
     if (elapsed >= TIME_THRESHOLDS.WARNING) return "warning"
     return "safe"
-  }
-
-  function getProgressPct(date: Date): number {
-    return Math.min(100, ((now - date.getTime()) / TIME_THRESHOLDS.MAX_VISIBLE) * 100)
   }
 
   function toggleStrike(itemId: string | number) {
@@ -292,86 +287,44 @@ export function KdsDashboard() {
   const pendingOrders = useMemo(() => orders.filter(o => o.status === "pending"), [orders])
   const preparingOrders = useMemo(() => orders.filter(o => o.status === "preparing"), [orders])
 
-  function UrgencyDot({ urgency }: { urgency: "safe" | "warning" | "danger" }) {
-    return (
-      <span className={cn(
-        "inline-block h-2 w-2 rounded-full shrink-0",
-        urgency === "safe" && "bg-emerald-500",
-        urgency === "warning" && "bg-amber-500",
-        urgency === "danger" && "bg-rose-500 animate-pulse",
-      )} />
-    )
-  }
-
-  function UrgencyBorder({ urgency, children }: { urgency: "safe" | "warning" | "danger"; children: React.ReactNode }) {
-    return (
-      <div className={cn(
-        "rounded-3xl border-2 transition-colors duration-500",
-        urgency === "safe" && "border-emerald-500/20",
-        urgency === "warning" && "border-amber-500/30",
-        urgency === "danger" && "border-rose-500/50 shadow-[0_0_24px_-4px_rgba(244,63,94,0.25)]",
-      )}>
-        {children}
-      </div>
-    )
-  }
-
   function renderItem(item: KdsItem, index: number) {
     const isStruck = struckItems.has(item.id)
     return (
-      <motion.button
+      <button
         key={item.id}
-        layout
         onClick={() => toggleStrike(item.id)}
         className={cn(
-          "flex w-full items-start gap-3 rounded-xl p-3 text-right transition-all",
-          "hover:bg-white/[0.03] active:scale-[0.98]",
-          isStruck && "opacity-40",
+          "flex w-full items-center gap-3 rounded-2xl p-3 transition-all",
+          "hover:bg-white/[0.02] active:scale-[0.98]",
+          isStruck && "opacity-30",
         )}
       >
         <span className={cn(
-          "min-w-[3rem] text-center text-lg font-black tabular-nums leading-none pt-0.5",
+          "shrink-0 text-center text-xl font-black tabular-nums leading-none w-10",
           index % 2 === 0 ? "text-emerald-400" : "text-amber-400",
         )}>
           {item.quantity}×
         </span>
-        <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap min-w-0">
           <span className={cn(
-            "block text-[15px] font-semibold leading-snug text-white/90",
-            isStruck && "line-through decoration-2 decoration-white/30",
+            "text-base font-semibold leading-snug text-white/90",
+            isStruck && "line-through decoration-2 decoration-white/20",
           )}>
             {item.name}
           </span>
-          {item.modifiers.length > 0 && (
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              className="flex flex-wrap gap-1.5 mt-1.5"
-            >
-              {item.modifiers.map((mod, mi) => (
-                <span
-                  key={mi}
-                  className="inline-flex rounded-lg bg-rose-500/15 px-2 py-0.5 text-[11px] font-semibold text-rose-300"
-                >
-                  {mod}
-                </span>
-              ))}
-            </motion.div>
-          )}
+          {item.modifiers.map((mod, mi) => (
+            <span key={mi} className="rounded-lg bg-rose-500/15 px-2 py-0.5 text-[11px] font-semibold text-rose-300 whitespace-nowrap">{mod}</span>
+          ))}
         </div>
-      </motion.button>
+      </button>
     )
   }
 
   function renderOrderCard(order: KdsOrder, index: number) {
     const urgency = getUrgency(order.createdAt)
-    const progress = getProgressPct(order.createdAt)
     const isNew = newOrderIds.has(order.id)
     const isPending = order.status === "pending"
     const isUpdating = updatingStatus.has(order.id)
-    const allStruck = order.items.length > 0 && order.items.every(it => struckItems.has(it.id))
-    const itemCount = order.items.length
-    const struckCount = order.items.filter(it => struckItems.has(it.id)).length
     const orderLabel = order.orderType === "takeaway"
       ? t("pos.takeaway")
       : order.orderType === "delivery"
@@ -381,113 +334,86 @@ export function KdsDashboard() {
     return (
       <motion.div
         key={order.id}
-        layout
-        {...springCard(index * 0.05)}
+        {...springCard(index * 0.06)}
+        className={cn(
+          "rounded-3xl bg-[#18181b] overflow-hidden transition-shadow duration-500",
+          urgency === "safe" && "shadow-[inset_0_0_0_1px_rgba(52,211,153,0.15)]",
+          urgency === "warning" && "shadow-[inset_0_0_0_1px_rgba(251,191,36,0.25)]",
+          urgency === "danger" && "shadow-[inset_0_0_0_1px_rgba(244,63,94,0.4),0_0_20px_-6px_rgba(244,63,94,0.2)]",
+          isNew && "ring-1 ring-emerald-500/20",
+        )}
       >
-        <UrgencyBorder urgency={urgency}>
-          <div className={cn(
-            "rounded-[calc(1.5rem-2px)] bg-[#18181b] overflow-hidden",
-            isNew && "ring-2 ring-emerald-500/30",
-          )}>
-            <div className="h-1 w-full bg-white/[0.03] relative overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${Math.min(progress, 100)}%` }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-                className={cn(
-                  "absolute inset-y-0 left-0 rounded-full transition-colors duration-700",
-                  urgency === "danger" && "bg-rose-500",
-                  urgency === "warning" && "bg-amber-500",
-                  urgency === "safe" && "bg-emerald-500",
-                )}
-              />
+        <div className="p-5 space-y-4">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl font-black leading-none text-white tracking-tight">
+                  {t("kitchen.orderHash")}{order.orderNumber || ""}
+                </span>
+                <span className={cn(
+                  "text-[10px] font-bold px-2 py-1 rounded-lg",
+                  order.orderType === "takeaway" && "bg-amber-500/15 text-amber-400",
+                  order.orderType === "delivery" && "bg-sky-500/15 text-sky-400",
+                  order.orderType !== "takeaway" && order.orderType !== "delivery" && "bg-accent/15 text-accent",
+                )}>
+                  {orderLabel}
+                </span>
+              </div>
             </div>
-
-            <div className="p-5 space-y-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                  <UrgencyDot urgency={urgency} />
-                  <div>
-                    <div className="text-[22px] font-black leading-none text-white tracking-tight">
-                      {t("kitchen.orderHash")}{order.orderNumber || ""}
-                    </div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-white/40 font-medium">
-                        {orderLabel}
-                      </span>
-                      <span className="text-[10px] text-white/20">·</span>
-                      <span className="text-[11px] text-white/30 font-medium flex items-center gap-1">
-                        <ListChecks className="w-3 h-3" strokeWidth={2} />
-                        {struckCount}/{itemCount}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right shrink-0">
-                  <div className={cn(
-                    "text-[10px] font-semibold uppercase tracking-wider",
-                    urgency === "danger" ? "text-rose-400/60" : urgency === "warning" ? "text-amber-400/60" : "text-emerald-400/60",
-                  )}>
-                    {t("time.minsAgo")}
-                  </div>
-                  <div className={cn(
-                    "text-base font-bold tabular-nums leading-tight mt-0.5",
-                    urgency === "danger" ? "text-rose-400" : urgency === "warning" ? "text-amber-400" : "text-emerald-400",
-                  )}>
-                    {fmtTime(order.createdAt)}
-                  </div>
-                </div>
-              </div>
-
-              <div className={cn(
-                "border-t pt-3 space-y-0.5 divide-y divide-white/[0.04]",
-                urgency === "danger" ? "border-rose-500/20" : urgency === "warning" ? "border-amber-500/15" : "border-white/[0.06]",
-              )}>
-                {order.items.map((item, i) => renderItem(item, i))}
-              </div>
-
-              <div className="flex gap-2 pt-1">
-                {isPending ? (
-                  <button
-                    onClick={() => updateOrderStatus(order.id, "preparing")}
-                    disabled={isUpdating}
-                    className={cn(
-                      "flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-bold transition-all",
-                      "bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 active:scale-[0.97]",
-                      allStruck && "ring-1 ring-emerald-500/30",
-                      isUpdating && "opacity-50 pointer-events-none",
-                    )}
-                  >
-                    {isUpdating ? (
-                      <span className="w-3.5 h-3.5 rounded-full border-2 border-emerald-400/30 border-t-emerald-400 animate-spin" />
-                    ) : (
-                      <Play className="w-3.5 h-3.5" strokeWidth={2} />
-                    )}
-                    {t("kitchen.startPreparing")}
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => updateOrderStatus(order.id, "ready")}
-                    disabled={isUpdating}
-                    className={cn(
-                      "flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-bold transition-all",
-                      "bg-sky-500/15 text-sky-400 hover:bg-sky-500/25 active:scale-[0.97]",
-                      allStruck && "ring-1 ring-sky-500/30",
-                      isUpdating && "opacity-50 pointer-events-none",
-                    )}
-                  >
-                    {isUpdating ? (
-                      <span className="w-3.5 h-3.5 rounded-full border-2 border-sky-400/30 border-t-sky-400 animate-spin" />
-                    ) : (
-                      <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2} />
-                    )}
-                    {t("kitchen.markReady")}
-                  </button>
-                )}
+            <div className={cn(
+              "shrink-0 text-right",
+              urgency === "danger" && "text-rose-400",
+              urgency === "warning" && "text-amber-400",
+              urgency === "safe" && "text-emerald-400",
+            )}>
+              <div className="text-lg font-bold tabular-nums leading-tight">
+                {fmtTime(order.createdAt)}
               </div>
             </div>
           </div>
-        </UrgencyBorder>
+
+          <div className="space-y-1">
+            {order.items.map((item, i) => renderItem(item, i))}
+          </div>
+
+          <div className="flex gap-2 pt-1">
+            {isPending ? (
+              <button
+                onClick={() => updateOrderStatus(order.id, "preparing")}
+                disabled={isUpdating}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-2 rounded-2xl py-3 text-sm font-bold transition-all",
+                  "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 active:scale-[0.97]",
+                  isUpdating && "opacity-40 pointer-events-none",
+                )}
+              >
+                {isUpdating ? (
+                  <span className="w-4 h-4 rounded-full border-2 border-emerald-400/30 border-t-emerald-400 animate-spin" />
+                ) : (
+                  <Play className="w-4 h-4" strokeWidth={2} />
+                )}
+                {t("kitchen.startPreparing")}
+              </button>
+            ) : (
+              <button
+                onClick={() => updateOrderStatus(order.id, "ready")}
+                disabled={isUpdating}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-2 rounded-2xl py-3 text-sm font-bold transition-all",
+                  "bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 active:scale-[0.97]",
+                  isUpdating && "opacity-40 pointer-events-none",
+                )}
+              >
+                {isUpdating ? (
+                  <span className="w-4 h-4 rounded-full border-2 border-sky-400/30 border-t-sky-400 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="w-4 h-4" strokeWidth={2} />
+                )}
+                {t("kitchen.markReady")}
+              </button>
+            )}
+          </div>
+        </div>
       </motion.div>
     )
   }
