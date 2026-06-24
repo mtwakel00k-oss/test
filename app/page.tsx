@@ -1,22 +1,15 @@
 import type { Metadata } from 'next'
-import dynamic from 'next/dynamic'
-import { Navbar } from '@/components/restoos/navbar'
-import { Hero } from '@/components/restoos/hero'
-import { LogosBar } from '@/components/restoos/logos-bar'
-import { Footer } from '@/components/restoos/footer'
-
-const Features = dynamic(() => import('@/components/restoos/features').then(m => ({ default: m.Features })))
-const Stats = dynamic(() => import('@/components/restoos/stats').then(m => ({ default: m.Stats })))
-const HowItWorks = dynamic(() => import('@/components/restoos/how-it-works').then(m => ({ default: m.HowItWorks })))
-const Pricing = dynamic(() => import('@/components/restoos/pricing').then(m => ({ default: m.Pricing })))
-const Testimonials = dynamic(() => import('@/components/restoos/testimonials').then(m => ({ default: m.Testimonials })))
-const Faq = dynamic(() => import('@/components/restoos/faq').then(m => ({ default: m.Faq })))
-const CtaBanner = dynamic(() => import('@/components/restoos/cta-banner').then(m => ({ default: m.CtaBanner })))
+import { Navbar } from '@/components/simploo-landing/navbar'
+import { Hero } from '@/components/simploo-landing/hero'
+import { Capabilities } from '@/components/simploo-landing/capabilities'
+import { Pricing } from '@/components/simploo-landing/pricing'
+import { Faq } from '@/components/simploo-landing/faq'
+import { Footer } from '@/components/simploo-landing/footer'
 
 export const metadata: Metadata = {
-  title: 'RestoOS — نظام نقاط البيع الذكي متعدد المستأجرين',
+  title: 'Simploo — أدر مطعمك بذكاء النخبة',
   description:
-    'منصة سحابية متعددة المستأجرين تدير طلبات مطاعمك، مطابخك، وتقاريرك من مكان واحد. حل رقمي متكامل للمطاعم والسلسلات.',
+    'نظام سحابي متكامل يربط الكاشير بالمطبخ في أجزاء من الثانية، ويكشف لك النزيف المالي والمنتجات الراكدة فوراً وبدون تعقيد.',
 }
 
 export default function Home() {
@@ -24,14 +17,9 @@ export default function Home() {
     <main className="landing-page overflow-x-hidden">
       <Navbar />
       <Hero />
-      <LogosBar />
-      <Features />
-      <Stats />
-      <HowItWorks />
+      <Capabilities />
       <Pricing />
-      <Testimonials />
       <Faq />
-      <CtaBanner />
       <Footer />
     </main>
   )

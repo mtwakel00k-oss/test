@@ -1,0 +1,278 @@
+'use client'
+
+import { useRef } from 'react'
+import { motion, useScroll, useTransform, useSpring } from 'framer-motion'
+
+function AnimatedText({ children, delay = 0 }: { children: string; delay?: number }) {
+  const words = children.split(' ')
+  return (
+    <span>
+      {words.map((word, i) => (
+        <span key={i} className="inline-block overflow-hidden">
+          <motion.span
+            initial={{ y: '100%', rotateX: -90 }}
+            animate={{ y: 0, rotateX: 0 }}
+            transition={{ type: 'spring', stiffness: 80, damping: 20, delay: delay + i * 0.04 }}
+            className="inline-block origin-bottom"
+          >
+            {word}
+            {i < words.length - 1 && '\u00A0'}
+          </motion.span>
+        </span>
+      ))}
+    </span>
+  )
+}
+
+function RealDashboardMockup() {
+  const ref = useRef<HTMLDivElement>(null)
+  const { scrollY } = useScroll()
+  const y = useTransform(scrollY, [0, 800], [0, 60])
+  const springY = useSpring(y, { stiffness: 120, damping: 30 })
+  const rotateX = useTransform(scrollY, [0, 800], [1.5, -1.5])
+  const springRotateX = useSpring(rotateX, { stiffness: 120, damping: 30 })
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 60, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: 'spring', stiffness: 60, damping: 25, delay: 0.4 }}
+      style={{ y: springY, rotateX: springRotateX }}
+      className="relative w-full perspective-[1200px]"
+    >
+      <div className="pointer-events-none absolute -inset-6 rounded-[3rem] bg-gradient-to-b from-amber-500/10 via-orange-500/5 to-transparent blur-3xl" />
+      <motion.div
+        animate={{ y: [0, -5, 0] }}
+        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+        className="relative overflow-hidden rounded-2xl border border-white/10 bg-card/80 backdrop-blur-xl shadow-[0_30px_80px_-20px_rgba(0,0,0,0.5)]"
+      >
+        {/* Browser bar */}
+        <div className="flex items-center gap-2 border-b border-white/10 bg-card/60 px-5 py-3">
+          <span className="size-2.5 rounded-full bg-red-400" />
+          <span className="size-2.5 rounded-full bg-amber-400" />
+          <span className="size-2.5 rounded-full bg-emerald-400" />
+          <div className="mx-auto rounded-md bg-background/80 px-10 py-1 text-[11px] text-muted-foreground backdrop-blur-sm">
+            app.simploo.dz/burger-house/admin
+          </div>
+        </div>
+
+        {/* Dashboard view — mirrors the real admin overview */}
+        <div className="flex">
+          {/* Sidebar */}
+          <aside className="hidden w-36 shrink-0 border-l border-white/10 bg-card/40 p-3 sm:block">
+            <div className="mb-4 flex items-center gap-2 text-foreground">
+              <span className="grid size-6 place-items-center rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 text-[8px] font-bold text-white">S</span>
+              <span className="text-[10px] font-bold">Simploo</span>
+            </div>
+            <div className="flex flex-col gap-0.5">
+              {['نظرة عامة', 'المنتجات', 'الطلبات', 'المطبخ', 'التقارير'].map((it, idx) => (
+                <div key={it} className={`rounded-lg px-2 py-1.5 text-[9px] font-medium ${idx === 0 ? 'bg-amber-500/15 text-amber-400' : 'text-muted-foreground'}`}>
+                  {it}
+                </div>
+              ))}
+            </div>
+          </aside>
+
+          {/* Main content — exact admin dashboard layout */}
+          <div className="flex-1 bg-card/30 p-4">
+            {/* Header */}
+            <div className="mb-3 flex items-center justify-between">
+              <span className="text-xs font-bold text-foreground">نظرة عامة</span>
+              <div className="flex items-center gap-2">
+                <span className="rounded-md bg-amber-500/15 px-2 py-0.5 text-[8px] font-medium text-amber-400">آخر 7 أيام</span>
+                <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+              </div>
+            </div>
+
+            {/* 4 stat cards — matches real admin */}
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { label: 'إجمالي الإيرادات', value: '1,250 د.ج', badge: '▲ 12%', color: 'text-emerald-400 bg-emerald-500/10' },
+                { label: 'إجمالي الطلبات', value: '43', badge: 'جديد 3', color: 'text-amber-400 bg-amber-500/10' },
+                { label: 'متوسط الطلب', value: '29.1 د.ج', badge: '+0.8%', color: 'text-blue-400 bg-blue-500/10' },
+                { label: 'التقييم', value: '4.2', badge: 'ممتاز', color: 'text-emerald-400 bg-emerald-500/10' },
+              ].map((s, i) => (
+                <motion.div
+                  key={s.label}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.7 + i * 0.08 }}
+                  className="rounded-xl border border-white/10 bg-card/50 p-2.5 backdrop-blur-sm"
+                >
+                  <p className="mb-0.5 text-[8px] text-muted-foreground">{s.label}</p>
+                  <p className="text-sm font-extrabold text-foreground tabular-nums">{s.value}</p>
+                  <span className={`mt-1 inline-block rounded px-1 py-0.5 text-[7px] font-bold ${s.color}`}>{s.badge}</span>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* KDS preview row */}
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {/* Sales chart */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.0 }}
+                className="rounded-xl border border-white/10 bg-card/50 p-3 backdrop-blur-sm"
+              >
+                <p className="mb-2 text-[8px] font-bold text-foreground">المبيعات الأسبوعية</p>
+                <svg viewBox="0 0 240 60" className="w-full">
+                  <defs>
+                    <linearGradient id="sc" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="rgb(251,146,60)" stopOpacity="0.2" />
+                      <stop offset="100%" stopColor="rgb(251,146,60)" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  <motion.path
+                    d="M0 48 C30 40, 50 15, 80 22 S 130 8, 160 18 S 200 35, 240 14"
+                    fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 1.5, delay: 1.2 }}
+                  />
+                  <motion.path
+                    d="M0 48 C30 40, 50 15, 80 22 S 130 8, 160 18 S 200 35, 240 14 L 240 60 L 0 60 Z"
+                    fill="url(#sc)"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 1, delay: 1.8 }}
+                  />
+                </svg>
+              </motion.div>
+
+              {/* KDS preview */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.1 }}
+                className="rounded-xl border border-white/10 bg-card/50 p-3 backdrop-blur-sm"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[8px] font-bold text-foreground">شاشة المطبخ (KDS)</p>
+                  <span className="text-[6px] text-muted-foreground">مباشر</span>
+                </div>
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between rounded-lg bg-emerald-500/10 px-1.5 py-1 border border-emerald-500/20">
+                    <span className="text-[7px] font-bold text-emerald-300">#1042</span>
+                    <span className="text-[6px] text-emerald-400">8 د</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-lg bg-amber-500/10 px-1.5 py-1 border border-amber-500/20">
+                    <span className="text-[7px] font-bold text-amber-300">#1043</span>
+                    <span className="text-[6px] text-amber-400">16 د</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-lg bg-rose-500/10 px-1.5 py-1 border border-rose-500/20">
+                    <span className="text-[7px] font-bold text-rose-300">#1039</span>
+                    <span className="text-[6px] text-rose-400">24 د</span>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Premium analytics teaser */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.3 }}
+              className="mt-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 backdrop-blur-sm"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-[8px] font-bold text-amber-400">لوحة تحليلات النخبة</span>
+                  <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[6px] font-semibold text-amber-400">Pro</span>
+                </div>
+                <span className="text-[6px] text-muted-foreground">كشف التسريبات + Dead Stock + ترتيب السائقين</span>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+export function Hero() {
+  return (
+    <section className="relative min-h-screen overflow-hidden bg-background pt-32 md:pt-40" dir="rtl">
+      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <motion.div
+          animate={{ y: [0, -20, 0], opacity: [0.06, 0.1, 0.06] }}
+          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute -top-40 -right-32 h-[600px] w-[600px] rounded-full bg-amber-500 blur-[160px]"
+        />
+        <motion.div
+          animate={{ y: [0, 20, 0], opacity: [0.05, 0.08, 0.05] }}
+          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+          className="absolute -bottom-40 -left-32 h-[500px] w-[500px] rounded-full bg-orange-500 blur-[140px]"
+        />
+      </div>
+
+      <div className="mx-auto max-w-7xl px-4 md:px-8">
+        <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-16">
+          <motion.div className="relative lg:col-span-5">
+            <motion.div
+              initial={{ opacity: 0, scaleX: 0 }}
+              animate={{ opacity: 1, scaleX: 1 }}
+              transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+              className="mb-6 h-0.5 w-16 origin-right rounded-full bg-amber-500/70"
+            />
+
+            <h1 className="font-display text-[clamp(2.2rem,4.8vw,4rem)] font-normal leading-[0.95] tracking-tight text-foreground">
+              <AnimatedText delay={0.1}>أدر مطعمك بذكاء النخبة.</AnimatedText>
+              <br />
+              <span className="text-amber-500">
+                <AnimatedText delay={0.3}>سيطر على أرباحك،</AnimatedText>
+              </span>
+              <br />
+              <AnimatedText delay={0.5}>وسرّع مطبخك.</AnimatedText>
+            </h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: 'spring', stiffness: 80, damping: 20, delay: 0.5 }}
+              className="mt-8 max-w-md text-base leading-relaxed text-muted-foreground md:text-lg"
+            >
+              نظام سحابي متكامل يربط الكاشير بالمطبخ في أجزاء من الثانية،
+              ويكشف لك النزيف المالي والمنتجات الراكدة فوراً وبدون تعقيد.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: 'spring', stiffness: 80, damping: 20, delay: 0.65 }}
+              className="mt-10 flex flex-wrap items-center gap-4"
+            >
+              <motion.a
+                href="/login"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="group inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-amber-500/30 transition-all duration-500 hover:shadow-amber-500/50"
+              >
+                ابدأ تجربتك المجانية
+                <span className="grid size-7 place-items-center rounded-full bg-white/15 transition-all duration-500 group-hover:translate-x-0.5">
+                  <svg className="size-3.5 rtl:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </span>
+              </motion.a>
+              <motion.a
+                href="#capabilities"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="group inline-flex items-center gap-3 rounded-full border border-white/10 bg-card/60 px-7 py-3.5 text-sm font-semibold text-foreground backdrop-blur-md transition-all duration-500 hover:border-amber-500/30 hover:bg-amber-500/10"
+              >
+                <span className="grid size-7 place-items-center rounded-full bg-amber-500/15 text-amber-400 backdrop-blur-sm">
+                  <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                </span>
+                شاهد الإمكانيات
+              </motion.a>
+            </motion.div>
+          </motion.div>
+
+          <div className="relative lg:col-span-7">
+            <RealDashboardMockup />
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
