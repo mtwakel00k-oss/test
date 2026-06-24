@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useMemo, startTransition } from "reac
 import { fetchApi } from "@/lib/tenant"
 import { motion, AnimatePresence } from "framer-motion"
 import { useTranslation } from "@/lib/use-translation"
-import { TrendingUp, TrendingDown, AlertTriangle, Medal, Crown, ShieldAlert, TimerOff, PackageX, Bike, Check } from "lucide-react"
+import { TrendingUp, TrendingDown, AlertTriangle, Medal, Crown, ShieldAlert, TimerOff, PackageX, Bike, Check, Users } from "lucide-react"
 
 type Period = "7d" | "30d" | "6m" | "12m"
 
@@ -47,12 +47,39 @@ interface Drivers {
   all: DriverItem[]
 }
 
+interface CashierItem {
+  id: string
+  name: string
+  orders: number
+  cancelled: number
+}
+
+interface Cashiers {
+  hero: CashierItem | null
+  mostCancelled: CashierItem | null
+  all: CashierItem[]
+  avgOrders: number
+}
+
+interface OrderTypeCount {
+  type: string
+  count: number
+}
+
+interface OrderTypeBreakdown {
+  items: OrderTypeCount[]
+  total: number
+  maxCount: number
+}
+
 interface PremiumAnalyticsData {
   avgTicket: AvgTicket
   deadStock: DeadStockItem[]
   cancellations: Cancellations
   kitchenRedZone: KitchenRedZone
   drivers: Drivers
+  cashiers: Cashiers
+  orderTypeBreakdown: OrderTypeBreakdown
 }
 
 const ORDER_TYPE_KEYS: Record<string, string> = {
@@ -430,6 +457,118 @@ export function PremiumAnalytics() {
                     </div>
                   </div>
                   <p className="text-sm font-medium text-white/50">{t("analytics.noDriverData")}</p>
+                </div>
+              )}
+            </motion.div>
+
+            {/* ── Order Type Breakdown ── */}
+            {data.orderTypeBreakdown.items.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: "spring", stiffness: 70, damping: 16, delay: 0.25 }}
+                className="bg-card/40 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-sm shadow-sm card-hover"
+              >
+                <div className="px-5 py-3.5 border-b border-white/5 flex items-center gap-2.5">
+                  <span className="w-1 h-1 rounded-full bg-accent/60" />
+                  <h3 className="font-display text-sm font-semibold text-white/80">{t("analytics.orderTypeBreakdown")}</h3>
+                </div>
+                <div className="p-5 space-y-4">
+                  {data.orderTypeBreakdown.items.map((ot) => (
+                    <div key={ot.type} className="space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-medium text-foreground">{orderTypeLabel(ot.type)}</span>
+                        <span className="font-semibold text-foreground tabular-nums">{fmtNum(ot.count)}</span>
+                      </div>
+                      <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-accent/60 transition-all duration-700"
+                          style={{ width: `${(ot.count / data.orderTypeBreakdown.maxCount) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[10px]">
+                    <span className="text-muted-foreground/60">{t("analytics.total")}</span>
+                    <span className="font-semibold text-foreground tabular-nums">{fmtNum(data.orderTypeBreakdown.total)}</span>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ── Cashier Leaderboard ── */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: "spring", stiffness: 70, damping: 16, delay: 0.3 }}
+              className="bg-card/40 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-sm shadow-sm card-hover"
+            >
+              <div className="px-5 py-3.5 border-b border-white/5 flex items-center gap-2.5">
+                <span className="w-1 h-1 rounded-full bg-accent/60" />
+                <h3 className="font-display text-sm font-semibold text-white/80">{t("analytics.cashierPerformance")}</h3>
+              </div>
+
+              {data.cashiers.all.length > 0 && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-accent/20">
+                        <th className="text-right px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">#</th>
+                        <th className="text-right px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("analytics.cashier")}</th>
+                        <th className="text-center px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("analytics.cashierOrders")}</th>
+                        <th className="text-center px-5 py-3 text-accent/70 font-medium text-[10px] uppercase tracking-wider">{t("analytics.cashierCancelled")}</th>
+                      </tr>
+                    </thead>
+                    <motion.tbody initial="initial" animate="animate">
+                      {data.cashiers.all.map((c, i) => (
+                        <motion.tr key={c.id} variants={springRow(i * 0.03)}
+                          className={`${i < data.cashiers.all.length - 1 ? "border-b border-white/[0.02]" : ""} hover:bg-white/[0.015] transition-colors`}
+                        >
+                          <td className="px-5 py-3 w-10">
+                            {i === 0 && data.cashiers.hero ? (
+                              <div className="grid size-7 place-items-center rounded-full bg-amber-400/15 text-amber-400">
+                                <Medal className="w-3.5 h-3.5" strokeWidth={1.5} />
+                              </div>
+                            ) : (
+                              <span className="text-xs font-bold text-white/20 w-7 block text-center">{i + 1}</span>
+                            )}
+                          </td>
+                          <td className="px-5 py-3">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-full bg-primary/10 text-primary/60 flex items-center justify-center text-xs font-semibold">
+                                {c.name.charAt(0)}
+                              </div>
+                              <div>
+                                <span className="font-medium text-white/80 text-sm">{c.name}</span>
+                                {i === 0 && data.cashiers.hero && (
+                                  <span className="mr-2 text-[10px] text-amber-400/60 font-semibold">{t("analytics.hero")}</span>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="text-center px-5 py-3">
+                            <span className="font-semibold text-white/80 tabular-nums">{fmtNum(c.orders)}</span>
+                          </td>
+                          <td className="text-center px-5 py-3">
+                            <span className={`font-semibold tabular-nums ${c.cancelled > 0 ? "text-rose-400" : "text-emerald-400/60"}`}>
+                              {fmtNum(c.cancelled)}
+                            </span>
+                          </td>
+                        </motion.tr>
+                      ))}
+                    </motion.tbody>
+                  </table>
+                </div>
+              )}
+
+              {data.cashiers.all.length === 0 && (
+                <div className="p-10 text-center">
+                  <div className="flex justify-center mb-3">
+                    <div className="grid size-14 place-items-center rounded-2xl bg-primary/10 text-primary/60">
+                      <Users className="w-7 h-7" strokeWidth={1.5} />
+                    </div>
+                  </div>
+                  <p className="text-sm font-medium text-white/50">{t("analytics.noCashierData")}</p>
                 </div>
               )}
             </motion.div>

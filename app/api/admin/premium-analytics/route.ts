@@ -16,6 +16,8 @@ interface OrderRow {
   driver_id: string | null
   order_type: string | null
   order_number: string | number | null
+  cashier_id: string | null
+  cashier_name: string | null
 }
 
 interface AuditRow {
@@ -62,7 +64,7 @@ export async function GET(req: NextRequest) {
 
     // ═══ query orders WITHOUT ready_at (column may not exist) ═══
     const [ordersResult, itemsResult, auditResult, produitsResult, readyAtResult] = await Promise.allSettled([
-      sb.from("orders").select("id, status, total, created_at, driver_id, order_type, order_number")
+      sb.from("orders").select("id, status, total, created_at, driver_id, order_type, order_number, cashier_id, cashier_name")
         .gte("created_at", prevSince).limit(500).returns<OrderRow[]>(),
       sb.from("order_items").select("product_id, product_name, quantity, subtotal")
         .gte("created_at", since).limit(2000).returns<ItemRow[]>(),
@@ -274,6 +276,40 @@ export async function GET(req: NextRequest) {
       ? sortedDrivers[0]
       : null
 
+    // ── cashier aggregation ──
+    const cashierOrdersMap = new Map<string, { name: string; orders: number; cancelled: number }>()
+    for (const o of currentOrders) {
+      if (!o.cashier_id) continue
+      const cname = o.cashier_name || `كاشير #${o.cashier_id.slice(0, 6)}`
+      const entry = cashierOrdersMap.get(o.cashier_id) || { name: cname, orders: 0, cancelled: 0 }
+      entry.orders += 1
+      if (o.status === "cancelled") entry.cancelled++
+      cashierOrdersMap.set(o.cashier_id, entry)
+    }
+    const cashiers = [...cashierOrdersMap.entries()].map(([id, s]) => ({
+      id,
+      name: s.name,
+      orders: s.orders,
+      cancelled: s.cancelled,
+    }))
+    const sortedCashiers = [...cashiers].sort((a, b) => b.orders - a.orders)
+    const cashierHero = sortedCashiers.length > 0 && sortedCashiers[0].orders > 0 ? sortedCashiers[0] : null
+    const cashierMostCancelled = [...cashiers].sort((a, b) => b.cancelled - a.cancelled)[0] || null
+    const cashierAvgOrders = sortedCashiers.length > 0
+      ? Math.round(sortedCashiers.reduce((s, c) => s + c.orders, 0) / sortedCashiers.length)
+      : 0
+
+    // ── order-type breakdown (non-cancelled) ──
+    const orderTypeCount = new Map<string, number>()
+    for (const o of currentOrders) {
+      if (o.status === "cancelled") continue
+      const t = o.order_type || "unknown"
+      orderTypeCount.set(t, (orderTypeCount.get(t) || 0) + 1)
+    }
+    const orderTypeBreakdown = [...orderTypeCount.entries()].map(([type, count]) => ({ type, count }))
+    const totalActiveOrders = orderTypeBreakdown.reduce((s, ot) => s + ot.count, 0)
+    const maxOrderTypeCount = orderTypeBreakdown.length > 0 ? Math.max(...orderTypeBreakdown.map(ot => ot.count), 1) : 1
+
     const deadStockEstimate = deadStock.length * Math.round(avgTicket * 0.6)
 
     return NextResponse.json({
@@ -297,6 +333,17 @@ export async function GET(req: NextRequest) {
       drivers: {
         hero,
         all: sortedDrivers,
+      },
+      cashiers: {
+        hero: cashierHero,
+        mostCancelled: cashierMostCancelled,
+        all: sortedCashiers,
+        avgOrders: cashierAvgOrders,
+      },
+      orderTypeBreakdown: {
+        items: orderTypeBreakdown,
+        total: totalActiveOrders,
+        maxCount: maxOrderTypeCount,
       },
     })
   } catch (e) {

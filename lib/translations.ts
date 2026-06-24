@@ -338,6 +338,13 @@ export const T: Dict = {
   "analytics.drivers": { ar: "السائقون", en: "Drivers", fr: "Livreurs" },
   "analytics.activeDrivers": { ar: "سائق نشط", en: "Active driver", fr: "Chauffeur actif" },
   "analytics.driver": { ar: "السائق", en: "Driver", fr: "Livreur" },
+  "analytics.orderTypeBreakdown": { ar: "توزيع أنواع الطلبات", en: "Order Type Breakdown", fr: "Répartition par type" },
+  "analytics.total": { ar: "الإجمالي", en: "Total", fr: "Total" },
+  "analytics.cashierPerformance": { ar: "أداء الكاشير", en: "Cashier Performance", fr: "Performance du caissier" },
+  "analytics.cashier": { ar: "الكاشير", en: "Cashier", fr: "Caissier" },
+  "analytics.cashierOrders": { ar: "الطلبات", en: "Orders", fr: "Commandes" },
+  "analytics.cashierCancelled": { ar: "ملغى", en: "Cancelled", fr: "Annulé" },
+  "analytics.noCashierData": { ar: "لا توجد بيانات كاشير في هذه الفترة", en: "No cashier data this period", fr: "Aucune donnée caissier cette période" },
 
   // ── Admin Driver/Cashier Performance ────────────────
   "admin.driverPerformance": { ar: "أداء السائقين", en: "Driver Performance", fr: "Performance des livreurs" },
