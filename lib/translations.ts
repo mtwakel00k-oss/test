@@ -342,6 +342,8 @@ export const T: Dict = {
   "analytics.total": { ar: "الإجمالي", en: "Total", fr: "Total" },
   "analytics.ofTotal": { ar: "من الإجمالي", en: "of total", fr: "du total" },
   "analytics.noOrders": { ar: "بدون طلبات", en: "No orders", fr: "Aucune commande" },
+  "analytics.showMore": { ar: "عرض المزيد", en: "Show More", fr: "Afficher plus" },
+  "analytics.showLess": { ar: "عرض أقل", en: "Show Less", fr: "Afficher moins" },
   "analytics.cashierPerformance": { ar: "أداء الكاشير", en: "Cashier Performance", fr: "Performance du caissier" },
   "analytics.cashier": { ar: "الكاشير", en: "Cashier", fr: "Caissier" },
   "analytics.cashierOrders": { ar: "الطلبات", en: "Orders", fr: "Commandes" },

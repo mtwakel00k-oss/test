@@ -104,6 +104,7 @@ export function PremiumAnalytics() {
   const [period, setPeriod] = useState<Period>("30d")
   const [data, setData] = useState<PremiumAnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showAllDeadStock, setShowAllDeadStock] = useState(false)
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -311,16 +312,20 @@ export function PremiumAnalytics() {
                   </div>
                   <div className="p-5 space-y-3">
                     <div className="flex flex-wrap gap-2">
-                      {data.deadStock.slice(0, 12).map((p) => (
+                      {(showAllDeadStock ? data.deadStock : data.deadStock.slice(0, 5)).map((p) => (
                         <span key={p.name} className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-400/90 border border-amber-500/10">
                           <span className="w-1 h-1 rounded-full bg-amber-400/50" />
                           {p.name}
                         </span>
                       ))}
-                      {data.deadStock.length > 12 && (
-                        <span className="text-xs text-muted-foreground/60 self-center">+{data.deadStock.length - 12} {t("analytics.more")}</span>
-                      )}
                     </div>
+                    {data.deadStock.length > 5 && (
+                      <button onClick={() => setShowAllDeadStock(!showAllDeadStock)}
+                        className="text-xs font-semibold text-amber-400/70 hover:text-amber-400 transition-colors"
+                      >
+                        {showAllDeadStock ? t("analytics.showLess") : `${t("analytics.showMore")} (${data.deadStock.length - 5})`}
+                      </button>
+                    )}
                     <p className="text-[10px] text-amber-400/50 font-medium">{t("analytics.notOrderedRecently")}</p>
                   </div>
                 </div>
