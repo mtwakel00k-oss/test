@@ -4,7 +4,7 @@ import "./globals.css"
 import { LangProvider } from "@/lib/lang-context"
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from "@/lib/theme"
-import { Geist, Instrument_Serif } from "next/font/google";
+import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { scopeFromPath, scopedCookieKey } from "@/lib/i18n-scope";
 import { t as _t, type Lang } from "@/lib/translations";
@@ -12,12 +12,6 @@ import { OfflineDetector } from "@/components/offline-detector"
 import { SentryBoundary } from "@/components/sentry-boundary"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
-const instrumentSerif = Instrument_Serif({
-  subsets: ["latin"],
-  weight: ["400"],
-  variable: "--font-display",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://simploo.vercel.app"),
@@ -87,7 +81,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   } catch {} /* cookie unavailable during static generation */
 
   return (
-      <html suppressHydrationWarning lang={lang} dir={dir} data-locale={lang} className={cn(htmlClass, geist.variable, instrumentSerif.variable)}>
+      <html suppressHydrationWarning lang={lang} dir={dir} data-locale={lang} className={cn(htmlClass, geist.variable)}>
       <head>
         <link rel="preconnect" href="https://icefntwfwvtonkdyshde.supabase.co" crossOrigin="anonymous" />
         <link rel="manifest" href="/manifest.json" />
