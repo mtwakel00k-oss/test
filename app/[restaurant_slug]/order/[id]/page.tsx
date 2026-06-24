@@ -59,7 +59,6 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
   const [deliveryCoords, setDeliveryCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [hasLiveTracking, setHasLiveTracking] = useState(false)
   const [hasRatings, setHasRatings] = useState(false)
-  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const refreshRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const planType = useMemo(() => {
@@ -184,26 +183,6 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
   }, [id, hasLiveTracking])
 
   useEffect(() => {
-    if (!hasLiveTracking) return
-    if (pollingRef.current) clearInterval(pollingRef.current)
-    pollingRef.current = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/orders/${id}?public=true`, {
-          headers: { "x-tenant-slug": slug },
-        })
-        if (!res.ok) return
-        const data = await res.json()
-        const o: Order = data.order || data
-        if (o.driver_lat != null && o.driver_lng != null) {
-          setDriverLat(Number(o.driver_lat))
-          setDriverLng(Number(o.driver_lng))
-        }
-      } catch (e) { logger.warn("Failed to poll driver location for live tracking", e) }
-    }, 8000)
-    return () => { if (pollingRef.current) clearInterval(pollingRef.current) }
-  }, [id, slug, hasLiveTracking])
-
-  useEffect(() => {
     if (hasLiveTracking) return
     if (refreshRef.current) clearInterval(refreshRef.current)
     refreshRef.current = setInterval(async () => {
@@ -234,7 +213,6 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
     if (!navigator.geolocation) return
 
     let cancelled = false
-    let watchId: number | null = null
     let serverSent = false
 
     const updateCoords = (lat: number, lng: number) => {
@@ -256,22 +234,11 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
         navigator.geolocation.getCurrentPosition(
           (pos) => updateCoords(pos.coords.latitude, pos.coords.longitude),
           () => {},
-          { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 },
+          { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 },
         )
       },
-      { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 },
+      { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 },
     )
-
-    watchId = navigator.geolocation.watchPosition(
-      (pos) => updateCoords(pos.coords.latitude, pos.coords.longitude),
-      () => {},
-      { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 },
-    )
-
-    return () => {
-      cancelled = true
-      if (watchId !== null) navigator.geolocation.clearWatch(watchId)
-    }
   }, [order?.order_type, id])
 
   const getStage = (status: string, orderType: string): number => {

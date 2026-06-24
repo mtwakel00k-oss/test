@@ -226,23 +226,11 @@ function FoodDeliveryAppInner({ initialProducts, slug: propSlug }: { initialProd
   return (
     <ErrorBoundary>
       <div className="min-h-[100dvh] bg-background relative" dir="rtl">
-        {/* Ambient background orbs */}
+        {/* Ambient background orbs — static on mobile for perf */}
         <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
-          <motion.div
-            className="absolute -top-48 -right-48 h-[36rem] w-[36rem] rounded-full bg-primary/[0.035] blur-[140px]"
-            animate={{ scale: [1, 1.08, 1], opacity: [0.5, 0.7, 0.5] }}
-            transition={{ duration: 8, ease: "easeInOut", repeat: Infinity }}
-          />
-          <motion.div
-            className="absolute -bottom-40 -left-40 h-[30rem] w-[30rem] rounded-full bg-accent/[0.04] blur-[120px]"
-            animate={{ scale: [1, 1.12, 1], opacity: [0.35, 0.55, 0.35] }}
-            transition={{ duration: 10, ease: "easeInOut", repeat: Infinity, delay: 1 }}
-          />
-          <motion.div
-            className="absolute top-1/3 left-1/4 h-64 w-64 rounded-full bg-primary/[0.02] blur-[100px]"
-            animate={{ scale: [1, 1.15, 1], opacity: [0.25, 0.45, 0.25] }}
-            transition={{ duration: 12, ease: "easeInOut", repeat: Infinity, delay: 2 }}
-          />
+          <div className="absolute -top-48 -right-48 h-[36rem] w-[36rem] rounded-full bg-primary/[0.035] blur-[140px]" />
+          <div className="absolute -bottom-40 -left-40 h-[30rem] w-[30rem] rounded-full bg-accent/[0.04] blur-[120px]" />
+          <div className="absolute top-1/3 left-1/4 h-64 w-64 rounded-full bg-primary/[0.02] blur-[100px]" />
         </div>
 
         <AnimatePresence>
