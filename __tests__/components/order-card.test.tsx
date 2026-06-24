@@ -75,7 +75,7 @@ describe("OrderCard", () => {
   })
 
   it("shows pending indicator for new orders", () => {
-    const { container } = render(
+    render(
       <OrderCard
         order={makeOrder({ status: "pending" })}
         isSelected={false}
@@ -84,12 +84,11 @@ describe("OrderCard", () => {
         onCancel={() => {}}
       />
     )
-    const pulse = container.querySelector(".animate-pulse")
-    expect(pulse).toBeInTheDocument()
+    expect(screen.getByText(/قيد الانتظار/)).toBeInTheDocument()
   })
 
-  it("does not show pending indicator for non-pending orders", () => {
-    const { container } = render(
+  it("shows preparing status for preparing orders", () => {
+    render(
       <OrderCard
         order={makeOrder({ status: "preparing" })}
         isSelected={false}
@@ -98,8 +97,7 @@ describe("OrderCard", () => {
         onCancel={() => {}}
       />
     )
-    const pulse = container.querySelector(".animate-pulse")
-    expect(pulse).not.toBeInTheDocument()
+    expect(screen.getByText(/قيد التحضير/)).toBeInTheDocument()
   })
 
   it("shows unpaid badge for unpaid orders", () => {

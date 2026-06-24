@@ -68,21 +68,21 @@ function SkeletonCard() {
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-border/20 bg-card shadow-sm">
       <div className="aspect-[4/3] bg-gradient-to-br from-primary/[0.03] via-primary/[0.06] to-primary/[0.02] relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.05] to-transparent animate-pulse" />
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.05] to-transparent " />
       </div>
       <div className="space-y-3.5 p-5">
         <div className="flex items-center gap-2">
-          <div className="h-4 w-16 rounded-md bg-muted/30 animate-pulse" />
-          <div className="h-4 w-20 rounded-md bg-muted/20 animate-pulse" />
+          <div className="h-4 w-16 rounded-md bg-muted/30 " />
+          <div className="h-4 w-20 rounded-md bg-muted/20 " />
         </div>
-        <div className="h-5 w-2/3 rounded-lg bg-muted/30 animate-pulse" />
-        <div className="h-3 w-full rounded-md bg-muted/20 animate-pulse mt-3" />
-        <div className="h-3 w-3/4 rounded-md bg-muted/20 animate-pulse" />
+        <div className="h-5 w-2/3 rounded-lg bg-muted/30 " />
+        <div className="h-3 w-full rounded-md bg-muted/20  mt-3" />
+        <div className="h-3 w-3/4 rounded-md bg-muted/20 " />
         <div className="flex gap-2 pt-2">
-          <div className="h-7 w-14 rounded-full bg-muted/20 animate-pulse" />
-          <div className="h-7 w-16 rounded-full bg-muted/20 animate-pulse" />
+          <div className="h-7 w-14 rounded-full bg-muted/20 " />
+          <div className="h-7 w-16 rounded-full bg-muted/20 " />
         </div>
-        <div className="h-11 w-full rounded-full bg-muted/20 animate-pulse mt-4" />
+        <div className="h-11 w-full rounded-full bg-muted/20  mt-4" />
       </div>
     </div>
   )

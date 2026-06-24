@@ -165,7 +165,7 @@ export function PremiumAnalytics() {
           >
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
               {[...Array(5)].map((_, i) => (
-                <motion.div key={i} variants={springCard(i * 0.04)} className="bg-card/40 border border-white/5 rounded-2xl p-5 space-y-4 animate-pulse">
+                <motion.div key={i} variants={springCard(i * 0.04)} className="bg-card/40 border border-white/5 rounded-2xl p-5 space-y-4 ">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-primary/10" />
                     <div className="h-3 w-24 rounded-full bg-white/5" />

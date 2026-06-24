@@ -99,7 +99,7 @@ export function AppHeader({ cartItemCount, onCart, isOpen: propIsOpen }: AppHead
               transition={{ duration: 0.5, delay: 0.12, ease: [0.32, 0.72, 0, 1] }}
               className={`flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.15em] ${isOpen ? "text-success" : "text-destructive"}`}
             >
-              <span className={`size-1.5 rounded-full ${isOpen ? "bg-success" : "bg-destructive"} animate-pulse`} aria-hidden="true" />
+              <span className={`size-1.5 rounded-full ${isOpen ? "bg-success" : "bg-destructive"} `} aria-hidden="true" />
               {isOpen ? "مفتوح الآن" : "مغلق"}
             </motion.span>
           </div>

@@ -20,7 +20,7 @@ const LiveDriverMap = dynamic(() => import("@/components/live-driver-map"), { ss
 function OrderSkeleton() {
   return (
     <div className="min-h-screen bg-background">
-      <main className="w-full max-w-lg mx-auto px-4 py-8 space-y-6 animate-pulse">
+      <main className="w-full max-w-lg mx-auto px-4 py-8 space-y-6 ">
         <div className="space-y-3 text-center">
           <div className="h-5 bg-muted rounded-lg w-1/3 mx-auto" />
           <div className="h-7 bg-muted rounded-xl w-1/2 mx-auto" />

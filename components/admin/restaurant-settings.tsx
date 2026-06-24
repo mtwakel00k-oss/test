@@ -321,7 +321,7 @@ export function RestaurantSettings() {
 
         {loadingDrivers ? (
           <div className="space-y-2">
-            {[1,2].map(i => <div key={i} className="h-14 bg-muted rounded-xl animate-pulse" />)}
+            {[1,2].map(i => <div key={i} className="h-14 bg-muted rounded-xl " />)}
           </div>
         ) : drivers.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-4">
@@ -441,7 +441,7 @@ export function RestaurantSettings() {
 
         {loadingCashiers ? (
           <div className="space-y-2">
-            {[1,2].map(i => <div key={i} className="h-14 bg-muted rounded-xl animate-pulse" />)}
+            {[1,2].map(i => <div key={i} className="h-14 bg-muted rounded-xl " />)}
           </div>
         ) : cashiers.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-4">

@@ -149,7 +149,7 @@ export default function KitchenPage() {
 
           <div className="hidden md:flex items-center gap-4">
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-accent/10 border border-accent/20">
-              <Bell className="w-3.5 h-3.5 text-success animate-pulse" />
+              <Bell className="w-3.5 h-3.5 text-success " />
               <span className="text-sm text-muted-foreground">
                 <span className="font-bold text-success">{pendingOrders.length}</span> {t("kitchen.new")}
               </span>

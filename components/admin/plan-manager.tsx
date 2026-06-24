@@ -354,7 +354,7 @@ export function PlanManager() {
                         {updating[tenant.slug] ? (
                           <Loader2 className="size-3 animate-spin" />
                         ) : (
-                          <span className={`size-1.5 rounded-full ${tenant.is_active ? "bg-emerald-500 animate-pulse" : "bg-rose-500"}`} />
+                          <span className={`size-1.5 rounded-full ${tenant.is_active ? "bg-emerald-500 " : "bg-rose-500"}`} />
                         )}
                         {tenant.is_active
                           ? t("admin.active") || "Active"

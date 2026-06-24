@@ -289,7 +289,7 @@ export function AuditLog() {
             className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 space-y-4"
           >
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-11 rounded-xl bg-white/[0.04] animate-pulse" />
+              <div key={i} className="h-11 rounded-xl bg-white/[0.04] " />
             ))}
           </motion.div>
         ) : paginated.length === 0 ? (

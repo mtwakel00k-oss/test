@@ -99,7 +99,7 @@ const OrderCardInner = memo(function OrderCardInner({
           <div className="flex-1 min-w-0 space-y-3.5">
             <div className="flex items-center gap-2 flex-wrap">
               <span className={cn("inline-flex items-center gap-2 px-3 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wider", s.badge)}>
-                <span className={cn("size-1.5 rounded-full", s.dot, order.status === "pending" && "animate-pulse")} />
+                <span className={cn("size-1.5 rounded-full", s.dot, order.status === "pending" && "")} />
                 {t(`pos.${s.label}`)}
               </span>
               <span className={cn("inline-flex px-3 py-1 rounded-xl text-[10px] font-bold",

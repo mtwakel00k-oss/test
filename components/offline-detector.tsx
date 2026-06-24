@@ -30,7 +30,7 @@ export function OfflineDetector() {
           : "bg-emerald-600 text-white"
       )}
     >
-      <span className={cn("w-2 h-2 rounded-full", offline ? "bg-white/80 animate-pulse" : "bg-white/80")} />
+      <span className={cn("w-2 h-2 rounded-full", offline ? "bg-white/80 " : "bg-white/80")} />
       {offline ? "أنت غير متصل — بعض الميزات قد لا تعمل" : "تمت استعادة الاتصال"}
     </div>
   )

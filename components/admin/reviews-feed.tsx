@@ -76,7 +76,7 @@ export function ReviewsFeed({ reviews }: ReviewsFeedProps) {
               {t("admin.reviews")}
               {items.length > 0 && (
                 <span className="flex items-center gap-1.5 bg-emerald-500/10 px-2 py-1 rounded-lg">
-                  <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="size-1.5 rounded-full bg-emerald-500 " />
                   <span className="text-[9px] text-emerald-600 font-black uppercase tracking-widest">{t("common.live")}</span>
                 </span>
               )}

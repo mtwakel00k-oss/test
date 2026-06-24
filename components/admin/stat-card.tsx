@@ -34,7 +34,7 @@ export function StatCard({ title, value, change, icon, trend, suffix, isLive }: 
                   <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/70">{title}</p>
                   {isLive && (
                     <span className="mt-1 flex items-center gap-1.5 text-[10px] font-medium text-emerald-500">
-                      <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="size-1.5 rounded-full bg-emerald-500 " />
                       {t("common.live")}
                     </span>
                   )}

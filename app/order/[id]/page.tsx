@@ -42,7 +42,7 @@ export default function OrderRedirectPage() {
       {status === "loading" && (
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center w-16 h-16 mx-auto rounded-2xl bg-card border border-border shadow-sm">
-            <Search className="w-6 h-6 text-muted-foreground animate-pulse" />
+            <Search className="w-6 h-6 text-muted-foreground " />
           </div>
           <p className="text-sm text-muted-foreground">Searching for your order...</p>
         </div>

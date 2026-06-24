@@ -16,31 +16,31 @@ import { TopProducts } from "@/components/admin/top-products"
 import { TenantSidebar } from "@/components/admin/tenant-sidebar"
 
 const SalesChart = dynamic(() => import("@/components/admin/sales-chart").then(m => ({ default: m.SalesChart })), {
-  loading: () => <div className="h-72 rounded-2xl bg-white/5 animate-pulse" />,
+  loading: () => <div className="h-72 rounded-2xl bg-white/5 " />,
 })
 const PeakHoursChart = dynamic(() => import("@/components/admin/peak-hours-chart").then(m => ({ default: m.PeakHoursChart })), {
-  loading: () => <div className="h-72 rounded-2xl bg-white/5 animate-pulse" />,
+  loading: () => <div className="h-72 rounded-2xl bg-white/5 " />,
 })
 const RestaurantSettings = dynamic(() => import("@/components/admin/restaurant-settings").then(m => ({ default: m.RestaurantSettings })), { ssr: false })
 const ProductManager = dynamic(() => import("@/components/admin/product-manager").then(m => ({ default: m.ProductManager })), {
   ssr: false,
-  loading: () => <div className="h-96 rounded-2xl bg-white/5 animate-pulse" />,
+  loading: () => <div className="h-96 rounded-2xl bg-white/5 " />,
 })
 const OrdersList = dynamic(() => import("@/components/admin/orders-list").then(m => ({ default: m.OrdersList })), {
   ssr: false,
-  loading: () => <div className="h-96 rounded-2xl bg-white/5 animate-pulse" />,
+  loading: () => <div className="h-96 rounded-2xl bg-white/5 " />,
 })
 const OrderDetailSheet = dynamic(() => import("@/components/admin/order-detail-sheet").then(m => ({ default: m.OrderDetailSheet })))
 const ClearData = dynamic(() => import("@/components/admin/clear-data").then(m => ({ default: m.ClearData })))
 const PlanManager = dynamic(() => import("@/components/admin/plan-manager").then(m => ({ default: m.PlanManager })))
 const EarningsOverview = dynamic(() => import("@/components/admin/earnings-overview").then(m => ({ default: m.EarningsOverview })), {
-  loading: () => <div className="h-48 rounded-2xl bg-white/5 animate-pulse" />,
+  loading: () => <div className="h-48 rounded-2xl bg-white/5 " />,
 })
 const AuditLog = dynamic(() => import("@/components/admin/audit-log").then(m => ({ default: m.AuditLog })), {
-  loading: () => <div className="h-96 rounded-2xl bg-white/5 animate-pulse" />,
+  loading: () => <div className="h-96 rounded-2xl bg-white/5 " />,
 })
 const PremiumAnalytics = dynamic(() => import("@/components/admin/premium-analytics").then(m => ({ default: m.PremiumAnalytics })), {
-  loading: () => <div className="h-96 rounded-2xl bg-white/5 animate-pulse" />,
+  loading: () => <div className="h-96 rounded-2xl bg-white/5 " />,
 })
 
 type Period = "7d" | "30d" | "6m" | "12m"
@@ -257,9 +257,9 @@ export default function AdminPage() {
   return (
     <div className="admin-surface" dir={dir}>
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-0" aria-hidden="true">
-        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-primary/10 blur-[120px] animate-orb" />
-        <div className="absolute top-1/3 -left-40 w-[400px] h-[400px] rounded-full bg-accent/8 blur-[100px] animate-orb" style={{ animationDelay: "-6s" }} />
-        <div className="absolute -bottom-40 left-1/3 w-[600px] h-[600px] rounded-full bg-primary/8 blur-[150px] animate-orb" style={{ animationDelay: "-12s" }} />
+        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-primary/10 blur-[120px]" />
+        <div className="absolute top-1/3 -left-40 w-[400px] h-[400px] rounded-full bg-accent/8 blur-[100px]" />
+        <div className="absolute -bottom-40 left-1/3 w-[600px] h-[600px] rounded-full bg-primary/8 blur-[150px]" />
       </div>
 
       <motion.header
@@ -359,7 +359,7 @@ export default function AdminPage() {
                 {loadingStats ? (
                   <>
                     {[...Array(5)].map((_, i) => (
-                      <motion.div key={i} variants={springCard(i * 0.04)} className="bg-card/40 border border-white/5 rounded-2xl p-5 space-y-4 animate-pulse">
+                      <motion.div key={i} variants={springCard(i * 0.04)} className="bg-card/40 border border-white/5 rounded-2xl p-5 space-y-4 ">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-xl bg-primary/10" />
                           <div className="h-3 w-24 rounded-full bg-white/5" />

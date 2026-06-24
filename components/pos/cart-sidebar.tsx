@@ -64,7 +64,7 @@ export function CartSidebar({
           <div className="flex flex-col">
             <h2 className="text-sm font-black text-foreground tracking-tight leading-none mb-1">{t("pos.newOrderTitle")}</h2>
             <div className="flex items-center gap-1.5">
-              <span className="size-1.5 rounded-full bg-primary animate-pulse" />
+              <span className="size-1.5 rounded-full bg-primary " />
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{itemCount} {t("pos.items")}</p>
             </div>
           </div>

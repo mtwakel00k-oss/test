@@ -81,7 +81,7 @@ function RealDashboardMockup() {
               <span className="text-xs font-bold text-foreground">نظرة عامة</span>
               <div className="flex items-center gap-2">
                 <span className="rounded-md bg-amber-500/15 px-2 py-0.5 text-[8px] font-medium text-amber-400">آخر 7 أيام</span>
-                <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="size-2 rounded-full bg-emerald-500 " />
               </div>
             </div>
 
