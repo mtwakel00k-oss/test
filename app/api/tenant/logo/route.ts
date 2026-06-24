@@ -92,7 +92,7 @@ export async function PATCH(req: NextRequest) {
     const supabase = getSupabase()
     if (!supabase) return NextResponse.json({ error: "Server config error" }, { status: 500 })
 
-    let { error } = await (supabase.from("tenants") as unknown as { update: (u: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<{ error: { message: string } | null }> } }).update(updates).eq("slug", slug)
+    const { error } = await (supabase.from("tenants") as unknown as { update: (u: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<{ error: { message: string } | null }> } }).update(updates).eq("slug", slug)
     if (error?.message?.includes("does not exist") && typeof body.is_open === "boolean") {
       logger.warn("Tenant PATCH column missing, falling back to storage", error)
       const ok = await writeIsOpenToStorage(slug, body.is_open)

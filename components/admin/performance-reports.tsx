@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback, useMemo } from "react"
+import { useEffect, useState, useCallback, useMemo, startTransition } from "react"
 import { fetchApi } from "@/lib/tenant"
 import { useTranslation } from "@/lib/use-translation"
 import { motion, AnimatePresence } from "framer-motion"
@@ -74,15 +74,6 @@ function BikeIcon({ className }: { className?: string }) {
       <polyline points="9 11 11 8 15 8 18 12" />
       <line x1="5.5" y1="17.5" x2="8" y2="12" />
       <line x1="18" y1="17.5" x2="15" y2="12" />
-    </svg>
-  )
-}
-
-function ClockIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
     </svg>
   )
 }
@@ -165,9 +156,27 @@ export function PerformanceReports() {
   const fetchReports = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetchApi(`/api/admin/reports?period=${PERIOD_TO_API[period]}`)
+      const res = await fetchApi(`/api/admin/premium-analytics?period=${PERIOD_TO_API[period]}`)
       if (!res.ok) return null
-      return await res.json() as ReportsData
+      const raw = await res.json()
+      // Adapt premium-analytics shape to reports shape
+      const adapted: ReportsData = {
+        kitchen: {
+          avgPrepTimeMinutes: raw.kitchenRedZone?.avgPrepTime ?? null,
+          ordersTracked: raw.kitchenRedZone?.totalTracked ?? 0,
+          totalOrders: raw.kitchenRedZone?.totalOrders ?? 0,
+          statusDistribution: [],
+        },
+        delivery: {
+          drivers: (raw.drivers?.all || []).map((d: { name: string; completedOrders: number; avgTransitTime: number | null }) => ({
+            name: d.name,
+            completedOrders: d.completedOrders,
+            avgTransitTimeMinutes: d.avgTransitTime,
+            ordersTracked: d.completedOrders,
+          })),
+        },
+      }
+      return adapted
     } catch {
       return null
     } finally {
@@ -175,7 +184,8 @@ export function PerformanceReports() {
     }
   }, [period])
 
-  useEffect(() => { fetchReports().then(setData) }, [fetchReports])
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { fetchReports().then(data => startTransition(() => setData(data))) }, [fetchReports])
 
   const periods: { key: Period; label: string }[] = useMemo(() => [
     { key: "day", label: t("admin.today") || "اليوم" },

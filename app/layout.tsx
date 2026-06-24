@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/lib/theme"
 import { Geist, Instrument_Serif } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { scopeFromPath, scopedCookieKey } from "@/lib/i18n-scope";
+import { t as _t, type Lang } from "@/lib/translations";
 import { OfflineDetector } from "@/components/offline-detector"
 import { SentryBoundary } from "@/components/sentry-boundary"
 
@@ -59,7 +60,7 @@ export const metadata: Metadata = {
   }
 }
 
-async function getLang(): Promise<"ar" | "en" | "fr"> {
+async function getLang(): Promise<Lang> {
   try {
     const c = await cookies()
     const h = await headers()
@@ -116,7 +117,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className="antialiased bg-background text-foreground font-sans">
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-lg focus:outline-none">
-          تخطي إلى المحتوى الرئيسي
+          {_t("common.skipToContent", lang)}
         </a>
         <div id="bg-orbs" aria-hidden="true" className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
           <div className="orb-1 absolute rounded-full" />

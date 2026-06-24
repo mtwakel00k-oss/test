@@ -206,7 +206,7 @@ function OrderDetailPanel({ orderId, onOrderUpdated }: { orderId: string | null;
         ) : loading ? (
           <div className="flex flex-col items-center justify-center py-24">
             <div className="size-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-4" />
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">{t("common.loading") || "جاري التحميل..."}</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">{t("common.loading")}</p>
           </div>
         ) : !order ? (
           <div className="flex flex-col items-center justify-center py-24 text-muted-foreground/30">

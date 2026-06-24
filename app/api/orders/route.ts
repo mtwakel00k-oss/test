@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabaseForRequest, isTenantMismatch, parseSession, getTenantConfig, getIsOpen } from "@/lib/tenant"
+import { supabaseForRequest, isTenantMismatch, parseSession, getIsOpen } from "@/lib/tenant"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 import { logAudit } from "@/lib/audit"

@@ -38,9 +38,6 @@ const EarningsOverview = dynamic(() => import("@/components/admin/earnings-overv
 const AuditLog = dynamic(() => import("@/components/admin/audit-log").then(m => ({ default: m.AuditLog })), {
   loading: () => <div className="h-96 rounded-2xl bg-white/5 animate-pulse" />,
 })
-const PerformanceReports = dynamic(() => import("@/components/admin/performance-reports").then(m => ({ default: m.PerformanceReports })), {
-  loading: () => <div className="h-96 rounded-2xl bg-white/5 animate-pulse" />,
-})
 const PremiumAnalytics = dynamic(() => import("@/components/admin/premium-analytics").then(m => ({ default: m.PremiumAnalytics })), {
   loading: () => <div className="h-96 rounded-2xl bg-white/5 animate-pulse" />,
 })
@@ -157,15 +154,23 @@ export default function AdminPage() {
   useEffect(() => {
     const cfg = (window as unknown as Record<string, unknown>).__TENANT_CONFIG__ as { is_open?: boolean; plan_type?: string } | undefined
     if (cfg) {
-      if (typeof cfg.is_open === "boolean") setIsOpen(cfg.is_open)
+      if (typeof cfg.is_open === "boolean") { const v = cfg.is_open; startTransition(() => setIsOpen(v)) }
       if (cfg.plan_type) {
-        setPlanType(cfg.plan_type)
-        if (cfg.plan_type === "starter" && (premiumTabs as readonly string[]).includes(adminTab)) {
-          setAdminTab("overview")
+        const pt = cfg.plan_type; startTransition(() => setPlanType(pt))
+        if (cfg.plan_type === "starter" && adminTab !== "overview") {
+          startTransition(() => setAdminTab("overview"))
         }
       }
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const isBasic = planType === "starter"
+  const adminTabs = useMemo(() => {
+    const premiumTabs = ["audit", "analytics"] as const
+    const all = ["overview", "products", "orders", "audit", "analytics"] as const
+    if (isBasic) return all.filter(t => !(premiumTabs as readonly string[]).includes(t))
+    return all
+  }, [isBasic])
 
   const toggleOpen = useCallback(async () => {
     const next = !isOpen
@@ -248,14 +253,6 @@ export default function AdminPage() {
     )
   }
 
-  const premiumTabs = ["audit", "reports", "analytics"] as const
-  const isBasic = planType === "starter"
-  const adminTabs = useMemo(() => {
-    const all = ["overview", "products", "orders", "audit", "reports", "analytics"] as const
-    if (isBasic) return all.filter(t => !(premiumTabs as readonly string[]).includes(t))
-    return all
-  }, [isBasic])
-
   return (
     <div className="admin-surface" dir={dir}>
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-0" aria-hidden="true">
@@ -300,7 +297,7 @@ export default function AdminPage() {
               }`}
             >
               {isOpen ? <DoorOpen className="w-3.5 h-3.5" /> : <DoorClosed className="w-3.5 h-3.5" />}
-              <span className="hidden sm:inline">{isOpen ? "مفتوح" : "مغلق"}</span>
+              <span className="hidden sm:inline">{isOpen ? t("admin.open") : t("admin.closed")}</span>
             </button>
             <ThemeToggle />
             <LanguageSwitcher />
@@ -329,7 +326,7 @@ export default function AdminPage() {
                   />
                 )}
                 <span className={`relative ${adminTab === tab ? "text-accent" : "text-white/40 hover:text-white/70"}`}>
-                  {tab === "overview" ? t("admin.overview") : tab === "products" ? t("admin.products") : tab === "orders" ? t("admin.orders") : tab === "audit" ? t("admin.audit") : tab === "reports" ? t("admin.reports") || "التقارير" : "التحليلات المتقدمة"}
+                  {tab === "overview" ? t("admin.overview") : tab === "products" ? t("admin.products") : tab === "orders" ? t("admin.orders") : tab === "audit" ? t("admin.audit") : t("analytics.premiumAnalytics")}
                 </span>
               </button>
             ))}
@@ -539,16 +536,6 @@ export default function AdminPage() {
               transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             >
               <OrdersList onViewOrder={handleViewOrder} />
-            </motion.div>
-          ) : adminTab === "reports" ? (
-            <motion.div
-              key="reports"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <PerformanceReports />
             </motion.div>
           ) : adminTab === "analytics" ? (
             <motion.div

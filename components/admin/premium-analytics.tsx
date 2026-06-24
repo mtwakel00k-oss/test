@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useState, useCallback, useMemo } from "react"
+import { useEffect, useState, useCallback, useMemo, startTransition } from "react"
 import { fetchApi } from "@/lib/tenant"
 import { motion, AnimatePresence } from "framer-motion"
+import { useTranslation } from "@/lib/use-translation"
 
 type Period = "7d" | "30d" | "6m" | "12m"
 
@@ -53,18 +54,11 @@ interface PremiumAnalyticsData {
   drivers: Drivers
 }
 
-const PERIOD_LABELS: Record<Period, string> = {
-  "7d": "آخر 7 أيام",
-  "30d": "آخر 30 يوم",
-  "6m": "آخر 6 أشهر",
-  "12m": "آخر سنة",
-}
-
-const ORDER_TYPE_LABELS: Record<string, string> = {
-  dine_in: "داخلي",
-  takeaway: "استلام",
-  delivery: "توصيل",
-  unknown: "غير معروف",
+const ORDER_TYPE_KEYS: Record<string, string> = {
+  dine_in: "order.type.dineIn",
+  takeaway: "order.type.takeaway",
+  delivery: "order.type.delivery",
+  unknown: "order.type.unknown",
 }
 
 const springTransition = { type: "spring" as const, stiffness: 90, damping: 16 }
@@ -173,17 +167,8 @@ function BarChartIcon({ className }: { className?: string }) {
   )
 }
 
-const springCard = (delay: number) => ({
-  initial: { opacity: 0, y: 24 },
-  animate: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 70, damping: 16, delay } },
-})
-
-const springRow = (delay: number) => ({
-  initial: { opacity: 0, x: -8 },
-  animate: { opacity: 1, x: 0, transition: { type: "spring" as const, stiffness: 90, damping: 18, delay } },
-})
-
 export function PremiumAnalytics() {
+  const { t, dir } = useTranslation()
   const [period, setPeriod] = useState<Period>("30d")
   const [data, setData] = useState<PremiumAnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -201,16 +186,22 @@ export function PremiumAnalytics() {
     }
   }, [period])
 
-  useEffect(() => { fetchData().then(setData) }, [fetchData])
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { fetchData().then(data => startTransition(() => setData(data))) }, [fetchData])
 
   const periods: { key: Period; label: string }[] = useMemo(() => [
-    { key: "7d", label: PERIOD_LABELS["7d"] },
-    { key: "30d", label: PERIOD_LABELS["30d"] },
-    { key: "6m", label: PERIOD_LABELS["6m"] },
-    { key: "12m", label: PERIOD_LABELS["12m"] },
-  ], [])
+    { key: "7d", label: t("period.7d") },
+    { key: "30d", label: t("period.30d") },
+    { key: "6m", label: t("period.6m") },
+    { key: "12m", label: t("period.12m") },
+  ], [t])
 
   const fmtNum = (n: number) => n.toLocaleString("en-US")
+
+  const orderTypeLabel = useCallback((type: string): string => {
+    const key = ORDER_TYPE_KEYS[type]
+    return key ? t(key) : type
+  }, [t])
 
   const maxCancelCount = useMemo(() => {
     if (!data?.cancellations.byOrderType.length) return 1
@@ -218,7 +209,7 @@ export function PremiumAnalytics() {
   }, [data])
 
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-6" dir={dir}>
       <div className="flex w-fit items-center gap-1 rounded-full border border-white/6 bg-white/[0.03] p-0.5 backdrop-blur-sm">
         {periods.map((p) => (
           <button key={p.key} onClick={() => setPeriod(p.key)}
@@ -271,14 +262,14 @@ export function PremiumAnalytics() {
                 <div className="grid size-10 place-items-center rounded-xl bg-neutral-500/15 text-neutral-300">
                   <BarChartIcon className="w-5 h-5" />
                 </div>
-                <h3 className="font-display text-base font-semibold text-foreground">المؤشرات المالية</h3>
+                <h3 className="font-display text-base font-semibold text-foreground">{t("analytics.financialInsights")}</h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">متوسط قيمة الطلب</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t("analytics.avgTicket")}</p>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold tracking-tight text-foreground tabular-nums">{fmtNum(data.avgTicket.value)} د.ج</span>
+                    <span className="text-3xl font-bold tracking-tight text-foreground tabular-nums">{fmtNum(data.avgTicket.value)} {t("pos.currency")}</span>
                     {data.avgTicket.change !== 0 && (
                       <span className={`flex items-center gap-1 text-xs font-semibold ${data.avgTicket.change > 0 ? "text-emerald-400" : "text-rose-400"}`}>
                         {data.avgTicket.change > 0 ? <TrendingUpIcon className="w-3 h-3" /> : <TrendingDownIcon className="w-3 h-3" />}
@@ -286,24 +277,24 @@ export function PremiumAnalytics() {
                       </span>
                     )}
                   </div>
-                  <p className="text-[10px] text-muted-foreground/60">مقارنة بالفترة السابقة</p>
+                  <p className="text-[10px] text-muted-foreground/60">{t("analytics.compPrevPeriod")}</p>
                 </div>
 
                 <div className="space-y-2">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">الإلغاءات</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t("analytics.cancellations")}</p>
                   <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-bold tracking-tight text-foreground tabular-nums">{fmtNum(data.cancellations.total)}</span>
                     <span className="text-xs font-medium text-rose-400/80">{data.cancellations.rate}%</span>
                   </div>
-                  <p className="text-[10px] text-muted-foreground/60">خسارة {fmtNum(data.cancellations.value)} د.ج</p>
+                  <p className="text-[10px] text-muted-foreground/60">{t("analytics.loss")} {fmtNum(data.cancellations.value)} {t("pos.currency")}</p>
                 </div>
 
                 <div className="space-y-2">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">المنتجات الراكدة</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t("analytics.deadStock")}</p>
                   <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-bold tracking-tight text-foreground tabular-nums">{fmtNum(data.deadStock.length)}</span>
                   </div>
-                  <p className="text-[10px] text-muted-foreground/60">بدون طلبات في هذه الفترة</p>
+                  <p className="text-[10px] text-muted-foreground/60">{t("analytics.noOrdersInPeriod")}</p>
                 </div>
               </div>
             </div>
@@ -318,7 +309,7 @@ export function PremiumAnalytics() {
                   <div className="grid size-8 place-items-center rounded-xl bg-amber-500/15 text-amber-400">
                     <PackageXIcon className="w-4 h-4" />
                   </div>
-                  <h4 className="font-display text-sm font-semibold text-foreground">منتجات لم تطلب مؤخراً</h4>
+                  <h4 className="font-display text-sm font-semibold text-foreground">{t("analytics.deadStockDetail")}</h4>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {data.deadStock.slice(0, 10).map((p) => (
@@ -328,10 +319,10 @@ export function PremiumAnalytics() {
                     </span>
                   ))}
                   {data.deadStock.length > 10 && (
-                    <span className="text-xs text-muted-foreground/60 self-center">+{data.deadStock.length - 10} أخرى</span>
+                    <span className="text-xs text-muted-foreground/60 self-center">+{data.deadStock.length - 10} {t("analytics.more")}</span>
                   )}
                 </div>
-                <p className="text-[10px] text-amber-400/50 font-medium">لم يتم طلبها مؤخراً — فكر في إزالتها</p>
+                <p className="text-[10px] text-amber-400/50 font-medium">{t("analytics.notOrderedRecently")}</p>
               </div>
             )}
 
@@ -345,13 +336,13 @@ export function PremiumAnalytics() {
                   <div className="grid size-8 place-items-center rounded-xl bg-rose-500/15 text-rose-400">
                     <ShieldAlertIcon className="w-4 h-4" />
                   </div>
-                  <h4 className="font-display text-sm font-semibold text-foreground">تحليل الإلغاءات حسب النوع</h4>
+                  <h4 className="font-display text-sm font-semibold text-foreground">{t("analytics.cancelByType")}</h4>
                 </div>
                 <div className="space-y-3">
                   {data.cancellations.byOrderType.map((c) => (
                     <div key={c.type} className="space-y-1.5">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="font-medium text-foreground">{ORDER_TYPE_LABELS[c.type] || c.type}</span>
+                        <span className="font-medium text-foreground">{orderTypeLabel(c.type)}</span>
                         <span className="font-semibold text-foreground tabular-nums">{fmtNum(c.count)}</span>
                       </div>
                       <div className="h-2 rounded-full bg-white/5 overflow-hidden">
@@ -376,8 +367,8 @@ export function PremiumAnalytics() {
                   <TimerOffIcon className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-display text-base font-semibold text-foreground">المنطقة الحمراء — المطبخ</h3>
-                  <p className="text-[10px] text-muted-foreground">الطلبات التي تجاوزت 30 دقيقة تحضيراً</p>
+                  <h3 className="font-display text-base font-semibold text-foreground">{t("analytics.kitchenRedZone")}</h3>
+                  <p className="text-[10px] text-muted-foreground">{t("analytics.ordersExceeding30")}</p>
                 </div>
               </div>
 
@@ -386,14 +377,14 @@ export function PremiumAnalytics() {
                   {fmtNum(data.kitchenRedZone.count)}
                 </span>
                 <span className="text-sm font-medium text-muted-foreground">
-                  من أصل {fmtNum(data.kitchenRedZone.totalTracked)} طلب متتبع
+                  {t("analytics.outOf")} {fmtNum(data.kitchenRedZone.totalTracked)} {t("analytics.trackedOrders")}
                 </span>
               </div>
 
               {data.kitchenRedZone.count > 0 && (
                 <div className="flex items-center gap-2 text-destructive">
                   <AlertTriangleIcon className="w-4 h-4" />
-                  <span className="text-sm font-semibold">طلبات تجاوزت 30 دقيقة — راجع كفاءة المطبخ</span>
+                  <span className="text-sm font-semibold">{t("analytics.redZoneWarning")}</span>
                 </div>
               )}
 
@@ -402,7 +393,7 @@ export function PremiumAnalytics() {
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
-                  <span className="text-sm font-medium">لا توجد طلبات في المنطقة الحمراء — أداء ممتاز</span>
+                  <span className="text-sm font-medium">{t("analytics.noRedZone")}</span>
                 </div>
               )}
             </div>
@@ -414,7 +405,7 @@ export function PremiumAnalytics() {
             >
               <div className="px-5 py-3.5 border-b border-white/5 flex items-center gap-2.5">
                 <span className="w-1 h-1 rounded-full bg-neutral-400/60" />
-                <h3 className="font-display text-sm font-semibold text-white/80">ترتيب السائقين</h3>
+                <h3 className="font-display text-sm font-semibold text-white/80">{t("analytics.driverRankings")}</h3>
               </div>
 
               {data.drivers.hero && (
@@ -427,9 +418,9 @@ export function PremiumAnalytics() {
                       <div className="flex items-center gap-2">
                         <span className="font-display text-sm font-bold text-foreground">{data.drivers.hero.name}</span>
                         <CrownIcon className="w-4 h-4 text-amber-400" />
-                        <span className="text-[10px] font-semibold text-amber-400/70">بطل التوصيل</span>
+                        <span className="text-[10px] font-semibold text-amber-400/70">{t("analytics.deliveryHero")}</span>
                       </div>
-                      <p className="text-xs text-muted-foreground/80 mt-0.5">{fmtNum(data.drivers.hero.completedOrders)} طلب مكتمل</p>
+                      <p className="text-xs text-muted-foreground/80 mt-0.5">{fmtNum(data.drivers.hero.completedOrders)} {t("analytics.completedOrders")}</p>
                     </div>
                   </div>
                 </div>
@@ -440,9 +431,9 @@ export function PremiumAnalytics() {
                   <thead>
                     <tr className="border-b border-white/5">
                       <th className="text-right px-5 py-3 text-neutral-400 font-medium text-[10px] uppercase tracking-wider">#</th>
-                      <th className="text-right px-5 py-3 text-neutral-400 font-medium text-[10px] uppercase tracking-wider">السائق</th>
-                      <th className="text-center px-5 py-3 text-neutral-400 font-medium text-[10px] uppercase tracking-wider">مكتمل</th>
-                      <th className="text-center px-5 py-3 text-neutral-400 font-medium text-[10px] uppercase tracking-wider">الطلبات المرتجعة</th>
+                      <th className="text-right px-5 py-3 text-neutral-400 font-medium text-[10px] uppercase tracking-wider">{t("analytics.driver")}</th>
+                      <th className="text-center px-5 py-3 text-neutral-400 font-medium text-[10px] uppercase tracking-wider">{t("analytics.completed")}</th>
+                      <th className="text-center px-5 py-3 text-neutral-400 font-medium text-[10px] uppercase tracking-wider">{t("analytics.cancelled")}</th>
                     </tr>
                   </thead>
                   <motion.tbody initial="initial" animate="animate">
@@ -470,7 +461,7 @@ export function PremiumAnalytics() {
                             <div>
                               <span className="font-medium text-white/80 text-sm">{d.name}</span>
                               {i === 0 && data.drivers.hero && (
-                                <span className="mr-2 text-[10px] text-amber-400/60 font-semibold">البطل</span>
+                                <span className="mr-2 text-[10px] text-amber-400/60 font-semibold">{t("analytics.hero")}</span>
                               )}
                             </div>
                           </div>
@@ -496,7 +487,7 @@ export function PremiumAnalytics() {
                       <BikeIcon className="w-7 h-7" />
                     </div>
                   </div>
-                  <p className="text-sm font-medium text-white/50">لا توجد بيانات سائقين في هذه الفترة</p>
+                  <p className="text-sm font-medium text-white/50">{t("analytics.noDriverData")}</p>
                 </div>
               )}
             </div>
@@ -509,10 +500,12 @@ export function PremiumAnalytics() {
             exit={{ opacity: 0 }}
             className="text-center py-12"
           >
-            <p className="text-sm text-white/40">لا توجد بيانات متاحة</p>
+            <p className="text-sm text-white/40">{t("analytics.noData")}</p>
           </motion.div>
         )}
       </AnimatePresence>
     </div>
   )
 }
+
+export default PremiumAnalytics

@@ -220,6 +220,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     const updateData: Record<string, unknown> = {}
     if (status) updateData.status = status
+    if (status === "ready") {
+      updateData.ready_at = new Date().toISOString()
+    }
     if (payment_status) updateData.payment_status = payment_status
     if (driver_id !== undefined) updateData.driver_id = driver_id
 

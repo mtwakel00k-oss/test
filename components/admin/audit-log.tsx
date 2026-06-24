@@ -8,72 +8,11 @@ import { useTranslation } from "@/lib/use-translation"
 import { motion, AnimatePresence } from "framer-motion"
 import type { AuditLogRow } from "@/app/api/admin/audit-log/route"
 
-const TABLE_LABELS: Record<string, string> = {
-  all: "الكل",
-  orders: "الطلبات",
-  produits: "المنتجات",
-  categories: "الأقسام",
-  tenants: "إعدادات المطعم",
-  order_items: "عناصر الطلب",
-}
-
-const ACTION_LABELS: Record<string, string> = {
-  all: "الكل",
-  INSERT: "إضافة",
-  UPDATE: "تعديل",
-  DELETE: "حذف",
-  TOGGLE_RESTAURANT_STATUS: "تغيير حالة المطعم",
-}
-
 const OPERATION_STYLES: Record<string, string> = {
   INSERT: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
   UPDATE: "text-neutral-300 bg-neutral-500/10 border-neutral-500/20",
   DELETE: "text-rose-400 bg-rose-500/10 border-rose-500/20",
   TOGGLE_RESTAURANT_STATUS: "text-amber-400 bg-amber-500/10 border-amber-500/20",
-}
-
-const ROLE_LABELS: Record<string, { label: string; icon: React.ReactNode }> = {
-  owner: {
-    label: "المدير",
-    icon: <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>,
-  },
-  admin: {
-    label: "المدير",
-    icon: <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>,
-  },
-  cashier: {
-    label: "الكاشير",
-    icon: <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>,
-  },
-  driver: {
-    label: "سائق التوصيل",
-    icon: <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="5.5" cy="17.5" r="3.5" /><circle cx="18.5" cy="17.5" r="3.5" /><line x1="15" y1="9" x2="19" y2="9" /><polyline points="9 17 9 5 3 5" /><path d="M3 5l4 4 3-4" /></svg>,
-  },
-  customer: {
-    label: "الزبون",
-    icon: <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>,
-  },
-}
-
-const KEY_LABELS: Record<string, string> = {
-  nom: "اسم المنتج",
-  name: "الاسم",
-  description: "الوصف",
-  price: "السعر",
-  image_url: "رابط الصورة",
-  categorie_id: "رقم القسم",
-  sizesCount: "عدد الأحجام",
-  is_open: "حالة المطعم",
-  is_available: "التوفر في المنيو",
-  status: "الحالة",
-  total: "الإجمالي",
-  order_type: "نوع الطلب",
-  order_number: "رقم الطلب",
-  customer_name: "اسم العميل",
-  itemCount: "عدد العناصر",
-  action: "الإجراء",
-  driver_id: "رقم السائق",
-  cashier_id: "رقم الكاشير",
 }
 
 function formatDateTime(iso: string) {
@@ -90,10 +29,6 @@ function getOperationKey(row: AuditLogRow): string {
   return row.operation
 }
 
-function getActionLabel(row: AuditLogRow): string {
-  return ACTION_LABELS[getOperationKey(row)] || row.operation
-}
-
 function parseData(raw: unknown): Record<string, unknown> {
   if (!raw) return {}
   if (typeof raw === "string") { try { return JSON.parse(raw) } catch { return {} } }
@@ -101,89 +36,143 @@ function parseData(raw: unknown): Record<string, unknown> {
   return {}
 }
 
-function renderValue(key: string, val: unknown): { text: string; color: string } {
-  if (val === null || val === undefined || val === "") return { text: "—", color: "text-neutral-600" }
-
-  if (key === "is_open") {
-    return val === true
-      ? { text: "مفتوح", color: "text-emerald-400" }
-      : { text: "مغلق", color: "text-rose-400" }
-  }
-
-  if (key === "is_available") {
-    return val === true
-      ? { text: "متاح", color: "text-emerald-400" }
-      : { text: "غير متاح", color: "text-rose-400" }
-  }
-
-  if (key === "status") {
-    const statusMap: Record<string, { text: string; color: string }> = {
-      pending: { text: "قيد الانتظار", color: "text-amber-400" },
-      confirmed: { text: "مؤكد", color: "text-emerald-400" },
-      preparing: { text: "قيد التحضير", color: "text-sky-400" },
-      ready: { text: "جاهز", color: "text-emerald-400" },
-      out_for_delivery: { text: "قيد التوصيل", color: "text-blue-400" },
-      delivered: { text: "تم التوصيل", color: "text-emerald-400" },
-      completed: { text: "مكتمل", color: "text-emerald-400" },
-      cancelled: { text: "ملغي", color: "text-rose-400" },
-    }
-    const sv = String(val).toLowerCase()
-    return statusMap[sv] || { text: String(val), color: "text-neutral-300" }
-  }
-
-  if (typeof val === "boolean") {
-    return val
-      ? { text: "نعم", color: "text-emerald-400" }
-      : { text: "لا", color: "text-rose-400" }
-  }
-
-  if (typeof val === "number") {
-    return { text: val.toLocaleString("ar-DZ"), color: "text-neutral-100" }
-  }
-
-  return { text: String(val), color: "text-neutral-100" }
-}
-
-function DataGrid({ data, label }: { data: Record<string, unknown>; label: string }) {
-  const entries = Object.entries(parseData(data)).filter(([k]) => k !== "action")
-
-  if (entries.length === 0) return null
-
-  return (
-    <div>
-      <span className="text-[10px] text-neutral-600 block mb-2">{label}</span>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-        {entries.map(([key, val]) => {
-          const displayKey = KEY_LABELS[key] || key
-          const { text, color } = renderValue(key, val)
-          return (
-            <div
-              key={key}
-              className="flex flex-col gap-1 p-3 rounded-xl border border-white/[0.06] bg-white/[0.03]"
-            >
-              <span className="text-[11px] text-neutral-500">{displayKey}</span>
-              <span className={`text-sm font-medium ${color}`}>{text}</span>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-function RoleBadge({ role }: { role: string }) {
-  const rl = ROLE_LABELS[role.toLowerCase()]
-  if (!rl) return <span className="text-[10px] text-neutral-600">{role}</span>
-  return (
-    <span className="inline-flex items-center gap-1.5 bg-neutral-800 text-neutral-200 border border-neutral-700 rounded-md text-[11px] font-medium w-max px-2 py-0.5">
-      {rl.icon}
-      {rl.label}
-    </span>
-  )
+const ROLE_ICONS: Record<string, React.ReactNode> = {
+  owner: <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>,
+  admin: <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>,
+  cashier: <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>,
+  driver: <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="5.5" cy="17.5" r="3.5" /><circle cx="18.5" cy="17.5" r="3.5" /><line x1="15" y1="9" x2="19" y2="9" /><polyline points="9 17 9 5 3 5" /><path d="M3 5l4 4 3-4" /></svg>,
+  customer: <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>,
 }
 
 export function AuditLog() {
   const { t } = useTranslation()
+
+  const TABLE_LABELS: Record<string, string> = useMemo(() => ({
+    all: t("audit.allTables"),
+    orders: t("audit.tableOrders"),
+    produits: t("audit.tableProduits"),
+    categories: t("audit.tableCategories"),
+    tenants: t("audit.tableTenants"),
+    order_items: t("audit.tableOrderItems"),
+  }), [t])
+
+  const ACTION_LABELS: Record<string, string> = useMemo(() => ({
+    all: t("audit.allActions"),
+    INSERT: t("audit.actionInsert"),
+    UPDATE: t("audit.actionUpdate"),
+    DELETE: t("audit.actionDelete"),
+    TOGGLE_RESTAURANT_STATUS: t("audit.actionToggleStatus"),
+  }), [t])
+
+  const KEY_LABELS: Record<string, string> = useMemo(() => ({
+    nom: t("audit.keyNom"),
+    name: t("audit.keyName"),
+    description: t("audit.keyDescription"),
+    price: t("audit.keyPrice"),
+    image_url: t("audit.keyImageUrl"),
+    categorie_id: t("audit.keyCategorieId"),
+    sizesCount: t("audit.keySizesCount"),
+    is_open: t("audit.keyIsOpen"),
+    is_available: t("audit.keyIsAvailable"),
+    status: t("audit.keyStatus"),
+    total: t("audit.keyTotal"),
+    order_type: t("audit.keyOrderType"),
+    order_number: t("audit.keyOrderNumber"),
+    customer_name: t("audit.keyCustomerName"),
+    itemCount: t("audit.keyItemCount"),
+    action: t("audit.keyAction"),
+    driver_id: t("audit.keyDriverId"),
+    cashier_id: t("audit.keyCashierId"),
+  }), [t])
+
+  const ROLE_LABELS: Record<string, { label: string; icon: React.ReactNode }> = useMemo(() => ({
+    owner: { label: t("audit.roleOwner"), icon: ROLE_ICONS.owner },
+    admin: { label: t("audit.roleAdmin"), icon: ROLE_ICONS.admin },
+    cashier: { label: t("audit.roleCashier"), icon: ROLE_ICONS.cashier },
+    driver: { label: t("audit.roleDriver"), icon: ROLE_ICONS.driver },
+    customer: { label: t("audit.roleCustomer"), icon: ROLE_ICONS.customer },
+  }), [t])
+
+  const getActionLabel = useCallback((row: AuditLogRow): string => {
+    return ACTION_LABELS[getOperationKey(row)] || row.operation
+  }, [ACTION_LABELS])
+
+  const renderValue = useCallback((key: string, val: unknown): { text: string; color: string } => {
+    if (val === null || val === undefined || val === "") return { text: "—", color: "text-neutral-600" }
+
+    if (key === "is_open") {
+      return val === true
+        ? { text: t("audit.open"), color: "text-emerald-400" }
+        : { text: t("audit.closed"), color: "text-rose-400" }
+    }
+
+    if (key === "is_available") {
+      return val === true
+        ? { text: t("audit.available"), color: "text-emerald-400" }
+        : { text: t("audit.unavailable"), color: "text-rose-400" }
+    }
+
+    if (key === "status") {
+      const statusMap: Record<string, { text: string; color: string }> = {
+        pending: { text: t("audit.statusPending"), color: "text-amber-400" },
+        confirmed: { text: t("audit.statusConfirmed"), color: "text-emerald-400" },
+        preparing: { text: t("audit.statusPreparing"), color: "text-sky-400" },
+        ready: { text: t("audit.statusReady"), color: "text-emerald-400" },
+        out_for_delivery: { text: t("audit.statusOutForDelivery"), color: "text-blue-400" },
+        delivered: { text: t("audit.statusDelivered"), color: "text-emerald-400" },
+        completed: { text: t("audit.statusCompleted"), color: "text-emerald-400" },
+        cancelled: { text: t("audit.statusCancelled"), color: "text-rose-400" },
+      }
+      const sv = String(val).toLowerCase()
+      return statusMap[sv] || { text: String(val), color: "text-neutral-300" }
+    }
+
+    if (typeof val === "boolean") {
+      return val
+        ? { text: t("common.yes"), color: "text-emerald-400" }
+        : { text: t("common.no"), color: "text-rose-400" }
+    }
+
+    if (typeof val === "number") {
+      return { text: val.toLocaleString("ar-DZ"), color: "text-neutral-100" }
+    }
+
+    return { text: String(val), color: "text-neutral-100" }
+  }, [t])
+
+  function DataGridLocal({ data, label, kLabels }: { data: Record<string, unknown>; label: string; kLabels: Record<string, string> }) {
+    const entries = Object.entries(parseData(data)).filter(([k]) => k !== "action")
+    if (entries.length === 0) return null
+    return (
+      <div>
+        <span className="text-[10px] text-neutral-600 block mb-2">{label}</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+          {entries.map(([key, val]) => {
+            const displayKey = kLabels[key] || key
+            const { text, color } = renderValue(key, val)
+            return (
+              <div key={key} className="flex flex-col gap-1 p-3 rounded-xl border border-white/[0.06] bg-white/[0.03]">
+                <span className="text-[11px] text-neutral-500">{displayKey}</span>
+                <span className={`text-sm font-medium ${color}`}>{text}</span>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
+  function RoleBadgeLocal({ role }: { role: string }) {
+    const rl = ROLE_LABELS[role.toLowerCase()]
+    if (!rl) return <span className="text-[10px] text-neutral-600">{role}</span>
+    return (
+      <span className="inline-flex items-center gap-1.5 bg-neutral-800 text-neutral-200 border border-neutral-700 rounded-md text-[11px] font-medium w-max px-2 py-0.5">
+        {rl.icon}
+        {rl.label}
+      </span>
+    )
+  }
+
   const [raw, setRaw] = useState<AuditLogRow[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(0)
@@ -315,7 +304,7 @@ export function AuditLog() {
               <circle cx="12" cy="12" r="10" />
               <polyline points="12 6 12 12 16 14" />
             </svg>
-            <p className="text-sm text-neutral-500">لا توجد أحداث تسجيل حتى الآن</p>
+            <p className="text-sm text-neutral-500">{t("audit.noLogs")}</p>
           </motion.div>
         ) : (
           <motion.div
@@ -359,7 +348,7 @@ export function AuditLog() {
                         </td>
                         <td className="px-4 py-3 max-w-[180px]">
                           <div className="flex flex-col gap-1.5">
-                            {row.changed_by_role && <RoleBadge role={row.changed_by_role} />}
+                            {row.changed_by_role && <RoleBadgeLocal role={row.changed_by_role} />}
                             <span className="text-sm font-medium text-neutral-300 truncate">{row.changed_by || "—"}</span>
                           </div>
                         </td>
@@ -425,7 +414,7 @@ export function AuditLog() {
               className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 space-y-5 text-sm backdrop-blur-sm"
             >
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-semibold text-neutral-300">التفاصيل</h4>
+                <h4 className="text-xs font-semibold text-neutral-300">{t("audit.details")}</h4>
                 <button
                   onClick={() => setExpanded(null)}
                   className="grid size-8 place-items-center rounded-lg text-neutral-500 hover:text-neutral-300 hover:bg-white/[0.06] transition-all"
@@ -438,7 +427,7 @@ export function AuditLog() {
               {/* Meta info row */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <span className="text-[10px] text-neutral-600 block mb-0.5">معرف السجل</span>
+                  <span className="text-[10px] text-neutral-600 block mb-0.5">{t("audit.recordId")}</span>
                   <span className="text-xs text-neutral-300 font-mono">{row.record_id || "—"}</span>
                 </div>
                 <div>
@@ -449,18 +438,18 @@ export function AuditLog() {
 
               {/* Changed by */}
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-neutral-600 block">المستخدم</span>
+                <span className="text-[10px] text-neutral-600 block">{t("admin.user")}</span>
                 <div className="flex items-center gap-2.5">
-                  {row.changed_by_role && <RoleBadge role={row.changed_by_role} />}
+                  {row.changed_by_role && <RoleBadgeLocal role={row.changed_by_role} />}
                   <span className="text-sm text-neutral-300">{row.changed_by || "—"}</span>
                 </div>
               </div>
 
               {/* New values grid */}
-              <DataGrid data={newData} label="القيم الجديدة" />
+              <DataGridLocal data={newData} label={t("audit.newValues")} kLabels={KEY_LABELS} />
 
               {/* Old values grid */}
-              <DataGrid data={oldData} label="القيم القديمة" />
+              <DataGridLocal data={oldData} label={t("audit.oldValues")} kLabels={KEY_LABELS} />
             </motion.div>
           )
         })()}
