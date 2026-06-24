@@ -235,33 +235,38 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
 
     let cancelled = false
     let watchId: number | null = null
-    let fallbackDone = false
+    let serverSent = false
 
-    const sendPosition = (lat: number, lng: number) => {
+    const updateCoords = (lat: number, lng: number) => {
       if (cancelled) return
       setDeliveryCoords({ lat, lng })
-      fetch(`/api/orders/${id}/customer-location`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lat, lng }),
-      }).catch(() => {})
+      if (!serverSent) {
+        serverSent = true
+        fetch(`/api/orders/${id}/customer-location`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ lat, lng }),
+        }).catch(() => {})
+      }
     }
 
-    const start = (highAccuracy: boolean) => {
-      const opts: PositionOptions = { enableHighAccuracy: highAccuracy, timeout: 15000, maximumAge: 0 }
-      navigator.geolocation.getCurrentPosition(
-        (pos) => { if (!cancelled) sendPosition(pos.coords.latitude, pos.coords.longitude) },
-        () => { if (!highAccuracy || fallbackDone) return; fallbackDone = true; start(false) },
-        opts,
-      )
-      watchId = navigator.geolocation.watchPosition(
-        (pos) => { if (!cancelled) sendPosition(pos.coords.latitude, pos.coords.longitude) },
-        () => {},
-        opts,
-      )
-    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => updateCoords(pos.coords.latitude, pos.coords.longitude),
+      () => {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => updateCoords(pos.coords.latitude, pos.coords.longitude),
+          () => {},
+          { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 },
+        )
+      },
+      { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 },
+    )
 
-    start(true)
+    watchId = navigator.geolocation.watchPosition(
+      (pos) => updateCoords(pos.coords.latitude, pos.coords.longitude),
+      () => {},
+      { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 },
+    )
 
     return () => {
       cancelled = true
