@@ -295,7 +295,7 @@ export function KdsDashboard() {
         onClick={() => toggleStrike(item.id)}
         className={cn(
           "flex w-full items-center gap-3 rounded-2xl p-3 transition-all",
-          "hover:bg-white/[0.02] active:scale-[0.98]",
+          "hover:bg-foreground/[0.02] active:scale-[0.98]",
           isStruck && "opacity-30",
         )}
       >
@@ -307,8 +307,8 @@ export function KdsDashboard() {
         </span>
         <div className="flex items-center gap-2 flex-wrap min-w-0">
           <span className={cn(
-            "text-base font-semibold leading-snug text-white/90",
-            isStruck && "line-through decoration-2 decoration-white/20",
+            "text-base font-semibold leading-snug text-foreground",
+            isStruck && "line-through decoration-2 decoration-foreground/20",
           )}>
             {item.name}
           </span>
@@ -336,10 +336,10 @@ export function KdsDashboard() {
         key={order.id}
         {...springCard(index * 0.06)}
         className={cn(
-          "rounded-3xl bg-evergreen/60 overflow-hidden transition-shadow duration-500",
-          urgency === "safe" && "shadow-[inset_0_0_0_1px_rgba(35,137,38,0.25)]",
-          urgency === "warning" && "shadow-[inset_0_0_0_1px_rgba(251,191,36,0.25)]",
-          urgency === "danger" && "shadow-[inset_0_0_0_1px_rgba(244,63,94,0.4),0_0_20px_-6px_rgba(244,63,94,0.2)]",
+          "rounded-3xl bg-card/60 overflow-hidden transition-shadow duration-500 border",
+          urgency === "safe" && "border-chart-1/20",
+          urgency === "warning" && "border-amber-400/25",
+          urgency === "danger" && "border-rose-500/40 shadow-[0_0_20px_-6px_rgba(244,63,94,0.2)]",
           isNew && "ring-1 ring-malachite/30",
         )}
       >
@@ -347,13 +347,13 @@ export function KdsDashboard() {
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="flex items-center gap-3">
-                <span className="text-2xl font-black leading-none text-white tracking-tight">
+                <span className="text-2xl font-black leading-none text-foreground tracking-tight">
                   {t("kitchen.orderHash")}{order.orderNumber || ""}
                 </span>
                 <span className={cn(
                   "text-[10px] font-bold px-2 py-1 rounded-lg",
-                  order.orderType === "takeaway" && "bg-amber-500/15 text-amber-400",
-                  order.orderType === "delivery" && "bg-sky-500/15 text-sky-400",
+                  order.orderType === "takeaway" && "bg-amber-500/15 text-amber-500",
+                  order.orderType === "delivery" && "bg-sky-500/15 text-sky-500",
                   order.orderType !== "takeaway" && order.orderType !== "delivery" && "bg-accent/15 text-accent",
                 )}>
                   {orderLabel}
@@ -362,8 +362,8 @@ export function KdsDashboard() {
             </div>
             <div className={cn(
               "shrink-0 text-right",
-              urgency === "danger" && "text-rose-400",
-              urgency === "warning" && "text-amber-400",
+              urgency === "danger" && "text-rose-500",
+              urgency === "warning" && "text-amber-500",
               urgency === "safe" && "text-malachite",
             )}>
               <div className="text-lg font-bold tabular-nums leading-tight">
@@ -400,12 +400,12 @@ export function KdsDashboard() {
                 disabled={isUpdating}
                 className={cn(
                   "flex-1 flex items-center justify-center gap-2 rounded-2xl py-3 text-sm font-bold transition-all",
-                  "bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 active:scale-[0.97]",
+                  "bg-sky-500/10 text-sky-500 hover:bg-sky-500/20 active:scale-[0.97]",
                   isUpdating && "opacity-40 pointer-events-none",
                 )}
               >
                 {isUpdating ? (
-                  <span className="w-4 h-4 rounded-full border-2 border-sky-400/30 border-t-sky-400 animate-spin" />
+                  <span className="w-4 h-4 rounded-full border-2 border-sky-500/30 border-t-sky-500 animate-spin" />
                 ) : (
                   <CheckCircle2 className="w-4 h-4" strokeWidth={2} />
                 )}
@@ -419,16 +419,16 @@ export function KdsDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-evergreen text-foreground">
-      <header className="sticky top-0 z-30 border-b border-white/[0.06] bg-evergreen/80 backdrop-blur-xl">
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="sticky top-0 z-30 border-b border-border/50 bg-background/80 backdrop-blur-xl">
         <div className="flex items-center justify-between gap-3 px-4 lg:px-6 py-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-400 shadow-[0_0_20px_-4px_rgba(251,191,36,0.15)]">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500 shadow-[0_0_20px_-4px_rgba(251,191,36,0.15)]">
               <ChefHat className="w-5 h-5" strokeWidth={1.5} />
             </div>
             <div>
-              <h1 className="text-base font-bold font-display text-white tracking-tight">{t("kitchen.title")}</h1>
-              <p className="text-[11px] text-white/40">{t("kitchen.subtitle")}</p>
+              <h1 className="text-base font-bold font-display text-foreground tracking-tight">{t("kitchen.title")}</h1>
+              <p className="text-[11px] text-muted-foreground/60">{t("kitchen.subtitle")}</p>
             </div>
           </div>
 
@@ -438,41 +438,41 @@ export function KdsDashboard() {
                 "flex items-center gap-2 px-3 py-1.5 rounded-xl border",
                 pendingOrders.length > 0
                   ? "bg-malachite/10 border-malachite/20"
-                  : "bg-white/[0.03] border-white/[0.06]",
+                  : "bg-muted/30 border-border/50",
               )}>
-                <Bell className={cn("w-3.5 h-3.5", pendingOrders.length > 0 ? "text-malachite" : "text-white/30")} />
-                <span className="text-xs text-white/50">
-                  <span className={cn("font-bold", pendingOrders.length > 0 ? "text-malachite" : "text-white/50")}>
+                <Bell className={cn("w-3.5 h-3.5", pendingOrders.length > 0 ? "text-malachite" : "text-muted-foreground/40")} />
+                <span className="text-xs text-muted-foreground/60">
+                  <span className={cn("font-bold", pendingOrders.length > 0 ? "text-malachite" : "text-muted-foreground/60")}>
                     {pendingOrders.length}
                   </span>
-                  <span className="hidden lg:inline text-white/30"> {t("kitchen.new")}</span>
+                  <span className="hidden lg:inline text-muted-foreground/40"> {t("kitchen.new")}</span>
                 </span>
               </div>
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-sky-500/10 border border-sky-500/15">
-                <Timer className="w-3.5 h-3.5 text-sky-400" />
-                <span className="text-xs text-white/50">
-                  <span className="font-bold text-sky-400">{preparingOrders.length}</span>
-                  <span className="hidden lg:inline text-white/30"> {t("kitchen.preparing")}</span>
+                <Timer className="w-3.5 h-3.5 text-sky-500" />
+                <span className="text-xs text-muted-foreground/60">
+                  <span className="font-bold text-sky-500">{preparingOrders.length}</span>
+                  <span className="hidden lg:inline text-muted-foreground/40"> {t("kitchen.preparing")}</span>
                 </span>
               </div>
             </div>
 
             <div className="flex items-center gap-1">
-              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/[0.03] text-white/40 text-[10px] font-mono tabular-nums border border-white/[0.06]">
+              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-muted/30 text-muted-foreground/60 text-[10px] font-mono tabular-nums border border-border/50">
                 <span className={cn(
                   "w-1.5 h-1.5 rounded-full",
-                  countdown <= 3 ? "bg-amber-400" : countdown <= 6 ? "bg-amber-400/60" : "bg-malachite",
+                  countdown <= 3 ? "bg-amber-500" : countdown <= 6 ? "bg-amber-500/60" : "bg-malachite",
                 )} />
                 {countdown}s
               </div>
               <button onClick={() => setSoundOn(!soundOn)}
-                className="flex items-center justify-center h-9 w-9 rounded-xl text-white/30 hover:text-amber-400 hover:bg-amber-500/10 transition-all active:scale-90">
+                className="flex items-center justify-center h-9 w-9 rounded-xl text-muted-foreground/50 hover:text-amber-500 hover:bg-amber-500/10 transition-all active:scale-90">
                 {soundOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
               </button>
               <ThemeToggle />
               <LanguageSwitcher />
               <Link href={`/${slug}/pos`} title={t("kitchen.posLink")}
-                className="flex items-center justify-center h-9 w-9 rounded-xl text-white/30 hover:text-amber-400 hover:bg-amber-500/10 transition-all active:scale-90">
+                className="flex items-center justify-center h-9 w-9 rounded-xl text-muted-foreground/50 hover:text-amber-500 hover:bg-amber-500/10 transition-all active:scale-90">
                 <ExternalLink className="h-4 w-4" />
               </Link>
             </div>
@@ -483,11 +483,11 @@ export function KdsDashboard() {
       <main className="p-4 lg:p-6" dir={lang === "ar" ? "rtl" : "ltr"}>
         {orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-32 text-center">
-            <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-white/[0.03] border border-white/[0.06]">
-              <ChefHat className="size-9 text-white/15" strokeWidth={1} />
+            <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-muted/30 border border-border/50">
+              <ChefHat className="size-9 text-muted-foreground/30" strokeWidth={1} />
             </div>
-            <p className="text-xl font-bold text-white/50">{t("kitchen.noOrders")}</p>
-            <p className="text-sm text-white/30 mt-1.5">{t("kitchen.waiting")}</p>
+            <p className="text-xl font-bold text-muted-foreground/70">{t("kitchen.noOrders")}</p>
+            <p className="text-sm text-muted-foreground/40 mt-1.5">{t("kitchen.waiting")}</p>
           </div>
         ) : (
           <>
@@ -513,10 +513,10 @@ export function KdsDashboard() {
             {pendingOrders.length > 0 && preparingOrders.length > 0 && (
               <div className="relative my-8">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-white/[0.06]" />
+                  <div className="w-full border-t border-border/50" />
                 </div>
                 <div className="relative flex justify-center">
-                  <span className="px-5 text-[10px] font-bold uppercase tracking-[0.2em] text-white/20 bg-evergreen">
+                  <span className="px-5 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/30 bg-background">
                     {t("kitchen.nextUp")}
                   </span>
                 </div>
@@ -527,7 +527,7 @@ export function KdsDashboard() {
               <section>
                 <div className="flex items-center gap-3 mb-5 px-1">
                   <Timer className="w-5 h-5 text-sky-500" strokeWidth={1.5} />
-                  <h2 className="text-lg font-black font-display text-sky-400 tracking-tight">
+                  <h2 className="text-lg font-black font-display text-sky-500 tracking-tight">
                     {t("kitchen.preparingOrders")} ({preparingOrders.length})
                   </h2>
                 </div>
