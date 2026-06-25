@@ -56,7 +56,7 @@ export function Testimonials() {
                   &ldquo;{t.quote}&rdquo;
                 </blockquote>
                 <figcaption className="mt-8 flex items-center gap-4">
-                  <span className="grid size-12 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary to-emerald-700 text-base font-bold text-white">
+                  <span className="grid size-12 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary to-forest text-base font-bold text-white">
                     {t.initial}
                   </span>
                   <div>

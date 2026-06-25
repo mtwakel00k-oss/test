@@ -30,7 +30,7 @@ function TiltCard({
     >
       <div
         className="pointer-events-none absolute -inset-px rounded-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-        style={{ background: `radial-gradient(600px circle at ${glow.x}% ${glow.y}%, rgba(251,146,60,0.08), transparent 40%)` }}
+        style={{ background: `radial-gradient(600px circle at ${glow.x}% ${glow.y}%, rgba(37,233,112,0.08), transparent 40%)` }}
       />
       <div className="relative h-full">{children}</div>
     </motion.div>
@@ -40,8 +40,8 @@ function TiltCard({
 export function Capabilities() {
   return (
     <section id="capabilities" className="relative overflow-hidden py-32 md:py-44" dir="rtl">
-      <div className="pointer-events-none absolute -left-48 -top-48 size-[800px] rounded-full bg-amber-500/10 blur-[140px] animate-[float_14s_ease-in-out_infinite]" />
-      <div className="pointer-events-none absolute -bottom-48 -right-48 size-[700px] rounded-full bg-orange-500/10 blur-[140px] animate-[float-slow_18s_ease-in-out_infinite]" />
+      <div className="pointer-events-none absolute -left-48 -top-48 size-[800px] rounded-full bg-malachite/10 blur-[140px] animate-[float_14s_ease-in-out_infinite]" />
+      <div className="pointer-events-none absolute -bottom-48 -right-48 size-[700px] rounded-full bg-forest/10 blur-[140px] animate-[float-slow_18s_ease-in-out_infinite]" />
       <style>{`@keyframes float{0%,100%{transform:translate(0,0) scale(1)}25%{transform:translate(40px,-60px) scale(1.05)}50%{transform:translate(-20px,40px) scale(0.95)}75%{transform:translate(-50px,-30px) scale(1.02)}}@keyframes float-slow{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,50px) scale(1.03)}66%{transform:translate(-40px,-20px) scale(0.97)}}`}</style>
 
       <div className="relative mx-auto max-w-7xl px-4 md:px-8">
@@ -52,7 +52,7 @@ export function Capabilities() {
             viewport={{ once: true }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="mx-auto mb-6 h-1 w-16 rounded-full bg-gradient-to-r from-amber-500 to-orange-600" />
+            <div className="mx-auto mb-6 h-1 w-16 rounded-full bg-gradient-to-r from-malachite to-forest" />
             <h2 className="font-display text-[clamp(2rem,4vw,3.5rem)] font-normal leading-[1.15] tracking-tight text-foreground">
               إمكانيات مصممة لأهل المطاعم
             </h2>
@@ -64,16 +64,16 @@ export function Capabilities() {
 
         <div className="relative mt-24 grid grid-cols-1 gap-6 md:grid-cols-3">
           {/* 1. Financial Audit & Revenue Leakage */}
-          <TiltCard border="border-amber-500/20" className="md:col-span-2 md:row-span-1">
+          <TiltCard border="border-malachite/20" className="md:col-span-2 md:row-span-1">
             <div className="flex h-full flex-col justify-between gap-6">
               <div className="flex items-center gap-3">
                 <div className="relative">
-                  <div className="absolute inset-0 rounded-xl bg-amber-500/30 blur-xl" />
-                  <div className="relative grid size-12 place-items-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg md:size-14">
+                  <div className="absolute inset-0 rounded-xl bg-malachite/30 blur-xl" />
+                  <div className="relative grid size-12 place-items-center rounded-xl bg-gradient-to-br from-malachite to-forest text-white shadow-lg md:size-14">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="size-6"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="M9 12l2 2 4-4" /></svg>
                   </div>
                 </div>
-                <span className="text-[11px] font-semibold tracking-[0.15em] text-amber-400 uppercase">
+                <span className="text-[11px] font-semibold tracking-[0.15em] text-malachite uppercase">
                   الرقابة المالية
                 </span>
               </div>
@@ -91,11 +91,11 @@ export function Capabilities() {
           </TiltCard>
 
           {/* 2. KDS */}
-          <TiltCard border="border-emerald-500/20">
+          <TiltCard border="border-malachite/20">
             <div className="flex flex-col gap-4">
               <div className="relative">
-                <div className="absolute inset-0 rounded-xl bg-emerald-500/30 blur-lg" />
-                <div className="relative grid size-10 place-items-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg md:size-12">
+                <div className="absolute inset-0 rounded-xl bg-malachite/30 blur-lg" />
+                <div className="relative grid size-10 place-items-center rounded-lg bg-gradient-to-br from-malachite to-forest text-white shadow-lg md:size-12">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="size-5"><rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>
                 </div>
               </div>

@@ -203,7 +203,7 @@ function Alert({ alert, onDismiss }: { alert: AlertState; onDismiss: () => void 
         "flex items-start gap-2 px-3 py-2 rounded-md text-sm mb-3",
         isError
           ? "bg-red-500/10 text-red-600 dark:text-red-400"
-          : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+          : "bg-malachite/10 text-malachite dark:text-malachite",
       )}
     >
       {isError ? (
@@ -697,7 +697,7 @@ export function ProductManager() {
                       className={cn(
                         "inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all disabled:opacity-50 shadow-sm",
                         product.is_available !== false
-                          ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20"
+                          ? "bg-malachite/10 text-malachite border-malachite/20 hover:bg-malachite/20"
                           : "bg-muted text-muted-foreground/60 border-border/50 hover:bg-muted/80",
                       )}
                     >
@@ -830,7 +830,7 @@ export function ProductManager() {
                 </div>
               )}
               {form.categoryName && !filteredCategories.some((c) => (c.nom || "").toLowerCase() === form.categoryName.toLowerCase()) && (
-                <p className="text-xs text-emerald-500 dark:text-emerald-400 mt-1">
+                <p className="text-xs text-malachite dark:text-malachite mt-1">
                   {lbl("products.newCategoryHint")}: <strong>{form.categoryName}</strong>
                 </p>
               )}

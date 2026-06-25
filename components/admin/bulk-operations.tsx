@@ -177,14 +177,14 @@ export function BulkOperations({ open, onClose, onComplete }: BulkOperationsProp
         {result ? (
           <div className="space-y-4">
             {result.success ? (
-              <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+              <div className="p-4 rounded-xl bg-malachite/10 border border-malachite/20">
+                <p className="text-sm font-medium text-malachite dark:text-malachite">
                   {t("success", "en")} — {result.affected} products
                 </p>
               </div>
             ) : (
-              <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20">
-                <p className="text-sm font-medium text-rose-600 dark:text-rose-400">
+              <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20">
+                <p className="text-sm font-medium text-destructive dark:text-destructive">
                   {result.errors.join(", ")}
                 </p>
               </div>
@@ -216,11 +216,11 @@ export function BulkOperations({ open, onClose, onComplete }: BulkOperationsProp
             {action === "set_availability" && (
               <div className="flex items-center gap-1.5 bg-muted/50 p-0.5 rounded-lg border border-border/40 w-fit">
                 <button onClick={() => setIsAvailable(true)}
-                  className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${isAvailable ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 shadow-sm" : "text-muted-foreground/60 hover:text-foreground/70"}`}>
+                   className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${isAvailable ? "bg-malachite/20 text-malachite dark:text-malachite shadow-sm" : "text-muted-foreground/60 hover:text-foreground/70"}`}>
                   {t("available", "en")}
                 </button>
                 <button onClick={() => setIsAvailable(false)}
-                  className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${!isAvailable ? "bg-rose-500/20 text-rose-600 dark:text-rose-400 shadow-sm" : "text-muted-foreground/60 hover:text-foreground/70"}`}>
+                   className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${!isAvailable ? "bg-destructive/20 text-destructive dark:text-destructive shadow-sm" : "text-muted-foreground/60 hover:text-foreground/70"}`}>
                   {t("unavailable", "en")}
                 </button>
               </div>
@@ -300,7 +300,7 @@ export function BulkOperations({ open, onClose, onComplete }: BulkOperationsProp
                       <span className="text-[10px] text-muted-foreground">{p.category}</span>
                     </div>
                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                      p.is_available ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                      p.is_available ? "bg-malachite/10 text-malachite dark:text-malachite" : "bg-destructive/10 text-destructive dark:text-destructive"
                     }`}>
                       {p.is_available ? "ON" : "OFF"}
                     </span>

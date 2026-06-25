@@ -203,7 +203,7 @@ export function PremiumAnalytics() {
                   <div className="flex items-baseline gap-2">
                     <h3 className="text-[1.625rem] font-semibold tracking-tight text-foreground tabular-nums">{fmtNum(data.avgTicket.value)} <span className="text-xs font-medium text-muted-foreground/60">{t("pos.currency")}</span></h3>
                     {data.avgTicket.change !== 0 && (
-                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold gap-0.5 ${data.avgTicket.change > 0 ? "bg-emerald-500/10 text-emerald-600" : "bg-rose-500/10 text-rose-600"}`}>
+                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold gap-0.5 ${data.avgTicket.change > 0 ? "bg-malachite/10 text-malachite" : "bg-rose-500/10 text-rose-600"}`}>
                         {data.avgTicket.change > 0 ? <TrendingUp className="w-2.5 h-2.5" strokeWidth={2} /> : <TrendingDown className="w-2.5 h-2.5" strokeWidth={2} />}
                         {Math.abs(data.avgTicket.change)}%
                       </span>
@@ -232,7 +232,7 @@ export function PremiumAnalytics() {
               <motion.div variants={springCard(0.08)}>
                 <div className="bg-card/40 border border-white/5 rounded-2xl p-5 space-y-3.5 backdrop-blur-sm card-hover h-full">
                   <div className="flex items-center gap-2.5">
-                    <div className="grid size-9 place-items-center rounded-xl bg-amber-500/10 text-amber-500">
+                    <div className="grid size-9 place-items-center rounded-xl bg-warning/10 text-warning">
                       <PackageX className="w-4 h-4" strokeWidth={1.5} />
                     </div>
                     <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/70">{t("analytics.deadStock")}</p>
@@ -245,13 +245,13 @@ export function PremiumAnalytics() {
               <motion.div variants={springCard(0.12)}>
                 <div className="bg-card/40 border border-white/5 rounded-2xl p-5 space-y-3.5 backdrop-blur-sm card-hover h-full">
                   <div className="flex items-center gap-2.5">
-                    <div className={`grid size-9 place-items-center rounded-xl ${data.kitchenRedZone.count > 0 ? "bg-destructive/15 text-destructive" : "bg-emerald-500/10 text-emerald-500"}`}>
+                    <div className={`grid size-9 place-items-center rounded-xl ${data.kitchenRedZone.count > 0 ? "bg-destructive/15 text-destructive" : "bg-malachite/10 text-malachite"}`}>
                       <TimerOff className="w-4 h-4" strokeWidth={1.5} />
                     </div>
                     <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/70">{t("analytics.kitchenRedZone")}</p>
                   </div>
                   <div className="flex items-baseline gap-2">
-                    <h3 className={`text-[1.625rem] font-semibold tracking-tight tabular-nums ${data.kitchenRedZone.count > 0 ? "text-destructive" : "text-emerald-500"}`}>{fmtNum(data.kitchenRedZone.count)}</h3>
+                    <h3 className={`text-[1.625rem] font-semibold tracking-tight tabular-nums ${data.kitchenRedZone.count > 0 ? "text-destructive" : "text-malachite"}`}>{fmtNum(data.kitchenRedZone.count)}</h3>
                     <span className="text-xs font-medium text-muted-foreground">{t("analytics.outOf")} {fmtNum(data.kitchenRedZone.totalTracked)}</span>
                   </div>
                   <p className="text-[10px] text-muted-foreground/60">{t("analytics.trackedOrders")}</p>
@@ -313,20 +313,20 @@ export function PremiumAnalytics() {
                   <div className="p-5 space-y-3">
                     <div className="flex flex-wrap gap-2">
                       {(showAllDeadStock ? data.deadStock : data.deadStock.slice(0, 5)).map((p) => (
-                        <span key={p.name} className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-400/90 border border-amber-500/10">
-                          <span className="w-1 h-1 rounded-full bg-amber-400/50" />
+                        <span key={p.name} className="inline-flex items-center gap-1.5 rounded-full bg-warning/10 px-3 py-1.5 text-xs font-medium text-warning/90 border border-warning/10">
+                          <span className="w-1 h-1 rounded-full bg-warning/50" />
                           {p.name}
                         </span>
                       ))}
                     </div>
                     {data.deadStock.length > 5 && (
                       <button onClick={() => setShowAllDeadStock(!showAllDeadStock)}
-                        className="text-xs font-semibold text-amber-400/70 hover:text-amber-400 transition-colors"
+                        className="text-xs font-semibold text-warning/70 hover:text-warning transition-colors"
                       >
                         {showAllDeadStock ? t("analytics.showLess") : `${t("analytics.showMore")} (${data.deadStock.length - 5})`}
                       </button>
                     )}
-                    <p className="text-[10px] text-amber-400/50 font-medium">{t("analytics.notOrderedRecently")}</p>
+                    <p className="text-[10px] text-warning/50 font-medium">{t("analytics.notOrderedRecently")}</p>
                   </div>
                 </div>
               )}
@@ -337,10 +337,10 @@ export function PremiumAnalytics() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ type: "spring", stiffness: 70, damping: 16, delay: 0.15 }}
-              className={`bg-card/40 border-2 rounded-2xl p-6 space-y-4 backdrop-blur-sm shadow-sm card-hover ${data.kitchenRedZone.count > 0 ? "border-destructive/40" : "border-emerald-500/20"}`}
+              className={`bg-card/40 border-2 rounded-2xl p-6 space-y-4 backdrop-blur-sm shadow-sm card-hover ${data.kitchenRedZone.count > 0 ? "border-destructive/40" : "border-malachite/20"}`}
             >
               <div className="flex items-center gap-3">
-                <div className={`grid size-10 place-items-center rounded-xl ${data.kitchenRedZone.count > 0 ? "bg-destructive/15 text-destructive" : "bg-emerald-500/15 text-emerald-400"}`}>
+                <div className={`grid size-10 place-items-center rounded-xl ${data.kitchenRedZone.count > 0 ? "bg-destructive/15 text-destructive" : "bg-malachite/15 text-malachite"}`}>
                   <TimerOff className="w-5 h-5" strokeWidth={1.5} />
                 </div>
                 <div>
@@ -350,7 +350,7 @@ export function PremiumAnalytics() {
               </div>
 
               <div className="flex items-baseline gap-3">
-                <span className={`text-4xl font-bold tracking-tight tabular-nums ${data.kitchenRedZone.count > 0 ? "text-destructive" : "text-emerald-400"}`}>
+                <span className={`text-4xl font-bold tracking-tight tabular-nums ${data.kitchenRedZone.count > 0 ? "text-destructive" : "text-malachite"}`}>
                   {fmtNum(data.kitchenRedZone.count)}
                 </span>
                 <span className="text-sm font-medium text-muted-foreground">
@@ -366,7 +366,7 @@ export function PremiumAnalytics() {
               )}
 
               {data.kitchenRedZone.count === 0 && data.kitchenRedZone.totalTracked > 0 && (
-                <div className="flex items-center gap-2 text-emerald-400">
+                <div className="flex items-center gap-2 text-malachite">
                   <Check className="w-4 h-4" strokeWidth={2} />
                   <span className="text-sm font-medium">{t("analytics.noRedZone")}</span>
                 </div>
@@ -445,7 +445,7 @@ export function PremiumAnalytics() {
                             <span className="font-semibold text-white/80 tabular-nums">{fmtNum(d.completedOrders)}</span>
                           </td>
                           <td className="text-center px-5 py-3">
-                            <span className={`font-semibold tabular-nums ${d.cancelledOrders > 0 ? "text-rose-400" : "text-emerald-400/60"}`}>
+                            <span className={`font-semibold tabular-nums ${d.cancelledOrders > 0 ? "text-rose-400" : "text-malachite/60"}`}>
                               {fmtNum(d.cancelledOrders)}
                             </span>
                           </td>
@@ -491,8 +491,8 @@ export function PremiumAnalytics() {
                       delivery: Truck,
                     }
                     const otColors: Record<string, string> = {
-                      dine_in: "bg-emerald-500/10 text-emerald-500",
-                      takeaway: "bg-amber-500/10 text-amber-500",
+                      dine_in: "bg-malachite/10 text-malachite",
+                      takeaway: "bg-warning/10 text-warning",
                       delivery: "bg-accent/10 text-accent",
                     }
                     return data.orderTypeBreakdown.items.map((ot) => {
@@ -580,7 +580,7 @@ export function PremiumAnalytics() {
                             <span className="font-semibold text-white/80 tabular-nums">{fmtNum(c.orders)}</span>
                           </td>
                           <td className="text-center px-5 py-3">
-                            <span className={`font-semibold tabular-nums ${c.cancelled > 0 ? "text-rose-400" : "text-emerald-400/60"}`}>
+                            <span className={`font-semibold tabular-nums ${c.cancelled > 0 ? "text-rose-400" : "text-malachite/60"}`}>
                               {fmtNum(c.cancelled)}
                             </span>
                           </td>

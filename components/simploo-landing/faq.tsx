@@ -43,7 +43,7 @@ export function Faq() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <div className="mx-auto mb-6 h-1 w-16 rounded-full bg-gradient-to-r from-amber-500 to-orange-600" />
+            <div className="mx-auto mb-6 h-1 w-16 rounded-full bg-gradient-to-r from-malachite to-forest" />
             <h2 className="font-display text-[clamp(2rem,4vw,3.25rem)] font-normal leading-tight tracking-tight text-foreground">
               الأسئلة الشائعة
             </h2>
@@ -65,7 +65,7 @@ export function Faq() {
                   <motion.span
                     animate={{ rotate: isOpen ? 180 : 0 }}
                     transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                    className="grid size-8 shrink-0 place-items-center rounded-lg bg-amber-500/8 text-amber-500"
+                    className="grid size-8 shrink-0 place-items-center rounded-lg bg-malachite/8 text-malachite"
                   >
                     <ChevronDown size={16} strokeWidth={2} />
                   </motion.span>

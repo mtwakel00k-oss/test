@@ -49,9 +49,9 @@ const STATUS_LABELS: Record<string, string> = {
 const STATUS_COLORS: Record<string, string> = {
   pending: "text-amber-400",
   preparing: "text-sky-400",
-  ready: "text-emerald-400",
+  ready: "text-malachite",
   out_for_delivery: "text-violet-400",
-  completed: "text-emerald-500",
+  completed: "text-malachite",
   cancelled: "text-rose-400",
 }
 
@@ -199,7 +199,7 @@ export function PerformanceReports() {
     if (!data?.kitchen.avgPrepTimeMinutes) return null
     const avg = data.kitchen.avgPrepTimeMinutes
     if (avg > 25) return { color: "text-rose-400", icon: AlertCircleIcon, text: "تحضير بطيء" }
-    if (avg < 15) return { color: "text-emerald-400", icon: CheckCircleIcon, text: "سرعة ممتازة" }
+    if (avg < 15) return { color: "text-malachite", icon: CheckCircleIcon, text: "سرعة ممتازة" }
     return { color: "text-amber-400", icon: TimerIcon, text: "أداء جيد" }
   }, [data])
 
@@ -415,7 +415,7 @@ export function PerformanceReports() {
                             <td className="text-center px-5 py-3">
                               {d.avgTransitTimeMinutes !== null ? (
                                 d.avgTransitTimeMinutes <= 20 ? (
-                                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-400">
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-malachite">
                                     <CheckIcon className="w-3 h-3" />
                                     {t("admin.fast") || "سريع"}
                                   </span>

@@ -301,7 +301,7 @@ export function KdsDashboard() {
       >
         <span className={cn(
           "shrink-0 text-center text-xl font-black tabular-nums leading-none w-10",
-          index % 2 === 0 ? "text-emerald-400" : "text-amber-400",
+          index % 2 === 0 ? "text-malachite" : "text-amber-400",
         )}>
           {item.quantity}×
         </span>
@@ -313,7 +313,7 @@ export function KdsDashboard() {
             {item.name}
           </span>
           {item.modifiers.map((mod, mi) => (
-            <span key={mi} className="rounded-lg bg-rose-500/15 px-2 py-0.5 text-[11px] font-semibold text-rose-300 whitespace-nowrap">{mod}</span>
+            <span key={mi} className="rounded-lg bg-forest/20 px-2 py-0.5 text-[11px] font-semibold text-mint whitespace-nowrap">{mod}</span>
           ))}
         </div>
       </button>
@@ -336,11 +336,11 @@ export function KdsDashboard() {
         key={order.id}
         {...springCard(index * 0.06)}
         className={cn(
-          "rounded-3xl bg-[#18181b] overflow-hidden transition-shadow duration-500",
-          urgency === "safe" && "shadow-[inset_0_0_0_1px_rgba(52,211,153,0.15)]",
+          "rounded-3xl bg-evergreen/60 overflow-hidden transition-shadow duration-500",
+          urgency === "safe" && "shadow-[inset_0_0_0_1px_rgba(35,137,38,0.25)]",
           urgency === "warning" && "shadow-[inset_0_0_0_1px_rgba(251,191,36,0.25)]",
           urgency === "danger" && "shadow-[inset_0_0_0_1px_rgba(244,63,94,0.4),0_0_20px_-6px_rgba(244,63,94,0.2)]",
-          isNew && "ring-1 ring-emerald-500/20",
+          isNew && "ring-1 ring-malachite/30",
         )}
       >
         <div className="p-5 space-y-4">
@@ -364,7 +364,7 @@ export function KdsDashboard() {
               "shrink-0 text-right",
               urgency === "danger" && "text-rose-400",
               urgency === "warning" && "text-amber-400",
-              urgency === "safe" && "text-emerald-400",
+              urgency === "safe" && "text-malachite",
             )}>
               <div className="text-lg font-bold tabular-nums leading-tight">
                 {fmtTime(order.createdAt)}
@@ -383,12 +383,12 @@ export function KdsDashboard() {
                 disabled={isUpdating}
                 className={cn(
                   "flex-1 flex items-center justify-center gap-2 rounded-2xl py-3 text-sm font-bold transition-all",
-                  "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 active:scale-[0.97]",
+                  "bg-malachite/10 text-malachite hover:bg-malachite/20 active:scale-[0.97]",
                   isUpdating && "opacity-40 pointer-events-none",
                 )}
               >
                 {isUpdating ? (
-                  <span className="w-4 h-4 rounded-full border-2 border-emerald-400/30 border-t-emerald-400 animate-spin" />
+                  <span className="w-4 h-4 rounded-full border-2 border-malachite/30 border-t-malachite animate-spin" />
                 ) : (
                   <Play className="w-4 h-4" strokeWidth={2} />
                 )}
@@ -419,8 +419,8 @@ export function KdsDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-foreground">
-      <header className="sticky top-0 z-30 border-b border-white/[0.06] bg-[#09090b]/80 backdrop-blur-xl">
+    <div className="min-h-screen bg-evergreen text-foreground">
+      <header className="sticky top-0 z-30 border-b border-white/[0.06] bg-evergreen/80 backdrop-blur-xl">
         <div className="flex items-center justify-between gap-3 px-4 lg:px-6 py-3">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-400 shadow-[0_0_20px_-4px_rgba(251,191,36,0.15)]">
@@ -437,12 +437,12 @@ export function KdsDashboard() {
               <div className={cn(
                 "flex items-center gap-2 px-3 py-1.5 rounded-xl border",
                 pendingOrders.length > 0
-                  ? "bg-emerald-500/10 border-emerald-500/20"
+                  ? "bg-malachite/10 border-malachite/20"
                   : "bg-white/[0.03] border-white/[0.06]",
               )}>
-                <Bell className={cn("w-3.5 h-3.5", pendingOrders.length > 0 ? "text-emerald-400" : "text-white/30")} />
+                <Bell className={cn("w-3.5 h-3.5", pendingOrders.length > 0 ? "text-malachite" : "text-white/30")} />
                 <span className="text-xs text-white/50">
-                  <span className={cn("font-bold", pendingOrders.length > 0 ? "text-emerald-400" : "text-white/50")}>
+                  <span className={cn("font-bold", pendingOrders.length > 0 ? "text-malachite" : "text-white/50")}>
                     {pendingOrders.length}
                   </span>
                   <span className="hidden lg:inline text-white/30"> {t("kitchen.new")}</span>
@@ -461,7 +461,7 @@ export function KdsDashboard() {
               <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/[0.03] text-white/40 text-[10px] font-mono tabular-nums border border-white/[0.06]">
                 <span className={cn(
                   "w-1.5 h-1.5 rounded-full",
-                  countdown <= 3 ? "bg-amber-400" : countdown <= 6 ? "bg-amber-400/60" : "bg-emerald-400",
+                  countdown <= 3 ? "bg-amber-400" : countdown <= 6 ? "bg-amber-400/60" : "bg-malachite",
                 )} />
                 {countdown}s
               </div>
@@ -495,10 +495,10 @@ export function KdsDashboard() {
               <section className="mb-10">
                 <div className="flex items-center gap-3 mb-5 px-1">
                   <span className="relative flex h-3 w-3">
-                    <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75 animate-ping" />
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-malachite opacity-75 animate-ping" />
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-malachite" />
                   </span>
-                  <h2 className="text-lg font-black font-display text-emerald-400 tracking-tight">
+                  <h2 className="text-lg font-black font-display text-malachite tracking-tight">
                     {t("kitchen.newOrders")} ({pendingOrders.length})
                   </h2>
                 </div>
@@ -516,7 +516,7 @@ export function KdsDashboard() {
                   <div className="w-full border-t border-white/[0.06]" />
                 </div>
                 <div className="relative flex justify-center">
-                  <span className="px-5 text-[10px] font-bold uppercase tracking-[0.2em] text-white/20 bg-[#09090b]">
+                  <span className="px-5 text-[10px] font-bold uppercase tracking-[0.2em] text-white/20 bg-evergreen">
                     {t("kitchen.nextUp")}
                   </span>
                 </div>

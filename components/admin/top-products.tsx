@@ -13,7 +13,7 @@ interface TopProductsProps {
   data: TopProduct[]
 }
 
-const bgColors = ["bg-emerald-500", "bg-blue-500", "bg-amber-500", "bg-violet-500", "bg-rose-500"]
+const bgColors = ["bg-gradient-to-br from-malachite to-forest", "bg-gradient-to-br from-forest to-malachite/60", "bg-gradient-to-br from-amber-500 to-orange-600", "bg-gradient-to-br from-violet-500 to-purple-600", "bg-gradient-to-br from-rose-500 to-pink-600"]
 
 export function TopProducts({ data }: TopProductsProps) {
   const { t } = useTranslation()

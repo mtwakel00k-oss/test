@@ -173,7 +173,7 @@ export function CartSidebar({
                         </div>
                         <div className="flex items-center gap-1.5 bg-background p-1 rounded-xl border border-border/50">
                           <button onClick={() => onUpdateQuantity(item.product.id, -1)}
-                            className="size-7 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-rose-500 hover:text-white transition-all">
+                            className="size-7 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-destructive hover:text-destructive-foreground transition-all">
                             {item.quantity === 1 ? <X className="size-3.5" /> : <Minus className="size-3.5" />}
                           </button>
                           <span className="text-xs font-black text-foreground w-6 text-center tabular-nums">{item.quantity}</span>
@@ -201,7 +201,7 @@ export function CartSidebar({
           </div>
           <div className="flex gap-3">
             {onCancel && (
-              <Button variant="outline" onClick={onCancel} className="h-14 px-6 rounded-2xl border-border/50 text-xs font-black uppercase tracking-widest hover:bg-rose-500/10 hover:text-rose-600 hover:border-rose-500/20 transition-all">
+              <Button variant="outline" onClick={onCancel} className="h-14 px-6 rounded-2xl border-border/50 text-xs font-black uppercase tracking-widest hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 transition-all">
                 {t("common.cancel")}
               </Button>
             )}

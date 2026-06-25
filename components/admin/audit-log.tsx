@@ -9,9 +9,9 @@ import { motion, AnimatePresence } from "framer-motion"
 import type { AuditLogRow } from "@/app/api/admin/audit-log/route"
 
 const OPERATION_STYLES: Record<string, string> = {
-  INSERT: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+  INSERT: "text-malachite bg-malachite/10 border-malachite/20",
   UPDATE: "text-neutral-300 bg-neutral-500/10 border-neutral-500/20",
-  DELETE: "text-rose-400 bg-rose-500/10 border-rose-500/20",
+  DELETE: "text-destructive bg-destructive/10 border-destructive/20",
   TOGGLE_RESTAURANT_STATUS: "text-amber-400 bg-amber-500/10 border-amber-500/20",
 }
 
@@ -102,26 +102,26 @@ export function AuditLog() {
 
     if (key === "is_open") {
       return val === true
-        ? { text: t("audit.open"), color: "text-emerald-400" }
-        : { text: t("audit.closed"), color: "text-rose-400" }
+        ? { text: t("audit.open"), color: "text-malachite" }
+        : { text: t("audit.closed"), color: "text-destructive" }
     }
 
     if (key === "is_available") {
       return val === true
-        ? { text: t("audit.available"), color: "text-emerald-400" }
-        : { text: t("audit.unavailable"), color: "text-rose-400" }
+        ? { text: t("audit.available"), color: "text-malachite" }
+        : { text: t("audit.unavailable"), color: "text-destructive" }
     }
 
     if (key === "status") {
       const statusMap: Record<string, { text: string; color: string }> = {
         pending: { text: t("audit.statusPending"), color: "text-amber-400" },
-        confirmed: { text: t("audit.statusConfirmed"), color: "text-emerald-400" },
+        confirmed: { text: t("audit.statusConfirmed"), color: "text-malachite" },
         preparing: { text: t("audit.statusPreparing"), color: "text-sky-400" },
-        ready: { text: t("audit.statusReady"), color: "text-emerald-400" },
+        ready: { text: t("audit.statusReady"), color: "text-malachite" },
         out_for_delivery: { text: t("audit.statusOutForDelivery"), color: "text-blue-400" },
-        delivered: { text: t("audit.statusDelivered"), color: "text-emerald-400" },
-        completed: { text: t("audit.statusCompleted"), color: "text-emerald-400" },
-        cancelled: { text: t("audit.statusCancelled"), color: "text-rose-400" },
+        delivered: { text: t("audit.statusDelivered"), color: "text-malachite" },
+        completed: { text: t("audit.statusCompleted"), color: "text-malachite" },
+        cancelled: { text: t("audit.statusCancelled"), color: "text-destructive" },
       }
       const sv = String(val).toLowerCase()
       return statusMap[sv] || { text: String(val), color: "text-neutral-300" }
@@ -129,8 +129,8 @@ export function AuditLog() {
 
     if (typeof val === "boolean") {
       return val
-        ? { text: t("common.yes"), color: "text-emerald-400" }
-        : { text: t("common.no"), color: "text-rose-400" }
+        ? { text: t("common.yes"), color: "text-malachite" }
+        : { text: t("common.no"), color: "text-destructive" }
     }
 
     if (typeof val === "number") {

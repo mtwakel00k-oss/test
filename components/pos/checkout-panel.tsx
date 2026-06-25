@@ -77,14 +77,14 @@ export function CheckoutPanel({ order, onClose, onComplete, hasDriverAssigned = 
         </div>
         <div className="flex items-center gap-3">
           {isAlreadyPaid && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase tracking-widest border border-emerald-500/20">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-malachite/10 text-malachite text-[10px] font-black uppercase tracking-widest border border-malachite/20">
               <svg className="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
               {t("pos.paid")}
             </span>
           )}
-          <button onClick={onClose} className="size-9 rounded-2xl bg-muted/50 flex items-center justify-center text-muted-foreground hover:bg-rose-500 hover:text-white transition-all">
+          <button onClick={onClose} className="size-9 rounded-2xl bg-muted/50 flex items-center justify-center text-muted-foreground hover:bg-destructive hover:text-destructive-foreground transition-all">
             <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -122,7 +122,7 @@ export function CheckoutPanel({ order, onClose, onComplete, hasDriverAssigned = 
                     )}>
                     <div className={cn(
                       "size-12 shrink-0 items-center justify-center rounded-2xl text-base font-black flex shadow-inner",
-                      driver.isBusy ? "bg-rose-500/10 text-rose-500" : "bg-emerald-500/10 text-emerald-600"
+                      driver.isBusy ? "bg-destructive/10 text-destructive" : "bg-malachite/10 text-malachite"
                     )}>
                       {driver.name.charAt(0)}
                     </div>
@@ -132,7 +132,7 @@ export function CheckoutPanel({ order, onClose, onComplete, hasDriverAssigned = 
                     </div>
                     <div className="flex flex-col items-end gap-1.5 shrink-0">
                       <span className={cn("px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border", 
-                        driver.isBusy ? "bg-rose-500/10 text-rose-600 border-rose-500/20" : "bg-emerald-500/10 text-emerald-600 border-emerald-500/20")}>
+                        driver.isBusy ? "bg-destructive/10 text-destructive border-destructive/20" : "bg-malachite/10 text-malachite border-malachite/20")}>
                         {driver.isBusy ? "مشغول" : "متاح"}
                       </span>
                     </div>
@@ -151,7 +151,7 @@ export function CheckoutPanel({ order, onClose, onComplete, hasDriverAssigned = 
 
           <button onClick={handleDeliveryConfirm}
             disabled={isProcessing}
-            className="w-full rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white py-3.5 text-sm font-bold hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]">
+            className="w-full rounded-xl bg-malachite text-evergreen py-3.5 text-sm font-bold hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-malachite/20 disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]">
             {isProcessing ? (
               <span className="flex items-center justify-center gap-2">
                 <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -193,9 +193,9 @@ export function CheckoutPanel({ order, onClose, onComplete, hasDriverAssigned = 
                 <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{t("pos.amountPaid")}</label>
                 <div className="mt-0.5 text-xl font-bold text-foreground tabular-nums">{cashReceived || "0"} {cur}</div>
               </div>
-              <div className={cn("p-3 rounded-xl transition-all", change >= 0 && cashAmount > 0 ? "bg-emerald-50" : "bg-muted/20")}>
+              <div className={cn("p-3 rounded-xl transition-all", change >= 0 && cashAmount > 0 ? "bg-malachite/10" : "bg-muted/20")}>
                 <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{t("pos.change")}</label>
-                <div className={cn("mt-0.5 text-xl font-bold tabular-nums transition-colors", change >= 0 && cashAmount > 0 ? "text-emerald-600" : "text-muted-foreground")}>
+                <div className={cn("mt-0.5 text-xl font-bold tabular-nums transition-colors", change >= 0 && cashAmount > 0 ? "text-malachite" : "text-muted-foreground")}>
                   {change >= 0 ? `${fmt(change)} ${cur}` : "—"}
                 </div>
               </div>
@@ -228,7 +228,7 @@ export function CheckoutPanel({ order, onClose, onComplete, hasDriverAssigned = 
             </div>
             <div className="grid grid-cols-2 gap-4">
               <button onClick={() => handleKeyPress("clear")} disabled={isAlreadyPaid}
-                className="h-14 rounded-2xl text-xs font-black uppercase tracking-widest bg-muted text-muted-foreground hover:bg-rose-500/10 hover:text-rose-600 transition-all active:scale-95 disabled:opacity-30">
+                className="h-14 rounded-2xl text-xs font-black uppercase tracking-widest bg-muted text-muted-foreground hover:bg-malachite/10 hover:text-malachite transition-all active:scale-95 disabled:opacity-30">
                 {t("pos.clear")}
               </button>
               <button data-testid="complete-payment" onClick={handleComplete} disabled={!canComplete || isProcessing}

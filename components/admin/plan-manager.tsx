@@ -41,7 +41,7 @@ function PlanBadge({ plan }: { plan: string | null }) {
     case "starter":
       return <span className={`${base} bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300`}>Starter</span>
     case "pro":
-      return <span className={`${base} bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300`}>Pro</span>
+      return <span className={`${base} bg-malachite/10 text-malachite dark:bg-malachite/20 dark:text-malachite`}>Pro</span>
     case "elite":
       return <span className={`${base} bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300`}>Elite</span>
     default:
@@ -277,7 +277,7 @@ export function PlanManager() {
                   />
                 </div>
                 {addError && <p className="text-sm text-destructive">{addError}</p>}
-                {addSuccess && <p className="text-sm text-emerald-600 dark:text-emerald-400 whitespace-pre-wrap">{addSuccess}</p>}
+                {addSuccess && <p className="text-sm text-malachite whitespace-pre-wrap">{addSuccess}</p>}
               </div>
               <DialogFooter className="gap-2 sm:gap-0">
                 <Button variant="outline" onClick={() => setAddOpen(false)} disabled={addLoading}>
@@ -347,14 +347,14 @@ export function PlanManager() {
                         disabled={updating[tenant.slug]}
                         className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all border shadow-sm ${
                           tenant.is_active
-                            ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20"
+                            ? "bg-malachite/10 text-malachite border-malachite/20 hover:bg-malachite/20"
                             : "bg-rose-500/10 text-rose-600 border-rose-500/20 hover:bg-rose-500/20"
                         }`}
                       >
                         {updating[tenant.slug] ? (
                           <Loader2 className="size-3 animate-spin" />
                         ) : (
-                          <span className={`size-1.5 rounded-full ${tenant.is_active ? "bg-emerald-500 " : "bg-rose-500"}`} />
+                          <span className={`size-1.5 rounded-full ${tenant.is_active ? "bg-malachite " : "bg-rose-500"}`} />
                         )}
                         {tenant.is_active
                           ? t("admin.active") || "Active"
@@ -379,7 +379,7 @@ export function PlanManager() {
                         disabled={updating[tenant.slug]}
                         className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all border shadow-sm ${
                           tenant.is_open
-                            ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20"
+                            ? "bg-malachite/10 text-malachite border-malachite/20 hover:bg-malachite/20"
                             : "bg-rose-500/10 text-rose-600 border-rose-500/20 hover:bg-rose-500/20"
                         }`}
                       >
@@ -401,7 +401,7 @@ export function PlanManager() {
                           title={tenant.is_active ? "Stop service" : "Start service"}
                           className={`inline-flex items-center justify-center size-8 rounded-xl transition-all border ${
                             tenant.is_active
-                              ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20"
+                              ? "bg-malachite/10 text-malachite border-malachite/20 hover:bg-malachite/20"
                               : "bg-rose-500/10 text-rose-600 border-rose-500/20 hover:bg-rose-500/20"
                           }`}
                         >

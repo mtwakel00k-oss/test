@@ -75,9 +75,9 @@ export function ReviewsFeed({ reviews }: ReviewsFeedProps) {
             <CardTitle className="text-xl font-black text-foreground tracking-tight flex items-center gap-2">
               {t("admin.reviews")}
               {items.length > 0 && (
-                <span className="flex items-center gap-1.5 bg-emerald-500/10 px-2 py-1 rounded-lg">
-                  <span className="size-1.5 rounded-full bg-emerald-500 " />
-                  <span className="text-[9px] text-emerald-600 font-black uppercase tracking-widest">{t("common.live")}</span>
+                <span className="flex items-center gap-1.5 bg-malachite/10 px-2 py-1 rounded-lg">
+                  <span className="size-1.5 rounded-full bg-malachite " />
+                  <span className="text-[9px] text-malachite font-black uppercase tracking-widest">{t("common.live")}</span>
                 </span>
               )}
             </CardTitle>

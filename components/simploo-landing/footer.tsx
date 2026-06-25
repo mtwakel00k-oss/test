@@ -38,7 +38,7 @@ export function Footer() {
         <div className="grid gap-12 md:grid-cols-5">
           <div className="md:col-span-2">
             <Link href="/" className="flex items-center gap-2.5">
-              <span className="grid size-10 place-items-center rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/30">
+              <span className="grid size-10 place-items-center rounded-full bg-gradient-to-br from-malachite to-forest text-white shadow-lg shadow-malachite/30">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2" />
                   <path d="M5 2v20" />
@@ -62,7 +62,7 @@ export function Footer() {
               <ul className="flex flex-col gap-3">
                 {c.links.map((l) => (
                   <li key={l.label}>
-                    <a href={l.href} className="text-sm text-muted-foreground transition-colors duration-300 hover:text-amber-500">
+                    <a href={l.href} className="text-sm text-muted-foreground transition-colors duration-300 hover:text-malachite">
                       {l.label}
                     </a>
                   </li>
@@ -75,13 +75,13 @@ export function Footer() {
             <h4 className="mb-5 text-sm font-semibold text-foreground">اتصل بنا</h4>
             <ul className="flex flex-col gap-4">
               <li className="flex items-center gap-3 text-sm text-muted-foreground">
-                <div className="grid size-9 place-items-center rounded-full bg-amber-500/8 text-amber-500">
+                <div className="grid size-9 place-items-center rounded-full bg-malachite/8 text-malachite">
                   <Phone size={14} strokeWidth={1.5} />
                 </div>
                 <span dir="ltr">+213 555 00 00 00</span>
               </li>
               <li className="flex items-center gap-3 text-sm text-muted-foreground">
-                <div className="grid size-9 place-items-center rounded-full bg-amber-500/8 text-amber-500">
+                <div className="grid size-9 place-items-center rounded-full bg-malachite/8 text-malachite">
                   <Mail size={14} strokeWidth={1.5} />
                 </div>
                 <span>contact@simploo.dz</span>

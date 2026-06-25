@@ -69,7 +69,7 @@ export function POSHeader({ totalOrders: _totalOrders, activeOrders, todayRevenu
           <div className="flex flex-col">
             <h1 className="text-base font-semibold leading-none tracking-tight text-foreground">{t("pos.title")}</h1>
             <div className="mt-1 flex items-center gap-1.5">
-              <span className="size-1.5 rounded-full bg-emerald-500 " />
+              <span className="size-1.5 rounded-full bg-malachite " />
               <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">{t("pos.subtitle")}</p>
             </div>
           </div>
@@ -88,8 +88,8 @@ export function POSHeader({ totalOrders: _totalOrders, activeOrders, todayRevenu
           <div className="hidden md:flex items-center gap-3">
             <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-muted/50 border border-border/50">
               <div className="relative size-2">
-                <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75" />
-                <span className="relative block size-2 rounded-full bg-emerald-500" />
+                <span className="absolute inset-0 rounded-full bg-malachite animate-ping opacity-75" />
+                <span className="relative block size-2 rounded-full bg-malachite" />
               </div>
               <span className="text-xs font-black text-foreground tabular-nums">
                 {activeOrders} <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold ms-1">{t("pos.activeOrders")}</span>

@@ -12,7 +12,7 @@ const sidebarItems = [
 ]
 
 const stats = [
-  { label: 'إجمالي المبيعات', value: '45,500 دج', badge: '+12%', color: 'text-emerald-600 bg-emerald-50' },
+  { label: 'إجمالي المبيعات', value: '45,500 دج', badge: '+12%', color: 'text-malachite bg-malachite/10' },
   { label: 'الطلبات اليوم', value: '127', badge: 'جديد', color: 'text-blue-600 bg-blue-50' },
   { label: 'الزبائن', value: '89', badge: '+8', color: 'text-primary bg-primary-bg' },
   { label: 'التقييم', value: '4.9 ★', badge: 'ممتاز', color: 'text-amber-600 bg-amber-50' },
@@ -26,7 +26,7 @@ export function DashboardMockup() {
         <div className="flex items-center gap-2 border-b border-border bg-muted/60 px-4 py-3">
           <span className="size-3 rounded-full bg-red-400" />
           <span className="size-3 rounded-full bg-amber-400" />
-          <span className="size-3 rounded-full bg-emerald-400" />
+          <span className="size-3 rounded-full bg-malachite" />
           <div className="mx-auto hidden rounded-md bg-white px-10 py-1 text-[10px] text-muted-foreground sm:block">
             app.restoos.dz
           </div>

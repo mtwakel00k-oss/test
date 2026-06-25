@@ -92,7 +92,7 @@ function ProductCard({ product, curSize, curSauce, count, price, sizes, showSauc
                 {sauces.tomato && (
                   <button onClick={() => onSauceChange(product.id, 1)}
                     className={cn("text-[9px] px-2.5 py-1 rounded-xl font-black uppercase tracking-widest transition-all border",
-                      curSauce === 1 ? "bg-rose-500 text-white border-rose-500 shadow-lg shadow-rose-500/20" : "bg-muted/50 text-muted-foreground border-border/50 hover:border-rose-300 hover:text-rose-600")}>
+                      curSauce === 1 ? "bg-malachite text-evergreen border-malachite shadow-lg shadow-malachite/20" : "bg-muted/50 text-muted-foreground border-border/50 hover:border-malachite/50 hover:text-malachite")}>
                     {t("pos.redSauce")}
                   </button>
                 )}
@@ -115,7 +115,7 @@ function ProductCard({ product, curSize, curSauce, count, price, sizes, showSauc
           {count > 0 ? (
             <div className="flex items-center gap-1.5 bg-muted/50 p-1 rounded-2xl border border-border/50">
               <button onClick={() => onUpdateQuantity(product.id, -1)}
-                className="flex items-center justify-center size-8 rounded-xl bg-background text-foreground hover:bg-rose-500 hover:text-white transition-all active:scale-90 shadow-sm">
+                className="flex items-center justify-center size-8 rounded-xl bg-background text-foreground hover:bg-destructive hover:text-destructive-foreground transition-all active:scale-90 shadow-sm">
                 {count === 1 ? <Trash2 className="size-3.5" /> : <Minus className="size-3.5" />}
               </button>
               <span className="w-6 text-center text-sm font-black text-foreground tabular-nums">{count}</span>

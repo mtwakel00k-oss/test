@@ -104,7 +104,7 @@ const OrderCardInner = memo(function OrderCardInner({
               </span>
               <span className={cn("inline-flex px-3 py-1 rounded-xl text-[10px] font-bold",
                 order.paymentStatus === "paid"
-                  ? "bg-emerald-500/10 text-emerald-600"
+                  ? "bg-malachite/10 text-malachite"
                   : "bg-amber-500/10 text-amber-600"
               )}>
                 {order.paymentStatus === "paid" ? t("pos.paid") : t("pos.unpaid")}
@@ -161,7 +161,7 @@ const OrderCardInner = memo(function OrderCardInner({
                   <button key={driver.id} onClick={e => { e.stopPropagation(); onAssignDriver(order.id, driver.id) }}
                     disabled={assigningDriver}
                     className="flex items-center gap-2 w-full rounded-lg border border-border/40 bg-card px-3 py-2 text-right hover:border-primary/30 hover:bg-primary/[0.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-malachite/10 text-malachite dark:text-malachite text-xs font-bold">
                       {driver.name.charAt(0)}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -169,8 +169,8 @@ const OrderCardInner = memo(function OrderCardInner({
                       <p className="text-[10px] text-muted-foreground/60 font-mono dir-ltr text-left">{driver.phone}</p>
                     </div>
                     <span className="flex items-center gap-1.5 shrink-0">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                      <span className="text-[9px] font-semibold text-emerald-600 dark:text-emerald-400">متاح</span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-malachite" />
+                      <span className="text-[9px] font-semibold text-malachite dark:text-malachite">متاح</span>
                     </span>
                   </button>
                 ))}
@@ -193,7 +193,7 @@ const OrderCardInner = memo(function OrderCardInner({
               </div>
               <a href={`tel:${order.driverPhone || ""}`}
                 onClick={e => e.stopPropagation()}
-                className="flex items-center justify-center h-7 w-7 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 transition-all">
+                className="flex items-center justify-center h-7 w-7 rounded-md bg-malachite/10 text-malachite dark:text-malachite hover:bg-malachite/20 transition-all">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
               </a>
             </div>
@@ -210,7 +210,7 @@ const OrderCardInner = memo(function OrderCardInner({
             )}
             {order.status === "pending" && (
               <button onClick={(e) => { e.stopPropagation(); onCancel(order.id) }}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold text-rose-500 hover:bg-rose-500/10 transition-all">
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold text-destructive hover:bg-destructive/10 transition-all">
                 {t("common.cancel")}
               </button>
             )}

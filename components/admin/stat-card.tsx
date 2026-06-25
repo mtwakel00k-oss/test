@@ -33,8 +33,8 @@ export function StatCard({ title, value, change, icon, trend, suffix, isLive }: 
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/70">{title}</p>
                   {isLive && (
-                    <span className="mt-1 flex items-center gap-1.5 text-[10px] font-medium text-emerald-500">
-                      <span className="size-1.5 rounded-full bg-emerald-500 " />
+                    <span className="mt-1 flex items-center gap-1.5 text-[10px] font-medium text-malachite">
+                      <span className="size-1.5 rounded-full bg-malachite " />
                       {t("common.live")}
                     </span>
                   )}
@@ -49,7 +49,7 @@ export function StatCard({ title, value, change, icon, trend, suffix, isLive }: 
               <div className="flex items-center gap-2">
                 <span className={cn(
                   "inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold",
-                  isPositive ? "bg-emerald-500/10 text-emerald-600" : "bg-rose-500/10 text-rose-600",
+                  isPositive ? "bg-malachite/10 text-malachite" : "bg-rose-500/10 text-rose-600",
                 )}>
                   {isPositive ? "↑" : "↓"} {Math.abs(change)}%
                 </span>

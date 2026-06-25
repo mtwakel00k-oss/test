@@ -42,7 +42,7 @@ function StatCard({ icon: Icon, label, value, prev, format, dir }: {
         {fmt(value)}
       </p>
       {prev !== undefined && (
-        <div className={cn("flex items-center gap-1.5 text-[11px] font-bold", isUp ? "text-emerald-600" : "text-rose-600")}>
+        <div className={cn("flex items-center gap-1.5 text-[11px] font-bold", isUp ? "text-malachite" : "text-destructive")}>
           {isUp ? <TrendingUp className="size-3.5" strokeWidth={2.5} /> : <TrendingDown className="size-3.5" strokeWidth={2.5} />}
           <span>{isUp ? "+" : ""}{change.toFixed(1)}%</span>
           <span className="text-muted-foreground/50 font-medium">vs last month</span>

@@ -64,7 +64,7 @@ export function ClearData({ onCleared }: ClearDataProps) {
           {t("admin.clearDataWarning")}
         </p>
         {status === "success" && (
-          <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+          <p className="text-sm font-medium text-malachite dark:text-malachite">
             {t("admin.clearDataSuccess")}
           </p>
         )}

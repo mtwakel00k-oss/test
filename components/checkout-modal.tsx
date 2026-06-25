@@ -244,9 +244,9 @@ export function CheckoutModal({
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.15 }}
-            className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-5"
+            className="w-16 h-16 rounded-full bg-malachite/10 dark:bg-malachite/20 flex items-center justify-center mx-auto mb-5"
           >
-            <Check className="w-8 h-8 text-emerald-600" />
+            <Check className="w-8 h-8 text-malachite" />
           </motion.div>
           <h2 className="text-2xl font-black text-foreground mb-2 tracking-tight">{t("menu.orderConfirmed")}</h2>
           <p className="text-muted-foreground mb-1">
@@ -254,13 +254,13 @@ export function CheckoutModal({
           </p>
           <p className="text-sm text-muted-foreground mb-5">{t("menu.willPrepare")}</p>
           {removedNames.length > 0 && (
-            <div className="mb-5 rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 text-sm">
-              <p className="font-bold text-amber-800 dark:text-amber-200 mb-1">بعض المنتجات غير متوفرة حالياً</p>
-              <p className="text-amber-700 dark:text-amber-300 text-xs">تم إزالة: {removedNames.join("، ")}</p>
+            <div className="mb-5 rounded-2xl bg-warning/10 dark:bg-warning/20 border border-warning/30 p-4 text-sm">
+              <p className="font-bold text-warning-foreground mb-1">بعض المنتجات غير متوفرة حالياً</p>
+              <p className="text-warning-foreground/70 text-xs">تم إزالة: {removedNames.join("، ")}</p>
             </div>
           )}
           <button onClick={() => { if (orderId) onSuccess(orderId, slug, orderNumber) }}
-            className="w-full rounded-2xl bg-emerald-600 text-white py-3 font-black text-sm uppercase tracking-wider hover:bg-emerald-500 transition-colors shadow-lg shadow-emerald-600/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+            className="w-full rounded-2xl bg-malachite text-evergreen py-3 font-black text-sm uppercase tracking-wider hover:brightness-110 transition-all shadow-lg shadow-malachite/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-malachite/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background">
             {t("menu.trackOrder")}
           </button>
         </motion.div>
@@ -367,13 +367,13 @@ export function CheckoutModal({
               className="w-full h-12 rounded-xl border border-border/40 bg-muted/20 px-5 text-sm font-medium text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 focus:bg-background transition-all disabled:opacity-50"
               placeholder={t("menu.namePlaceholder") || "أدخل اسمك"}
               disabled={submitting} autoFocus />
-            {errors.name && <p className="text-xs font-medium text-rose-500 mt-1.5 px-1">{errors.name}</p>}
+            {errors.name && <p className="text-xs font-medium text-destructive mt-1.5 px-1">{errors.name}</p>}
           </div>
 
           {orderType === "delivery" && !deliveryAllowed && (
-            <div className="rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-5 text-center">
-              <p className="text-sm text-amber-800 dark:text-amber-200 font-bold">التوصيل غير متاح في هذا المطعم حالياً</p>
-              <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">تتوفر ميزة التوصيل في الباقة الاحترافية (Pro)</p>
+            <div className="rounded-2xl bg-warning/10 dark:bg-warning/20 border border-warning/30 p-5 text-center">
+              <p className="text-sm text-warning-foreground font-bold">التوصيل غير متاح في هذا المطعم حالياً</p>
+              <p className="text-xs text-warning-foreground/70 mt-1">تتوفر ميزة التوصيل في الباقة الاحترافية (Pro)</p>
             </div>
           )}
           <AnimatePresence mode="wait">
@@ -384,9 +384,9 @@ export function CheckoutModal({
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                className="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.02] p-5 space-y-4 overflow-hidden"
+                className="rounded-2xl border border-malachite/20 bg-malachite/[0.02] p-5 space-y-4 overflow-hidden"
               >
-                <div className="flex items-center gap-2 text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                <div className="flex items-center gap-2 text-sm font-bold text-malachite">
                   <MapPin className="w-4 h-4" />
                   <span className="text-[10px] font-black uppercase tracking-widest">{t("pos.deliveryInfo") || t("menu.burgerDelivery")}</span>
                 </div>
@@ -395,9 +395,9 @@ export function CheckoutModal({
                   <input type="tel" value={form.phone} maxLength={10}
                     onChange={e => setForm(f => ({ ...f, phone: maskPhone(e.target.value) }))}
                     onKeyDown={e => e.key === "Enter" && !submitting && handleSubmit()}
-                    className="w-full h-12 rounded-xl border border-border/40 bg-muted/20 px-5 text-sm font-bold text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/40 transition-all disabled:opacity-50"
+                    className="w-full h-12 rounded-xl border border-border/40 bg-muted/20 px-5 text-sm font-bold text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-all disabled:opacity-50"
                     placeholder="0555123456" disabled={submitting} />
-                  {errors.phone && <p className="text-[10px] font-black uppercase tracking-widest text-rose-500 mt-1.5 px-1">{errors.phone}</p>}
+                  {errors.phone && <p className="text-[10px] font-black uppercase tracking-widest text-destructive mt-1.5 px-1">{errors.phone}</p>}
                 </div>
                 {geoStatus === "idle" && (
                   <button type="button" onClick={getLocation}
@@ -414,8 +414,8 @@ export function CheckoutModal({
                 )}
                 {geoStatus === "success" && form.deliveryAddress && (
                   <div className="space-y-2">
-                    <div className="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-3">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-1">{t("pos.yourLocation") || t("track.yourLocation")}</p>
+                    <div className="rounded-xl border border-malachite/30 bg-malachite/5 p-3">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-malachite mb-1">{t("pos.yourLocation") || t("track.yourLocation")}</p>
                       <p className="text-sm text-foreground">{form.deliveryAddress}</p>
                     </div>
                     <button type="button" onClick={() => setGeoStatus("idle")}
@@ -426,7 +426,7 @@ export function CheckoutModal({
                 )}
                 {geoStatus === "error" && (
                   <button type="button" onClick={getLocation}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/5 py-3 text-sm font-bold text-rose-500 hover:bg-rose-500/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+                    className="w-full flex items-center justify-center gap-2 rounded-xl border border-destructive/30 bg-destructive/5 py-3 text-sm font-bold text-destructive hover:bg-destructive/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background">
                     {t("pos.locationFailed") || t("menu.locationFailed")}
                   </button>
                 )}
@@ -449,7 +449,7 @@ export function CheckoutModal({
                   onKeyDown={e => e.key === "Enter" && !submitting && handleSubmit()}
                   className="w-full h-12 rounded-xl border border-border/40 bg-muted/20 px-5 text-sm font-medium text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 focus:bg-background transition-all disabled:opacity-50"
                   placeholder="مثال: 5" disabled={submitting} />
-                {errors.table && <p className="text-xs font-medium text-rose-500 mt-1.5 px-1">{errors.table}</p>}
+                {errors.table && <p className="text-xs font-medium text-destructive mt-1.5 px-1">{errors.table}</p>}
               </motion.div>
             )}
             {orderType === "takeaway" && (
@@ -478,7 +478,7 @@ export function CheckoutModal({
           <motion.p
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-sm font-bold text-rose-500 mt-4 px-1"
+            className="text-sm font-bold text-destructive mt-4 px-1"
           >
             {errors.general}
           </motion.p>

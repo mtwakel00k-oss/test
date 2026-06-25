@@ -41,7 +41,7 @@ function RealDashboardMockup() {
       style={{ y: springY, rotateX: springRotateX }}
       className="relative w-full perspective-[1200px]"
     >
-      <div className="pointer-events-none absolute -inset-6 rounded-[3rem] bg-gradient-to-b from-amber-500/10 via-orange-500/5 to-transparent blur-3xl" />
+      <div className="pointer-events-none absolute -inset-6 rounded-[3rem] bg-gradient-to-b from-malachite/10 via-forest/5 to-transparent blur-3xl" />
       <motion.div
         animate={{ y: [0, -5, 0] }}
         transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
@@ -50,8 +50,8 @@ function RealDashboardMockup() {
         {/* Browser bar */}
         <div className="flex items-center gap-2 border-b border-white/10 bg-card/60 px-5 py-3">
           <span className="size-2.5 rounded-full bg-red-400" />
-          <span className="size-2.5 rounded-full bg-amber-400" />
-          <span className="size-2.5 rounded-full bg-emerald-400" />
+          <span className="size-2.5 rounded-full bg-malachite" />
+          <span className="size-2.5 rounded-full bg-malachite" />
           <div className="mx-auto rounded-md bg-background/80 px-10 py-1 text-[11px] text-muted-foreground backdrop-blur-sm">
             app.simploo.dz/burger-house/admin
           </div>
@@ -62,12 +62,12 @@ function RealDashboardMockup() {
           {/* Sidebar */}
           <aside className="hidden w-36 shrink-0 border-l border-white/10 bg-card/40 p-3 sm:block">
             <div className="mb-4 flex items-center gap-2 text-foreground">
-              <span className="grid size-6 place-items-center rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 text-[8px] font-bold text-white">S</span>
+              <span className="grid size-6 place-items-center rounded-lg bg-gradient-to-br from-malachite to-forest text-[8px] font-bold text-white">S</span>
               <span className="text-[10px] font-bold">Simploo</span>
             </div>
             <div className="flex flex-col gap-0.5">
               {['نظرة عامة', 'المنتجات', 'الطلبات', 'المطبخ', 'التقارير'].map((it, idx) => (
-                <div key={it} className={`rounded-lg px-2 py-1.5 text-[9px] font-medium ${idx === 0 ? 'bg-amber-500/15 text-amber-400' : 'text-muted-foreground'}`}>
+                <div key={it} className={`rounded-lg px-2 py-1.5 text-[9px] font-medium ${idx === 0 ? 'bg-malachite/15 text-malachite' : 'text-muted-foreground'}`}>
                   {it}
                 </div>
               ))}
@@ -80,18 +80,18 @@ function RealDashboardMockup() {
             <div className="mb-3 flex items-center justify-between">
               <span className="text-xs font-bold text-foreground">نظرة عامة</span>
               <div className="flex items-center gap-2">
-                <span className="rounded-md bg-amber-500/15 px-2 py-0.5 text-[8px] font-medium text-amber-400">آخر 7 أيام</span>
-                <span className="size-2 rounded-full bg-emerald-500 " />
+                <span className="rounded-md bg-malachite/15 px-2 py-0.5 text-[8px] font-medium text-malachite">آخر 7 أيام</span>
+                <span className="size-2 rounded-full bg-malachite " />
               </div>
             </div>
 
             {/* 4 stat cards — matches real admin */}
             <div className="grid grid-cols-4 gap-2">
               {[
-                { label: 'إجمالي الإيرادات', value: '1,250 د.ج', badge: '▲ 12%', color: 'text-emerald-400 bg-emerald-500/10' },
-                { label: 'إجمالي الطلبات', value: '43', badge: 'جديد 3', color: 'text-amber-400 bg-amber-500/10' },
+                { label: 'إجمالي الإيرادات', value: '1,250 د.ج', badge: '▲ 12%', color: 'text-malachite bg-malachite/10' },
+                { label: 'إجمالي الطلبات', value: '43', badge: 'جديد 3', color: 'text-malachite bg-malachite/10' },
                 { label: 'متوسط الطلب', value: '29.1 د.ج', badge: '+0.8%', color: 'text-blue-400 bg-blue-500/10' },
-                { label: 'التقييم', value: '4.2', badge: 'ممتاز', color: 'text-emerald-400 bg-emerald-500/10' },
+                { label: 'التقييم', value: '4.2', badge: 'ممتاز', color: 'text-malachite bg-malachite/10' },
               ].map((s, i) => (
                 <motion.div
                   key={s.label}
@@ -120,13 +120,13 @@ function RealDashboardMockup() {
                 <svg viewBox="0 0 240 60" className="w-full">
                   <defs>
                     <linearGradient id="sc" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="rgb(251,146,60)" stopOpacity="0.2" />
-                      <stop offset="100%" stopColor="rgb(251,146,60)" stopOpacity="0" />
+                      <stop offset="0%" stopColor="rgb(37,233,112)" stopOpacity="0.2" />
+                      <stop offset="100%" stopColor="rgb(37,233,112)" stopOpacity="0" />
                     </linearGradient>
                   </defs>
                   <motion.path
                     d="M0 48 C30 40, 50 15, 80 22 S 130 8, 160 18 S 200 35, 240 14"
-                    fill="none" stroke="rgb(251,146,60)" strokeWidth="2" strokeLinecap="round"
+                    fill="none" stroke="rgb(37,233,112)" strokeWidth="2" strokeLinecap="round"
                     initial={{ pathLength: 0 }}
                     animate={{ pathLength: 1 }}
                     transition={{ duration: 1.5, delay: 1.2 }}
@@ -153,13 +153,13 @@ function RealDashboardMockup() {
                   <span className="text-[6px] text-muted-foreground">مباشر</span>
                 </div>
                 <div className="space-y-1.5">
-                  <div className="flex items-center justify-between rounded-lg bg-emerald-500/10 px-1.5 py-1 border border-emerald-500/20">
-                    <span className="text-[7px] font-bold text-emerald-300">#1042</span>
-                    <span className="text-[6px] text-emerald-400">8 د</span>
+                  <div className="flex items-center justify-between rounded-lg bg-malachite/10 px-1.5 py-1 border border-malachite/20">
+                    <span className="text-[7px] font-bold text-malachite">#1042</span>
+                    <span className="text-[6px] text-malachite">8 د</span>
                   </div>
-                  <div className="flex items-center justify-between rounded-lg bg-amber-500/10 px-1.5 py-1 border border-amber-500/20">
-                    <span className="text-[7px] font-bold text-amber-300">#1043</span>
-                    <span className="text-[6px] text-amber-400">16 د</span>
+                  <div className="flex items-center justify-between rounded-lg bg-malachite/10 px-1.5 py-1 border border-malachite/20">
+                    <span className="text-[7px] font-bold text-malachite">#1043</span>
+                    <span className="text-[6px] text-malachite">16 د</span>
                   </div>
                   <div className="flex items-center justify-between rounded-lg bg-rose-500/10 px-1.5 py-1 border border-rose-500/20">
                     <span className="text-[7px] font-bold text-rose-300">#1039</span>
@@ -174,12 +174,12 @@ function RealDashboardMockup() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1.3 }}
-              className="mt-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 backdrop-blur-sm"
+              className="mt-3 rounded-xl border border-malachite/20 bg-malachite/10 p-3 backdrop-blur-sm"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-[8px] font-bold text-amber-400">لوحة تحليلات النخبة</span>
-                  <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[6px] font-semibold text-amber-400">Pro</span>
+                  <span className="text-[8px] font-bold text-malachite">لوحة تحليلات النخبة</span>
+                  <span className="rounded bg-malachite/15 px-1.5 py-0.5 text-[6px] font-semibold text-malachite">Pro</span>
                 </div>
                 <span className="text-[6px] text-muted-foreground">كشف التسريبات + Dead Stock + ترتيب السائقين</span>
               </div>
@@ -198,12 +198,12 @@ export function Hero() {
         <motion.div
           animate={{ y: [0, -20, 0], opacity: [0.06, 0.1, 0.06] }}
           transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute -top-40 -right-32 h-[600px] w-[600px] rounded-full bg-amber-500 blur-[160px]"
+          className="absolute -top-40 -right-32 h-[600px] w-[600px] rounded-full bg-malachite blur-[160px]"
         />
         <motion.div
           animate={{ y: [0, 20, 0], opacity: [0.05, 0.08, 0.05] }}
           transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-          className="absolute -bottom-40 -left-32 h-[500px] w-[500px] rounded-full bg-orange-500 blur-[140px]"
+          className="absolute -bottom-40 -left-32 h-[500px] w-[500px] rounded-full bg-forest blur-[140px]"
         />
       </div>
 
@@ -214,13 +214,13 @@ export function Hero() {
               initial={{ opacity: 0, scaleX: 0 }}
               animate={{ opacity: 1, scaleX: 1 }}
               transition={{ type: 'spring', stiffness: 100, damping: 20 }}
-              className="mb-6 h-0.5 w-16 origin-right rounded-full bg-amber-500/70"
+              className="mb-6 h-0.5 w-16 origin-right rounded-full bg-malachite/70"
             />
 
             <h1 className="font-display text-[clamp(2.2rem,4.8vw,4rem)] font-normal leading-[0.95] tracking-tight text-foreground">
               <AnimatedText delay={0.1}>أدر مطعمك بذكاء النخبة.</AnimatedText>
               <br />
-              <span className="text-amber-500">
+              <span className="text-malachite">
                 <AnimatedText delay={0.3}>سيطر على أرباحك،</AnimatedText>
               </span>
               <br />
@@ -247,7 +247,7 @@ export function Hero() {
                 href="/login"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                className="group inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-amber-500/30 transition-all duration-500 hover:shadow-amber-500/50"
+                className="group inline-flex items-center gap-3 rounded-full bg-malachite px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-malachite/30 transition-all duration-500 hover:shadow-malachite/50"
               >
                 ابدأ تجربتك المجانية
                 <span className="grid size-7 place-items-center rounded-full bg-white/15 transition-all duration-500 group-hover:translate-x-0.5">
@@ -258,9 +258,9 @@ export function Hero() {
                 href="#capabilities"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                className="group inline-flex items-center gap-3 rounded-full border border-white/10 bg-card/60 px-7 py-3.5 text-sm font-semibold text-foreground backdrop-blur-md transition-all duration-500 hover:border-amber-500/30 hover:bg-amber-500/10"
+                className="group inline-flex items-center gap-3 rounded-full border border-white/10 bg-card/60 px-7 py-3.5 text-sm font-semibold text-foreground backdrop-blur-md transition-all duration-500 hover:border-malachite/30 hover:bg-malachite/10"
               >
-                <span className="grid size-7 place-items-center rounded-full bg-amber-500/15 text-amber-400 backdrop-blur-sm">
+                <span className="grid size-7 place-items-center rounded-full bg-malachite/15 text-malachite backdrop-blur-sm">
                   <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                 </span>
                 شاهد الإمكانيات

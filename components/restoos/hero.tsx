@@ -85,7 +85,7 @@ function FloatingMockup() {
           <div className="flex items-center gap-2 border-b border-border/30 bg-card/60 px-5 py-3.5">
             <span className="size-2.5 rounded-full bg-red-400" />
             <span className="size-2.5 rounded-full bg-amber-400" />
-            <span className="size-2.5 rounded-full bg-emerald-400" />
+            <span className="size-2.5 rounded-full bg-malachite" />
             <div className="mx-auto rounded-md bg-background/80 px-10 py-1 text-[11px] text-muted-foreground backdrop-blur-sm">
               app.restoos.dz
             </div>
@@ -115,7 +115,7 @@ function FloatingMockup() {
               <div className="grid grid-cols-4 gap-3">
                 {[
                   { label: 'إجمالي المبيعات', value: '45,500', badge: '+12%', color: 'text-accent bg-accent/10' },
-                  { label: 'الطلبات اليوم', value: '127', badge: 'جديد', color: 'text-emerald-500 bg-emerald-500/10' },
+                  { label: 'الطلبات اليوم', value: '127', badge: 'جديد', color: 'text-malachite bg-malachite/10' },
                   { label: 'الزبائن', value: '89', badge: '+8', color: 'text-primary bg-primary/10' },
                   { label: 'التقييم', value: '4.9', badge: 'ممتاز', color: 'text-amber-500 bg-amber-500/10' },
                 ].map((s, i) => (
@@ -244,7 +244,7 @@ export function Hero() {
                 {[
                   { bg: 'bg-accent', label: 'م' },
                   { bg: 'bg-primary', label: 'ك' },
-                  { bg: 'bg-emerald-500', label: 'ف' },
+                  { bg: 'bg-malachite', label: 'ف' },
                 ].map((a) => (
                   <motion.span
                     key={a.label}

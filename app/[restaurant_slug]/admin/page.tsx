@@ -293,7 +293,7 @@ export default function AdminPage() {
               disabled={togglingOpen}
               className={`h-8 px-3 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
                 isOpen
-                  ? "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
+                  ? "bg-malachite/10 text-malachite hover:bg-malachite/20"
                   : "bg-rose-500/10 text-rose-400 hover:bg-rose-500/20"
               }`}
             >
@@ -428,7 +428,7 @@ export default function AdminPage() {
                               <span className="font-semibold text-white/80">{d.deliveries}</span>
                             </td>
                             <td className="text-center px-5 py-3">
-                              <span className="font-medium text-emerald-400/80">{fmtNum(d.revenue)} {currency}</span>
+                              <span className="font-medium text-malachite/80">{fmtNum(d.revenue)} {currency}</span>
                             </td>
                             <td className="text-center px-5 py-3">
                               <span className="text-white/40">{d.deliveries > 0 ? fmtNum(Math.round(d.revenue / d.deliveries)) : 0} {currency}</span>
@@ -473,7 +473,7 @@ export default function AdminPage() {
                               <span className="font-semibold text-white/80">{c.orders}</span>
                             </td>
                             <td className="text-center px-5 py-3">
-                              <span className="font-medium text-emerald-400/80">{fmtNum(c.revenue)} {currency}</span>
+                              <span className="font-medium text-malachite/80">{fmtNum(c.revenue)} {currency}</span>
                             </td>
                           </motion.tr>
                         ))}
