@@ -34,6 +34,18 @@ export async function GET(req: NextRequest) {
       if (key && !seenNames.has(key)) { seenNames.add(key); merged.push(row) }
     }
 
+    // 1) Tenant DB's restaurant_staff
+    try {
+      const sb = await supabaseForRequest(req)
+      const { data } = await sb.from("restaurant_staff").select("*").order("name")
+      if (Array.isArray(data)) {
+        for (const row of data as Record<string, unknown>[]) {
+          addIfNew(row, String(row.name || ""))
+        }
+      }
+    } catch { /* tenant table not exist */ }
+
+    // 2) Master DB's restaurant_staff
     try {
       const { data } = await masterSb().from("restaurant_staff")
         .select("*").eq("tenant_slug", slug).order("name")
@@ -42,8 +54,9 @@ export async function GET(req: NextRequest) {
           addIfNew(row, String(row.name || ""))
         }
       }
-    } catch { /* table not exist */ }
+    } catch { /* master table not exist */ }
 
+    // 3) Master DB's restaurant_users + profiles + auth metadata
     const url = env.NEXT_PUBLIC_SUPABASE_URL
     const key = env.SUPABASE_SERVICE_ROLE_KEY
     if (url && key) {
@@ -107,76 +120,91 @@ export async function POST(req: NextRequest) {
     const slug = getSlug(req)
     if (!slug) return NextResponse.json({ error: "No tenant" }, { status: 400 })
 
-    const { name, role, password } = await req.json()
+    const { name, role } = await req.json()
     if (!name || !name.trim()) {
       return NextResponse.json({ error: "الاسم مطلوب" }, { status: 400 })
     }
     const staffName = name.trim()
 
-    const url = env.NEXT_PUBLIC_SUPABASE_URL
-    const key = env.SUPABASE_SERVICE_ROLE_KEY
-    if (!url || !key) return NextResponse.json({ error: "Server config error" }, { status: 500 })
-    const master = createClient(url, key)
+    let created: Record<string, unknown> | null = null
 
-    // Create auth user + profile + restaurant_users (always works)
-    const domain = `${slug}.app`
-    const email = `${staffName.toLowerCase().replace(/\s+/g, "_")}@${domain}`
-    const pw = password || `${staffName}@${Math.random().toString(36).slice(2, 8)}1A`
-
-    let userId: string
-    const { data: createData, error: createError } = await master.auth.admin.createUser({
-      email,
-      password: pw,
-      email_confirm: true,
-      user_metadata: { username: staffName, role: role || "cashier" },
-    })
-
-    if (createData?.user) {
-      userId = createData.user.id
-    } else if (createError?.message?.includes("already exists")) {
-      const { data: listData } = await master.auth.admin.listUsers()
-      const found = listData?.users?.find((u: { email?: string }) => u.email === email)
-      if (!found) return NextResponse.json({ error: "User exists but not found" }, { status: 500 })
-      userId = found.id
-    } else {
-      return NextResponse.json({ error: createError?.message || "فشل إنشاء الحساب" }, { status: 500 })
-    }
-
-    await master.from("profiles").upsert({ id: userId, username: staffName, role: role || "cashier" })
-
-    const { data: tenant } = await master.from("tenants").select("id").eq("slug", slug).single()
-    if (tenant) {
-      const { data: existingLink } = await master.from("restaurant_users")
-        .select("id").eq("user_id", userId).eq("restaurant_id", tenant.id).maybeSingle()
-      if (!existingLink) {
-        await master.from("restaurant_users").insert({ user_id: userId, restaurant_id: tenant.id, role: role || "cashier" })
-      }
-    }
-
-    // Also sync to restaurant_staff if table exists
+    // 1) Write to tenant's restaurant_staff (primary — POS reads from here)
     try {
-      await master.from("restaurant_staff").upsert({
+      const sb = await supabaseForRequest(req)
+      const { data } = await sb.from("restaurant_staff").upsert({
+        name: staffName,
+        role: role || "cashier",
+        is_active: true,
+      }).select().single()
+      if (data) created = data
+    } catch (e) {
+      logger.warn("tenant restaurant_staff write failed", e)
+    }
+
+    // 2) Sync to master's restaurant_staff
+    try {
+      const { data } = await masterSb().from("restaurant_staff").upsert({
         tenant_slug: slug,
         name: staffName,
         role: role || "cashier",
         is_active: true,
-      })
-    } catch { /* table not exist */ }
+      }).select().single()
+      if (data && !created) created = data
+    } catch { /* master table not exist */ }
 
+    // 3) Optionally create auth user + profile + restaurant_users (needs SERVICE_ROLE_KEY)
     try {
-      const tenantSb = await supabaseForRequest(req)
-      await tenantSb.from("restaurant_staff").upsert({
-        name: staffName,
-        role: role || "cashier",
-        is_active: true,
-      })
-    } catch { /* tenant table not exist */ }
+      const url = env.NEXT_PUBLIC_SUPABASE_URL
+      const key = env.SUPABASE_SERVICE_ROLE_KEY
+      if (url && key) {
+        const master = createClient(url, key)
+        const domain = `${slug}.app`
+        const email = `${staffName.toLowerCase().replace(/\s+/g, "_")}@${domain}`
+        const pw = `${staffName}@${Math.random().toString(36).slice(2, 8)}1A`
+        let userId: string | null = null
 
-    logger.info("Staff created", { id: userId, name: staffName, slug })
-    return NextResponse.json({ id: userId, name: staffName, role: role || "cashier", is_active: true, password: pw }, { status: 201 })
+        const { data: createData, error: createError } = await master.auth.admin.createUser({
+          email,
+          password: pw,
+          email_confirm: true,
+          user_metadata: { username: staffName, role: role || "cashier" },
+        })
+
+        if (createData?.user) {
+          userId = createData.user.id
+        } else if (createError?.message?.includes("already exists")) {
+          const { data: listData } = await master.auth.admin.listUsers()
+          const found = listData?.users?.find((u: { email?: string }) => u.email === email)
+          if (found) userId = found.id
+        }
+
+        if (userId) {
+          await master.from("profiles").upsert({ id: userId, username: staffName, role: role || "cashier" })
+          const { data: tenant } = await master.from("tenants").select("id").eq("slug", slug).single()
+          if (tenant) {
+            const { data: existingLink } = await master.from("restaurant_users")
+              .select("id").eq("user_id", userId).eq("restaurant_id", tenant.id).maybeSingle()
+            if (!existingLink) {
+              await master.from("restaurant_users").insert({
+                user_id: userId, restaurant_id: tenant.id, role: role || "cashier",
+              })
+            }
+          }
+        }
+      }
+    } catch (e) {
+      logger.warn("auth user creation skipped (service_role_key may be missing)", e)
+    }
+
+    if (!created) {
+      return NextResponse.json({ error: "تعذر إضافة الموظف. تأكد من وجود قاعدة البيانات." }, { status: 500 })
+    }
+
+    logger.info("Staff created", { id: created.id, name: staffName, slug })
+    return NextResponse.json(created, { status: 201 })
   } catch (e) {
     logger.error("staff POST failed", e)
-    return NextResponse.json({ error: "فشل إضافة الموظف. تأكد من صلاحيات قاعدة البيانات." }, { status: 500 })
+    return NextResponse.json({ error: "حدث خطأ أثناء إضافة الموظف." }, { status: 500 })
   }
 }
 
@@ -201,10 +229,16 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "No fields to update" }, { status: 400 })
     }
 
-    // Update restaurant_staff (if exists)
+    // Update tenant's restaurant_staff
+    try {
+      const sb = await supabaseForRequest(req)
+      await sb.from("restaurant_staff").update(updates).eq("id", id)
+    } catch { /* tenant table not exist */ }
+
+    // Update master's restaurant_staff
     try {
       await master.from("restaurant_staff").update(updates).eq("id", id)
-    } catch { /* table not exist */ }
+    } catch { /* master table not exist */ }
 
     // Also update profile for auth-linked users
     if (updates.name || updates.role) {
@@ -236,19 +270,19 @@ export async function DELETE(req: NextRequest) {
     const id = searchParams.get("id")
     if (!id) return NextResponse.json({ error: "id required" }, { status: 400 })
 
-    const master = masterSb()
-
+    // Delete from tenant's restaurant_staff
     try {
+      const sb = await supabaseForRequest(req)
+      await sb.from("restaurant_staff").delete().eq("id", id)
+    } catch { /* tenant table not exist */ }
+
+    // Delete from master's tables
+    try {
+      const master = masterSb()
       await master.from("restaurant_staff").delete().eq("id", id)
-    } catch { /* table not exist */ }
-
-    try {
       await master.from("restaurant_users").delete().eq("user_id", id)
-    } catch { /* table not exist */ }
-
-    try {
-      await master.auth.admin.deleteUser(id)
-    } catch { /* may fail for non-auth users */ }
+      try { await master.auth.admin.deleteUser(id) } catch { /* may fail */ }
+    } catch { /* master tables not exist */ }
 
     logger.info("Staff deleted", { id })
     return NextResponse.json({ success: true })

@@ -33,8 +33,6 @@ export function StaffManager() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [addName, setAddName] = useState("")
   const [addRole, setAddRole] = useState("cashier")
-  const [addPassword, setAddPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
   const [editName, setEditName] = useState("")
   const [saving, setSaving] = useState(false)
 
@@ -56,17 +54,15 @@ export function StaffManager() {
       const res = await fetchApi("/api/staff", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, role: addRole, password: addPassword || undefined }),
+        body: JSON.stringify({ name, role: addRole }),
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: "فشل الإضافة" }))
         toast({ title: err.error || "فشل الإضافة", variant: "destructive" }); return
       }
-      const result = await res.json()
       await fetchStaff()
-      const pwMsg = result.password ? ` | كلمة المرور: ${result.password}` : ""
-      setAddName(""); setAddRole("cashier"); setAddPassword(""); setShowAdd(false)
-      toast({ title: lang === "ar" ? "تمت الإضافة" + pwMsg : lang === "fr" ? "Ajouté" + pwMsg : "Added" + pwMsg })
+      setAddName(""); setAddRole("cashier"); setShowAdd(false)
+      toast({ title: lang === "ar" ? "تمت الإضافة" : lang === "fr" ? "Ajouté" : "Added" })
     } catch { toast({ title: "حدث خطأ", variant: "destructive" }) } finally { setSaving(false) }
   }
 
@@ -273,27 +269,6 @@ export function StaffManager() {
                         : (lang === "ar" ? "مدير" : "Admin")}
                     </button>
                   ))}
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-bold text-muted-foreground mb-1.5 block">
-                  {lang === "ar" ? "كلمة المرور" : lang === "fr" ? "Mot de passe" : "Password"}
-                </label>
-                <div className="relative">
-                  <Input value={addPassword} onChange={e => setAddPassword(e.target.value)}
-                    type={showPassword ? "text" : "password"}
-                    placeholder={lang === "ar" ? "اتركه فارغاً للتوليد التلقائي" : lang === "fr" ? "Laisser vide pour auto-génération" : "Leave empty for auto-generate"}
-                    className="h-12 rounded-xl text-sm font-bold ltr:text-left rtl:text-right"
-                  />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 end-2 flex items-center text-muted-foreground hover:text-foreground"
-                  >
-                    {showPassword ? (
-                      <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
-                    ) : (
-                      <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
-                    )}
-                  </button>
                 </div>
               </div>
               <div className="flex gap-2 pt-2">

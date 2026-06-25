@@ -30,10 +30,7 @@ export async function GET(req: NextRequest) {
 
     const addIfNew = (row: Record<string, unknown>, name: string) => {
       const key = name.toLowerCase().trim()
-      if (key && !seenNames.has(key)) {
-        seenNames.add(key)
-        merged.push(row)
-      }
+      if (key && !seenNames.has(key)) { seenNames.add(key); merged.push(row) }
     }
 
     // 1) Tenant DB's restaurant_staff table
@@ -54,38 +51,53 @@ export async function GET(req: NextRequest) {
           addIfNew(row, String(row.name || ""))
         }
       }
-    } catch { /* master table may not exist yet */ }
+    } catch { /* master table may not exist */ }
 
-    // 3) Master DB's restaurant_users + profiles (always exists — ultimate fallback)
-    try {
-      const master = masterSb()
-      const { data: tenant } = await master.from("tenants").select("id").eq("slug", slug).single()
-      if (tenant) {
-        const { data: users } = await master.from("restaurant_users")
-          .select("user_id, role").eq("restaurant_id", tenant.id)
-        if (Array.isArray(users) && users.length > 0) {
-          const userIds = (users as { user_id: string; role: string }[]).map((u) => u.user_id)
-          const nameMap = new Map<string, string>()
-          const { data: profiles } = await master.from("profiles")
-            .select("id, username").in("id", userIds)
-          if (Array.isArray(profiles)) {
-            for (const p of profiles as { id: string; username: string }[]) {
-              nameMap.set(p.id, p.username)
+    // 3) Master DB's restaurant_users + profiles
+    const url = env.NEXT_PUBLIC_SUPABASE_URL
+    const key = env.SUPABASE_SERVICE_ROLE_KEY
+    if (url && key) {
+      try {
+        const master = createClient(url, key)
+        const { data: tenant } = await master.from("tenants").select("id").eq("slug", slug).single()
+        if (tenant) {
+          const { data: users } = await master.from("restaurant_users")
+            .select("user_id, role").eq("restaurant_id", tenant.id)
+          if (Array.isArray(users) && users.length > 0) {
+            const userIds = (users as { user_id: string; role: string }[]).map((u) => u.user_id)
+            const nameMap = new Map<string, string>()
+
+            try {
+              const { data: profiles } = await master.from("profiles")
+                .select("id, username").in("id", userIds)
+              if (Array.isArray(profiles)) {
+                for (const p of profiles as { id: string; username: string }[]) {
+                  if (p.username) nameMap.set(p.id, p.username)
+                }
+              }
+            } catch { /* profiles table may not exist */ }
+
+            const missingIds = userIds.filter((id) => !nameMap.has(id))
+            if (missingIds.length > 0) {
+              try {
+                const { data: authList } = await master.auth.admin.listUsers()
+                for (const u of authList?.users || []) {
+                  if (missingIds.includes(u.id) && u.user_metadata?.username) {
+                    nameMap.set(u.id, u.user_metadata.username as string)
+                  }
+                }
+              } catch { /* no auth admin permission */ }
+            }
+
+            for (const u of users as { user_id: string; role: string }[]) {
+              const name = nameMap.get(u.user_id)
+              if (!name) continue
+              addIfNew({ id: u.user_id, name, role: u.role, is_active: true }, name)
             }
           }
-          for (const u of users as { user_id: string; role: string }[]) {
-            const name = nameMap.get(u.user_id)
-            if (!name || /^[a-f0-9-]{32,}$/i.test(name)) continue
-            addIfNew({
-              id: u.user_id,
-              name,
-              role: u.role,
-              is_active: true,
-            }, name)
-          }
         }
-      }
-    } catch { /* restaurant_users table may not exist */ }
+      } catch { /* restaurant_users table may not exist */ }
+    }
 
     return NextResponse.json(merged)
   } catch (e) {
