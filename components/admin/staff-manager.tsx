@@ -32,7 +32,6 @@ export function StaffManager() {
   const [showAdd, setShowAdd] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [addName, setAddName] = useState("")
-  const [addRole, setAddRole] = useState("cashier")
   const [editName, setEditName] = useState("")
   const [saving, setSaving] = useState(false)
 
@@ -54,14 +53,14 @@ export function StaffManager() {
       const res = await fetchApi("/api/staff", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, role: addRole }),
+        body: JSON.stringify({ name, role: "cashier" }),
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: "فشل الإضافة" }))
         toast({ title: err.error || "فشل الإضافة", variant: "destructive" }); return
       }
       await fetchStaff()
-      setAddName(""); setAddRole("cashier"); setShowAdd(false)
+      setAddName(""); setShowAdd(false)
       toast({ title: lang === "ar" ? "تمت الإضافة" : lang === "fr" ? "Ajouté" : "Added" })
     } catch { toast({ title: "حدث خطأ", variant: "destructive" }) } finally { setSaving(false) }
   }
@@ -102,7 +101,7 @@ export function StaffManager() {
             {lang === "ar" ? "فريق العمل" : lang === "fr" ? "Équipe" : "Staff"}
           </CardTitle>
           <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mt-1">
-            {lang === "ar" ? "إضافة وتعديل وحذف الموظفين" : lang === "fr" ? "Gérer les employés" : "Manage employees"}
+            {lang === "ar" ? "إضافة وتعديل وحذف الكاشير" : lang === "fr" ? "Gérer les caissiers" : "Manage cashiers"}
           </p>
         </div>
         <Button onClick={() => setShowAdd(true)} className="rounded-full h-10 px-5 shadow-lg shadow-malachite/20 text-sm font-bold">
@@ -169,15 +168,8 @@ export function StaffManager() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-foreground truncate">{member.name}</p>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className={cn(
-                      "text-[10px] font-semibold px-2 py-0.5 rounded-full",
-                      member.role === "cashier"
-                        ? "bg-malachite/10 text-malachite"
-                        : member.role === "chef"
-                        ? "bg-violet-500/10 text-violet-500"
-                        : "bg-blue-500/10 text-blue-500",
-                    )}>
-                      {member.role}
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-malachite/10 text-malachite">
+                      كاشير
                     </span>
                     <span className={cn(
                       "text-[10px] font-semibold",
@@ -231,10 +223,10 @@ export function StaffManager() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={() => setShowAdd(false)}>
           <div className="w-full max-w-sm rounded-2xl border border-border/50 bg-card p-6 shadow-2xl backdrop-blur-xl" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-black text-foreground mb-1">
-              {lang === "ar" ? "موظف جديد" : lang === "fr" ? "Nouvel employé" : "New Staff"}
+              {lang === "ar" ? "كاشير جديد" : lang === "fr" ? "Nouveau caissier" : "New Cashier"}
             </h3>
             <p className="text-xs text-muted-foreground mb-5">
-              {lang === "ar" ? "أدخل اسم الموظف والدور" : lang === "fr" ? "Nom et rôle" : "Enter name and role"}
+              {lang === "ar" ? "أدخل اسم الكاشير" : lang === "fr" ? "Nom du caissier" : "Enter cashier name"}
             </p>
             <div className="space-y-4">
               <div>
@@ -247,29 +239,6 @@ export function StaffManager() {
                   autoFocus
                   onKeyDown={e => { if (e.key === "Enter") addStaff() }}
                 />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-muted-foreground mb-1.5 block">
-                  {lang === "ar" ? "الدور" : lang === "fr" ? "Rôle" : "Role"}
-                </label>
-                <div className="flex gap-2">
-                  {["cashier", "chef", "admin"].map(r => (
-                    <button key={r} onClick={() => setAddRole(r)}
-                      className={cn(
-                        "flex-1 h-10 rounded-xl text-xs font-bold transition-all border",
-                        addRole === r
-                          ? "bg-malachite text-evergreen border-malachite shadow-sm"
-                          : "bg-muted/30 text-muted-foreground border-border/50 hover:border-malachite/50",
-                      )}
-                    >
-                      {r === "cashier"
-                        ? (lang === "ar" ? "كاشير" : "Cashier")
-                        : r === "chef"
-                        ? (lang === "ar" ? "طباخ" : "Chef")
-                        : (lang === "ar" ? "مدير" : "Admin")}
-                    </button>
-                  ))}
-                </div>
               </div>
               <div className="flex gap-2 pt-2">
                 <Button onClick={addStaff} disabled={saving} className="flex-1 h-11 rounded-xl font-bold">
