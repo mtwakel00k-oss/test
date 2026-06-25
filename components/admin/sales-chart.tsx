@@ -112,7 +112,7 @@ export function SalesChart({ data, period, onPeriodChange }: SalesChartProps) {
                           </p>
                         )}
                         {ord && (
-                          <p className="text-xs font-semibold" style={{ color: "hsl(var(--accent))" }}>
+                          <p className="text-xs font-semibold" style={{ color: "hsl(var(--chart-2))" }}>
                             {t("admin.orders")}: {fmtNum(Number(ord.value))}
                           </p>
                         )}
@@ -143,11 +143,11 @@ export function SalesChart({ data, period, onPeriodChange }: SalesChartProps) {
                 yAxisId="orders"
                 type="monotone"
                 dataKey="orders"
-                stroke="hsl(var(--accent))"
+                stroke="hsl(var(--chart-2))"
                 strokeWidth={2.5}
                 strokeDasharray="5 4"
-                dot={{ fill: "hsl(var(--accent))", r: 3 }}
-                activeDot={{ r: 6, fill: "hsl(var(--accent))", stroke: "hsl(var(--background))", strokeWidth: 3 }}
+                dot={{ fill: "hsl(var(--chart-2))", r: 3 }}
+                activeDot={{ r: 6, fill: "hsl(var(--chart-2))", stroke: "hsl(var(--background))", strokeWidth: 3 }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -160,8 +160,8 @@ export function SalesChart({ data, period, onPeriodChange }: SalesChartProps) {
               {fmtNum(totalRevenue)} <span className="text-xs opacity-40">{currency}</span>
             </p>
           </div>
-          <div className="p-5 rounded-[1.5rem] bg-accent/5 border border-accent/10">
-            <p className="text-[10px] font-black uppercase tracking-widest text-accent/60 mb-1">{t("admin.totalOrders")}</p>
+          <div className="p-5 rounded-[1.5rem] bg-chart-2/5 border border-chart-2/10">
+            <p className="text-[10px] font-black uppercase tracking-widest text-chart-2/60 mb-1">{t("admin.totalOrders")}</p>
             <p className="text-2xl font-black text-foreground tracking-tighter">
               {fmtNum(totalOrders)}
             </p>

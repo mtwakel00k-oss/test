@@ -45,8 +45,8 @@ export function PeakHoursChart({ data }: PeakHoursChartProps) {
             <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity={1} />
-                  <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity={0.4} />
+                  <stop offset="0%" stopColor="hsl(var(--chart-3))" stopOpacity={1} />
+                  <stop offset="100%" stopColor="hsl(var(--chart-3))" stopOpacity={0.2} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.3} />
@@ -68,7 +68,7 @@ export function PeakHoursChart({ data }: PeakHoursChartProps) {
                 width={30}
               />
               <Tooltip
-                cursor={{ fill: "hsl(var(--accent) / 0.08)", radius: 8 }}
+                cursor={{ fill: "hsl(var(--chart-3) / 0.12)", radius: 8 }}
                 content={({ active, payload, label }) => {
                   if (active && payload?.length) {
                     return (
@@ -94,8 +94,8 @@ export function PeakHoursChart({ data }: PeakHoursChartProps) {
         </div>
 
         <div className="mt-4 grid grid-cols-3 gap-3 mx-2 mb-2">
-          <div className="p-4 rounded-xl bg-accent/5 border border-accent/10 text-center">
-            <p className="text-[10px] font-black uppercase tracking-widest text-accent/60 mb-0.5">{t("admin.peakHours")}</p>
+          <div className="p-4 rounded-xl bg-chart-3/5 border border-chart-3/10 text-center">
+            <p className="text-[10px] font-black uppercase tracking-widest text-chart-3/60 mb-0.5">{t("admin.peakHours")}</p>
             <p className="text-lg font-black text-foreground">{peakHour.hour}</p>
             <p className="text-[10px] text-muted-foreground/60">{peakHour.orders} {t("admin.orders")}</p>
           </div>
