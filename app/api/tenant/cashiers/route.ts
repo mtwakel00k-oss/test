@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { parseSession } from "@/lib/tenant"
+import { parseSession, supabaseForRequest } from "@/lib/tenant"
 import { resolveTenantSlug } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
 import { env } from "@/lib/env"
@@ -139,7 +139,18 @@ export async function POST(req: NextRequest) {
       is_active: true,
     })
   } catch (e) {
-    logger.warn("Failed to sync to restaurant_staff (table may not exist)", { error: (e as Error).message })
+    logger.warn("Failed to sync to master restaurant_staff (table may not exist)", { error: (e as Error).message })
+  }
+
+  try {
+    const tenantSb = await supabaseForRequest(req)
+    await tenantSb.from("restaurant_staff").upsert({
+      name: username,
+      role: "cashier",
+      is_active: true,
+    })
+  } catch (e) {
+    logger.warn("Failed to sync to tenant restaurant_staff (table may not exist)", { error: (e as Error).message })
   }
 
   logger.info("Cashier created", { username, slug })

@@ -25,11 +25,10 @@ export async function GET(req: NextRequest) {
     const slug = getSlug(req, session)
     if (!slug) return NextResponse.json([])
 
-    // Gather from both tenant DB and master DB, merge by id
     const seen = new Set<string>()
     const merged: Record<string, unknown>[] = []
 
-    // 1) Try tenant DB first
+    // 1) Tenant DB's restaurant_staff table
     const sb = await supabaseForRequest(req)
     const { data: tenantData, error } = await sb.from("restaurant_staff").select("*").order("name")
     if (!error && Array.isArray(tenantData)) {
@@ -39,7 +38,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // 2) Merge master DB data (source of truth for cashiers created via admin)
+    // 2) Master DB's restaurant_staff table
     try {
       const { data: masterData } = await masterSb().from("restaurant_staff")
         .select("*").eq("tenant_slug", slug).order("name")
@@ -50,6 +49,38 @@ export async function GET(req: NextRequest) {
         }
       }
     } catch { /* master table may not exist yet */ }
+
+    // 3) Master DB's restaurant_users + profiles (always exists — ultimate fallback)
+    try {
+      const master = masterSb()
+      const { data: tenant } = await master.from("tenants").select("id").eq("slug", slug).single()
+      if (tenant) {
+        const { data: users } = await master.from("restaurant_users")
+          .select("user_id, role").eq("restaurant_id", tenant.id)
+        if (Array.isArray(users) && users.length > 0) {
+          const userIds = (users as { user_id: string; role: string }[]).map((u) => u.user_id)
+          const nameMap = new Map<string, string>()
+          const { data: profiles } = await master.from("profiles")
+            .select("id, username").in("id", userIds)
+          if (Array.isArray(profiles)) {
+            for (const p of profiles as { id: string; username: string }[]) {
+              nameMap.set(p.id, p.username)
+            }
+          }
+          for (const u of users as { user_id: string; role: string }[]) {
+            if (!seen.has(u.user_id)) {
+              seen.add(u.user_id)
+              merged.push({
+                id: u.user_id,
+                name: nameMap.get(u.user_id) || u.user_id,
+                role: u.role,
+                is_active: true,
+              })
+            }
+          }
+        }
+      }
+    } catch { /* restaurant_users table may not exist */ }
 
     return NextResponse.json(merged)
   } catch (e) {
@@ -80,6 +111,19 @@ export async function POST(req: NextRequest) {
     }).select().single()
 
     if (error) throw new Error(error.message)
+
+    const slug = getSlug(req, session)
+    if (slug) {
+      try {
+        await masterSb().from("restaurant_staff").insert({
+          tenant_slug: slug,
+          name,
+          role: role || "cashier",
+          is_active: true,
+        })
+      } catch { /* master table may not exist */ }
+    }
+
     logger.info("Staff created", { id: data.id, name })
     return NextResponse.json(data, { status: 201 })
   } catch (e) {
