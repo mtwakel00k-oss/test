@@ -39,13 +39,13 @@ export function PeakHoursChart({ data }: PeakHoursChartProps) {
         <CardTitle className="text-xl font-black text-foreground tracking-tight">{t("admin.peakHours")}</CardTitle>
         <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mt-1">{t("admin.peakHoursSub")}</p>
       </CardHeader>
-      <CardContent className="pt-0">
-        <div className="w-full" style={{ height: 300 }}>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+      <CardContent className="p-6 pt-0">
+        <div className="w-full" style={{ height: 320 }}>
+          <ResponsiveContainer width="100%" height={320}>
+            <AreaChart data={chartData} margin={{ top: 20, right: 10, left: 0, bottom: 10 }}>
               <defs>
                 <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.35} />
+                  <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3} />
                   <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.02} />
                 </linearGradient>
               </defs>
@@ -56,7 +56,7 @@ export function PeakHoursChart({ data }: PeakHoursChartProps) {
                 stroke="transparent"
                 tickLine={false}
                 axisLine={false}
-                dy={12}
+                tickMargin={8}
                 interval={3}
               />
               <YAxis
@@ -65,7 +65,8 @@ export function PeakHoursChart({ data }: PeakHoursChartProps) {
                 tickLine={false}
                 axisLine={false}
                 allowDecimals={false}
-                width={24}
+                tickMargin={8}
+                width={30}
               />
               <Tooltip
                 content={({ active, payload, label }) => {
@@ -89,24 +90,24 @@ export function PeakHoursChart({ data }: PeakHoursChartProps) {
                 strokeWidth={3}
                 fill="url(#areaFill)"
                 dot={false}
-                activeDot={{ r: 6, fill: "hsl(var(--chart-1))", stroke: "hsl(var(--background))", strokeWidth: 3 }}
+                activeDot={{ r: 5, fill: "hsl(var(--chart-1))", stroke: "hsl(var(--background))", strokeWidth: 3 }}
               />
             </AreaChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-3 mx-2 mb-2">
-          <div className="p-4 rounded-xl bg-chart-1/5 border border-chart-1/10 text-center">
+        <div className="flex gap-3 mt-4 mx-1">
+          <div className="flex-1 p-4 rounded-xl bg-chart-1/5 border border-chart-1/10 text-center">
             <p className="text-[10px] font-black uppercase tracking-widest text-chart-1/60 mb-0.5">{t("admin.peakHours")}</p>
             <p className="text-lg font-black text-foreground">{peakHour.hour}</p>
             <p className="text-[10px] text-muted-foreground/60">{peakHour.orders} {t("admin.orders")}</p>
           </div>
-          <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 text-center">
+          <div className="flex-1 p-4 rounded-xl bg-primary/5 border border-primary/10 text-center">
             <p className="text-[10px] font-black uppercase tracking-widest text-primary/60 mb-0.5">{lang === "ar" ? "الإجمالي" : lang === "fr" ? "Total" : "Total"}</p>
             <p className="text-lg font-black text-foreground">{fmtNum(totalOrders)}</p>
             <p className="text-[10px] text-muted-foreground/60">{t("admin.orders")}</p>
           </div>
-          <div className="p-4 rounded-xl bg-muted/30 border border-border/50 text-center">
+          <div className="flex-1 p-4 rounded-xl bg-muted/30 border border-border/50 text-center">
             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-0.5">{lang === "ar" ? "ساعات نشطة" : lang === "fr" ? "Heures actives" : "Active Hours"}</p>
             <p className="text-lg font-black text-foreground">{activeHours}</p>
             <p className="text-[10px] text-muted-foreground/60">{lang === "ar" ? "ساعة" : lang === "fr" ? "h" : "hrs"}</p>

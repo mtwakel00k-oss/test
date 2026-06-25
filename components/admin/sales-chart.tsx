@@ -28,6 +28,9 @@ export function SalesChart({ data, period, onPeriodChange }: SalesChartProps) {
   const totalRevenue = data.reduce((s, d) => s + d.revenue, 0)
   const totalOrders = data.reduce((s, d) => s + d.orders, 0)
 
+  const orderLabel = t("admin.orders")
+  const revenueLabel = t("admin.revenue")
+
   return (
     <Card className="border-border/50 bg-card/50 backdrop-blur-xl h-full rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden">
       <CardHeader className="p-8 pb-4">
@@ -53,24 +56,18 @@ export function SalesChart({ data, period, onPeriodChange }: SalesChartProps) {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="pt-0">
-        <div className="w-full" style={{ height: 340 }}>
-          <ResponsiveContainer width="100%" height={340}>
-            <LineChart data={data} margin={{ top: 20, right: 20, left: 20, bottom: 0 }}>
-              <defs>
-                <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(var(--success))" stopOpacity={0.3} />
-                  <stop offset="100%" stopColor="hsl(var(--success))" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+      <CardContent className="p-6 pt-0">
+        <div className="w-full" style={{ height: 320 }}>
+          <ResponsiveContainer width="100%" height={320}>
+            <LineChart data={data} margin={{ top: 30, right: 20, left: 10, bottom: 10 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.3} />
               <XAxis
                 dataKey="date"
                 tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11, fontWeight: 500 }}
-                stroke="hsl(var(--border))"
+                stroke="transparent"
                 tickLine={false}
                 axisLine={false}
-                dy={10}
+                tickMargin={10}
                 tickFormatter={(v: string) => {
                   const d = v.slice(5)
                   return d.startsWith("0") ? d.slice(1) : d
@@ -80,22 +77,22 @@ export function SalesChart({ data, period, onPeriodChange }: SalesChartProps) {
                 yAxisId="revenue"
                 orientation="left"
                 tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11, fontWeight: 500 }}
-                stroke="hsl(var(--border))"
+                stroke="transparent"
                 tickLine={false}
                 axisLine={false}
+                tickMargin={10}
                 tickFormatter={(v: number) => `${fmtNum(v)}`}
-                dx={-10}
-                width={70}
+                width={80}
               />
               <YAxis
                 yAxisId="orders"
                 orientation="right"
                 tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11, fontWeight: 500 }}
-                stroke="hsl(var(--border))"
+                stroke="transparent"
                 tickLine={false}
                 axisLine={false}
+                tickMargin={10}
                 tickFormatter={(v: number) => `${v}`}
-                dx={10}
                 width={50}
               />
               <Tooltip
@@ -108,12 +105,12 @@ export function SalesChart({ data, period, onPeriodChange }: SalesChartProps) {
                         <p className="text-sm font-bold text-foreground">{label}</p>
                         {rev && (
                           <p className="text-xs font-semibold" style={{ color: "hsl(var(--success))" }}>
-                            {t("admin.revenue")}: {fmtNum(Number(rev.value))} {currency}
+                            {revenueLabel}: {fmtNum(Number(rev.value))} {currency}
                           </p>
                         )}
                         {ord && (
                           <p className="text-xs font-semibold" style={{ color: "hsl(var(--chart-2))" }}>
-                            {t("admin.orders")}: {fmtNum(Number(ord.value))}
+                            {orderLabel}: {fmtNum(Number(ord.value))}
                           </p>
                         )}
                       </div>
@@ -124,10 +121,11 @@ export function SalesChart({ data, period, onPeriodChange }: SalesChartProps) {
               />
               <Legend
                 verticalAlign="top"
-                height={36}
+                align="center"
                 iconType="circle"
+                wrapperStyle={{ paddingBottom: 20 }}
                 formatter={(value: string) => (
-                  <span className="text-xs font-semibold text-foreground">{value === "revenue" ? t("admin.revenue") : t("admin.orders")}</span>
+                  <span className="text-xs font-semibold text-foreground">{value === "revenue" ? revenueLabel : orderLabel}</span>
                 )}
               />
               <Line
@@ -136,8 +134,8 @@ export function SalesChart({ data, period, onPeriodChange }: SalesChartProps) {
                 dataKey="revenue"
                 stroke="hsl(var(--success))"
                 strokeWidth={3}
-                dot={{ fill: "hsl(var(--success))", r: 4 }}
-                activeDot={{ r: 7, fill: "hsl(var(--success))", stroke: "hsl(var(--background))", strokeWidth: 3 }}
+                dot={false}
+                activeDot={{ r: 6, fill: "hsl(var(--success))", stroke: "hsl(var(--background))", strokeWidth: 3 }}
               />
               <Line
                 yAxisId="orders"
@@ -146,21 +144,21 @@ export function SalesChart({ data, period, onPeriodChange }: SalesChartProps) {
                 stroke="hsl(var(--chart-2))"
                 strokeWidth={2.5}
                 strokeDasharray="5 4"
-                dot={{ fill: "hsl(var(--chart-2))", r: 3 }}
-                activeDot={{ r: 6, fill: "hsl(var(--chart-2))", stroke: "hsl(var(--background))", strokeWidth: 3 }}
+                dot={false}
+                activeDot={{ r: 5, fill: "hsl(var(--chart-2))", stroke: "hsl(var(--background))", strokeWidth: 3 }}
               />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-4 mx-2 mb-2">
-          <div className="p-5 rounded-[1.5rem] bg-success/5 border border-success/10">
+        <div className="flex gap-4 mt-6 mx-1">
+          <div className="flex-1 p-5 rounded-[1.5rem] bg-success/5 border border-success/10">
             <p className="text-[10px] font-black uppercase tracking-widest text-success/60 mb-1">{t("admin.totalRevenue")}</p>
             <p className="text-2xl font-black text-foreground tracking-tighter">
               {fmtNum(totalRevenue)} <span className="text-xs opacity-40">{currency}</span>
             </p>
           </div>
-          <div className="p-5 rounded-[1.5rem] bg-chart-2/5 border border-chart-2/10">
+          <div className="flex-1 p-5 rounded-[1.5rem] bg-chart-2/5 border border-chart-2/10">
             <p className="text-[10px] font-black uppercase tracking-widest text-chart-2/60 mb-1">{t("admin.totalOrders")}</p>
             <p className="text-2xl font-black text-foreground tracking-tighter">
               {fmtNum(totalOrders)}
