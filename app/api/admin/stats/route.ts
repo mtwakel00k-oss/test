@@ -123,9 +123,23 @@ export async function GET(req: NextRequest) {
       if (o.status === "completed" || o.status === "out_for_delivery") entry.revenue += Number(o.total || 0)
       cashierMap.set(cid, entry)
     }
-    const cashierStats = [...cashierMap.entries()]
+    let cashierStats = [...cashierMap.entries()]
       .map(([id, s]) => ({ id, name: s.name, orders: s.orders, revenue: s.revenue }))
       .sort((a, b) => b.orders - a.orders)
+
+    if (cashierStats.length === 0 && slug) {
+      try {
+        const { data: staffList } = await sb.from("restaurant_staff")
+          .select("name")
+          .eq("role", "cashier")
+          .eq("is_active", true)
+          .limit(50)
+          .returns<{ name: string }[]>()
+        if (staffList && staffList.length > 0) {
+          cashierStats = staffList.map((s) => ({ id: s.name, name: s.name, orders: 0, revenue: 0 }))
+        }
+      } catch { /* restaurant_staff table may not exist */ }
+    }
 
     return NextResponse.json({
       totalRevenue: revenue,
