@@ -3,6 +3,7 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useTranslation } from "@/lib/use-translation"
+import { useMemo } from "react"
 
 interface PeakHour {
   hour: number
@@ -14,12 +15,23 @@ interface PeakHoursChartProps {
 }
 
 export function PeakHoursChart({ data }: PeakHoursChartProps) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
 
-  const chartData = Array.from({ length: 24 }, (_, h) => {
-    const found = (data || []).find((d) => d.hour === h)
-    return { hour: `${h.toString().padStart(2, "0")}:00`, orders: found?.orders ?? 0 }
-  })
+  const chartData = useMemo(() =>
+    Array.from({ length: 24 }, (_, h) => {
+      const found = (data || []).find((d) => d.hour === h)
+      return { hour: `${h.toString().padStart(2, "00")}:00`, orders: found?.orders ?? 0 }
+    }), [data])
+
+  const peakHour = useMemo(() => {
+    let max = 0; let maxH = ""
+    for (const d of chartData) { if (d.orders > max) { max = d.orders; maxH = d.hour } }
+    return { hour: maxH, orders: max }
+  }, [chartData])
+
+  const totalOrders = chartData.reduce((s, d) => s + d.orders, 0)
+  const activeHours = chartData.filter(d => d.orders > 0).length
+  const fmtNum = (n: number) => n.toLocaleString(lang === "fr" ? "fr-FR" : "en-US")
 
   return (
     <Card className="border-border/50 bg-card/50 backdrop-blur-xl h-full rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden">
@@ -27,14 +39,20 @@ export function PeakHoursChart({ data }: PeakHoursChartProps) {
         <CardTitle className="text-xl font-black text-foreground tracking-tight">{t("admin.peakHours")}</CardTitle>
         <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mt-1">{t("admin.peakHoursSub")}</p>
       </CardHeader>
-      <CardContent className="p-8 pt-0">
+      <CardContent className="pt-0">
         <div className="w-full" style={{ height: 260 }}>
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity={1} />
+                  <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity={0.4} />
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.3} />
               <XAxis
                 dataKey="hour"
-                tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontWeight: 700 }}
+                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10, fontWeight: 700 }}
                 stroke="transparent"
                 tickLine={false}
                 axisLine={false}
@@ -42,7 +60,7 @@ export function PeakHoursChart({ data }: PeakHoursChartProps) {
                 interval={2}
               />
               <YAxis
-                tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontWeight: 700 }}
+                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10, fontWeight: 700 }}
                 stroke="transparent"
                 tickLine={false}
                 axisLine={false}
@@ -50,22 +68,47 @@ export function PeakHoursChart({ data }: PeakHoursChartProps) {
                 width={30}
               />
               <Tooltip
-                cursor={{ fill: 'hsl(var(--primary) / 0.05)', radius: 12 }}
+                cursor={{ fill: "hsl(var(--accent) / 0.08)", radius: 8 }}
                 content={({ active, payload, label }) => {
                   if (active && payload?.length) {
                     return (
-                      <div className="bg-background/80 backdrop-blur-xl border border-border/50 rounded-[1.5rem] shadow-2xl p-4">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">{label}</p>
-                        <p className="text-sm font-black text-foreground">{payload[0].value} {t("admin.orders")}</p>
+                      <div className="bg-popover border border-border rounded-lg shadow-xl p-3">
+                        <p className="text-xs font-bold text-muted-foreground mb-1">{label}</p>
+                        <p className="text-sm font-black text-foreground">
+                          {fmtNum(Number(payload[0].value))} {t("admin.orders")}
+                        </p>
                       </div>
                     )
                   }
                   return null
                 }}
               />
-              <Bar dataKey="orders" fill="hsl(var(--primary))" radius={[8, 8, 8, 8]} maxBarSize={16} />
+              <Bar
+                dataKey="orders"
+                fill="url(#barGrad)"
+                radius={[6, 6, 6, 6]}
+                maxBarSize={20}
+              />
             </BarChart>
           </ResponsiveContainer>
+        </div>
+
+        <div className="mt-4 grid grid-cols-3 gap-3 mx-2 mb-2">
+          <div className="p-4 rounded-xl bg-accent/5 border border-accent/10 text-center">
+            <p className="text-[10px] font-black uppercase tracking-widest text-accent/60 mb-0.5">{t("admin.peakHours")}</p>
+            <p className="text-lg font-black text-foreground">{peakHour.hour}</p>
+            <p className="text-[10px] text-muted-foreground/60">{peakHour.orders} {t("admin.orders")}</p>
+          </div>
+          <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 text-center">
+            <p className="text-[10px] font-black uppercase tracking-widest text-primary/60 mb-0.5">{lang === "ar" ? "الإجمالي" : lang === "fr" ? "Total" : "Total"}</p>
+            <p className="text-lg font-black text-foreground">{fmtNum(totalOrders)}</p>
+            <p className="text-[10px] text-muted-foreground/60">{t("admin.orders")}</p>
+          </div>
+          <div className="p-4 rounded-xl bg-muted/30 border border-border/50 text-center">
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-0.5">{lang === "ar" ? "ساعات نشطة" : lang === "fr" ? "Heures actives" : "Active Hours"}</p>
+            <p className="text-lg font-black text-foreground">{activeHours}</p>
+            <p className="text-[10px] text-muted-foreground/60">{lang === "ar" ? "ساعة" : lang === "fr" ? "h" : "hrs"}</p>
+          </div>
         </div>
       </CardContent>
     </Card>
