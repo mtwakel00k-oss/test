@@ -193,7 +193,7 @@ function RealDashboardMockup() {
 
 export function Hero() {
   return (
-    <section className="relative min-h-screen overflow-hidden bg-background pt-32 md:pt-40" dir="rtl">
+    <section className="relative min-h-screen overflow-hidden bg-background" dir="rtl">
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         <motion.div
           animate={{ y: [0, -20, 0], opacity: [0.06, 0.1, 0.06] }}

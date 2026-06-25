@@ -17,7 +17,7 @@ const bgColors = ["bg-gradient-to-br from-malachite to-forest", "bg-gradient-to-
 
 export function TopProducts({ data }: TopProductsProps) {
   const { t } = useTranslation()
-  const items = data || []
+  const items = (data || []).slice(0, 5)
   const maxQty = items.length ? Math.max(...items.map((d) => d.quantity), 1) : 1
 
   return (

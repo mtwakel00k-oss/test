@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { LanguageSwitcher } from '@/components/language-switcher'
@@ -13,17 +13,10 @@ const navLinks = [
 ]
 
 export function Navbar() {
-  const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('')
 
-  const { scrollY } = useScroll()
-  const backdropOpacity = useTransform(scrollY, [0, 50], [0, 1])
-
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50)
-    window.addEventListener('scroll', onScroll, { passive: true })
-
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -38,30 +31,12 @@ export function Navbar() {
       if (el) observer.observe(el)
     })
 
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      observer.disconnect()
-    }
+    return () => observer.disconnect()
   }, [])
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50">
-      <motion.div
-        className={cn(
-          'absolute inset-0 border-b backdrop-blur-xl',
-          scrolled ? 'border-white/8' : 'border-transparent',
-        )}
-        style={{ opacity: backdropOpacity }}
-      >
-        <div className="size-full bg-background/60" />
-      </motion.div>
-
-      <nav
-        className={cn(
-          'relative mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4 transition-all duration-500 md:px-8',
-          scrolled && 'py-3',
-        )}
-      >
+    <header className="relative z-50 border-b border-white/8 bg-background/80 backdrop-blur-xl">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4 md:px-8">
         <motion.a
           href="/"
           className="flex shrink-0 items-center gap-2.5"
@@ -90,7 +65,7 @@ export function Navbar() {
               className={cn(
                 'relative rounded-lg px-4 py-2 text-sm font-medium transition-colors',
                 activeSection === l.href.slice(1)
-                    ? 'text-malachite'
+                  ? 'text-malachite'
                   : 'text-muted-foreground hover:text-foreground',
               )}
               whileHover={{ scale: 1.03 }}
@@ -123,7 +98,7 @@ export function Navbar() {
 
           <motion.a
             href="/login"
-            className="group hidden items-center gap-2 rounded-full bg-malachite px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-malachite/30 transition-all hover:shadow-malachite/50 md:inline-flex"
+            className="group hidden items-center gap-2 rounded-full bg-malachite px-5 py-2 text-sm font-semibold text-evergreen shadow-lg shadow-malachite/30 transition-all hover:shadow-malachite/50 md:inline-flex"
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
           >
@@ -153,7 +128,7 @@ export function Navbar() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -12, scale: 0.96 }}
             transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-            className="mx-auto mt-3 max-w-sm overflow-hidden rounded-2xl border border-white/10 bg-background/70 backdrop-blur-2xl p-3 shadow-2xl shadow-black/30 md:hidden"
+            className="mx-auto mt-0 max-w-sm overflow-hidden rounded-2xl border border-white/10 bg-background/70 backdrop-blur-2xl p-3 shadow-2xl shadow-black/30 md:hidden"
           >
             <nav className="flex flex-col gap-1">
               {navLinks.map((l, i) => (
@@ -191,7 +166,7 @@ export function Navbar() {
                 <motion.a
                   href="/login"
                   onClick={() => setOpen(false)}
-                  className="flex items-center justify-center gap-2 rounded-full bg-malachite px-6 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-malachite/20"
+                  className="flex items-center justify-center gap-2 rounded-full bg-malachite px-6 py-3 text-center text-sm font-semibold text-evergreen shadow-lg shadow-malachite/20"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >

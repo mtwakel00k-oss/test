@@ -34,7 +34,14 @@ export async function GET(req: NextRequest) {
       }
       throw new Error(error.message)
     }
-    return NextResponse.json(data || [])
+    if (data && data.length > 0) return NextResponse.json(data)
+    const slug = getSlug(req, session)
+    if (slug) {
+      const { data: masterData } = await masterSb().from("restaurant_staff")
+        .select("*").eq("tenant_slug", slug).order("name")
+      if (masterData && masterData.length > 0) return NextResponse.json(masterData)
+    }
+    return NextResponse.json([])
   } catch (e) {
     const mismatch = isTenantMismatch(e)
     if (mismatch) return mismatch
