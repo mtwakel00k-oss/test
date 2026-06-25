@@ -1,8 +1,10 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { ChartNoAxesColumn, ShoppingBag, ClipboardList, Shield, BarChart3 } from "lucide-react"
+import { ChartNoAxesColumn, ShoppingBag, ClipboardList, Shield, BarChart3, Settings2 } from "lucide-react"
 import type { ReactNode } from "react"
+import { useRouter } from "next/navigation"
+import { useSlug } from "@/lib/use-slug"
 
 interface SidebarItem {
   id: string
@@ -19,6 +21,8 @@ interface TenantSidebarProps {
 }
 
 export function TenantSidebar({ currentTab, onTabChange, userRole, labels }: TenantSidebarProps) {
+  const router = useRouter()
+  const slug = useSlug()
   const isAdmin = userRole === "admin" || userRole === "owner"
 
   const items: SidebarItem[] = [
@@ -58,6 +62,19 @@ export function TenantSidebar({ currentTab, onTabChange, userRole, labels }: Ten
           </motion.button>
         )
       })}
+
+      {isAdmin && (
+        <>
+          <div className="h-px bg-white/[0.06] my-3" />
+          <button
+            onClick={() => router.push(`/${slug}/operations`)}
+            className="flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-white/40 hover:text-white/70 hover:bg-white/[0.03] transition-colors"
+          >
+            <Settings2 className="size-4" strokeWidth={1.5} />
+            <span>{labels.operations || "Operations"}</span>
+          </button>
+        </>
+      )}
     </nav>
   )
 }

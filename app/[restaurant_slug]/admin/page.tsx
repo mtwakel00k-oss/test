@@ -335,6 +335,7 @@ export default function AdminPage() {
               orders: t("admin.orders"),
               audit: t("admin.audit"),
               analytics: t("analytics.premiumAnalytics"),
+              operations: t("admin.operations"),
             }}
           />
           <div className="flex-1 min-w-0 space-y-6">
