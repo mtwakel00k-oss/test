@@ -1,6 +1,6 @@
 "use client"
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts"
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useTranslation } from "@/lib/use-translation"
 
@@ -28,26 +28,23 @@ export function SalesChart({ data, period, onPeriodChange }: SalesChartProps) {
   const totalRevenue = data.reduce((s, d) => s + d.revenue, 0)
   const totalOrders = data.reduce((s, d) => s + d.orders, 0)
 
-  const orderLabel = t("admin.orders")
-  const revenueLabel = t("admin.revenue")
-
   return (
-    <Card className="border-border/50 bg-card/50 backdrop-blur-xl h-full rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden">
-      <CardHeader className="p-8 pb-4">
+    <Card className="border-forest bg-evergreen rounded-2xl shadow-sm overflow-hidden">
+      <CardHeader className="p-6 pb-0">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="space-y-1">
-            <CardTitle className="text-xl font-black text-foreground tracking-tight">{t("admin.revenueTrend")}</CardTitle>
-            <p className="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest">{t("admin.revenueTrendSub")}</p>
+            <CardTitle className="text-lg font-bold text-ivory/90 tracking-tight">{t("admin.revenueTrend")}</CardTitle>
+            <p className="text-xs text-ivory/40">{t("admin.revenueTrendSub")}</p>
           </div>
-          <div className="flex gap-1.5 bg-muted/50 p-1.5 rounded-2xl border border-border/50">
+          <div className="flex gap-1.5 bg-white/[0.04] p-1.5 rounded-xl border border-forest/50">
             {periods.map(({ key, label }) => (
               <button
                 key={key}
                 onClick={() => onPeriodChange(key)}
-                className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-300 ${
+                className={`px-4 py-2 text-[11px] font-semibold rounded-lg transition-all duration-300 ${
                   period === key
-                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.05]"
-                    : "text-muted-foreground hover:text-foreground hover:bg-background"
+                    ? "bg-malachite text-evergreen shadow-sm"
+                    : "text-ivory/50 hover:text-ivory/80 hover:bg-white/[0.04]"
                 }`}
               >
                 {label}
@@ -56,111 +53,71 @@ export function SalesChart({ data, period, onPeriodChange }: SalesChartProps) {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="p-6 pt-0">
-        <div className="w-full" style={{ height: 320 }}>
-          <ResponsiveContainer width="100%" height={320}>
-            <LineChart data={data} margin={{ top: 30, right: 20, left: 10, bottom: 10 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.3} />
+      <CardContent className="p-6">
+        <div className="w-full" style={{ height: 280 }}>
+          <ResponsiveContainer width="100%" height={280}>
+            <AreaChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#25E970" stopOpacity={0.5} />
+                  <stop offset="100%" stopColor="#25E970" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(35,137,38,0.3)" vertical={false} />
               <XAxis
                 dataKey="date"
-                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11, fontWeight: 500 }}
+                tick={{ fill: "#FBFFF2", fontSize: 11, fontWeight: 400 }}
                 stroke="transparent"
                 tickLine={false}
                 axisLine={false}
-                tickMargin={10}
+                dy={10}
                 tickFormatter={(v: string) => {
                   const d = v.slice(5)
                   return d.startsWith("0") ? d.slice(1) : d
                 }}
               />
               <YAxis
-                yAxisId="revenue"
-                orientation="left"
-                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11, fontWeight: 500 }}
+                tick={{ fill: "#FBFFF2", fontSize: 11, fontWeight: 400 }}
                 stroke="transparent"
                 tickLine={false}
                 axisLine={false}
-                tickMargin={10}
                 tickFormatter={(v: number) => `${fmtNum(v)}`}
-                width={80}
-              />
-              <YAxis
-                yAxisId="orders"
-                orientation="right"
-                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11, fontWeight: 500 }}
-                stroke="transparent"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={10}
-                tickFormatter={(v: number) => `${v}`}
-                width={50}
+                width={70}
+                dx={-10}
               />
               <Tooltip
-                content={({ active, payload, label }) => {
-                  if (active && payload?.length) {
-                    const rev = payload.find(p => p.dataKey === "revenue")
-                    const ord = payload.find(p => p.dataKey === "orders")
-                    return (
-                      <div className="bg-popover border border-border rounded-lg shadow-xl p-4 space-y-2">
-                        <p className="text-sm font-bold text-foreground">{label}</p>
-                        {rev && (
-                          <p className="text-xs font-semibold" style={{ color: "hsl(var(--success))" }}>
-                            {revenueLabel}: {fmtNum(Number(rev.value))} {currency}
-                          </p>
-                        )}
-                        {ord && (
-                          <p className="text-xs font-semibold" style={{ color: "hsl(var(--chart-2))" }}>
-                            {orderLabel}: {fmtNum(Number(ord.value))}
-                          </p>
-                        )}
-                      </div>
-                    )
-                  }
-                  return null
+                contentStyle={{
+                  background: "rgba(2,37,9,0.95)",
+                  border: "1px solid rgba(35,137,38,0.5)",
+                  borderRadius: "12px",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
                 }}
+                labelStyle={{ color: "#FBFFF2", fontWeight: 700, fontSize: 13 }}
+                itemStyle={{ color: "#25E970", fontSize: 12 }}
               />
-              <Legend
-                verticalAlign="top"
-                align="center"
-                iconType="circle"
-                wrapperStyle={{ paddingBottom: 20 }}
-                formatter={(value: string) => (
-                  <span className="text-xs font-semibold text-foreground">{value === "revenue" ? revenueLabel : orderLabel}</span>
-                )}
-              />
-              <Line
-                yAxisId="revenue"
+              <Area
                 type="monotone"
                 dataKey="revenue"
-                stroke="hsl(var(--success))"
+                stroke="#25E970"
                 strokeWidth={3}
+                fill="url(#colorRevenue)"
                 dot={false}
-                activeDot={{ r: 6, fill: "hsl(var(--success))", stroke: "hsl(var(--background))", strokeWidth: 3 }}
+                activeDot={{ r: 5, fill: "#25E970", stroke: "#022509", strokeWidth: 2 }}
               />
-              <Line
-                yAxisId="orders"
-                type="monotone"
-                dataKey="orders"
-                stroke="hsl(var(--chart-2))"
-                strokeWidth={2.5}
-                strokeDasharray="5 4"
-                dot={false}
-                activeDot={{ r: 5, fill: "hsl(var(--chart-2))", stroke: "hsl(var(--background))", strokeWidth: 3 }}
-              />
-            </LineChart>
+            </AreaChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="flex gap-4 mt-6 mx-1">
-          <div className="flex-1 p-5 rounded-[1.5rem] bg-success/5 border border-success/10">
-            <p className="text-[10px] font-black uppercase tracking-widest text-success/60 mb-1">{t("admin.totalRevenue")}</p>
-            <p className="text-2xl font-black text-foreground tracking-tighter">
-              {fmtNum(totalRevenue)} <span className="text-xs opacity-40">{currency}</span>
+        <div className="flex gap-4 mt-6">
+          <div className="flex-1 p-5 rounded-xl bg-white/[0.04] border border-forest/40">
+            <p className="text-[11px] font-semibold text-ivory/40 uppercase tracking-wider mb-1">{t("admin.totalRevenue")}</p>
+            <p className="text-2xl font-bold text-malachite tracking-tight">
+              {fmtNum(totalRevenue)} <span className="text-xs text-malachite/60">{currency}</span>
             </p>
           </div>
-          <div className="flex-1 p-5 rounded-[1.5rem] bg-chart-2/5 border border-chart-2/10">
-            <p className="text-[10px] font-black uppercase tracking-widest text-chart-2/60 mb-1">{t("admin.totalOrders")}</p>
-            <p className="text-2xl font-black text-foreground tracking-tighter">
+          <div className="flex-1 p-5 rounded-xl bg-white/[0.04] border border-forest/40">
+            <p className="text-[11px] font-semibold text-ivory/40 uppercase tracking-wider mb-1">{t("admin.totalOrders")}</p>
+            <p className="text-2xl font-bold text-malachite tracking-tight">
               {fmtNum(totalOrders)}
             </p>
           </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useTranslation } from "@/lib/use-translation"
 import { useMemo } from "react"
@@ -34,83 +34,69 @@ export function PeakHoursChart({ data }: PeakHoursChartProps) {
   const fmtNum = (n: number) => n.toLocaleString(lang === "fr" ? "fr-FR" : "en-US")
 
   return (
-    <Card className="border-border/50 bg-card/50 backdrop-blur-xl h-full rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden">
-      <CardHeader className="p-8 pb-4">
-        <CardTitle className="text-xl font-black text-foreground tracking-tight">{t("admin.peakHours")}</CardTitle>
-        <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mt-1">{t("admin.peakHoursSub")}</p>
+    <Card className="border-forest bg-evergreen rounded-2xl shadow-sm overflow-hidden">
+      <CardHeader className="p-6 pb-0">
+        <CardTitle className="text-lg font-bold text-ivory/90 tracking-tight">{t("admin.peakHours")}</CardTitle>
+        <p className="text-xs text-ivory/40 mt-0.5">{t("admin.peakHoursSub")}</p>
       </CardHeader>
-      <CardContent className="p-6 pt-0">
-        <div className="w-full" style={{ height: 320 }}>
-          <ResponsiveContainer width="100%" height={320}>
-            <AreaChart data={chartData} margin={{ top: 20, right: 10, left: 0, bottom: 10 }}>
-              <defs>
-                <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3} />
-                  <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.02} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.3} />
+      <CardContent className="p-6">
+        <div className="w-full" style={{ height: 250 }}>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(35,137,38,0.3)" vertical={false} />
               <XAxis
                 dataKey="hour"
-                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 9, fontWeight: 700 }}
+                tick={{ fill: "#FBFFF2", fontSize: 9, fontWeight: 400 }}
                 stroke="transparent"
                 tickLine={false}
                 axisLine={false}
-                tickMargin={8}
+                dy={8}
                 interval={3}
               />
               <YAxis
-                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 9, fontWeight: 700 }}
+                tick={{ fill: "#FBFFF2", fontSize: 9, fontWeight: 400 }}
                 stroke="transparent"
                 tickLine={false}
                 axisLine={false}
                 allowDecimals={false}
-                tickMargin={8}
-                width={30}
+                width={24}
               />
               <Tooltip
-                content={({ active, payload, label }) => {
-                  if (active && payload?.length) {
-                    return (
-                      <div className="bg-popover border border-border rounded-lg shadow-xl p-3">
-                        <p className="text-xs font-bold text-muted-foreground mb-1">{label}</p>
-                        <p className="text-sm font-black text-foreground">
-                          {fmtNum(Number(payload[0].value))} {t("admin.orders")}
-                        </p>
-                      </div>
-                    )
-                  }
-                  return null
+                contentStyle={{
+                  background: "rgba(2,37,9,0.95)",
+                  border: "1px solid rgba(35,137,38,0.5)",
+                  borderRadius: "12px",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
                 }}
+                labelStyle={{ color: "#FBFFF2", fontWeight: 700, fontSize: 13 }}
+                itemStyle={{ color: "#25E970", fontSize: 12 }}
+                cursor={{ fill: "rgba(37,233,112,0.06)" }}
               />
-              <Area
-                type="monotone"
+              <Bar
                 dataKey="orders"
-                stroke="hsl(var(--chart-1))"
-                strokeWidth={3}
-                fill="url(#areaFill)"
-                dot={false}
-                activeDot={{ r: 5, fill: "hsl(var(--chart-1))", stroke: "hsl(var(--background))", strokeWidth: 3 }}
+                fill="#25E970"
+                radius={[6, 6, 0, 0]}
+                barSize={14}
               />
-            </AreaChart>
+            </BarChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="flex gap-3 mt-4 mx-1">
-          <div className="flex-1 p-4 rounded-xl bg-chart-1/5 border border-chart-1/10 text-center">
-            <p className="text-[10px] font-black uppercase tracking-widest text-chart-1/60 mb-0.5">{t("admin.peakHours")}</p>
-            <p className="text-lg font-black text-foreground">{peakHour.hour}</p>
-            <p className="text-[10px] text-muted-foreground/60">{peakHour.orders} {t("admin.orders")}</p>
+        <div className="flex gap-3 mt-4">
+          <div className="flex-1 p-4 rounded-xl bg-white/[0.04] border border-forest/40 text-center">
+            <p className="text-[10px] font-semibold text-ivory/40 uppercase tracking-wider mb-1">{t("admin.peakHours")}</p>
+            <p className="text-lg font-bold text-malachite tracking-tight">{peakHour.hour}</p>
+            <p className="text-[10px] text-ivory/40">{peakHour.orders} {t("admin.orders")}</p>
           </div>
-          <div className="flex-1 p-4 rounded-xl bg-primary/5 border border-primary/10 text-center">
-            <p className="text-[10px] font-black uppercase tracking-widest text-primary/60 mb-0.5">{lang === "ar" ? "الإجمالي" : lang === "fr" ? "Total" : "Total"}</p>
-            <p className="text-lg font-black text-foreground">{fmtNum(totalOrders)}</p>
-            <p className="text-[10px] text-muted-foreground/60">{t("admin.orders")}</p>
+          <div className="flex-1 p-4 rounded-xl bg-white/[0.04] border border-forest/40 text-center">
+            <p className="text-[10px] font-semibold text-ivory/40 uppercase tracking-wider mb-1">{lang === "ar" ? "الإجمالي" : "Total"}</p>
+            <p className="text-lg font-bold text-malachite tracking-tight">{fmtNum(totalOrders)}</p>
+            <p className="text-[10px] text-ivory/40">{t("admin.orders")}</p>
           </div>
-          <div className="flex-1 p-4 rounded-xl bg-muted/30 border border-border/50 text-center">
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-0.5">{lang === "ar" ? "ساعات نشطة" : lang === "fr" ? "Heures actives" : "Active Hours"}</p>
-            <p className="text-lg font-black text-foreground">{activeHours}</p>
-            <p className="text-[10px] text-muted-foreground/60">{lang === "ar" ? "ساعة" : lang === "fr" ? "h" : "hrs"}</p>
+          <div className="flex-1 p-4 rounded-xl bg-white/[0.04] border border-forest/40 text-center">
+            <p className="text-[10px] font-semibold text-ivory/40 uppercase tracking-wider mb-1">{lang === "ar" ? "ساعات نشطة" : "Active Hrs"}</p>
+            <p className="text-lg font-bold text-malachite tracking-tight">{activeHours}</p>
+            <p className="text-[10px] text-ivory/40">{lang === "ar" ? "ساعة" : "hrs"}</p>
           </div>
         </div>
       </CardContent>
