@@ -25,16 +25,23 @@ export async function GET(req: NextRequest) {
     const slug = getSlug(req, session)
     if (!slug) return NextResponse.json([])
 
-    const seen = new Set<string>()
+    const seenNames = new Set<string>()
     const merged: Record<string, unknown>[] = []
+
+    const addIfNew = (row: Record<string, unknown>, name: string) => {
+      const key = name.toLowerCase().trim()
+      if (key && !seenNames.has(key)) {
+        seenNames.add(key)
+        merged.push(row)
+      }
+    }
 
     // 1) Tenant DB's restaurant_staff table
     const sb = await supabaseForRequest(req)
     const { data: tenantData, error } = await sb.from("restaurant_staff").select("*").order("name")
     if (!error && Array.isArray(tenantData)) {
       for (const row of tenantData as Record<string, unknown>[]) {
-        const id = String(row.id)
-        if (!seen.has(id)) { seen.add(id); merged.push(row) }
+        addIfNew(row, String(row.name || ""))
       }
     }
 
@@ -44,8 +51,7 @@ export async function GET(req: NextRequest) {
         .select("*").eq("tenant_slug", slug).order("name")
       if (Array.isArray(masterData)) {
         for (const row of masterData as Record<string, unknown>[]) {
-          const id = String(row.id)
-          if (!seen.has(id)) { seen.add(id); merged.push(row) }
+          addIfNew(row, String(row.name || ""))
         }
       }
     } catch { /* master table may not exist yet */ }
@@ -68,15 +74,13 @@ export async function GET(req: NextRequest) {
             }
           }
           for (const u of users as { user_id: string; role: string }[]) {
-            if (!seen.has(u.user_id)) {
-              seen.add(u.user_id)
-              merged.push({
-                id: u.user_id,
-                name: nameMap.get(u.user_id) || u.user_id,
-                role: u.role,
-                is_active: true,
-              })
-            }
+            const name = nameMap.get(u.user_id) || u.user_id
+            addIfNew({
+              id: u.user_id,
+              name,
+              role: u.role,
+              is_active: true,
+            }, name)
           }
         }
       }
