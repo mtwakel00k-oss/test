@@ -1,6 +1,6 @@
 "use client"
 
-import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useTranslation } from "@/lib/use-translation"
 import { useMemo } from "react"
@@ -42,11 +42,11 @@ export function PeakHoursChart({ data }: PeakHoursChartProps) {
       <CardContent className="pt-0">
         <div className="w-full" style={{ height: 300 }}>
           <ResponsiveContainer width="100%" height={300}>
-            <ComposedChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+            <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
               <defs>
-                <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(var(--chart-3))" stopOpacity={1} />
-                  <stop offset="100%" stopColor="hsl(var(--chart-3))" stopOpacity={0.15} />
+                <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="hsl(var(--chart-2))" stopOpacity={0.35} />
+                  <stop offset="100%" stopColor="hsl(var(--chart-2))" stopOpacity={0.02} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.3} />
@@ -68,7 +68,6 @@ export function PeakHoursChart({ data }: PeakHoursChartProps) {
                 width={24}
               />
               <Tooltip
-                cursor={{ fill: "hsl(var(--chart-3) / 0.1)", radius: 8 }}
                 content={({ active, payload, label }) => {
                   if (active && payload?.length) {
                     return (
@@ -83,27 +82,22 @@ export function PeakHoursChart({ data }: PeakHoursChartProps) {
                   return null
                 }}
               />
-              <Bar
-                dataKey="orders"
-                fill="url(#barGrad)"
-                radius={[4, 4, 4, 4]}
-                maxBarSize={8}
-              />
-              <Line
+              <Area
                 type="monotone"
                 dataKey="orders"
                 stroke="hsl(var(--chart-2))"
-                strokeWidth={2.5}
-                dot={{ fill: "hsl(var(--chart-1))", r: 3, stroke: "hsl(var(--background))", strokeWidth: 2 }}
+                strokeWidth={3}
+                fill="url(#areaFill)"
+                dot={false}
                 activeDot={{ r: 6, fill: "hsl(var(--chart-2))", stroke: "hsl(var(--background))", strokeWidth: 3 }}
               />
-            </ComposedChart>
+            </AreaChart>
           </ResponsiveContainer>
         </div>
 
         <div className="mt-4 grid grid-cols-3 gap-3 mx-2 mb-2">
-          <div className="p-4 rounded-xl bg-chart-3/5 border border-chart-3/10 text-center">
-            <p className="text-[10px] font-black uppercase tracking-widest text-chart-3/60 mb-0.5">{t("admin.peakHours")}</p>
+          <div className="p-4 rounded-xl bg-chart-2/5 border border-chart-2/10 text-center">
+            <p className="text-[10px] font-black uppercase tracking-widest text-chart-2/60 mb-0.5">{t("admin.peakHours")}</p>
             <p className="text-lg font-black text-foreground">{peakHour.hour}</p>
             <p className="text-[10px] text-muted-foreground/60">{peakHour.orders} {t("admin.orders")}</p>
           </div>
