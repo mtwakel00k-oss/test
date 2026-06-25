@@ -45,8 +45,8 @@ export function PeakHoursChart({ data }: PeakHoursChartProps) {
             <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(var(--chart-2))" stopOpacity={0.35} />
-                  <stop offset="100%" stopColor="hsl(var(--chart-2))" stopOpacity={0.02} />
+                  <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.35} />
+                  <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.02} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.3} />
@@ -85,19 +85,19 @@ export function PeakHoursChart({ data }: PeakHoursChartProps) {
               <Area
                 type="monotone"
                 dataKey="orders"
-                stroke="hsl(var(--chart-2))"
+                stroke="hsl(var(--chart-1))"
                 strokeWidth={3}
                 fill="url(#areaFill)"
                 dot={false}
-                activeDot={{ r: 6, fill: "hsl(var(--chart-2))", stroke: "hsl(var(--background))", strokeWidth: 3 }}
+                activeDot={{ r: 6, fill: "hsl(var(--chart-1))", stroke: "hsl(var(--background))", strokeWidth: 3 }}
               />
             </AreaChart>
           </ResponsiveContainer>
         </div>
 
         <div className="mt-4 grid grid-cols-3 gap-3 mx-2 mb-2">
-          <div className="p-4 rounded-xl bg-chart-2/5 border border-chart-2/10 text-center">
-            <p className="text-[10px] font-black uppercase tracking-widest text-chart-2/60 mb-0.5">{t("admin.peakHours")}</p>
+          <div className="p-4 rounded-xl bg-chart-1/5 border border-chart-1/10 text-center">
+            <p className="text-[10px] font-black uppercase tracking-widest text-chart-1/60 mb-0.5">{t("admin.peakHours")}</p>
             <p className="text-lg font-black text-foreground">{peakHour.hour}</p>
             <p className="text-[10px] text-muted-foreground/60">{peakHour.orders} {t("admin.orders")}</p>
           </div>
