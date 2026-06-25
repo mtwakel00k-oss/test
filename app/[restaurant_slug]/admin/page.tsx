@@ -42,6 +42,9 @@ const AuditLog = dynamic(() => import("@/components/admin/audit-log").then(m => 
 const PremiumAnalytics = dynamic(() => import("@/components/admin/premium-analytics").then(m => ({ default: m.PremiumAnalytics })), {
   loading: () => <div className="h-96 rounded-2xl bg-white/5 " />,
 })
+const OperationsManager = dynamic(() => import("@/components/admin/operations-manager").then(m => ({ default: m.OperationsManager })), {
+  loading: () => <div className="h-96 rounded-2xl bg-white/5 " />,
+})
 
 type Period = "7d" | "30d" | "6m" | "12m"
 
@@ -167,8 +170,8 @@ export default function AdminPage() {
 
   const isBasic = planType === "starter"
   const adminTabs = useMemo(() => {
-    const premiumTabs = ["audit", "analytics"] as const
-    const all = ["overview", "products", "orders", "audit", "analytics"] as const
+    const premiumTabs = ["audit", "analytics", "staff"] as const
+    const all = ["overview", "products", "orders", "audit", "analytics", "staff"] as const
     if (isBasic) return all.filter(t => !(premiumTabs as readonly string[]).includes(t))
     return all
   }, [isBasic])
@@ -335,7 +338,7 @@ export default function AdminPage() {
               orders: t("admin.orders"),
               audit: t("admin.audit"),
               analytics: t("analytics.premiumAnalytics"),
-              operations: t("admin.operations"),
+              staff: t("admin.staff"),
             }}
           />
           <div className="flex-1 min-w-0 space-y-6">
@@ -552,6 +555,16 @@ export default function AdminPage() {
               transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             >
               <PremiumAnalytics />
+            </motion.div>
+          ) : adminTab === "staff" ? (
+            <motion.div
+              key="staff"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <OperationsManager />
             </motion.div>
           ) : (
             <motion.div

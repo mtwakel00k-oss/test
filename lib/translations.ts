@@ -425,7 +425,7 @@ export const T: Dict = {
   "admin.newValues": { ar: "القيم الجديدة", en: "New Values", fr: "Nouvelles valeurs" },
   "admin.oldValues": { ar: "القيم القديمة", en: "Old Values", fr: "Anciennes valeurs" },
   "admin.audit": { ar: "سجل التدقيق", en: "Audit Log", fr: "Journal d'audit" },
-  "admin.operations": { ar: "العمليات والموارد", en: "Operations", fr: "Opérations" },
+  "admin.staff": { ar: "الموظفين", en: "Staff", fr: "Personnel" },
   "admin.centralDashboard": { ar: "لوحة التحكم المركزية", en: "Central Dashboard", fr: "Tableau de bord central" },
   "admin.simplooSystem": { ar: "نظام Simploo SaaS", en: "Simploo SaaS System", fr: "Système Simploo SaaS" },
   "admin.rootOwner": { ar: "المالك الجذر", en: "Root Owner", fr: "Propriétaire racine" },
