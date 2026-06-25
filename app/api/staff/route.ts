@@ -18,20 +18,6 @@ function getSlug(req: NextRequest): string | null {
   return resolveTenantSlug(req, session)
 }
 
-async function ensureTable() {
-  const url = env.NEXT_PUBLIC_SUPABASE_URL
-  const key = env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !key) return
-  try {
-    const sb = createClient(url, key)
-    await sb.rpc("exec_sql", {
-      sql: `CREATE TABLE IF NOT EXISTS restaurant_staff (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), tenant_slug TEXT NOT NULL, name TEXT NOT NULL, role TEXT NOT NULL DEFAULT 'cashier', is_active BOOLEAN NOT NULL DEFAULT true, created_at TIMESTAMPTZ NOT NULL DEFAULT now());`,
-    })
-  } catch {
-    // rpc may not exist — table might already exist
-  }
-}
-
 export async function GET(req: NextRequest) {
   try {
     const session = requireAdmin(req)
@@ -48,7 +34,6 @@ export async function GET(req: NextRequest) {
       if (key && !seenNames.has(key)) { seenNames.add(key); merged.push(row) }
     }
 
-    // Source 1: restaurant_staff (master DB)
     try {
       const { data } = await masterSb().from("restaurant_staff")
         .select("*").eq("tenant_slug", slug).order("name")
@@ -57,33 +42,52 @@ export async function GET(req: NextRequest) {
           addIfNew(row, String(row.name || ""))
         }
       }
-    } catch { /* table may not exist */ }
+    } catch { /* table not exist */ }
 
-    // Source 2: restaurant_users + profiles (always exists)
-    try {
-      const master = masterSb()
-      const { data: tenant } = await master.from("tenants").select("id").eq("slug", slug).single()
-      if (tenant) {
-        const { data: users } = await master.from("restaurant_users")
-          .select("user_id, role").eq("restaurant_id", tenant.id)
-        if (Array.isArray(users) && users.length > 0) {
-          const userIds = (users as { user_id: string; role: string }[]).map((u) => u.user_id)
-          const nameMap = new Map<string, string>()
-          const { data: profiles } = await master.from("profiles")
-            .select("id, username").in("id", userIds)
-          if (Array.isArray(profiles)) {
-            for (const p of profiles as { id: string; username: string }[]) {
-              nameMap.set(p.id, p.username)
+    const url = env.NEXT_PUBLIC_SUPABASE_URL
+    const key = env.SUPABASE_SERVICE_ROLE_KEY
+    if (url && key) {
+      try {
+        const master = createClient(url, key)
+        const { data: tenant } = await master.from("tenants").select("id").eq("slug", slug).single()
+        if (tenant) {
+          const { data: users } = await master.from("restaurant_users")
+            .select("user_id, role").eq("restaurant_id", tenant.id)
+          if (Array.isArray(users) && users.length > 0) {
+            const userIds = (users as { user_id: string; role: string }[]).map((u) => u.user_id)
+            const nameMap = new Map<string, string>()
+
+            try {
+              const { data: profiles } = await master.from("profiles")
+                .select("id, username").in("id", userIds)
+              if (Array.isArray(profiles)) {
+                for (const p of profiles as { id: string; username: string }[]) {
+                  if (p.username) nameMap.set(p.id, p.username)
+                }
+              }
+            } catch { /* profiles table not exist */ }
+
+            const missingIds = userIds.filter((id) => !nameMap.has(id))
+            if (missingIds.length > 0) {
+              try {
+                const { data: authList } = await master.auth.admin.listUsers()
+                for (const u of authList?.users || []) {
+                  if (missingIds.includes(u.id) && u.user_metadata?.username) {
+                    nameMap.set(u.id, u.user_metadata.username as string)
+                  }
+                }
+              } catch { /* no auth admin permission */ }
+            }
+
+            for (const u of users as { user_id: string; role: string }[]) {
+              const name = nameMap.get(u.user_id)
+              if (!name) continue
+              addIfNew({ id: u.user_id, name, role: u.role, is_active: true }, name)
             }
           }
-          for (const u of users as { user_id: string; role: string }[]) {
-            const name = nameMap.get(u.user_id)
-            if (!name || /^[a-f0-9-]{32,}$/i.test(name)) continue
-            addIfNew({ id: u.user_id, name, role: u.role, is_active: true }, name)
-          }
         }
-      }
-    } catch { /* tables may not exist */ }
+      } catch { /* tables not exist */ }
+    }
 
     return NextResponse.json(merged)
   } catch (e) {
@@ -103,47 +107,76 @@ export async function POST(req: NextRequest) {
     const slug = getSlug(req)
     if (!slug) return NextResponse.json({ error: "No tenant" }, { status: 400 })
 
-    const { name, role } = await req.json()
+    const { name, role, password } = await req.json()
     if (!name || !name.trim()) {
       return NextResponse.json({ error: "الاسم مطلوب" }, { status: 400 })
     }
+    const staffName = name.trim()
 
-    // Write to master restaurant_staff (primary)
-    const master = masterSb()
-    const { data: existing } = await master.from("restaurant_staff")
-      .select("id").eq("tenant_slug", slug).eq("name", name.trim()).maybeSingle()
+    const url = env.NEXT_PUBLIC_SUPABASE_URL
+    const key = env.SUPABASE_SERVICE_ROLE_KEY
+    if (!url || !key) return NextResponse.json({ error: "Server config error" }, { status: 500 })
+    const master = createClient(url, key)
 
-    let staffId: string
-    if (existing) {
-      const { data } = await master.from("restaurant_staff")
-        .update({ role: role || "cashier", is_active: true })
-        .eq("id", existing.id).select().single()
-      staffId = (data as Record<string, unknown> | null)?.id as string || existing.id
+    // Create auth user + profile + restaurant_users (always works)
+    const domain = `${slug}.app`
+    const email = `${staffName.toLowerCase().replace(/\s+/g, "_")}@${domain}`
+    const pw = password || `${staffName}@${Math.random().toString(36).slice(2, 8)}1A`
+
+    let userId: string
+    const { data: createData, error: createError } = await master.auth.admin.createUser({
+      email,
+      password: pw,
+      email_confirm: true,
+      user_metadata: { username: staffName, role: role || "cashier" },
+    })
+
+    if (createData?.user) {
+      userId = createData.user.id
+    } else if (createError?.message?.includes("already exists")) {
+      const { data: listData } = await master.auth.admin.listUsers()
+      const found = listData?.users?.find((u: { email?: string }) => u.email === email)
+      if (!found) return NextResponse.json({ error: "User exists but not found" }, { status: 500 })
+      userId = found.id
     } else {
-      const { data } = await master.from("restaurant_staff").insert({
-        tenant_slug: slug,
-        name: name.trim(),
-        role: role || "cashier",
-        is_active: true,
-      }).select().single()
-      staffId = (data as Record<string, unknown> | null)?.id as string
+      return NextResponse.json({ error: createError?.message || "فشل إنشاء الحساب" }, { status: 500 })
     }
 
-    // Also try tenant DB
+    await master.from("profiles").upsert({ id: userId, username: staffName, role: role || "cashier" })
+
+    const { data: tenant } = await master.from("tenants").select("id").eq("slug", slug).single()
+    if (tenant) {
+      const { data: existingLink } = await master.from("restaurant_users")
+        .select("id").eq("user_id", userId).eq("restaurant_id", tenant.id).maybeSingle()
+      if (!existingLink) {
+        await master.from("restaurant_users").insert({ user_id: userId, restaurant_id: tenant.id, role: role || "cashier" })
+      }
+    }
+
+    // Also sync to restaurant_staff if table exists
     try {
-      const tenantSb = await supabaseForRequest(req)
-      await tenantSb.from("restaurant_staff").upsert({
-        name: name.trim(),
+      await master.from("restaurant_staff").upsert({
+        tenant_slug: slug,
+        name: staffName,
         role: role || "cashier",
         is_active: true,
       })
-    } catch { /* tenant table may not exist */ }
+    } catch { /* table not exist */ }
 
-    logger.info("Staff created", { id: staffId, name, slug })
-    return NextResponse.json({ id: staffId, name: name.trim(), role: role || "cashier", is_active: true }, { status: 201 })
+    try {
+      const tenantSb = await supabaseForRequest(req)
+      await tenantSb.from("restaurant_staff").upsert({
+        name: staffName,
+        role: role || "cashier",
+        is_active: true,
+      })
+    } catch { /* tenant table not exist */ }
+
+    logger.info("Staff created", { id: userId, name: staffName, slug })
+    return NextResponse.json({ id: userId, name: staffName, role: role || "cashier", is_active: true, password: pw }, { status: 201 })
   } catch (e) {
     logger.error("staff POST failed", e)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ error: "فشل إضافة الموظف. تأكد من صلاحيات قاعدة البيانات." }, { status: 500 })
   }
 }
 
@@ -168,11 +201,23 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "No fields to update" }, { status: 400 })
     }
 
-    const { data, error } = await master.from("restaurant_staff").update(updates).eq("id", id).select().single()
-    if (error) throw new Error(error.message)
+    // Update restaurant_staff (if exists)
+    try {
+      await master.from("restaurant_staff").update(updates).eq("id", id)
+    } catch { /* table not exist */ }
+
+    // Also update profile for auth-linked users
+    if (updates.name || updates.role) {
+      try {
+        const profileUpdates: Record<string, unknown> = {}
+        if (updates.name) profileUpdates.username = updates.name
+        if (updates.role) profileUpdates.role = updates.role
+        await master.from("profiles").update(profileUpdates).eq("id", id)
+      } catch { /* table not exist */ }
+    }
 
     logger.info("Staff updated", { id })
-    return NextResponse.json(data)
+    return NextResponse.json({ success: true })
   } catch (e) {
     logger.error("staff PATCH failed", e)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
@@ -192,8 +237,18 @@ export async function DELETE(req: NextRequest) {
     if (!id) return NextResponse.json({ error: "id required" }, { status: 400 })
 
     const master = masterSb()
-    const { error } = await master.from("restaurant_staff").delete().eq("id", id)
-    if (error) throw new Error(error.message)
+
+    try {
+      await master.from("restaurant_staff").delete().eq("id", id)
+    } catch { /* table not exist */ }
+
+    try {
+      await master.from("restaurant_users").delete().eq("user_id", id)
+    } catch { /* table not exist */ }
+
+    try {
+      await master.auth.admin.deleteUser(id)
+    } catch { /* may fail for non-auth users */ }
 
     logger.info("Staff deleted", { id })
     return NextResponse.json({ success: true })
