@@ -191,8 +191,17 @@ export default function AdminPage() {
       .channel("admin-dashboard")
       .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => fetchStats().then(setStatsFromResult))
       .subscribe()
-    const poll = setInterval(() => fetchStats().then(setStatsFromResult), 15000)
-    return () => { supabase().removeChannel(channel); clearInterval(poll) }
+    let poll = setInterval(() => fetchStats().then(setStatsFromResult), 15000)
+    const onVisibility = () => {
+      if (document.hidden) { clearInterval(poll); poll = null as unknown as ReturnType<typeof setInterval> }
+      else if (!poll) { poll = setInterval(() => fetchStats().then(setStatsFromResult), 30000) }
+    }
+    document.addEventListener("visibilitychange", onVisibility, { passive: true })
+    return () => {
+      supabase().removeChannel(channel)
+      clearInterval(poll)
+      document.removeEventListener("visibilitychange", onVisibility)
+    }
   }, [fetchStats])
 
   useEffect(() => {

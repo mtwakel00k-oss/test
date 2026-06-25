@@ -1,10 +1,12 @@
 import type { Metadata } from 'next'
+import dynamic from 'next/dynamic'
 import { Navbar } from '@/components/simploo-landing/navbar'
 import { Hero } from '@/components/simploo-landing/hero'
-import { Capabilities } from '@/components/simploo-landing/capabilities'
-import { Pricing } from '@/components/simploo-landing/pricing'
-import { Faq } from '@/components/simploo-landing/faq'
-import { Footer } from '@/components/simploo-landing/footer'
+
+const Capabilities = dynamic(() => import('@/components/simploo-landing/capabilities').then(m => ({ default: m.Capabilities })))
+const Pricing = dynamic(() => import('@/components/simploo-landing/pricing').then(m => ({ default: m.Pricing })))
+const Faq = dynamic(() => import('@/components/simploo-landing/faq').then(m => ({ default: m.Faq })))
+const Footer = dynamic(() => import('@/components/simploo-landing/footer').then(m => ({ default: m.Footer })))
 
 export const metadata: Metadata = {
   title: 'Simploo — أدر مطعمك بذكاء النخبة',

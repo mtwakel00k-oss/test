@@ -1,52 +1,12 @@
 'use client'
 
-import { useRef } from 'react'
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion'
-
-function AnimatedText({ children, delay = 0 }: { children: string; delay?: number }) {
-  const words = children.split(' ')
-  return (
-    <span>
-      {words.map((word, i) => (
-        <span key={i} className="inline-block overflow-hidden">
-          <motion.span
-            initial={{ y: '100%', rotateX: -90 }}
-            animate={{ y: 0, rotateX: 0 }}
-            transition={{ type: 'spring', stiffness: 80, damping: 20, delay: delay + i * 0.04 }}
-            className="inline-block origin-bottom"
-          >
-            {word}
-            {i < words.length - 1 && '\u00A0'}
-          </motion.span>
-        </span>
-      ))}
-    </span>
-  )
-}
+import { motion } from 'framer-motion'
 
 function RealDashboardMockup() {
-  const ref = useRef<HTMLDivElement>(null)
-  const { scrollY } = useScroll()
-  const y = useTransform(scrollY, [0, 800], [0, 60])
-  const springY = useSpring(y, { stiffness: 120, damping: 30 })
-  const rotateX = useTransform(scrollY, [0, 800], [1.5, -1.5])
-  const springRotateX = useSpring(rotateX, { stiffness: 120, damping: 30 })
-
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 60, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ type: 'spring', stiffness: 60, damping: 25, delay: 0.4 }}
-      style={{ y: springY, rotateX: springRotateX }}
-      className="relative w-full perspective-[1200px]"
-    >
+    <div className="relative w-full">
       <div className="pointer-events-none absolute -inset-6 rounded-[3rem] bg-gradient-to-b from-malachite/10 via-forest/5 to-transparent blur-3xl" />
-      <motion.div
-        animate={{ y: [0, -5, 0] }}
-        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-        className="relative overflow-hidden rounded-2xl border border-white/10 bg-card/80 backdrop-blur-xl shadow-[0_30px_80px_-20px_rgba(0,0,0,0.5)]"
-      >
+      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-card/80 backdrop-blur-xl shadow-[0_30px_80px_-20px_rgba(0,0,0,0.5)]">
         {/* Browser bar */}
         <div className="flex items-center gap-2 border-b border-white/10 bg-card/60 px-5 py-3">
           <span className="size-2.5 rounded-full bg-red-400" />
@@ -81,7 +41,7 @@ function RealDashboardMockup() {
               <span className="text-xs font-bold text-foreground">نظرة عامة</span>
               <div className="flex items-center gap-2">
                 <span className="rounded-md bg-malachite/15 px-2 py-0.5 text-[8px] font-medium text-malachite">آخر 7 أيام</span>
-                <span className="size-2 rounded-full bg-malachite " />
+                <span className="size-2 rounded-full bg-malachite" />
               </div>
             </div>
 
@@ -92,30 +52,22 @@ function RealDashboardMockup() {
                 { label: 'إجمالي الطلبات', value: '43', badge: 'جديد 3', color: 'text-malachite bg-malachite/10' },
                 { label: 'متوسط الطلب', value: '29.1 د.ج', badge: '+0.8%', color: 'text-blue-400 bg-blue-500/10' },
                 { label: 'التقييم', value: '4.2', badge: 'ممتاز', color: 'text-malachite bg-malachite/10' },
-              ].map((s, i) => (
-                <motion.div
+              ].map((s) => (
+                <div
                   key={s.label}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7 + i * 0.08 }}
                   className="rounded-xl border border-white/10 bg-card/50 p-2.5 backdrop-blur-sm"
                 >
                   <p className="mb-0.5 text-[8px] text-muted-foreground">{s.label}</p>
                   <p className="text-sm font-extrabold text-foreground tabular-nums">{s.value}</p>
                   <span className={`mt-1 inline-block rounded px-1 py-0.5 text-[7px] font-bold ${s.color}`}>{s.badge}</span>
-                </motion.div>
+                </div>
               ))}
             </div>
 
             {/* KDS preview row */}
             <div className="mt-3 grid grid-cols-2 gap-2">
               {/* Sales chart */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1.0 }}
-                className="rounded-xl border border-white/10 bg-card/50 p-3 backdrop-blur-sm"
-              >
+              <div className="rounded-xl border border-white/10 bg-card/50 p-3 backdrop-blur-sm">
                 <p className="mb-2 text-[8px] font-bold text-foreground">المبيعات الأسبوعية</p>
                 <svg viewBox="0 0 240 60" className="w-full">
                   <defs>
@@ -129,25 +81,20 @@ function RealDashboardMockup() {
                     fill="none" stroke="rgb(37,233,112)" strokeWidth="2" strokeLinecap="round"
                     initial={{ pathLength: 0 }}
                     animate={{ pathLength: 1 }}
-                    transition={{ duration: 1.5, delay: 1.2 }}
+                    transition={{ duration: 1.5, delay: 0.3, ease: 'easeOut' }}
                   />
                   <motion.path
                     d="M0 48 C30 40, 50 15, 80 22 S 130 8, 160 18 S 200 35, 240 14 L 240 60 L 0 60 Z"
                     fill="url(#sc)"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ duration: 1, delay: 1.8 }}
+                    transition={{ duration: 1, delay: 0.7 }}
                   />
                 </svg>
-              </motion.div>
+              </div>
 
               {/* KDS preview */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1.1 }}
-                className="rounded-xl border border-white/10 bg-card/50 p-3 backdrop-blur-sm"
-              >
+              <div className="rounded-xl border border-white/10 bg-card/50 p-3 backdrop-blur-sm">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-[8px] font-bold text-foreground">شاشة المطبخ (KDS)</p>
                   <span className="text-[6px] text-muted-foreground">مباشر</span>
@@ -166,16 +113,11 @@ function RealDashboardMockup() {
                     <span className="text-[6px] text-rose-400">24 د</span>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             </div>
 
             {/* Premium analytics teaser */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.3 }}
-              className="mt-3 rounded-xl border border-malachite/20 bg-malachite/10 p-3 backdrop-blur-sm"
-            >
+            <div className="mt-3 rounded-xl border border-malachite/20 bg-malachite/10 p-3 backdrop-blur-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-[8px] font-bold text-malachite">لوحة تحليلات النخبة</span>
@@ -183,11 +125,11 @@ function RealDashboardMockup() {
                 </div>
                 <span className="text-[6px] text-muted-foreground">كشف التسريبات + Dead Stock + ترتيب السائقين</span>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   )
 }
 
@@ -195,54 +137,31 @@ export function Hero() {
   return (
     <section className="relative min-h-screen overflow-hidden bg-background" dir="rtl">
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <motion.div
-          animate={{ y: [0, -20, 0], opacity: [0.06, 0.1, 0.06] }}
-          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute -top-40 -right-32 h-[600px] w-[600px] rounded-full bg-malachite blur-[160px]"
-        />
-        <motion.div
-          animate={{ y: [0, 20, 0], opacity: [0.05, 0.08, 0.05] }}
-          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-          className="absolute -bottom-40 -left-32 h-[500px] w-[500px] rounded-full bg-forest blur-[140px]"
-        />
+        <div className="absolute -top-40 -right-32 h-[600px] w-[600px] animate-float-slow rounded-full bg-malachite blur-[160px]" />
+        <div className="absolute -bottom-40 -left-32 h-[500px] w-[500px] animate-float-slower rounded-full bg-forest blur-[140px]" />
       </div>
 
       <div className="mx-auto max-w-7xl px-4 md:px-8">
         <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-16">
-          <motion.div className="relative lg:col-span-5">
-            <motion.div
-              initial={{ opacity: 0, scaleX: 0 }}
-              animate={{ opacity: 1, scaleX: 1 }}
-              transition={{ type: 'spring', stiffness: 100, damping: 20 }}
-              className="mb-6 h-0.5 w-16 origin-right rounded-full bg-malachite/70"
-            />
+          <div className="relative lg:col-span-5">
+            <div className="mb-6 h-0.5 w-16 rounded-full bg-malachite/70" />
 
             <h1 className="font-display text-[clamp(2.2rem,4.8vw,4rem)] font-normal leading-[0.95] tracking-tight text-foreground">
-              <AnimatedText delay={0.1}>أدر مطعمك بذكاء النخبة.</AnimatedText>
+              أدر مطعمك بذكاء النخبة.
               <br />
               <span className="text-malachite">
-                <AnimatedText delay={0.3}>سيطر على أرباحك،</AnimatedText>
+                سيطر على أرباحك،
               </span>
               <br />
-              <AnimatedText delay={0.5}>وسرّع مطبخك.</AnimatedText>
+              وسرّع مطبخك.
             </h1>
 
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ type: 'spring', stiffness: 80, damping: 20, delay: 0.5 }}
-              className="mt-8 max-w-md text-base leading-relaxed text-muted-foreground md:text-lg"
-            >
+            <p className="mt-8 max-w-md text-base leading-relaxed text-muted-foreground md:text-lg">
               نظام سحابي متكامل يربط الكاشير بالمطبخ في أجزاء من الثانية،
               ويكشف لك النزيف المالي والمنتجات الراكدة فوراً وبدون تعقيد.
-            </motion.p>
+            </p>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ type: 'spring', stiffness: 80, damping: 20, delay: 0.65 }}
-              className="mt-10 flex flex-wrap items-center gap-4"
-            >
+            <div className="mt-10 flex flex-wrap items-center gap-4">
               <motion.a
                 href="/login"
                 whileHover={{ scale: 1.03 }}
@@ -251,7 +170,7 @@ export function Hero() {
               >
                 ابدأ تجربتك المجانية
                 <span className="grid size-7 place-items-center rounded-full bg-white/15 transition-all duration-500 group-hover:translate-x-0.5">
-                  <svg className="size-3.5 rtl:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                  <svg className="size-3.5 rtl:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
                 </span>
               </motion.a>
               <motion.a
@@ -261,12 +180,12 @@ export function Hero() {
                 className="group inline-flex items-center gap-3 rounded-full border border-white/10 bg-card/60 px-7 py-3.5 text-sm font-semibold text-foreground backdrop-blur-md transition-all duration-500 hover:border-malachite/30 hover:bg-malachite/10"
               >
                 <span className="grid size-7 place-items-center rounded-full bg-malachite/15 text-malachite backdrop-blur-sm">
-                  <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3" /></svg>
                 </span>
                 شاهد الإمكانيات
               </motion.a>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
 
           <div className="relative lg:col-span-7">
             <RealDashboardMockup />

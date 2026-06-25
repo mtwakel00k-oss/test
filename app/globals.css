@@ -181,6 +181,8 @@
   --font-heading: var(--font-display);
   --animate-shiny-text: shiny-text 8s infinite;
   --animate-float: float 7s var(--ease-premium) infinite;
+  --animate-float-slow: float 12s var(--ease-premium) infinite;
+  --animate-float-slower: float 18s var(--ease-premium) infinite;
   --animate-premium-pulse: premium-pulse 2.8s var(--ease-premium) infinite;
   @keyframes premium-pulse {
     0%, 100% { opacity: 1; }
