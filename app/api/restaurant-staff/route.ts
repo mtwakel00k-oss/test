@@ -74,7 +74,8 @@ export async function GET(req: NextRequest) {
             }
           }
           for (const u of users as { user_id: string; role: string }[]) {
-            const name = nameMap.get(u.user_id) || u.user_id
+            const name = nameMap.get(u.user_id)
+            if (!name || /^[a-f0-9-]{32,}$/i.test(name)) continue
             addIfNew({
               id: u.user_id,
               name,
