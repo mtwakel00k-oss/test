@@ -64,10 +64,8 @@ export async function GET(req: NextRequest) {
 
     // ═══ query orders WITHOUT ready_at (column may not exist) ═══
     const [ordersResult, itemsResult, auditResult, produitsResult, readyAtResult] = await Promise.allSettled([
-      sb.from("orders").select("id, status, total, created_at, driver_id, order_type, order_number, cashier_id, cashier_name")
-        .gte("created_at", prevSince).limit(500).returns<OrderRow[]>(),
-      sb.from("order_items").select("product_id, product_name, quantity, subtotal")
-        .gte("created_at", since).limit(2000).returns<ItemRow[]>(),
+      sb.from("orders").select("*").gte("created_at", prevSince).limit(500).returns<Record<string, unknown>[]>(),
+      sb.from("order_items").select("*").gte("created_at", since).limit(2000).returns<Record<string, unknown>[]>(),
       sb.from("audit_log").select("id, record_id, new_data, old_data, created_at")
         .eq("table_name", "orders").eq("operation", "UPDATE")
         .gte("created_at", since).order("created_at", { ascending: true }).limit(1000).returns<AuditRow[]>(),
@@ -76,8 +74,33 @@ export async function GET(req: NextRequest) {
       sb.from("orders").select("id, ready_at").gte("created_at", since).limit(500).returns<{ id: string; ready_at: string | null }[]>(),
     ])
 
-    const allOrders: OrderRow[] = ordersResult.status === "fulfilled" ? (ordersResult.value.data || []) : []
-    const items: ItemRow[] = itemsResult.status === "fulfilled" ? (itemsResult.value.data || []) : []
+    function mapOrder(row: Record<string, unknown>): OrderRow {
+      return {
+        id: String(row.id || ""),
+        status: String(row.status || ""),
+        total: row.total as number | string || 0,
+        created_at: String(row.created_at || ""),
+        driver_id: row.driver_id ? String(row.driver_id) : null,
+        order_type: row.order_type ? String(row.order_type) : null,
+        order_number: row.order_number as string | number | null || null,
+        cashier_id: row.cashier_id ? String(row.cashier_id) : null,
+        cashier_name: row.cashier_name ? String(row.cashier_name) : null,
+      }
+    }
+
+    function mapItem(row: Record<string, unknown>): ItemRow {
+      return {
+        product_id: Number(row.product_id || 0),
+        product_name: String(row.product_name || ""),
+        quantity: Number(row.quantity || 0),
+        subtotal: row.subtotal as number | string | null || null,
+      }
+    }
+
+    const allOrders: OrderRow[] = ordersResult.status === "fulfilled"
+      ? (ordersResult.value.data || []).map(mapOrder) : []
+    const items: ItemRow[] = itemsResult.status === "fulfilled"
+      ? (itemsResult.value.data || []).map(mapItem) : []
     const auditEntries: AuditRow[] = auditResult.status === "fulfilled" ? (auditResult.value.data || []) : []
     const produits: ProduitRow[] = produitsResult.status === "fulfilled" ? (produitsResult.value.data || []) : []
 
