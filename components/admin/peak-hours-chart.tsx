@@ -1,6 +1,6 @@
 "use client"
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useTranslation } from "@/lib/use-translation"
 import { useMemo } from "react"
@@ -40,35 +40,35 @@ export function PeakHoursChart({ data }: PeakHoursChartProps) {
         <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mt-1">{t("admin.peakHoursSub")}</p>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="w-full" style={{ height: 260 }}>
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+        <div className="w-full" style={{ height: 300 }}>
+          <ResponsiveContainer width="100%" height={300}>
+            <ComposedChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="hsl(var(--chart-3))" stopOpacity={1} />
-                  <stop offset="100%" stopColor="hsl(var(--chart-3))" stopOpacity={0.2} />
+                  <stop offset="100%" stopColor="hsl(var(--chart-3))" stopOpacity={0.15} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.3} />
               <XAxis
                 dataKey="hour"
-                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10, fontWeight: 700 }}
+                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 9, fontWeight: 700 }}
                 stroke="transparent"
                 tickLine={false}
                 axisLine={false}
                 dy={12}
-                interval={2}
+                interval={3}
               />
               <YAxis
-                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10, fontWeight: 700 }}
+                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 9, fontWeight: 700 }}
                 stroke="transparent"
                 tickLine={false}
                 axisLine={false}
                 allowDecimals={false}
-                width={30}
+                width={24}
               />
               <Tooltip
-                cursor={{ fill: "hsl(var(--chart-3) / 0.12)", radius: 8 }}
+                cursor={{ fill: "hsl(var(--chart-3) / 0.1)", radius: 8 }}
                 content={({ active, payload, label }) => {
                   if (active && payload?.length) {
                     return (
@@ -86,10 +86,18 @@ export function PeakHoursChart({ data }: PeakHoursChartProps) {
               <Bar
                 dataKey="orders"
                 fill="url(#barGrad)"
-                radius={[6, 6, 6, 6]}
-                maxBarSize={20}
+                radius={[4, 4, 4, 4]}
+                maxBarSize={8}
               />
-            </BarChart>
+              <Line
+                type="monotone"
+                dataKey="orders"
+                stroke="hsl(var(--chart-2))"
+                strokeWidth={2.5}
+                dot={{ fill: "hsl(var(--chart-1))", r: 3, stroke: "hsl(var(--background))", strokeWidth: 2 }}
+                activeDot={{ r: 6, fill: "hsl(var(--chart-2))", stroke: "hsl(var(--background))", strokeWidth: 3 }}
+              />
+            </ComposedChart>
           </ResponsiveContainer>
         </div>
 
