@@ -22,26 +22,36 @@ export async function GET(req: NextRequest) {
     const session = requireStaff(req)
     if (isErrorResponse(session)) return session
 
-    const sb = await supabaseForRequest(req)
-    const { data, error } = await sb.from("restaurant_staff").select("*").order("name")
-    if (error) {
-      if (error.message.includes("does not exist") || error.code === "PGRST205") {
-        const slug = getSlug(req, session)
-        if (!slug) return NextResponse.json([])
-        const { data: masterData } = await masterSb().from("restaurant_staff")
-          .select("*").eq("tenant_slug", slug).order("name")
-        return NextResponse.json(masterData || [])
-      }
-      throw new Error(error.message)
-    }
-    if (data && data.length > 0) return NextResponse.json(data)
     const slug = getSlug(req, session)
-    if (slug) {
+    if (!slug) return NextResponse.json([])
+
+    // Gather from both tenant DB and master DB, merge by id
+    const seen = new Set<string>()
+    const merged: Record<string, unknown>[] = []
+
+    // 1) Try tenant DB first
+    const sb = await supabaseForRequest(req)
+    const { data: tenantData, error } = await sb.from("restaurant_staff").select("*").order("name")
+    if (!error && Array.isArray(tenantData)) {
+      for (const row of tenantData as Record<string, unknown>[]) {
+        const id = String(row.id)
+        if (!seen.has(id)) { seen.add(id); merged.push(row) }
+      }
+    }
+
+    // 2) Merge master DB data (source of truth for cashiers created via admin)
+    try {
       const { data: masterData } = await masterSb().from("restaurant_staff")
         .select("*").eq("tenant_slug", slug).order("name")
-      if (masterData && masterData.length > 0) return NextResponse.json(masterData)
-    }
-    return NextResponse.json([])
+      if (Array.isArray(masterData)) {
+        for (const row of masterData as Record<string, unknown>[]) {
+          const id = String(row.id)
+          if (!seen.has(id)) { seen.add(id); merged.push(row) }
+        }
+      }
+    } catch { /* master table may not exist yet */ }
+
+    return NextResponse.json(merged)
   } catch (e) {
     const mismatch = isTenantMismatch(e)
     if (mismatch) return mismatch
