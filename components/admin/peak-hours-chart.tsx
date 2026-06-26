@@ -1,9 +1,9 @@
 "use client"
 
+import { memo, useMemo } from "react"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useTranslation } from "@/lib/use-translation"
-import { useMemo } from "react"
 
 interface PeakHour {
   hour: number
@@ -14,7 +14,7 @@ interface PeakHoursChartProps {
   data: PeakHour[]
 }
 
-export function PeakHoursChart({ data }: PeakHoursChartProps) {
+export const PeakHoursChart = memo(function PeakHoursChart({ data }: PeakHoursChartProps) {
   const { t, lang } = useTranslation()
 
   const chartData = useMemo(() =>
@@ -102,4 +102,4 @@ export function PeakHoursChart({ data }: PeakHoursChartProps) {
       </CardContent>
     </Card>
   )
-}
+})

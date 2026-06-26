@@ -1,5 +1,6 @@
 "use client"
 
+import { memo } from "react"
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useTranslation } from "@/lib/use-translation"
@@ -12,7 +13,7 @@ interface SalesChartProps {
   onPeriodChange: (p: Period) => void
 }
 
-export function SalesChart({ data, period, onPeriodChange }: SalesChartProps) {
+export const SalesChart = memo(function SalesChart({ data, period, onPeriodChange }: SalesChartProps) {
   const { t, lang } = useTranslation()
 
   const periods: { key: Period; label: string }[] = [
@@ -125,4 +126,4 @@ export function SalesChart({ data, period, onPeriodChange }: SalesChartProps) {
       </CardContent>
     </Card>
   )
-}
+})

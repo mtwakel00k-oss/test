@@ -205,7 +205,7 @@ export function RestaurantSettings() {
                   <div className="size-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
                 ) : logoUrl ? (
                   <>
-                    <Image src={logoUrl} alt="" fill className="object-cover block transition-transform duration-700 group-hover:scale-110" onError={() => console.error("Logo load failed")} unoptimized />
+                    <Image src={logoUrl} alt="" fill sizes="96px" className="object-cover block transition-transform duration-700 group-hover:scale-110" onError={() => console.error("Logo load failed")} unoptimized />
                     <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500">
                       <Camera className="size-8 text-white" />
                     </div>

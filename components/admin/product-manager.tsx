@@ -11,7 +11,6 @@ import { Select } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { AlertCircle, CheckCircle, Plus, Trash2, Pencil, X, Upload, ChevronDown, ToggleLeft, ToggleRight, ShoppingBag, Layers } from "lucide-react"
 import { ConfirmDeleteModal } from "./confirm-delete-modal"
-import { BulkOperations } from "./bulk-operations"
 import { logger } from "@/lib/logger"
 import { cn } from "@/lib/utils"
 import { fetchApi } from "@/lib/tenant"
@@ -266,7 +265,6 @@ export function ProductManager() {
   const [catModalOpen, setCatModalOpen] = useState(false)
   const [catForm, setCatForm] = useState({ nom: "", description: "" })
   const [catSubmitting, setCatSubmitting] = useState(false)
-  const [bulkOpen, setBulkOpen] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const catInputRef = useRef<HTMLInputElement>(null)
   const catDropdownRef = useRef<HTMLDivElement>(null)
@@ -612,10 +610,7 @@ export function ProductManager() {
             <Plus className="size-4 ms-2" />
             {lbl("products.addCategory")}
           </Button>
-          <Button variant="secondary" onClick={() => setBulkOpen(true)} className="h-12 px-6 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
-            <Layers className="size-4 ms-2" />
-            {lbl("products.bulk")}
-          </Button>
+
           <Button onClick={openAdd} className="h-12 px-6 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
             <Plus className="size-4 ms-2" />
             {lbl("products.addProduct")}
@@ -656,7 +651,7 @@ export function ProductManager() {
                     <div className="flex items-center gap-4" style={{ flexDirection: dir === "rtl" ? "row-reverse" : "row" }}>
                       {product.image_url ? (
                         <div className="size-14 rounded-2xl overflow-hidden border border-border/50 shadow-sm group-hover:scale-110 transition-transform duration-500">
-                          <Image src={product.image_url} alt={product.name} width={56} height={56} className="size-full object-cover" unoptimized />
+                          <Image src={product.image_url} alt={product.name} width={56} height={56} loading="lazy" className="size-full object-cover" unoptimized />
                         </div>
                       ) : (
                         <div className="size-14 rounded-2xl bg-muted/50 border border-border/30 flex items-center justify-center text-muted-foreground/30">
@@ -753,6 +748,7 @@ export function ProductManager() {
                       alt=""
                       width={64}
                       height={64}
+                      loading="lazy"
                       className="h-full w-full object-cover"
                       onError={() => setForm((f) => ({ ...f, image_url: "" }))}
                       unoptimized
@@ -973,11 +969,6 @@ export function ProductManager() {
         </DialogContent>
       </Dialog>
 
-      <BulkOperations
-        open={bulkOpen}
-        onClose={() => setBulkOpen(false)}
-        onComplete={() => { setBulkOpen(false); fetchProducts() }}
-      />
     </Card>
   )
 }

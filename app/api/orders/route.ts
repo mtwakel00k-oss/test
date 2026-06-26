@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
 
     if (includeItems && enrichedOrders.length > 0) {
       const orderIds = enrichedOrders.map((o) => o.id as string)
-      const { data: items } = await sb.from("order_items").select("*").in("order_id", orderIds)
+      const { data: items } = await sb.from("order_items").select("order_id, product_id, product_name, quantity, subtotal, size, unit_price").in("order_id", orderIds)
       const itemsByOrder: Record<string, unknown[]> = {}
       for (const item of items || []) {
         const oid = (item as { order_id: string }).order_id
@@ -160,10 +160,10 @@ export async function POST(req: NextRequest) {
 
     // ── Validate products & compute server-side prices ──
     const prodIds = [...new Set(items.map((i: { product_id: number }) => i.product_id))] as number[]
-    const { data: rawProducts } = await sb.from("v_products_flat").select("*").in("id", prodIds)
+    const { data: rawProducts } = await sb.from("v_products_flat").select("id, nom, prix, prix2, category, sizes, sauces, image_url, is_available").in("id", prodIds).returns<Record<string, unknown>[]>()
     const productMap = new Map<number, MenuProduct>()
     for (const p of rawProducts || []) {
-      productMap.set(p.id as number, p as MenuProduct)
+      productMap.set(p.id as number, p as unknown as MenuProduct)
     }
 
     const removedProductIds: number[] = []

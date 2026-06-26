@@ -57,7 +57,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       // 1. Try standard lookup first (works if x-tenant-slug header is present)
       const sb = await supabaseForRequest(req)
       const { data: directOrder, error: directError } = await (sb.from("orders"))
-        .select("*, items:order_items(*)")
+        .select("id, status, order_number, order_type, total, created_at, table_number, customer_name, customer_phone, customer_email, delivery_address, delivery_lat, delivery_lng, driver_id, items:order_items(id, product_id, product_name, quantity, unit_price, subtotal, size)")
         .eq("id", id)
         .maybeSingle()
 
@@ -107,7 +107,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     // ── Standard mode: requires session / x-tenant-slug ──────────────────
     const sb = await supabaseForRequest(req)
     const { data: order, error } = await (sb.from("orders"))
-      .select("*, items:order_items(*)")
+      .select("id, status, order_number, order_type, total, created_at, table_number, customer_name, customer_phone, customer_email, delivery_address, delivery_lat, delivery_lng, driver_id, processed_by_staff_id, processed_by_staff_name, payment_status, cashier_id, cashier_name, items:order_items(id, product_id, product_name, quantity, unit_price, subtotal, size)")
       .eq("id", id)
       .maybeSingle()
 

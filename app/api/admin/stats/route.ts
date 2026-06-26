@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
     const days = PERIOD_DAYS[periodParam] || 30
     const since = new Date(Date.now() - days * 86400000).toISOString()
 
-    const { data: rawOrders } = await sb.from("orders").select("*").gte("created_at", since).limit(200).returns<OrderRow[]>()
+    const { data: rawOrders } = await sb.from("orders").select("id, status, total, created_at, driver_id, cashier_id, cashier_name").gte("created_at", since).limit(200).returns<OrderRow[]>()
     const completedOrders = (rawOrders || []).filter((o) => o.status === "out_for_delivery" || o.status === "completed")
 
     const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0)
@@ -77,7 +77,7 @@ export async function GET(req: NextRequest) {
     }
     const peakHours = Array.from({ length: 24 }, (_, i) => ({ hour: i, orders: hourCounts[i] || 0 }))
 
-    const { data: rawRatings } = await sb.from("ratings").select("*").order("created_at", { ascending: false }).limit(50).returns<RatingRow[]>()
+    const { data: rawRatings } = await sb.from("ratings").select("id, rating, comment, created_at").order("created_at", { ascending: false }).limit(50).returns<RatingRow[]>()
     let avgRating = 0
     let reviews: { id: string; rating: number; text: string | null; timestamp: Date }[] = []
     if (rawRatings) {
@@ -163,7 +163,7 @@ async function handleRootDashboard(sb: SupabaseClient) {
   const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
   const twoMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 2, 1).toISOString()
 
-  const { data: rawOrders } = await sb.from("orders").select("*").gte("created_at", twoMonthsAgo).limit(500).returns<OrderRow[]>()
+  const { data: rawOrders } = await sb.from("orders").select("id, status, total, created_at").gte("created_at", twoMonthsAgo).limit(500).returns<OrderRow[]>()
   const orders = (rawOrders || [])
 
   const thisMonth = orders.filter((o) => (o.status === "completed" || o.status === "out_for_delivery") && new Date(o.created_at) >= monthStart)
@@ -237,7 +237,7 @@ async function handleRootDashboard(sb: SupabaseClient) {
   }
   const topProducts = Object.entries(grouped).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([name, quantity]) => ({ name, quantity }))
 
-  const { data: rawRatings } = await sb.from("ratings").select("*").order("created_at", { ascending: false }).limit(50).returns<RatingRow[]>()
+  const { data: rawRatings } = await sb.from("ratings").select("id, rating, comment, created_at").order("created_at", { ascending: false }).limit(50).returns<RatingRow[]>()
   let avg = 0; let prevAvg = 0
   let reviews: { id: string; rating: number; text: string | null; timestamp: Date }[] = []
   if (rawRatings) {

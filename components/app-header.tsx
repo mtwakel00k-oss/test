@@ -75,6 +75,7 @@ export function AppHeader({ cartItemCount, onCart, isOpen: propIsOpen }: AppHead
                 alt={tenant?.name || "Logo"}
                 fill
                 sizes="44px"
+                priority
                 className="object-cover"
                 onError={() => setLogoUrl(null)}
               />

@@ -64,8 +64,8 @@ export async function GET(req: NextRequest) {
 
     // ═══ query orders WITHOUT ready_at (column may not exist) ═══
     const [ordersResult, itemsResult, auditResult, produitsResult, readyAtResult] = await Promise.allSettled([
-      sb.from("orders").select("*").gte("created_at", prevSince).limit(500).returns<Record<string, unknown>[]>(),
-      sb.from("order_items").select("*").gte("created_at", since).limit(2000).returns<Record<string, unknown>[]>(),
+      sb.from("orders").select("id, status, total, created_at, driver_id, order_type, order_number, cashier_id, cashier_name").gte("created_at", prevSince).limit(500).returns<Record<string, unknown>[]>(),
+      sb.from("order_items").select("id, product_id, product_name, quantity, subtotal, created_at").gte("created_at", since).limit(2000).returns<Record<string, unknown>[]>(),
       sb.from("audit_log").select("id, record_id, new_data, old_data, created_at")
         .eq("table_name", "orders").eq("operation", "UPDATE")
         .gte("created_at", since).order("created_at", { ascending: true }).limit(1000).returns<AuditRow[]>(),
