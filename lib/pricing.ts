@@ -4,7 +4,7 @@ export const PLAN_PRICES: Record<string, number> = {
   elite: 20000,
 }
 
-export const COMMISSION_RATE = 0.02
+export const COMMISSION_RATE = 0
 
 export function getPlanPrice(planType: string | null): number {
   return PLAN_PRICES[planType || ""] || 0

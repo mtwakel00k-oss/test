@@ -11,6 +11,7 @@ import { Users, Truck, QrCode, Plus, Trash2, Eye, EyeOff, Edit3, UserPlus, Print
 interface StaffMember {
   id: string
   name: string
+  username?: string
   role: string
   is_active: boolean
 }
@@ -89,12 +90,25 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
   )
 }
 
+function genPassword(): string {
+  const lower = "abcdefghijklmnopqrstuvwxyz"
+  const upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  const digits = "0123456789"
+  let pwd = upper[Math.floor(Math.random() * upper.length)] + digits[Math.floor(Math.random() * digits.length)]
+  const all = lower + upper + digits
+  for (let i = 0; i < 6; i++) pwd += all[Math.floor(Math.random() * all.length)]
+  return pwd.split("").sort(() => Math.random() - 0.5).join("")
+}
+
 function StaffTab({ lang, t }: { lang: string; t: (k: string) => string }) {
   const [staff, setStaff] = useState<StaffMember[]>([])
   const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [addName, setAddName] = useState("")
+  const [addUsername, setAddUsername] = useState("")
+  const [addPassword, setAddPassword] = useState("")
+  const [showPwd, setShowPwd] = useState(false)
   const [editName, setEditName] = useState("")
   const [saving, setSaving] = useState(false)
 
@@ -110,13 +124,24 @@ function StaffTab({ lang, t }: { lang: string; t: (k: string) => string }) {
 
   const addStaff = async () => {
     const name = addName.trim()
-    if (!name) return
+    const username = addUsername.trim()
+    const password = addPassword
+    if (!name || !username || !password) return
     setSaving(true)
     try {
-      const res = await fetchApi("/api/staff", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, role: "cashier" }) })
-      if (!res.ok) return
+      const res = await fetchApi("/api/tenant/cashiers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "" }))
+        toast({ title: err.error || "فشل إنشاء الموظف", variant: "destructive" })
+        return
+      }
       await fetchStaff()
-      setAddName(""); setShowAdd(false)
+      setAddName(""); setAddUsername(""); setAddPassword(""); setShowAdd(false)
+      toast({ title: lang === "ar" ? `تم إنشاء ${username}` : "Cashier created" })
     } catch { /* */ } finally { setSaving(false) }
   }
 
@@ -133,8 +158,11 @@ function StaffTab({ lang, t }: { lang: string; t: (k: string) => string }) {
   const deleteStaff = async (id: string, name: string) => {
     if (!confirm(lang === "ar" ? `حذف "${name}"؟` : lang === "fr" ? `Supprimer "${name}" ?` : `Delete "${name}"?`)) return
     try {
-      const res = await fetchApi(`/api/staff?id=${id}`, { method: "DELETE" })
-      if (!res.ok) return
+      const res = await fetchApi(`/api/tenant/cashiers?id=${id}`, { method: "DELETE" })
+      if (!res.ok) {
+        // fallback to staff API
+        await fetchApi(`/api/staff?id=${id}`, { method: "DELETE" })
+      }
       await fetchStaff()
     } catch { /* */ }
   }
@@ -147,7 +175,7 @@ function StaffTab({ lang, t }: { lang: string; t: (k: string) => string }) {
           <span className="text-ivory/30 text-sm ml-2">({staff.length})</span>
         </h2>
         <button
-          onClick={() => setShowAdd(true)}
+          onClick={() => { setAddPassword(genPassword()); setShowAdd(true) }}
           className="flex items-center gap-2 h-10 px-5 rounded-xl bg-malachite text-evergreen text-sm font-bold hover:brightness-110 active:scale-[0.97] transition-all shadow-lg shadow-malachite/20"
         >
           <UserPlus className="size-4" strokeWidth={2} />
@@ -206,6 +234,9 @@ function StaffTab({ lang, t }: { lang: string; t: (k: string) => string }) {
                   <p className="text-sm font-semibold text-ivory truncate">{member.name}</p>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-malachite/10 text-malachite">كاشير</span>
+                    {member.username && (
+                      <span className="text-[10px] text-ivory/40">@{member.username}</span>
+                    )}
                     <span className={cn("text-[10px]", member.is_active ? "text-malachite/70" : "text-ivory/30")}>
                       {member.is_active ? (lang === "ar" ? "نشط" : "Active") : (lang === "ar" ? "غير نشط" : "Inactive")}
                     </span>
@@ -248,21 +279,42 @@ function StaffTab({ lang, t }: { lang: string; t: (k: string) => string }) {
               {lang === "ar" ? "كاشير جديد" : lang === "fr" ? "Nouveau caissier" : "New Cashier"}
             </h3>
             <p className="text-xs text-ivory/40 mb-5">
-              {lang === "ar" ? "أدخل اسم الكاشير" : lang === "fr" ? "Nom du caissier" : "Enter cashier name"}
+              {lang === "ar" ? "إنشاء حساب كاشير مع اسم مستخدم وكلمة مرور" : lang === "fr" ? "Créer un compte caissier" : "Create cashier account"}
             </p>
-            <div className="space-y-4">
+            <div className="space-y-3">
               <input
                 value={addName}
                 onChange={e => setAddName(e.target.value)}
-                placeholder="..."
+                placeholder={lang === "ar" ? "الاسم (مثلاً: فلان)" : "Name"}
                 className="w-full h-12 px-4 rounded-xl bg-evergreen border border-forest/50 text-ivory text-sm placeholder-ivory/20 focus:outline-none focus:border-malachite/50"
-                autoFocus
-                onKeyDown={e => { if (e.key === "Enter") addStaff() }}
               />
+              <input
+                value={addUsername}
+                onChange={e => setAddUsername(e.target.value)}
+                placeholder={lang === "ar" ? "اسم المستخدم (مثلاً: flg)" : "Username"}
+                className="w-full h-12 px-4 rounded-xl bg-evergreen border border-forest/50 text-ivory text-sm placeholder-ivory/20 focus:outline-none focus:border-malachite/50"
+              />
+              <div className="relative">
+                <input
+                  value={addPassword}
+                  onChange={e => setAddPassword(e.target.value)}
+                  type={showPwd ? "text" : "password"}
+                  placeholder={lang === "ar" ? "كلمة المرور" : "Password"}
+                  className="w-full h-12 px-4 pe-12 rounded-xl bg-evergreen border border-forest/50 text-ivory text-sm placeholder-ivory/20 focus:outline-none focus:border-malachite/50"
+                  onKeyDown={e => { if (e.key === "Enter") addStaff() }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPwd(!showPwd)}
+                  className="absolute end-3 top-1/2 -translate-y-1/2 text-ivory/40 hover:text-ivory/70"
+                >
+                  {showPwd ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
               <div className="flex gap-2 pt-2">
                 <button
                   onClick={addStaff}
-                  disabled={saving}
+                  disabled={saving || !addName.trim() || !addUsername.trim() || !addPassword}
                   className="flex-1 h-11 rounded-xl bg-malachite text-evergreen text-sm font-bold hover:brightness-110 active:scale-[0.97] disabled:opacity-50 transition-all"
                 >
                   {saving ? <Loader2 className="size-5 animate-spin mx-auto" /> : lang === "ar" ? "إضافة" : "Add"}
