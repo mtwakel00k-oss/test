@@ -62,11 +62,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         .maybeSingle()
 
       if (directOrder) {
-        // Verify ownership: email or phone must match
-        if (verifyEmail && directOrder.customer_email?.toLowerCase() !== verifyEmail) {
-          logger.warn(`[orders GET] Public: email mismatch for order ${id}`)
-          return NextResponse.json({ error: "Order not found" }, { status: 404 })
-        }
         if (verifyPhone && directOrder.customer_phone !== verifyPhone) {
           logger.warn(`[orders GET] Public: phone mismatch for order ${id}`)
           return NextResponse.json({ error: "Order not found" }, { status: 404 })
@@ -88,11 +83,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       logger.info(`[orders GET] Public: scanning all tenants for order ${id}`)
       const found = await findOrderAcrossTenants(id)
       if (found) {
-        const orderData = found.order as Record<string, unknown> & { customer_email?: string; customer_phone?: string; status?: string }
-        // Verify ownership matches
-        if (verifyEmail && orderData.customer_email?.toLowerCase() !== verifyEmail) {
-          return NextResponse.json({ error: "Order not found" }, { status: 404 })
-        }
+        const orderData = found.order as Record<string, unknown> & { customer_phone?: string; status?: string }
         if (verifyPhone && orderData.customer_phone !== verifyPhone) {
           return NextResponse.json({ error: "Order not found" }, { status: 404 })
         }
