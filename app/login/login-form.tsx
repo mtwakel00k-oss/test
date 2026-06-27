@@ -1,10 +1,19 @@
 "use client"
 
 import { useState } from "react"
-import { Home, User, Lock, Eye, EyeOff, Loader2 } from "lucide-react"
+import { Home, User, Lock, Eye, EyeOff, Loader2, Receipt, ChefHat, Shield, Crown } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
+type PageRole = "cashier" | "chef" | "admin" | "owner"
+
 const ROLE_PAGE: Record<string, string> = { cashier: "pos", chef: "kitchen", admin: "admin", owner: "admin" }
+
+const ROLE_CONFIG: Record<PageRole, { label: string; icon: React.ReactNode }> = {
+  cashier: { label: "Cashier", icon: <Receipt className="size-3.5" strokeWidth={2} /> },
+  chef:    { label: "Chef",    icon: <ChefHat className="size-3.5" strokeWidth={2} /> },
+  admin:   { label: "Admin",   icon: <Shield className="size-3.5" strokeWidth={2} /> },
+  owner:   { label: "Owner",   icon: <Crown className="size-3.5" strokeWidth={2} /> },
+}
 
 export default function LoginForm({ redirect: redirectProp, slug: slugProp, tenants }: { redirect?: string; slug?: string; tenants?: { slug: string; name: string }[] }) {
   const [username, setUsername] = useState("")
@@ -12,10 +21,11 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
   const [showPwd, setShowPwd] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  const [page, setPage] = useState<"admin" | "owner">(slugProp ? "admin" : "admin")
+  const [page, setPage] = useState<PageRole>(slugProp ? "cashier" : "admin")
   const [selectedSlug, setSelectedSlug] = useState(slugProp || "")
 
-  const needsSlug = page !== "owner" && !selectedSlug && !slugProp
+  const visibleRoles: PageRole[] = slugProp ? ["cashier", "chef", "admin"] : ["admin", "owner"]
+  const needsSlug = !slugProp && page !== "owner" && !selectedSlug
 
   const handleLogin = async () => {
     if (!username || !password) return
@@ -84,24 +94,23 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
 
           {/* Not logged in — role picker + form */}
           <>
-            {/* Owner / Admin tabs */}
-            {!slugProp && (
-              <div className="flex gap-1 rounded-xl p-1 mb-5" style={{ backgroundColor: "rgba(255,255,255,0.04)", border: "1px solid rgba(0,100,0,0.2)" }}>
-                {(["admin", "owner"] as const).map(key => (
-                  <button
-                    key={key}
-                    onClick={() => { setPage(key); setError(""); if (key === "owner") setSelectedSlug("") }}
-                    className="flex-1 rounded-lg py-2 text-xs font-semibold transition-all duration-200"
-                    style={{
-                      backgroundColor: page === key ? "rgba(37,233,112,0.08)" : "transparent",
-                      color: page === key ? "#25E970" : "rgba(255,255,255,0.25)",
-                    }}
-                  >
-                    {key === "admin" ? "Staff" : "Owner"}
-                  </button>
-                ))}
-              </div>
-            )}
+            {/* Role tabs */}
+            <div className="flex gap-1 rounded-xl p-1 mb-5" style={{ backgroundColor: "rgba(255,255,255,0.04)", border: "1px solid rgba(0,100,0,0.2)" }}>
+              {visibleRoles.map(key => (
+                <button
+                  key={key}
+                  onClick={() => { setPage(key); setError(""); if (key === "owner") setSelectedSlug("") }}
+                  className="flex-1 rounded-lg py-2 text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-1.5"
+                  style={{
+                    backgroundColor: page === key ? "rgba(37,233,112,0.08)" : "transparent",
+                    color: page === key ? "#25E970" : "rgba(255,255,255,0.25)",
+                  }}
+                >
+                  {ROLE_CONFIG[key].icon}
+                  {ROLE_CONFIG[key].label}
+                </button>
+              ))}
+            </div>
 
             {/* Tenant picker */}
             {page !== "owner" && !slugProp && tenants && tenants.length > 0 && (
