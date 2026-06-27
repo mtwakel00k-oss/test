@@ -170,10 +170,8 @@ Fix kitchen KDS not showing orders; conduct full code audit of all 46 API routes
 ### Tests
 139/139 passing, TypeScript zero errors
 
-### Remaining (low priority)
-- `app/api/admin/stats/route.ts:42` — hardcoded `cashier_id`, `cashier_name`, `driver_id` without column-fallback
-- `app/api/driver/[token]/route.ts:73` — hardcoded cols without fallback
-- `app/api/orders/[id]/route.ts:60,101` — hardcoded cols without fallback for order detail
+### Remaining
+- (none — all 46 API routes have column-fallback)
 <!-- END:session-2025-06-27 -->
 
 <!-- BEGIN:session-2025-06-23-p2 -->
