@@ -9,6 +9,7 @@ vi.mock("@/lib/tenant", () => ({
   isTenantMismatch: vi.fn(() => null),
   parseSession: vi.fn(() => ({ role: "cashier", email: "test@test.com", slug: "burger-house" })),
   getTenantConfig: vi.fn(() => Promise.resolve({ is_open: true })),
+  getIsOpen: vi.fn(() => Promise.resolve(true)),
 }))
 
 vi.mock("@/lib/rate-limit", () => ({
@@ -62,7 +63,9 @@ function buildMockSupabase(overrides: {
       if (table === "v_products_flat") {
         return {
           select: vi.fn(() => ({
-            in: vi.fn().mockResolvedValue({ data: products }),
+            in: vi.fn(() => ({
+              returns: vi.fn().mockResolvedValue({ data: products }),
+            })),
           })),
         }
       }

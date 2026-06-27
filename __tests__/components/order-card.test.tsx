@@ -84,7 +84,7 @@ describe("OrderCard", () => {
         onCancel={() => {}}
       />
     )
-    expect(screen.getByText(/قيد الانتظار/)).toBeInTheDocument()
+    expect(screen.getByText(/جديد/)).toBeInTheDocument()
   })
 
   it("shows preparing status for preparing orders", () => {

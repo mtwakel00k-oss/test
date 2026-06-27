@@ -4,6 +4,7 @@ vi.mock("@/lib/tenant", () => ({
   supabaseForRequest: vi.fn(),
   isTenantMismatch: vi.fn(() => null),
   parseSession: vi.fn(() => ({ role: "admin", email: "admin@test.com", slug: "burger-house" })),
+  getTenantConfig: vi.fn(() => Promise.resolve({ plan_type: "elite" })),
 }))
 
 vi.mock("@/lib/logger", () => ({

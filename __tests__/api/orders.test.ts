@@ -30,6 +30,7 @@ vi.mock("@/lib/tenant", () => {
     isTenantMismatch: vi.fn(() => null),
     parseSession: vi.fn(() => ({ role: "cashier", email: "test@test.com", slug: "burger-house" })),
     getTenantConfig: vi.fn(() => Promise.resolve({ is_open: true })),
+    getIsOpen: vi.fn(() => Promise.resolve(true)),
   }
 })
 
@@ -126,9 +127,11 @@ describe("POST /api/orders", () => {
     // Mock product query
     const mockProductsQuery = {
       select: vi.fn(() => ({
-        in: vi.fn().mockResolvedValue({
-          data: [{ id: 1, name: "Pizza", prices: { M: { standard: 500, sauce_tomate: null, creme_fraiche: null } } }],
-        }),
+        in: vi.fn(() => ({
+          returns: vi.fn().mockResolvedValue({
+            data: [{ id: 1, name: "Pizza", prices: { M: { standard: 500, sauce_tomate: null, creme_fraiche: null } } }],
+          }),
+        })),
       })),
     }
     // Mock insert

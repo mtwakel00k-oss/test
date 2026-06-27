@@ -185,7 +185,7 @@ export async function POST(req: NextRequest) {
       unit_price: number
     }>) {
       const product = productMap.get(i.product_id)
-      if (!product) {
+      if (!product || product.is_available === false) {
         removedProductIds.push(i.product_id)
         continue
       }
