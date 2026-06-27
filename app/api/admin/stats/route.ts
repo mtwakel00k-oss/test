@@ -39,7 +39,13 @@ export async function GET(req: NextRequest) {
     const days = PERIOD_DAYS[periodParam] || 30
     const since = new Date(Date.now() - days * 86400000).toISOString()
 
-    const { data: rawOrders } = await sb.from("orders").select("id, status, total, created_at, driver_id, cashier_id, cashier_name").gte("created_at", since).limit(200).returns<OrderRow[]>()
+    const ORDER_STATS_COLS = ["id", "status", "total", "created_at", "driver_id", "cashier_id", "cashier_name"]
+    let rawOrders: OrderRow[] = []
+    for (let i = 0; i <= ORDER_STATS_COLS.length; i++) {
+      const cols = ORDER_STATS_COLS.filter((_, idx) => idx < ORDER_STATS_COLS.length - i).join(",")
+      const { data } = await sb.from("orders").select(cols).gte("created_at", since).limit(200).returns<OrderRow[]>()
+      if (data) { rawOrders = data; break }
+    }
     const completedOrders = (rawOrders || []).filter((o) => o.status === "out_for_delivery" || o.status === "completed")
 
     const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0)

@@ -56,10 +56,20 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
       // 1. Try standard lookup first (works if x-tenant-slug header is present)
       const sb = await supabaseForRequest(req)
-      const { data: directOrder, error: directError } = await (sb.from("orders"))
-        .select("id, status, order_number, order_type, total, created_at, table_number, customer_name, customer_phone, delivery_address, delivery_lat, delivery_lng, driver_id, items:order_items(id, product_id, product_name, quantity, unit_price, subtotal, size)")
-        .eq("id", id)
-        .maybeSingle()
+      const PUBLIC_ORDER_COLS = ["id", "status", "order_number", "order_type", "total", "created_at", "table_number", "customer_name", "customer_phone", "delivery_address", "delivery_lat", "delivery_lng", "driver_id"]
+      let directOrder: Record<string, unknown> | null = null
+      let directError: { message: string } | null = null
+      for (let i = 0; i <= PUBLIC_ORDER_COLS.length; i++) {
+        const cols = PUBLIC_ORDER_COLS.filter((_, idx) => idx < PUBLIC_ORDER_COLS.length - i).join(",")
+        const { data, error }: { data: unknown; error: unknown } = await (sb.from("orders"))
+          .select(`${cols}, items:order_items(id, product_id, product_name, quantity, unit_price, subtotal, size)`)
+          .eq("id", id)
+          .maybeSingle()
+        if (data) { directOrder = data as Record<string, unknown>; break }
+        const errMsg = error && typeof error === "object" ? String((error as Record<string, unknown>).message || "") : ""
+        if (errMsg.includes("does not exist") || errMsg.includes("column")) { directError = error as { message: string }; continue }
+        directError = error as { message: string }; break
+      }
 
       if (directOrder) {
         if (verifyPhone && directOrder.customer_phone !== verifyPhone) {
@@ -101,14 +111,19 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
     const sb = await supabaseForRequest(req)
-    const { data: order, error } = await (sb.from("orders"))
-      .select("id, status, order_number, order_type, total, created_at, table_number, customer_name, customer_phone, delivery_address, delivery_lat, delivery_lng, driver_id, processed_by_staff_id, processed_by_staff_name, payment_status, cashier_id, cashier_name, items:order_items(id, product_id, product_name, quantity, unit_price, subtotal, size)")
-      .eq("id", id)
-      .maybeSingle()
-
-    if (error) {
-      logger.error(`[orders GET] Query error for order ${id}`, { error: error.message })
-      throw new Error(error.message || JSON.stringify(error))
+    const STAFF_ORDER_COLS = ["id", "status", "order_number", "order_type", "total", "created_at", "table_number", "customer_name", "customer_phone", "delivery_address", "delivery_lat", "delivery_lng", "driver_id", "processed_by_staff_id", "processed_by_staff_name", "payment_status", "cashier_id", "cashier_name"]
+    let order: Record<string, unknown> | null = null
+    for (let i = 0; i <= STAFF_ORDER_COLS.length; i++) {
+      const cols = STAFF_ORDER_COLS.filter((_, idx) => idx < STAFF_ORDER_COLS.length - i).join(",")
+      const { data, error }: { data: unknown; error: unknown } = await (sb.from("orders"))
+        .select(`${cols}, items:order_items(id, product_id, product_name, quantity, unit_price, subtotal, size)`)
+        .eq("id", id)
+        .maybeSingle()
+      if (data) { order = data as Record<string, unknown>; break }
+      const errMsg = error && typeof error === "object" ? String((error as Record<string, unknown>).message || "") : ""
+      if (errMsg.includes("does not exist") || errMsg.includes("column")) continue
+      logger.error(`[orders GET] Query error for order ${id}`, { error: errMsg })
+      throw new Error(errMsg || JSON.stringify(error))
     }
 
     if (!order) {

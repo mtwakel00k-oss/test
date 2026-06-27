@@ -68,15 +68,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
 
   const { driver, tenant } = result
   const tenantClient = createTenantSupabaseClient(tenant.supabase_url, tenant.supabase_anon_key)
-  const { data: orders, error: ordersErr } = await tenantClient
-    .from("orders")
-    .select("id, order_number, customer_name, customer_phone, delivery_address, delivery_lat, delivery_lng, status, total, created_at")
-    .eq("driver_id", driver.id)
-    .in("status", ["out_for_delivery", "ready"])
-    .order("created_at", { ascending: false })
-
-  if (ordersErr) {
-    logger.error("Driver orders fetch failed: " + ordersErr.message)
+  const DRIVER_ORDER_COLS = ["id", "order_number", "customer_name", "customer_phone", "delivery_address", "delivery_lat", "delivery_lng", "status", "total", "created_at"]
+  let orders: Record<string, unknown>[] = []
+  for (let i = 0; i <= DRIVER_ORDER_COLS.length; i++) {
+    const cols = DRIVER_ORDER_COLS.filter((_, idx) => idx < DRIVER_ORDER_COLS.length - i).join(",")
+    const q = tenantClient.from("orders").select(cols).eq("driver_id", driver.id).in("status", ["out_for_delivery", "ready"]).order("created_at", { ascending: false })
+    const { data, error }: { data: unknown; error: unknown } = await q
+    if (data) { orders = data as Record<string, unknown>[]; break }
+    if (error && typeof error === "object" && "message" in (error as Record<string, unknown>) && String((error as Record<string, unknown>).message).includes("column")) continue
     return NextResponse.json({ error: "Failed to fetch orders" }, { status: 500 })
   }
 
