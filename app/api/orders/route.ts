@@ -160,7 +160,7 @@ export async function POST(req: NextRequest) {
 
     // ── Validate products & compute server-side prices ──
     const prodIds = [...new Set(items.map((i: { product_id: number }) => i.product_id))] as number[]
-    const { data: rawProducts } = await sb.from("v_products_flat").select("id, nom, prix, prix2, category, sizes, sauces, image_url, is_available").in("id", prodIds).returns<Record<string, unknown>[]>()
+    const { data: rawProducts } = await sb.from("v_products_flat").select("id, name, category, image_url, is_available, prices").in("id", prodIds).returns<Record<string, unknown>[]>()
     const productMap = new Map<number, MenuProduct>()
     for (const p of rawProducts || []) {
       productMap.set(p.id as number, p as unknown as MenuProduct)
