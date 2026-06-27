@@ -134,6 +134,44 @@ Address all issues from the code audit report (`75/100`): secure `/api/run-sql`,
 Open `https://supabase.com/dashboard/project/zordvqqjnlmxgtbkrspp` → SQL Editor → paste contents of `scripts/apply-tenant-migration.sql` → Run.
 <!-- END:session-2025-06-19 -->
 
+<!-- BEGIN:session-2025-06-27 -->
+## Session Progress (Jun 27) — KDS Fix + Full Security Audit
+
+### Goal
+Fix kitchen KDS not showing orders; conduct full code audit of all 46 API routes and all fetchApi call sites.
+
+### Root Cause
+`GET /api/orders` (line 39 in `app/api/orders/route.ts`) allowed only `admin/owner/cashier` — `chef` was missing, returning 401 when KDS tried to fetch orders.
+
+### Done
+1. **`GET /api/orders` — added `chef` role** (line 39)
+2. **`GET /api/tenant/drivers` — added `chef` role** (line 26)
+3. **`GET /api/orders/[id]` standard mode — added staff role check** (was wide open)
+4. **`PATCH /api/orders/[id]/customer-location` — added session auth** (was completely unauthenticated, only rate-limited)
+5. **`DELETE /api/tenant/cashiers` — accept `?id=` param** (API only read `?user_id=`, UI sent `?id=`)
+6. **`POST /api/tenant/cashiers` — accept optional `name` param** (UI validated `addName` but never sent it)
+7. **Full code audit** — 46 API route files + all `fetchApi()` calls in components
+   - No column name mismatches found (v_products_flat uses `name`/`prices` everywhere)
+   - No remaining `customer_email` references
+   - Notable: `GET /api/orders` has excellent column-fallback (progressively strips unknown cols)
+
+### Files Changed
+- `app/api/orders/route.ts:39` — added chef to allowed roles
+- `app/api/tenant/drivers/route.ts:26` — added chef to allowed roles
+- `app/api/orders/[id]/route.ts:99-103` — added staff role check
+- `app/api/orders/[id]/customer-location/route.ts` — added session auth
+- `app/api/tenant/cashiers/route.ts` — accept `id` param, accept `name` param
+- `components/admin/operations-manager.tsx:132,161` — send `name`, fix delete param
+
+### Tests
+139/139 passing, TypeScript zero errors
+
+### Remaining (low priority)
+- `app/api/admin/stats/route.ts:42` — hardcoded `cashier_id`, `cashier_name`, `driver_id` without column-fallback
+- `app/api/driver/[token]/route.ts:73` — hardcoded cols without fallback
+- `app/api/orders/[id]/route.ts:60,101` — hardcoded cols without fallback for order detail
+<!-- END:session-2025-06-27 -->
+
 <!-- BEGIN:session-2025-06-23-p2 -->
 ## Session Progress (Jun 23) — Elite Analytics Dashboard
 
