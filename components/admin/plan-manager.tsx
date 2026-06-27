@@ -61,6 +61,8 @@ export function PlanManager() {
   const [addName, setAddName] = useState("")
   const [addSlug, setAddSlug] = useState("")
   const [addPlan, setAddPlan] = useState("starter")
+  const [addAdminUsername, setAddAdminUsername] = useState("admin")
+  const [addAdminPassword, setAddAdminPassword] = useState("")
   const [addLoading, setAddLoading] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
   const [addSuccess, setAddSuccess] = useState<string | null>(null)
@@ -193,20 +195,26 @@ export function PlanManager() {
     setAddError(null)
     setAddSuccess(null)
     try {
+      const body: Record<string, string> = { name: addName.trim(), slug: addSlug.trim(), plan_type: addPlan }
+      if (addAdminUsername.trim()) body.admin_username = addAdminUsername.trim()
+      if (addAdminPassword) body.admin_password = addAdminPassword
       const res = await fetchApi("/api/admin/tenants", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: addName.trim(), slug: addSlug.trim(), plan_type: addPlan }),
+        body: JSON.stringify(body),
       })
       const data = await res.json()
       if (!res.ok) {
         setAddError(data.error || "Failed to create restaurant")
         return
       }
-      setAddSuccess(`${data.tenant.name} – admin: ${data.adminEmail} / ${data.adminPassword}`)
+      const pwd = data.adminPassword || addAdminPassword || ""
+      setAddSuccess(`${data.tenant.name}\nadmin: ${data.adminEmail} / ${pwd}\ncashier: ${data.cashierEmail || "—"} / ${data.cashierPassword || "—"}\nchef: ${data.chefEmail || "—"} / ${data.chefPassword || "—"}`)
       setAddName("")
       setAddSlug("")
       setAddPlan("starter")
+      setAddAdminUsername("admin")
+      setAddAdminPassword("")
       fetchTenants()
     } catch {
       setAddError("Network error")
@@ -264,6 +272,32 @@ export function PlanManager() {
                     placeholder="مثلاً: al-salam"
                   />
                   <p className="text-xs text-muted-foreground mt-1">يستخدم في الرابط: /{addSlug || "..."}/menu</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">
+                      {t("admin.username") || "Admin Username"}
+                    </label>
+                    <input
+                      type="text"
+                      value={addAdminUsername}
+                      onChange={(e) => setAddAdminUsername(e.target.value)}
+                      className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      placeholder="admin"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">
+                      {t("admin.password") || "Admin Password"}
+                    </label>
+                    <input
+                      type="text"
+                      value={addAdminPassword}
+                      onChange={(e) => setAddAdminPassword(e.target.value)}
+                      className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      placeholder={"auto-generated"}
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1">

@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     if (isErrorResponse(session)) return session
 
     const body = await req.json()
-    const { name, slug, plan_type: planType } = body
+    const { name, slug, plan_type: planType, admin_username, admin_password } = body
 
     if (!name || !slug) {
       return NextResponse.json({ error: "Missing required fields: name, slug" }, { status: 400 })
@@ -90,8 +90,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: insertError.message }, { status: 500 })
     }
 
+    const adminCreds = {
+      username: admin_username || "admin",
+      password: admin_password || generatePassword(),
+    }
     const USERS = [
-      { username: "admin",   role: "admin",   password: generatePassword() },
+      { ...adminCreds, role: "admin" },
       { username: "cashier", role: "cashier", password: generatePassword() },
       { username: "chef",    role: "chef",    password: generatePassword() },
     ]
@@ -146,7 +150,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       tenant,
       users: userResults,
-      adminEmail: `admin@${domain}`,
+      adminEmail: `${USERS[0].username}@${domain}`,
+      adminPassword: USERS[0].password,
+      cashierEmail: `cashier@${domain}`,
+      cashierPassword: USERS[1].password,
+      chefEmail: `chef@${domain}`,
+      chefPassword: USERS[2].password,
     })
   } catch (e) {
     logger.error("Unexpected error creating tenant", e)
