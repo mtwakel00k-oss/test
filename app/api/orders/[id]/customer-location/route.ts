@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabaseForRequest } from "@/lib/tenant"
+import { supabaseForRequest, parseSession } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const session = parseSession(req.headers.get("cookie") || "")
+    if (!session.role || !["admin", "owner", "cashier", "chef"].includes(session.role)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const rl = await checkRateLimit(`customer-location:${getClientIp(req)}`, { max: 30, windowMs: 60_000 })
     if (!rl.allowed) return rateLimitResponse(rl.resetAt)
 

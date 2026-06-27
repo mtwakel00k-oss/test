@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
   const slug = getSlug(req)
   if (!slug) return NextResponse.json({ error: "No tenant" }, { status: 400 })
 
-  const { username, password } = await req.json()
+  const { username, password, name: displayName } = await req.json()
   if (!username || !password) {
     return NextResponse.json({ error: "Missing username or password" }, { status: 400 })
   }
@@ -131,10 +131,11 @@ export async function POST(req: NextRequest) {
     await masterClient.from("restaurant_users").insert({ user_id: userId, restaurant_id: tenant.id, role: "cashier" })
   }
 
+  const staffName = displayName || username
   try {
     await masterClient.from("restaurant_staff").upsert({
       tenant_slug: slug,
-      name: username,
+      name: staffName,
       role: "cashier",
       is_active: true,
     })
@@ -145,7 +146,7 @@ export async function POST(req: NextRequest) {
   try {
     const tenantSb = await supabaseForRequest(req)
     await tenantSb.from("restaurant_staff").upsert({
-      name: username,
+      name: staffName,
       role: "cashier",
       is_active: true,
     })
@@ -169,7 +170,7 @@ export async function DELETE(req: NextRequest) {
   if (!slug) return NextResponse.json({ error: "No tenant" }, { status: 400 })
 
   const { searchParams } = new URL(req.url)
-  const userId = searchParams.get("user_id")
+  const userId = searchParams.get("user_id") || searchParams.get("id")
   if (!userId) return NextResponse.json({ error: "Missing user_id" }, { status: 400 })
 
   const url = env.NEXT_PUBLIC_SUPABASE_URL

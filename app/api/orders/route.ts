@@ -36,7 +36,7 @@ async function queryOrders(sb: SupabaseClient, statusIn: string | null, limit: n
 export async function GET(req: NextRequest) {
   try {
     const session = parseSession(req.headers.get("cookie") || "")
-    if (session.role !== "admin" && session.role !== "owner" && session.role !== "cashier") {
+    if (session.role !== "admin" && session.role !== "owner" && session.role !== "cashier" && session.role !== "chef") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
     const { searchParams } = new URL(req.url)

@@ -23,7 +23,7 @@ function getSlug(req: NextRequest): string | null {
 
 export async function GET(req: NextRequest) {
   const session = parseSession(req.headers.get("cookie") || "")
-  if (!["admin", "owner", "cashier"].includes(session.role ?? "")) {
+  if (!["admin", "owner", "cashier", "chef"].includes(session.role ?? "")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

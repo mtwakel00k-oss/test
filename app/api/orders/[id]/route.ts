@@ -95,7 +95,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: "Order not found" }, { status: 404 })
     }
 
-    // ── Standard mode: requires session / x-tenant-slug ──────────────────
+    // ── Standard mode: requires staff session / x-tenant-slug ────────────
+    const role = getRole(req)
+    if (!role || !["admin", "owner", "cashier", "chef"].includes(role)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
     const sb = await supabaseForRequest(req)
     const { data: order, error } = await (sb.from("orders"))
       .select("id, status, order_number, order_type, total, created_at, table_number, customer_name, customer_phone, delivery_address, delivery_lat, delivery_lng, driver_id, processed_by_staff_id, processed_by_staff_name, payment_status, cashier_id, cashier_name, items:order_items(id, product_id, product_name, quantity, unit_price, subtotal, size)")

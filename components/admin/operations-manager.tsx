@@ -132,7 +132,7 @@ function StaffTab({ lang, t }: { lang: string; t: (k: string) => string }) {
       const res = await fetchApi("/api/tenant/cashiers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, name }),
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: "" }))
