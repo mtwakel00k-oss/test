@@ -87,9 +87,9 @@ export async function GET(req: NextRequest) {
       sb.from("audit_log").select("id, record_id, new_data, old_data, changed_by, created_at")
         .eq("table_name", "orders").eq("operation", "UPDATE")
         .gte("created_at", since).order("created_at", { ascending: true }).limit(1000).returns<AuditRow[]>(),
-      sb.from("audit_log").select("record_id, changed_by, created_at")
+      sb.from("audit_log").select("record_id, changed_by, new_data, created_at")
         .eq("table_name", "orders").eq("operation", "INSERT")
-        .gte("created_at", since).limit(500).returns<{ record_id: string; changed_by: string; created_at: string }[]>(),
+        .gte("created_at", since).limit(500).returns<{ record_id: string; changed_by: string; new_data: Record<string, unknown> | null; created_at: string }[]>(),
       sb.from("produits").select("id, nom").limit(500).returns<ProduitRow[]>(),
       fetchReadyAt(),
     ])
@@ -123,7 +123,7 @@ export async function GET(req: NextRequest) {
       ? (itemsResult.value.data || []).map(mapItem) : []
     const auditEntries: AuditRow[] = auditResult.status === "fulfilled" ? (auditResult.value.data || []) : []
     const produits: ProduitRow[] = produitsResult.status === "fulfilled" ? (produitsResult.value.data || []) : []
-    type InsertRow = { record_id: string; changed_by: string; created_at: string }
+    type InsertRow = { record_id: string; changed_by: string; new_data: Record<string, unknown> | null; created_at: string }
     const auditInsertEntries: InsertRow[] = auditInsertResult.status === "fulfilled" ? (auditInsertResult.value.data || []) : []
 
     // Build ready_at map (fetchReadyAt returns the array directly)
@@ -332,20 +332,28 @@ export async function GET(req: NextRequest) {
         cashierOrdersMap.set(o.cashier_id, entry)
       }
     }
-    // Fallback: match orders with audit_log INSERT entries by record_id (changed_by = email)
+    // Fallback: match orders with audit_log INSERT entries by record_id
+    // new_data.cashier_name stores the selected staff name (FLG/GF from dropdown)
     if (cashierOrdersMap.size === 0) {
-      const orderToCashier = new Map<string, string>()
+      const orderToCashier = new Map<string, { email: string; cashierName: string | null }>()
       for (const entry of auditInsertEntries) {
-        if (entry.record_id && entry.changed_by) orderToCashier.set(entry.record_id, entry.changed_by)
+        if (entry.record_id) {
+          const nd = entry.new_data as Record<string, unknown> | null
+          orderToCashier.set(entry.record_id, {
+            email: entry.changed_by || "",
+            cashierName: (nd?.cashier_name as string) || null,
+          })
+        }
       }
       for (const o of currentOrders) {
-        const changedBy = orderToCashier.get(o.id)
-        if (!changedBy) continue
-        const cname = changedBy.split("@")[0] || `كاشير #${changedBy.slice(0, 6)}`
-        const entry = cashierOrdersMap.get(changedBy) || { name: cname, orders: 0, cancelled: 0 }
+        const match = orderToCashier.get(o.id)
+        if (!match) continue
+        const cname = match.cashierName || match.email.split("@")[0] || `كاشير #${match.email.slice(0, 6)}`
+        const key = match.cashierName || match.email
+        const entry = cashierOrdersMap.get(key) || { name: cname, orders: 0, cancelled: 0 }
         entry.orders += 1
         if (o.status === "cancelled") entry.cancelled++
-        cashierOrdersMap.set(changedBy, entry)
+        cashierOrdersMap.set(key, entry)
       }
     }
     const cashiers = [...cashierOrdersMap.entries()].map(([id, s]) => ({ id, name: s.name, orders: s.orders, cancelled: s.cancelled }))

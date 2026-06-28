@@ -349,7 +349,7 @@ export async function POST(req: NextRequest) {
     }
 
     const finalTotal = total
-    logAudit(sb, req, { table_name: "orders", record_id: order.id as string, operation: "INSERT", new_data: { total: finalTotal, itemCount: orderItems.length, orderNumber, order_type: payload.order_type, customer_name: payload.customer_name } })
+    logAudit(sb, req, { table_name: "orders", record_id: order.id as string, operation: "INSERT", new_data: { total: finalTotal, itemCount: orderItems.length, orderNumber, order_type: payload.order_type, customer_name: payload.customer_name, cashier_name: processed_by_staff_name || cashier_name || null } })
 
     const elapsed = Date.now() - startTime
     logger.info("Order created", { id: order.id, total: finalTotal, itemCount: orderItems.length, removedCount: removedProductIds.length, orderNumber, elapsedMs: elapsed })
