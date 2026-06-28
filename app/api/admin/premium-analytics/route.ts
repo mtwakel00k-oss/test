@@ -348,7 +348,8 @@ export async function GET(req: NextRequest) {
       for (const o of currentOrders) {
         const match = orderToCashier.get(o.id)
         if (!match) continue
-        const cname = match.cashierName || match.email.split("@")[0] || `كاشير #${match.email.slice(0, 6)}`
+        const cname = match.cashierName || match.email.split("@")[0] || null
+        if (!cname) continue
         const key = match.cashierName || match.email
         const entry = cashierOrdersMap.get(key) || { name: cname, orders: 0, cancelled: 0 }
         entry.orders += 1
