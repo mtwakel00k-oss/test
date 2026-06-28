@@ -333,45 +333,29 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Tenant not found" }, { status: 404 })
   }
 
-  // If tenant shares the master project, use master service key directly
   const masterUrl = env.NEXT_PUBLIC_SUPABASE_URL!
   const masterKey = env.SUPABASE_SERVICE_ROLE_KEY
-  if (tenant.supabase_url === masterUrl && masterKey) {
-    const tenantSvc = createClient(masterUrl, masterKey)
-    const { error } = await tenantSvc.rpc("exec_sql", { query_text: TENANT_MIGRATION })
-    if (error) {
-      logger.error("Tenant migration exec_sql failed", error)
-      return NextResponse.json({
-        error: "exec_sql RPC not available on tenant",
-        detail: `Run manually in tenant Supabase Dashboard SQL editor:\n\n${TENANT_MIGRATION}`,
-      }, { status: 400 })
-    }
-    return NextResponse.json({ success: true, slug })
+
+  // First pass: try master service key directly (works for tenants sharing master project)
+  if (masterKey) {
+    const svc = createClient(tenant.supabase_url, masterKey)
+    const { error: e1 } = await svc.rpc("exec_sql", { query_text: TENANT_MIGRATION })
+    if (!e1) return NextResponse.json({ success: true, slug })
   }
 
-  // Look up tenant's own service key from DB (separate project)
+  // Second pass: look up tenant's own service key (separate-project tenants)
   const masterSb = createClient(masterUrl, masterKey || env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
   const { data: tenantRow } = await masterSb.from("tenants").select("supabase_service_key").eq("slug", slug).maybeSingle()
   const tenantServiceKey = tenantRow?.supabase_service_key || masterKey
-  if (!tenantServiceKey) {
-    return NextResponse.json({ error: "No service key available for this tenant" }, { status: 500 })
+  if (tenantServiceKey) {
+    const svc = createClient(tenant.supabase_url, tenantServiceKey)
+    const { error: e2 } = await svc.rpc("exec_sql", { query_text: TENANT_MIGRATION })
+    if (!e2) return NextResponse.json({ success: true, slug })
   }
 
-  try {
-    const tenantSvc = createClient(tenant.supabase_url, tenantServiceKey)
-    const { error } = await tenantSvc.rpc("exec_sql", { query_text: TENANT_MIGRATION })
-    if (error) {
-      logger.error("Tenant migration exec_sql failed", error)
-      return NextResponse.json({
-        error: "exec_sql RPC not available on tenant",
-        detail: `Run manually in tenant Supabase Dashboard SQL editor:\n\n${TENANT_MIGRATION}`,
-      }, { status: 400 })
-    }
-    return NextResponse.json({ success: true, slug })
-  } catch {
-    return NextResponse.json({
-      error: "Could not execute SQL on tenant",
-      detail: `Run manually in tenant Supabase Dashboard SQL editor:\n\n${TENANT_MIGRATION}`,
-    }, { status: 500 })
-  }
+  // If both passess failed, return the SQL for manual execution
+  return NextResponse.json({
+    error: "exec_sql RPC not available on tenant",
+    detail: `Run manually in tenant Supabase Dashboard SQL editor:\n\n${TENANT_MIGRATION}`,
+  }, { status: 400 })
 }
