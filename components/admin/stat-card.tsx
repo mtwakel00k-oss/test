@@ -22,7 +22,7 @@ export function StatCard({ title, value, change, icon, trend, suffix, isLive }: 
 
   return (
     <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}>
-      <div className="premium-bezel h-full">
+      <div data-testid="stat-card" className="premium-bezel h-full">
         <Card className="premium-bezel-inner h-full border-0 shadow-none">
           <CardContent className="p-5">
             <div className="space-y-3.5">

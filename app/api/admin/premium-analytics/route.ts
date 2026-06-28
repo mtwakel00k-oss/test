@@ -21,10 +21,11 @@ interface OrderRow {
 }
 
 interface AuditRow {
-  id: string
+  id?: string
   record_id: string | null
-  new_data: Record<string, unknown> | null
-  old_data: Record<string, unknown> | null
+  new_data?: Record<string, unknown> | null
+  old_data?: Record<string, unknown> | null
+  changed_by?: string
   created_at: string
 }
 
@@ -62,16 +63,37 @@ export async function GET(req: NextRequest) {
 
     const sb = await supabaseForRequest(req)
 
-    // ═══ query orders WITHOUT ready_at (column may not exist) ═══
-    const [ordersResult, itemsResult, auditResult, produitsResult, readyAtResult] = await Promise.allSettled([
-      sb.from("orders").select("id, status, total, created_at, driver_id, order_type, order_number, cashier_id, cashier_name").gte("created_at", prevSince).limit(500).returns<Record<string, unknown>[]>(),
+    // ═══ detect optional columns via probe query ═══
+    async function hasColumn(tbl: string, col: string): Promise<boolean> {
+      try {
+        const { data } = await sb.from(tbl).select(col).limit(1)
+        const row = data?.[0] as Record<string, unknown> | undefined
+        return row != null && col in row
+      } catch { return false }
+    }
+    const [hasCashierId, hasReadyAt] = await Promise.all([
+      hasColumn("orders", "cashier_id"),
+      hasColumn("orders", "ready_at"),
+    ])
+    const orderCols = hasCashierId
+      ? "id, status, total, created_at, driver_id, order_type, order_number, cashier_id, cashier_name"
+      : "id, status, total, created_at, driver_id, order_type, order_number"
+    const [ordersResult, itemsResult, auditResult, auditInsertResult, produitsResult, readyAtResult] = await Promise.allSettled([
+      sb.from("orders").select(orderCols).gte("created_at", prevSince).limit(500).returns<Record<string, unknown>[]>(),
       sb.from("order_items").select("id, product_id, product_name, quantity, subtotal, created_at").gte("created_at", since).limit(2000).returns<Record<string, unknown>[]>(),
-      sb.from("audit_log").select("id, record_id, new_data, old_data, created_at")
+      sb.from("audit_log").select("id, record_id, new_data, old_data, changed_by, created_at")
         .eq("table_name", "orders").eq("operation", "UPDATE")
         .gte("created_at", since).order("created_at", { ascending: true }).limit(1000).returns<AuditRow[]>(),
+      // INSERT audit entries for cashier matching (only needed when cashier_id column missing)
+      !hasCashierId
+        ? sb.from("audit_log").select("record_id, changed_by, created_at")
+            .eq("table_name", "orders").eq("operation", "INSERT")
+            .gte("created_at", since).limit(500).returns<{ record_id: string; changed_by: string; created_at: string }[]>()
+        : Promise.resolve({ data: [] }),
       sb.from("produits").select("id, nom").limit(500).returns<ProduitRow[]>(),
-      // try to get ready_at separately (if column exists)
-      sb.from("orders").select("id, ready_at").gte("created_at", since).limit(500).returns<{ id: string; ready_at: string | null }[]>(),
+      hasReadyAt
+        ? sb.from("orders").select("id, ready_at").gte("created_at", since).limit(500).returns<{ id: string; ready_at: string | null }[]>()
+        : Promise.resolve({ data: [] }),
     ])
 
     function mapOrder(row: Record<string, unknown>): OrderRow {
@@ -103,13 +125,14 @@ export async function GET(req: NextRequest) {
       ? (itemsResult.value.data || []).map(mapItem) : []
     const auditEntries: AuditRow[] = auditResult.status === "fulfilled" ? (auditResult.value.data || []) : []
     const produits: ProduitRow[] = produitsResult.status === "fulfilled" ? (produitsResult.value.data || []) : []
+    type InsertRow = { record_id: string; changed_by: string; created_at: string }
+    const auditInsertEntries: InsertRow[] = auditInsertResult.status === "fulfilled" ? (auditInsertResult.value.data || []) : []
 
     // Build ready_at map (if the column exists)
     const readyAtMap = new Map<string, string | null>()
-    if (readyAtResult.status === "fulfilled" && readyAtResult.value.data) {
-      for (const row of readyAtResult.value.data) {
-        readyAtMap.set(row.id, row.ready_at)
-      }
+    if (readyAtResult.status === "fulfilled") {
+      const rows = (readyAtResult as PromiseFulfilledResult<{ data: { id: string; ready_at: string | null }[] }>).value.data
+      if (rows) { for (const row of rows) { readyAtMap.set(row.id, row.ready_at) } }
     }
 
     // split into current / previous periods
@@ -300,27 +323,65 @@ export async function GET(req: NextRequest) {
       : null
 
     // ── cashier aggregation ──
-    const cashierOrdersMap = new Map<string, { name: string; orders: number; cancelled: number }>()
-    for (const o of currentOrders) {
-      if (!o.cashier_id) continue
-      const cname = o.cashier_name || `كاشير #${o.cashier_id.slice(0, 6)}`
-      const entry = cashierOrdersMap.get(o.cashier_id) || { name: cname, orders: 0, cancelled: 0 }
-      entry.orders += 1
-      if (o.status === "cancelled") entry.cancelled++
-      cashierOrdersMap.set(o.cashier_id, entry)
+    // When cashier_id column is missing, fall back to audit_log INSERT entries
+    // (changed_by stores the user email who created the order).
+    async function buildCashierStats(): Promise<{
+      cashiers: { id: string; name: string; orders: number; cancelled: number }[]
+      hero: { id: string; name: string; orders: number; cancelled: number } | null
+      mostCancelled: { id: string; name: string; orders: number; cancelled: number } | null
+      avgOrders: number
+    }> {
+      if (hasCashierId) {
+        // Path A: cashier_id column exists on orders table — direct query
+        const cashierOrdersMap = new Map<string, { name: string; orders: number; cancelled: number }>()
+        for (const o of currentOrders) {
+          if (!o.cashier_id) continue
+          const cname = o.cashier_name || `كاشير #${o.cashier_id.slice(0, 6)}`
+          const entry = cashierOrdersMap.get(o.cashier_id) || { name: cname, orders: 0, cancelled: 0 }
+          entry.orders += 1
+          if (o.status === "cancelled") entry.cancelled++
+          cashierOrdersMap.set(o.cashier_id, entry)
+        }
+        const cashiers = [...cashierOrdersMap.entries()].map(([id, s]) => ({ id, name: s.name, orders: s.orders, cancelled: s.cancelled }))
+        const sorted = [...cashiers].sort((a, b) => b.orders - a.orders)
+        return {
+          cashiers,
+          hero: sorted.length > 0 && sorted[0].orders > 0 ? sorted[0] : null,
+          mostCancelled: [...cashiers].sort((a, b) => b.cancelled - a.cancelled)[0] || null,
+          avgOrders: sorted.length > 0 ? Math.round(sorted.reduce((s, c) => s + c.orders, 0) / sorted.length) : 0,
+        }
+      }
+
+      // Path B: cashier_id column missing — derive from audit_log INSERT changed_by
+      const orderToCashier = new Map<string, string>() // order_id → email
+      for (const entry of auditInsertEntries) {
+        if (entry.record_id && entry.changed_by) {
+          orderToCashier.set(entry.record_id, entry.changed_by)
+        }
+      }
+
+      const statsMap = new Map<string, { name: string; orders: number; cancelled: number }>()
+      for (const o of currentOrders) {
+        const changedBy = orderToCashier.get(o.id)
+        if (!changedBy) continue
+        const cname = changedBy.split("@")[0] || `كاشير #${changedBy.slice(0, 6)}`
+        const entry = statsMap.get(changedBy) || { name: cname, orders: 0, cancelled: 0 }
+        entry.orders += 1
+        if (o.status === "cancelled") entry.cancelled++
+        statsMap.set(changedBy, entry)
+      }
+      const cashiers = [...statsMap.entries()].map(([id, s]) => ({ id, name: s.name, orders: s.orders, cancelled: s.cancelled }))
+      const sorted = [...cashiers].sort((a, b) => b.orders - a.orders)
+      return {
+        cashiers,
+        hero: sorted.length > 0 && sorted[0].orders > 0 ? sorted[0] : null,
+        mostCancelled: [...cashiers].sort((a, b) => b.cancelled - a.cancelled)[0] || null,
+        avgOrders: sorted.length > 0 ? Math.round(sorted.reduce((s, c) => s + c.orders, 0) / sorted.length) : 0,
+      }
     }
-    const cashiers = [...cashierOrdersMap.entries()].map(([id, s]) => ({
-      id,
-      name: s.name,
-      orders: s.orders,
-      cancelled: s.cancelled,
-    }))
+
+    const { cashiers, hero: cashierHero, mostCancelled: cashierMostCancelled, avgOrders: cashierAvgOrders } = await buildCashierStats()
     const sortedCashiers = [...cashiers].sort((a, b) => b.orders - a.orders)
-    const cashierHero = sortedCashiers.length > 0 && sortedCashiers[0].orders > 0 ? sortedCashiers[0] : null
-    const cashierMostCancelled = [...cashiers].sort((a, b) => b.cancelled - a.cancelled)[0] || null
-    const cashierAvgOrders = sortedCashiers.length > 0
-      ? Math.round(sortedCashiers.reduce((s, c) => s + c.orders, 0) / sortedCashiers.length)
-      : 0
 
     // ── order-type breakdown (non-cancelled) ──
     const orderTypeCount = new Map<string, number>()

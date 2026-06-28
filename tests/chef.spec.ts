@@ -41,6 +41,11 @@ test.describe("KDS — Real-time Updates", () => {
     await addBtn.click()
     await posPage.waitForTimeout(300)
 
+    const customerInput = posPage.locator('[data-testid="customer-name-input"]')
+    if (await customerInput.isVisible()) {
+      await customerInput.fill("Test Customer")
+    }
+
     const submitBtn = posPage.locator('[data-testid="create-order"]')
     await expect(submitBtn).toBeEnabled({ timeout: 5000 })
     await submitBtn.click()

@@ -1,7 +1,7 @@
-const CACHE = "restoos-v2"
-const STATIC_CACHE = "restoos-static-v2"
-const FONT_CACHE = "restoos-fonts-v2"
-const API_CACHE = "restoos-api-v2"
+const CACHE = "restoos-v3"
+const STATIC_CACHE = "restoos-static-v3"
+const FONT_CACHE = "restoos-fonts-v3"
+const API_CACHE = "restoos-api-v3"
 
 const POS_ROUTES = ["/pos", "/kitchen"]
 const API_ROUTES = "/api/"
@@ -49,6 +49,39 @@ self.addEventListener("fetch", (e) => {
 
   e.respondWith(networkFirstOrCache(e.request, "/offline"))
 })
+
+self.addEventListener("sync", (e) => {
+  if (e.tag === "sync-orders") {
+    e.waitUntil(syncQueuedOrders())
+  }
+})
+
+self.addEventListener("message", (e) => {
+  if (e.data?.type === "SYNC_ORDERS") {
+    e.waitUntil(syncQueuedOrders())
+  }
+})
+
+async function syncQueuedOrders() {
+  const keys = await caches.keys()
+  const apiCache = await caches.open(API_CACHE)
+  const reqs = await apiCache.keys()
+  for (const req of reqs) {
+    const cached = await apiCache.match(req)
+    if (!cached) continue
+    try {
+      const body = await cached.clone().json()
+      if (body?.offline) {
+        const res = await fetch(req.url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        })
+        if (res.ok) await apiCache.delete(req)
+      }
+    } catch { /* skip unparseable */ }
+  }
+}
 
 async function cacheFirst(req, cacheName = CACHE) {
   const cached = await caches.match(req)

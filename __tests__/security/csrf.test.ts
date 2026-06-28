@@ -22,12 +22,14 @@ describe("CSRF", () => {
       expect(verifyCsrfToken("invalid-token")).toBe(false)
     })
 
-    it("rejects tampered token", async () => {
-      const { generateCsrfToken, verifyCsrfToken } = await import("@/lib/csrf")
-      const token = generateCsrfToken()
-      const tampered = token.slice(0, -1) + "A"
-      expect(verifyCsrfToken(tampered)).toBe(false)
-    })
+  it("rejects tampered token", async () => {
+    const { generateCsrfToken, verifyCsrfToken } = await import("@/lib/csrf")
+    const token = generateCsrfToken()
+    // Corrupt the middle of the token (affects auth tag)
+    const mid = Math.floor(token.length / 2)
+    const tampered = token.slice(0, mid) + "Z" + token.slice(mid + 1)
+    expect(verifyCsrfToken(tampered)).toBe(false)
+  })
   })
 
   describe("csrfMiddleware()", () => {

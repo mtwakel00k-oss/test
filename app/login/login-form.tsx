@@ -99,6 +99,7 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
               {visibleRoles.map(key => (
                 <button
                   key={key}
+                  data-testid={`role-tab-${key}`}
                   onClick={() => { setPage(key); setError(""); if (key === "owner") setSelectedSlug("") }}
                   className="flex-1 rounded-lg py-2 text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-1.5"
                   style={{
@@ -138,13 +139,14 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
               {/* Username */}
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 size-4 pointer-events-none" style={{ color: "rgba(255,255,255,0.25)" }} strokeWidth={1.5} />
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                  placeholder="Username or Email"
-                  className="w-full rounded-lg px-10 py-3 text-sm text-white outline-none transition-colors placeholder:font-medium"
+                  <input
+                    data-testid="username-input"
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                    placeholder="Username or Email"
+                    className="w-full rounded-lg px-10 py-3 text-sm text-white outline-none transition-colors placeholder:font-medium"
                   style={{
                     backgroundColor: "transparent",
                     border: "1px solid rgba(0,100,0,0.35)",
@@ -158,13 +160,14 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
               {/* Password */}
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 pointer-events-none" style={{ color: "rgba(255,255,255,0.25)" }} strokeWidth={1.5} />
-                <input
-                  type={showPwd ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                  placeholder="Password"
-                  className="w-full rounded-lg px-10 py-3 text-sm text-white outline-none transition-colors placeholder:font-medium"
+                  <input
+                    data-testid="password-input"
+                    type={showPwd ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                    placeholder="Password"
+                    className="w-full rounded-lg px-10 py-3 text-sm text-white outline-none transition-colors placeholder:font-medium"
                   style={{
                     backgroundColor: "transparent",
                     border: "1px solid rgba(0,100,0,0.35)",
@@ -200,6 +203,7 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
 
               {/* Log in button */}
               <button
+                data-testid="login-submit"
                 onClick={handleLogin}
                 disabled={loading || !username || !password || (needsSlug && !slugProp)}
                 className="w-full rounded-lg py-3 text-sm font-bold transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"

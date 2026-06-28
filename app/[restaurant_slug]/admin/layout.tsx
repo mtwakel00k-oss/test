@@ -2,8 +2,8 @@
 
 import dynamic from "next/dynamic"
 import AuthGuard from "@/components/auth-guard"
-import { PageTransition } from "@/components/page-transition"
 
+const PageTransition = dynamic(() => import("@/components/page-transition").then(m => ({ default: m.PageTransition })), { ssr: false })
 const SessionExpiryModal = dynamic(
   () => import("@/components/session-expiry-modal").then(m => ({ default: m.SessionExpiryModal })),
   { ssr: false },

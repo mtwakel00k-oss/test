@@ -63,9 +63,15 @@ describe("SEO", () => {
 
   it("menuJsonLd includes menu items", async () => {
     const { menuJsonLd } = await import("@/lib/json-ld")
-    const data = menuJsonLd([{ id: 1, name: "Burger", category: "Burgers", prices: { L: { standard: 800 } }, image_url: null }])
+    const products = [{
+      id: 1, name: "Burger", description: "Tasty", category: "Burgers",
+      est_speciale: false, has_white_sauce: false, image_url: null,
+      prices: { L: { standard: 800, sauce_tomate: null, creme_fraiche: null } },
+    }]
+    const data = menuJsonLd(products)
     expect(data["@type"]).toBe("Menu")
-    expect(data.hasMenuItem).toHaveLength(1)
-    expect(data.hasMenuItem[0].name).toBe("Burger")
+    const items = data.hasMenuItem as Array<{ name: string }>
+    expect(items).toHaveLength(1)
+    expect(items[0].name).toBe("Burger")
   })
 })

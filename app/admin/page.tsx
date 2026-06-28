@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import dynamic from "next/dynamic"
 import { LogOut, Shield } from "lucide-react"
 import { resetTenantClient } from "@/lib/tenant"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { PlanManager } from "@/components/admin/plan-manager"
 import { EarningsOverview } from "@/components/admin/earnings-overview"
-import { PageTransition } from "@/components/page-transition"
+const PageTransition = dynamic(() => import("@/components/page-transition").then(m => ({ default: m.PageTransition })), { ssr: false })
 
 export default function AdminDashboard() {
   const router = useRouter()

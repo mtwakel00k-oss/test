@@ -15,9 +15,11 @@ describe("json-ld", () => {
 
   describe("menuJsonLd()", () => {
     it("returns structured data for menu items", () => {
-      const products: MenuProduct[] = [
-        { id: 1, name: "Pizza", category: "Pizzas", prices: { L: { standard: 500 } }, image_url: null },
-      ]
+      const products: MenuProduct[] = [{
+        id: 1, name: "Pizza", description: "Yummy", category: "Pizzas",
+        est_speciale: false, has_white_sauce: false, image_url: null,
+        prices: { L: { standard: 500, sauce_tomate: null, creme_fraiche: null } },
+      }]
       const result = menuJsonLd(products)
       expect(result["@type"]).toBe("Menu")
       expect(Array.isArray(result.hasMenuItem)).toBe(true)
@@ -29,13 +31,16 @@ describe("json-ld", () => {
       expect(result.hasMenuItem).toEqual([])
     })
 
-    it("handles products without prices", () => {
-      const products: MenuProduct[] = [
-        { id: 2, name: "Empty", category: "Other" } as MenuProduct,
-      ]
-      const result = menuJsonLd(products)
-      expect(result.hasMenuItem).toHaveLength(1)
-    })
+  it("handles products without prices", () => {
+    const products: MenuProduct[] = [{
+      id: 2, name: "Empty", description: "", category: "Other",
+      est_speciale: false, has_white_sauce: false, image_url: null,
+      prices: {},
+    }]
+    const result = menuJsonLd(products)
+    const items = result.hasMenuItem as Array<{ name: string }>
+    expect(items).toHaveLength(1)
+  })
   })
 
   describe("jsonLdScript()", () => {

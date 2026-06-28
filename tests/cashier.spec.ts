@@ -74,6 +74,11 @@ test.describe("POS — Order Status Lifecycle", () => {
     await addBtn.click()
     await page.waitForTimeout(300)
 
+    const customerInput = page.locator('[data-testid="customer-name-input"]')
+    if (await customerInput.isVisible()) {
+      await customerInput.fill("Test Customer")
+    }
+
     const submitBtn = page.locator('[data-testid="create-order"]')
     await expect(submitBtn).toBeEnabled({ timeout: 5000 })
     await submitBtn.click()

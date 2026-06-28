@@ -333,6 +333,7 @@ export function KdsDashboard() {
 
     return (
       <motion.div
+        data-testid="kds-order-card"
         key={order.id}
         {...springCard(index * 0.06)}
         className={cn(
@@ -482,7 +483,7 @@ export function KdsDashboard() {
 
       <main className="p-4 lg:p-6" dir={lang === "ar" ? "rtl" : "ltr"}>
         {orders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-32 text-center">
+          <div data-testid="kitchen-empty" className="flex flex-col items-center justify-center py-32 text-center">
             <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-muted/30 border border-border/50">
               <ChefHat className="size-9 text-muted-foreground/30" strokeWidth={1} />
             </div>

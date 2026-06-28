@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { scopeFromPath, scopedCookieKey } from "@/lib/i18n-scope";
 import { t as _t, type Lang } from "@/lib/translations";
 import { OfflineDetector } from "@/components/offline-detector"
+import { PwaInstallPrompt } from "@/components/pwa-install-prompt"
 import { SentryBoundary } from "@/components/sentry-boundary"
 
 const readexPro = Readex_Pro({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
@@ -85,6 +86,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head>
         <link rel="preconnect" href="https://icefntwfwvtonkdyshde.supabase.co" crossOrigin="anonymous" />
         <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" type="image/svg+xml" href="/pwa-icon.svg" />
+        <link rel="apple-touch-icon" href="/pwa-icon.svg" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -128,6 +131,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </SentryBoundary>
             <Toaster />
             <OfflineDetector />
+            <PwaInstallPrompt />
           </ThemeProvider>
         </LangProvider>
       </body>

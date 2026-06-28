@@ -51,6 +51,18 @@ export default defineConfig({
         storageState: "tests/.auth/cashier.json",
       },
     },
+    {
+      name: "menu",
+      testMatch: "menu.spec.ts",
+    },
+    {
+      name: "ratings",
+      testMatch: "ratings.spec.ts",
+    },
+    {
+      name: "order-tracking",
+      testMatch: "order-tracking.spec.ts",
+    },
   ],
   webServer: {
     command: "npm run dev",

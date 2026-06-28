@@ -8,7 +8,8 @@ import { useProducts } from "@/lib/use-products"
 import { initAudio } from "@/lib/sound"
 import { useSlug } from "@/lib/use-slug"
 import { POSHeader } from "@/components/pos/pos-header"
-import { PageTransition } from "@/components/page-transition"
+
+const PageTransition = dynamic(() => import("@/components/page-transition").then(m => ({ default: m.PageTransition })), { ssr: false })
 
 const OrdersPanel = dynamic(() => import("@/components/pos/orders-panel").then(m => ({ default: m.OrdersPanel })), {
   ssr: false,
