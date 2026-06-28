@@ -336,26 +336,49 @@ export async function POST(req: NextRequest) {
   const masterUrl = env.NEXT_PUBLIC_SUPABASE_URL!
   const masterKey = env.SUPABASE_SERVICE_ROLE_KEY
 
+  // Debug: try to extract what keys are available and what URL is being used
+  const debugInfo: Record<string, unknown> = {
+    tenantUrl: tenant.supabase_url,
+    masterUrl,
+    hasMasterKey: !!masterKey,
+  }
+
   // First pass: try master service key directly (works for tenants sharing master project)
   if (masterKey) {
     const svc = createClient(tenant.supabase_url, masterKey)
-    const { error: e1 } = await svc.rpc("exec_sql", { query_text: TENANT_MIGRATION })
-    if (!e1) return NextResponse.json({ success: true, slug })
+    const { error: e1 } = await svc.rpc("exec_sql", { query_text: "SELECT 1" })
+    debugInfo.pass1Error = e1?.message || null
+    debugInfo.pass1Hint = e1?.hint || null
+    if (!e1) {
+      // exec_sql works, now run the actual migration
+      const { error: eMigrate } = await svc.rpc("exec_sql", { query_text: TENANT_MIGRATION })
+      debugInfo.migrateHint = eMigrate?.message || null
+      if (!eMigrate) return NextResponse.json({ success: true, slug })
+    }
   }
 
   // Second pass: look up tenant's own service key (separate-project tenants)
   const masterSb = createClient(masterUrl, masterKey || env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
   const { data: tenantRow } = await masterSb.from("tenants").select("supabase_service_key").eq("slug", slug).maybeSingle()
   const tenantServiceKey = tenantRow?.supabase_service_key || masterKey
+  debugInfo.hasStoredKey = !!tenantRow?.supabase_service_key
+  debugInfo.hasTenantServiceKey = !!tenantServiceKey
   if (tenantServiceKey) {
     const svc = createClient(tenant.supabase_url, tenantServiceKey)
-    const { error: e2 } = await svc.rpc("exec_sql", { query_text: TENANT_MIGRATION })
-    if (!e2) return NextResponse.json({ success: true, slug })
+    const { error: e2 } = await svc.rpc("exec_sql", { query_text: "SELECT 1" })
+    debugInfo.pass2Error = e2?.message || null
+    debugInfo.pass2Hint = e2?.hint || null
+    if (!e2) {
+      const { error: eMigrate } = await svc.rpc("exec_sql", { query_text: TENANT_MIGRATION })
+      debugInfo.migrateHint2 = eMigrate?.message || null
+      if (!eMigrate) return NextResponse.json({ success: true, slug })
+    }
   }
 
-  // If both passess failed, return the SQL for manual execution
+  // If both passes failed, return debug info + manual instructions
   return NextResponse.json({
     error: "exec_sql RPC not available on tenant",
+    debug: debugInfo,
     detail: `Run manually in tenant Supabase Dashboard SQL editor:\n\n${TENANT_MIGRATION}`,
   }, { status: 400 })
 }
