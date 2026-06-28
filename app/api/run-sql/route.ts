@@ -18,6 +18,10 @@ CREATE OR REPLACE FUNCTION exec_sql(query_text TEXT) RETURNS VOID AS $$ BEGIN EX
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status TEXT NOT NULL DEFAULT 'unpaid';
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_type TEXT NOT NULL DEFAULT 'dine_in';
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_number INT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS cashier_id TEXT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS cashier_name TEXT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS processed_by_staff_id TEXT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS processed_by_staff_name TEXT;
 ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_status_check;
 ALTER TABLE orders ADD CONSTRAINT orders_status_check CHECK (status IN ('pending','preparing','ready','out_for_delivery','completed','cancelled'));
 
@@ -224,11 +228,11 @@ ALTER TABLE tenants ADD COLUMN IF NOT EXISTS brand_text_color TEXT;
 export async function GET(req: NextRequest) {
   const url = new URL(req.url)
   const secret = url.searchParams.get("secret")
-  if (process.env.NODE_ENV === "production" && secret !== env.CRON_SECRET) {
+  const session = parseSession(req.headers.get("cookie") || "")
+  if (process.env.NODE_ENV === "production" && secret !== env.CRON_SECRET && session.role !== "owner" && session.role !== "admin") {
     return NextResponse.json({ error: "Not available in production without valid secret" }, { status: 403 })
   }
 
-  const session = parseSession(req.headers.get("cookie") || "")
   if (!secret && session.role !== "admin" && session.role !== "owner") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
@@ -280,14 +284,14 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const url = new URL(req.url)
   const secret = url.searchParams.get("secret")
-  if (process.env.NODE_ENV === "production" && secret !== env.CRON_SECRET) {
+  const runSession = parseSession(req.headers.get("cookie") || "")
+  if (process.env.NODE_ENV === "production" && secret !== env.CRON_SECRET && runSession.role !== "owner" && runSession.role !== "admin") {
     return NextResponse.json({ error: "Not available in production without valid secret" }, { status: 403 })
   }
 
   const rl = await checkRateLimit(`run-sql:${getClientIp(req)}`, { max: 10, windowMs: 60000 })
   if (!rl.allowed) return rateLimitResponse(rl.resetAt)
 
-  const runSession = parseSession(req.headers.get("cookie") || "")
   if (!secret && (runSession.role !== "owner" || runSession.slug)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
