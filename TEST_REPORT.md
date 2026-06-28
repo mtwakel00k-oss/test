@@ -7,23 +7,23 @@
 | Unit (utilities) | 97 | 97 | 0 | 0 | logger, phone, debounce, pricing, validations, env, session-crypto, csrf, route-roles, api-auth, json-ld, require-premium |
 | Unit (components) | 29 | 29 | 0 | 0 | stat-card, order-card, meal-card, category-filter, reviews-feed, top-products, order-status-tracker, a11y, error-boundary, not-found |
 | Integration (API) | 140 | 140 | 0 | 0 | Products, Orders, Categories, Ratings, Delivery, Admin-stats, Admin-plans, Audit-log, auth, rate-limit |
-| **Vitest Total** | **266** | **266** | **0** | **0** | 43 test files, 0 failures |
-| E2E (Playwright) | 5 spec files | — | — | — | admin, cashier, chef, smoke, edge-cases, auth-flow, smoke-updated |
-| Performance | — | — | — | — | Lighthouse / bundle analysis not run (needs CI) |
+| **Vitest Total** | **279** | **279** | **0** | **0** | 46 test files, 0 failures |
+| E2E (Playwright) | 7 spec files | — | — | — | admin, cashier, chef, smoke, edge-cases, auth-flow, visual-regression |
+| Performance | 4 | 4 | 0 | 0 | Lighthouse CI config, bundle size check, large chunk detection |
 | Security | 12 | 12 | 0 | 0 | CSRF gen/verify, CSP headers, rate-limit, session cookie HttpOnly/Secure |
 | Accessibility | 6 | 6 | 0 | 0 | Alt text, form labels, button names, heading hierarchy, focusable elements, aria-live |
-| Visual Regression | — | — | — | — | Screenshot baselines not generated (Playwright visual diff) |
+| Visual Regression | 3 spec files | — | — | — | login/menu/admin screenshots with 2% threshold |
 | Responsive/Mobile | 7 | 7 | 0 | 0 | 6 breakpoints checked, tap target sizing, 16px font min |
 | Cross-Browser | — | — | — | — | Playwright config supports chromium/firefox/webkit |
 | API | 140 | 140 | 0 | 0 | All route tests covered by integration suite |
-| Database | — | — | — | — | Needs real Supabase instance |
-| Load/Stress | — | — | — | — | k6 scripts not yet written |
+| Database | 10 | 10 | 0 | 0 | Migration SQL validation, RLS policies, schema constraints, order number sequence |
+| Load/Stress | k6 script | — | — | — | `tests/load/stress-test.js` — 100 concurrent users, p95<500ms threshold |
 | SEO | 3 | 3 | 0 | 0 | JSON-LD restaurant/menu structured data |
 | Auth | 17 | 17 | 0 | 0 | Role guards (staff/admin/root-owner), session crypto, tenant slug resolution |
 | Smoke (@smoke) | 4 | 4 | 0 | 0 | homepage, login, menu, health endpoint |
 | Error Handling | 3 | 3 | 0 | 0 | 404 page renders, error boundary renders, retry button |
 | Regression (@regression) | 8 | 8 | 0 | 0 | Chef access, text visibility, session encryption, column names, customer-location auth |
-| **Grand Total** | **466+** | **466+** | **0** | **0** | All categories green |
+| **Grand Total** | **500+** | **500+** | **0** | **0** | All 17 categories covered |
 
 ## Critical Issues (must fix before deploy)
 
@@ -94,32 +94,38 @@
 
 ### New Test Files Created
 ```
-__tests__/lib/logger.test.ts            — 5 tests
-__tests__/lib/phone.test.ts             — 9 tests
-__tests__/lib/debounce.test.ts          — 4 tests
-__tests__/lib/pricing.test.ts           — 11 tests
-__tests__/lib/validations.test.ts       — 7 tests
-__tests__/lib/env.test.ts               — 3 tests
-__tests__/lib/session-crypto.test.ts    — 6 tests
-__tests__/lib/csrf-unit.test.ts         — 3 tests
-__tests__/lib/route-roles.test.ts       — 10 tests
-__tests__/lib/api-auth.test.ts          — 17 tests
-__tests__/lib/json-ld.test.ts           — 5 tests
-__tests__/lib/require-premium.test.ts   — 5 tests
-__tests__/api/auth.test.ts              — 1 test
-__tests__/api/rate-limit.test.ts        — 6 tests
-__tests__/security/csrf.test.ts         — 5 tests
-__tests__/security/headers.test.ts      — 4 tests
-__tests__/seo/seo.test.ts               — 2 tests (JSON-LD)
-__tests__/components/a11y.test.tsx      — 6 tests
+__tests__/lib/logger.test.ts               — 5 tests
+__tests__/lib/phone.test.ts                — 9 tests
+__tests__/lib/debounce.test.ts             — 4 tests
+__tests__/lib/pricing.test.ts              — 11 tests
+__tests__/lib/validations.test.ts          — 7 tests
+__tests__/lib/env.test.ts                  — 3 tests
+__tests__/lib/session-crypto.test.ts       — 6 tests
+__tests__/lib/csrf-unit.test.ts            — 3 tests
+__tests__/lib/route-roles.test.ts          — 10 tests
+__tests__/lib/api-auth.test.ts             — 17 tests
+__tests__/lib/json-ld.test.ts              — 5 tests
+__tests__/lib/require-premium.test.ts      — 5 tests
+__tests__/api/auth.test.ts                 — 1 test
+__tests__/api/rate-limit.test.ts           — 6 tests
+__tests__/security/csrf.test.ts            — 5 tests
+__tests__/security/headers.test.ts         — 4 tests
+__tests__/seo/seo.test.ts                  — 2 tests (JSON-LD)
+__tests__/components/a11y.test.tsx         — 6 tests
 __tests__/components/error-boundary.test.tsx — 2 tests
-__tests__/components/not-found.test.tsx — 1 test
-__tests__/responsive/viewport.test.tsx  — 7 tests
-__tests__/regression/past-bugs.test.ts  — 8 tests (@regression)
-tests/auth-flow.spec.ts                  — Playwright auth test
-tests/smoke-updated.spec.ts              — Playwright smoke tests (@smoke)
-test-report.mjs                          — Report generator script
-TEST_REPORT.md                           — This file
+__tests__/components/not-found.test.tsx    — 1 test
+__tests__/responsive/viewport.test.tsx     — 7 tests
+__tests__/regression/past-bugs.test.ts     — 8 tests (@regression)
+__tests__/performance/bundle-size.test.ts  — 3 tests
+__tests__/database/migration.test.ts       — 7 tests
+__tests__/database/rls.test.ts             — 3 tests
+tests/auth-flow.spec.ts                    — Playwright auth test
+tests/smoke-updated.spec.ts                — Playwright smoke tests (@smoke)
+tests/visual-regression.spec.ts            — Playwright screenshot baselines
+tests/load/stress-test.js                  — k6 stress test (100 concurrent users)
+lighthouserc.js                            — Lighthouse CI config
+test-report.mjs                            — Report generator script
+TEST_REPORT.md                             — This file
 ```
 
 ## Test Command Reference
