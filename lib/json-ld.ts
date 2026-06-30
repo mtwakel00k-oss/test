@@ -46,6 +46,10 @@ export function menuJsonLd(products: MenuProduct[]): Record<string, unknown> {
   }
 }
 
+export function safeJsonForScript(data: unknown): string {
+  return JSON.stringify(data).replace(/</g, "\\u003c")
+}
+
 export function jsonLdScript(data: Record<string, unknown>): string {
-  return JSON.stringify(data)
+  return safeJsonForScript(data)
 }

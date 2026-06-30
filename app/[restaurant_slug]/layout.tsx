@@ -2,6 +2,7 @@ import { getTenantConfigRSC } from "@/lib/tenant"
 import { ServiceWorkerRegister } from "@/components/service-worker-register"
 import { notFound } from "next/navigation"
 import { env } from "@/lib/env"
+import { safeJsonForScript } from "@/lib/json-ld"
 
 const MASTER_URL = env.NEXT_PUBLIC_SUPABASE_URL!
 const ANON_KEY = env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -32,33 +33,29 @@ export default async function RestaurantLayout({
 
   const isShared = tenant.supabase_url === MASTER_URL || !tenant.supabase_url
 
-  let configStr = ""
-  try {
-    const config = {
-      url: isShared ? MASTER_URL : tenant.supabase_url,
-      key: isShared
+  const config = {
+    url: isShared ? MASTER_URL : tenant.supabase_url,
+    key: isShared
+      ? ANON_KEY
+      : tenant.supabase_anon_key.startsWith("sb_secret_")
         ? ANON_KEY
-        : tenant.supabase_anon_key.startsWith("sb_secret_")
-          ? ANON_KEY
-          : tenant.supabase_anon_key,
-      slug: restaurant_slug,
-      name: tenant.name,
-      logo_url: tenant.logo_url ?? null,
-      plan_type: tenant.plan_type ?? "starter",
-      is_open: tenant.is_open ?? true,
-      brand_color: tenant.brand_color ?? null,
-      brand_text_color: tenant.brand_text_color ?? null,
-    }
-    configStr = JSON.stringify(config)
-    } catch {} /* config fallback */
+        : tenant.supabase_anon_key,
+    slug: restaurant_slug,
+    name: tenant.name,
+    logo_url: tenant.logo_url ?? null,
+    plan_type: tenant.plan_type ?? "starter",
+    is_open: tenant.is_open ?? true,
+    brand_color: tenant.brand_color ?? null,
+    brand_text_color: tenant.brand_text_color ?? null,
+  }
 
   const tenantUrl = isShared ? MASTER_URL : tenant.supabase_url
 
   return (
     <>
       <link rel="preconnect" href={tenantUrl} crossOrigin="anonymous" />
-      {configStr && (
-        <script id="tenant-config" type="application/json" dangerouslySetInnerHTML={{ __html: configStr }} />
+      {config && (
+        <script id="tenant-config" type="application/json" dangerouslySetInnerHTML={{ __html: safeJsonForScript(config) }} />
       )}
       {tenant.brand_color && (
         <style>{`

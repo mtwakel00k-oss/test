@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { cookies, headers } from "next/headers"
 import "./globals.css"
+import { safeJsonForScript } from "@/lib/json-ld"
 import { LangProvider } from "@/lib/lang-context"
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from "@/lib/theme"
@@ -95,7 +96,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
+            __html: safeJsonForScript({
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
               name: "Simploo",

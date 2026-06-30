@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { restaurantJsonLd, menuJsonLd, jsonLdScript } from "@/lib/json-ld"
+import { restaurantJsonLd, menuJsonLd, jsonLdScript, safeJsonForScript } from "@/lib/json-ld"
 import type { MenuProduct } from "@/lib/types"
 
 describe("json-ld", () => {
@@ -47,6 +47,23 @@ describe("json-ld", () => {
     it("serializes to JSON string", () => {
       const result = jsonLdScript({ "@type": "Test" })
       expect(result).toBe('{"@type":"Test"}')
+    })
+  })
+
+  describe("safeJsonForScript()", () => {
+    it("escapes < to prevent </script> breakout", () => {
+      const malicious = { name: 'Foo</script><script>alert("xss")</script>' }
+      const result = safeJsonForScript(malicious)
+      expect(result).toContain("\\u003c/script>")
+      expect(result).not.toContain("</script>")
+      expect(result).not.toContain("<")
+    })
+
+    it("passes through safe strings unchanged (except no <)", () => {
+      const data = { name: "Burger House", price: 500 }
+      const result = safeJsonForScript(data)
+      expect(result).toContain("Burger House")
+      expect(result).toContain("500")
     })
   })
 })
