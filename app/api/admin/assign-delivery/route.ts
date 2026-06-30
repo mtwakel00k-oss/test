@@ -5,6 +5,7 @@ import { logger } from "@/lib/logger"
 import { logAudit } from "@/lib/audit"
 import { sendDriverWhatsApp } from "@/lib/whatsapp"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
+import { assignDeliverySchema, validationError } from "@/lib/validations"
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,10 +16,10 @@ export async function POST(req: NextRequest) {
     if (isErrorResponse(session)) return session
 
     const body = await req.json()
-    const { order_id, delivery_man_id, slug: bodySlug } = body
-    if (!order_id || !delivery_man_id) {
-      return NextResponse.json({ error: "order_id and delivery_man_id required" }, { status: 400 })
-    }
+    const parsed = assignDeliverySchema.safeParse(body)
+    if (!parsed.success) return validationError(parsed.error)
+    const { order_id, delivery_man_id } = parsed.data
+    const bodySlug = (body as { slug?: string }).slug
 
     const tenantSlug = resolveTenantSlug(req, session, bodySlug)
     if (!tenantSlug) {

@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js"
 import { createClientForRouteHandler } from "@/lib/supabase-server"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 import { encryptSession } from "@/lib/session-crypto"
+import { loginSchema, validationError } from "@/lib/validations"
 import { parseSession } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 import { env } from "@/lib/env"
@@ -41,22 +42,21 @@ export async function POST(req: NextRequest) {
     const rl = await checkRateLimit(`login:${ip}`, { max: 20, windowMs: 900_000 })
     if (!rl.allowed) return rateLimitResponse(rl.resetAt)
 
-    const { username, password, slug: reqSlug } = await req.json()
-    logger.info("[login] POST received", { username, slug: reqSlug, hasPassword: !!password })
-
-    if (!username || !password) return NextResponse.json({ error: "Missing credentials" }, { status: 400 })
+    const body = await req.json()
+    const parsed = loginSchema.safeParse(body)
+    if (!parsed.success) return validationError(parsed.error)
+    const { username, password, slug } = parsed.data
+    logger.info("[login] POST received", { username, slug, hasPassword: !!password })
 
     // Per-email rate-limit (5 attempts / 15 min per email)
     const emailRl = await checkRateLimit(`login:email:${username.toLowerCase().trim()}`, { max: 5, windowMs: 900_000 })
     if (!emailRl.allowed) return rateLimitResponse(emailRl.resetAt)
-
-    if (!username || !password) return NextResponse.json({ error: "Missing credentials" }, { status: 400 })
     if (!env.SUPABASE_SERVICE_ROLE_KEY) return NextResponse.json({ error: "Server config error" }, { status: 500 })
 
     const masterSb = createClient(env.NEXT_PUBLIC_SUPABASE_URL!, env.SUPABASE_SERVICE_ROLE_KEY)
 
     // ── Root admin (owner) ──────────────────────────────────────
-    if (username.endsWith("@root.app") || reqSlug === "__root__") {
+    if (username.endsWith("@root.app") || slug === "__root__") {
       const email = username.includes("@") ? username.toLowerCase().trim() : `${username}@root.app`
       const rawSb = createClient(
         env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
       return res
     }
 
-    const tenantSlug = reqSlug
+    const tenantSlug = slug
     let tenantId: string | null = null
 
     // ── Determine tenant ────────────────────────────────────────

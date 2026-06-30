@@ -7,7 +7,7 @@ import { logger } from "@/lib/logger"
 import type { OrderType, MenuProduct } from "@/lib/types"
 import { getPrice } from "@/lib/types"
 import { DB_STATUS_TO_POS } from "@/lib/constants"
-import { phoneRegex } from "@/lib/validations"
+import { createOrderSchema, validationError } from "@/lib/validations"
 
 const ORDER_COLS = [
   "id", "customer_name", "total", "status", "order_type",
@@ -117,26 +117,17 @@ export async function POST(req: NextRequest) {
   const startTime = Date.now()
   try {
     const body = await req.json()
-    const { items, customer_name, table_number, idempotency_key, cashier_id, cashier_name, processed_by_staff_id, processed_by_staff_name, google_maps_link } = body
-    const order_type = (body.order_type || "takeaway") as OrderType
-    const customer_phone = body.customer_phone || null
-    const delivery_address = body.delivery_address || null
-    const delivery_lat = body.delivery_lat ?? null
-    const delivery_lng = body.delivery_lng ?? null
+    const parsed = createOrderSchema.safeParse(body)
+    if (!parsed.success) return validationError(parsed.error)
+    const { customer_name, customer_phone, table_number, items, processed_by_staff_name, processed_by_staff_id, cashier_name, cashier_id, delivery_address, delivery_lat, delivery_lng, idempotency_key } = parsed.data
+    const order_type = (parsed.data.order_type || "takeaway") as OrderType
+    const { google_maps_link } = body
 
-    if (!items?.length || !customer_name) {
-      return NextResponse.json({ error: "Missing items or customer_name" }, { status: 400 })
-    }
-    if (order_type === "dine_in" && (!table_number || table_number < 1)) {
+    if (order_type === "dine_in" && (!table_number || Number(table_number) < 1)) {
       return NextResponse.json({ error: "Missing table_number for dine-in" }, { status: 400 })
     }
-    if (order_type === "delivery") {
-      if (!customer_phone) {
-        return NextResponse.json({ error: "customer_phone required for delivery" }, { status: 400 })
-      }
-      if (!phoneRegex.test(customer_phone)) {
-        return NextResponse.json({ error: "رقم الهاتف غير صحيح — يجب أن يبدأ بـ 05 أو 06 أو 07 ويتكون من 10 أرقام" }, { status: 400 })
-      }
+    if (order_type === "delivery" && !customer_phone) {
+      return NextResponse.json({ error: "customer_phone required for delivery" }, { status: 400 })
     }
 
     const rl = await checkRateLimit(`orders:${getClientIp(req)}`, { max: 20, windowMs: 60_000 })
@@ -159,7 +150,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Validate products & compute server-side prices ──
-    const prodIds = [...new Set(items.map((i: { product_id: number }) => i.product_id))] as number[]
+    const prodIds = [...new Set(items.map((i) => Number(i.product_id)))] as number[]
     const { data: rawProducts } = await sb.from("v_products_flat").select("id, name, category, image_url, is_available, prices").in("id", prodIds).returns<Record<string, unknown>[]>()
     const productMap = new Map<number, MenuProduct>()
     for (const p of rawProducts || []) {

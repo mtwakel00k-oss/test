@@ -5,6 +5,7 @@ import { logger } from "@/lib/logger"
 import { logAudit } from "@/lib/audit"
 import { env } from "@/lib/env"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
+import { bulkUpdateSchema, validationError } from "@/lib/validations"
 
 function getMasterServiceClient() {
   return createClient(
@@ -38,12 +39,10 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { product_ids, action } = body
+    const parsed = bulkUpdateSchema.safeParse(body)
+    if (!parsed.success) return validationError(parsed.error)
+    const { product_ids, action } = parsed.data
     const tenantSlug = session.slug || ""
-
-    if (!Array.isArray(product_ids) || product_ids.length === 0) {
-      return NextResponse.json({ error: "product_ids must be a non-empty array" }, { status: 400 })
-    }
 
     const sb = await supabaseForRequest(req)
     const svc = (await getTenantServiceClient(tenantSlug)) || sb

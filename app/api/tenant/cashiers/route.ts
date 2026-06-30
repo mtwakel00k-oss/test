@@ -5,6 +5,7 @@ import { resolveTenantSlug } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
 import { env } from "@/lib/env"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
+import { createStaffSchema, validationError } from "@/lib/validations"
 
 function getSlug(req: NextRequest): string | null {
   const session = parseSession(req.headers.get("cookie") || "")
@@ -79,7 +80,10 @@ export async function POST(req: NextRequest) {
   const slug = getSlug(req)
   if (!slug) return NextResponse.json({ error: "No tenant" }, { status: 400 })
 
-  const { username, password, name: displayName } = await req.json()
+  const body = await req.json()
+  const { username, password, name: displayName } = body
+  const parsed = createStaffSchema.safeParse({ name: displayName || username, role: "cashier" })
+  if (!parsed.success) return validationError(parsed.error)
   if (!username || !password) {
     return NextResponse.json({ error: "Missing username or password" }, { status: 400 })
   }

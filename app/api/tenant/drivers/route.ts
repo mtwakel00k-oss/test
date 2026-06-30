@@ -6,6 +6,7 @@ import { resolveTenantSlug } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
 import { env } from "@/lib/env"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
+import { createDriverSchema, validationError } from "@/lib/validations"
 
 export interface Driver {
   id: string
@@ -89,12 +90,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
   }
 
-  const { name, phone } = body as { name?: string; phone?: string }
-  if (!name?.trim() || !phone?.trim()) {
-    return NextResponse.json({ error: "name and phone are required" }, { status: 400 })
-  }
+  const rawBody = body as { name?: string; phone?: string }
+  const parsed = createDriverSchema.safeParse({ name: rawBody.name, whatsapp_number: rawBody.phone })
+  if (!parsed.success) return validationError(parsed.error)
 
-  const cleanPhone = phone.replace(/\D/g, "")
+  const name = parsed.data.name
+  const cleanPhone = parsed.data.whatsapp_number.replace(/\D/g, "")
   if (cleanPhone.length < 9) {
     return NextResponse.json({ error: "Invalid phone number" }, { status: 400 })
   }
