@@ -32,10 +32,12 @@ Dashboard fetched via `GET /api/admin/stats?period=7d|30d|6m|12m` or `?mode=root
 - Falls open (allows all) if both Redis and Supabase are unreachable.
 
 ## RLS / Migration SQL
-- `sql/rls-policies.sql`: RLS policies for all tenant tables (produits, categories, orders, order_items, ratings).
-- `data/migration-v2.sql`: tenant migration v2 (adds `is_available`, `image_url`, `payment_status`, recreates `v_products_flat` view, adds RLS policies).
-- `data/migration-v3.sql`: self-healing migration (also adds `order_type`, `order_number`, `order_id` on ratings, missing columns on categories).
-- To apply tenant migration: run the SQL from `supabase/migrations/00002_tenant_schema.sql` in the tenant Supabase Dashboard.
+All migrations consolidated under `supabase/migrations/` (numbered, run in order):
+- `00001_master_schema.sql` — Master project columns, cron support
+- `00002_tenant_schema.sql` — Full tenant schema (orders, produits, ratings, categories, v_products_flat, storage, RLS, audit_log, delivery_men, daily_order_counters)
+- `00003_remove_exec_sql.sql` — Removes `exec_sql` SECURITY DEFINER function
+- `00004_tenant_scoped_rls.sql` — Replaces permissive RLS with authenticated-only policies
+- To apply: use `supabase db push` from project root, or paste into the Supabase Dashboard SQL Editor. Never via HTTP.
 
 ## Root Admin
 - Created via `POST /api/auth/setup-root` (default: `root@root.app` / `RootAdmin@123`).
@@ -72,7 +74,7 @@ Deploy the stable app to production with all tests passing, fix login 500 error,
 7. **Login verified** — `POST /api/auth/login` now returns 200 with `{ok:true, slug:"burger-house"}`.
 8. **Admin dashboard verified** — Fully renders with real data (1,250 DZD revenue, 3 orders, 5 top products, 2 drivers, 2 ratings).
 9. **No CSP warnings** in production console.
-10. **Tenant DB migration** — `data/run-this.sql` applied manually in Supabase Dashboard for `zordvqqjnlmxgtbkrspp.supabase.co`.
+10. **Tenant DB migration** — SQL from `supabase/migrations/00002_tenant_schema.sql` applied manually in Supabase Dashboard for `zordvqqjnlmxgtbkrspp.supabase.co`.
 
 ### Known
 - React hydration error #418 — **fixed** in `LangProvider` via `useSyncExternalStore` (no more text content mismatch).
@@ -126,12 +128,12 @@ Address all issues from the code audit report (`75/100`): remove `/api/run-sql` 
 2. **Hydration error #418 fixed** — `LangProvider` migrated to `useSyncExternalStore` from `useState`+`useEffect`. Server-rendered value matches initial render; client subscribes to cookie changes without hydration mismatch.
 3. **Test files cleaned** — 8 `test-*.js` files moved from project root to `scripts/`.
 4. **AGENTS.md rate-limit doc corrected** — Now accurately describes "Upstash Redis (primary) + Supabase `rate_limits` table (fallback)" instead of "in-memory sliding window".
-5. **Tenant migration SQL file** — `scripts/apply-tenant-migration.sql` contains the full combined SQL (v3–v11) ready to paste in Supabase Dashboard.
+5. **Tenant migration SQL file** — `supabase/migrations/00002_tenant_schema.sql` contains the full combined SQL.
 6. **All 139 tests passing**, TypeScript compiles with zero errors.
 7. **`EarningsOverview` added to developer admin panel** — Now shows platform earnings in `[restaurant_slug]/admin/page.tsx` when logged in as `owner` role (conditionally rendered via `userRole` state). Pushed to main.
 
 ### To apply tenant migration
-Open `https://supabase.com/dashboard/project/zordvqqjnlmxgtbkrspp` → SQL Editor → paste contents of `scripts/apply-tenant-migration.sql` → Run.
+Open `https://supabase.com/dashboard/project/<tenant_id>` → SQL Editor → paste contents of `supabase/migrations/00002_tenant_schema.sql` → Run.
 <!-- END:session-2025-06-19 -->
 
 <!-- BEGIN:session-2025-06-27 -->

@@ -121,9 +121,10 @@ Copy `.env.local` and ensure it contains:
 | `EVOLUTION_API_KEY` | WhatsApp Evolution API key |
 
 ### 3. Database Setup
-1. Master project: run `data/migration-tenant.sql` to create `tenants` table
-2. For each tenant: run the SQL from `supabase/migrations/00002_tenant_schema.sql` in their Supabase Dashboard SQL editor
-3. Enable Realtime on `orders` table in each tenant's Supabase Dashboard → Database → Replication
+1. **Master project**: Run `supabase/migrations/00001_master_schema.sql` in the master Supabase Dashboard.
+2. **Per tenant**: Run `supabase/migrations/00002_tenant_schema.sql` in each tenant's Supabase Dashboard.
+3. **Optional RLS hardening**: Run `supabase/migrations/00004_tenant_scoped_rls.sql` to replace permissive policies with authenticated-only access.
+4. Enable Realtime on `orders` table in each tenant's Supabase Dashboard → Database → Replication.
 
 ### 4. Install & Run
 ```bash
@@ -176,29 +177,22 @@ Open `http://localhost:3000/login`, select your role tab, and enter credentials.
 │   ├── restoos/                # Landing page components
 │   └── ui/                     # shadcn/ui primitives
 ├── lib/                        # Utilities, types, supabase clients, translations
-├── data/                       # SQL migrations (v1–v14)
-└── sql/                        # RLS policies, JWT hooks
+├── supabase/migrations/        # Consolidated, versioned SQL migrations
+└── data/                       # Seed data & legacy files
 ```
 
 ## Migrations
 
-| File | Purpose |
-|------|---------|
-| `migration.sql` | Base schema (categories, produits, orders, ratings) |
-| `migration-v2.sql` | is_available, image_url, payment_status |
-| `migration-v3.sql` | Self-healing: missing columns + v_products_flat view |
-| `migration-v4-delivery.sql` | Delivery address, lat/lng, order_type constraint |
-| `migration-v6-drivers.sql` | Drivers JSONB, driver_id, payment_method |
-| `migration-v7-drivers-telegram.sql` | Drivers table, telegram_chat_id |
-| `migration-v8-cashiers.sql` | cashier_id, cashier_name on orders |
-| `migration-v9-driver-location.sql` | driver_lat, driver_lng, driver_location_updated_at |
-| `migration-v10-public-order-tracking.sql` | RLS for anonymous order tracking |
-| `migration-v11-delivery-men.sql` | delivery_men table + delivery_man_id |
-| `migration-v12-restaurant-staff.sql` | restaurant_staff table |
-| `migration-v13-audit.sql` | audit_log table + RLS |
-| `migration-v14-rate-limit.sql` | rate_limits table |
+Consolidated in `supabase/migrations/` (numbered, ordered):
 
-To apply: run the consolidated SQL from `supabase/migrations/00002_tenant_schema.sql` in each tenant's Supabase Dashboard SQL editor.
+| File | Target | Purpose |
+|------|--------|---------|
+| `00001_master_schema.sql` | Master DB | Master project columns, cron support |
+| `00002_tenant_schema.sql` | Per tenant | Full tenant schema (orders, produits, ratings, categories, v_products_flat, storage, RLS, audit_log, delivery_men, daily_order_counters) |
+| `00003_remove_exec_sql.sql` | Both | Remove `exec_sql` SECURITY DEFINER function |
+| `00004_tenant_scoped_rls.sql` | Per tenant | Replace permissive RLS with authenticated-only policies |
+
+**Apply via**: `supabase db push` (CLI) or paste into Supabase Dashboard SQL Editor. Never via HTTP.
 
 ## Tests
 ```bash

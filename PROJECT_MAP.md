@@ -108,25 +108,15 @@ lib/
 ├── validations.ts              # Phone regex, etc.
 └── route-roles.ts              # Role-based access definitions
 
-data/                           # Database migrations (19 files)
-├── migration.sql               # Base schema
-├── rls-tenant.sql              # RLS policies
-├── migration-apply.ts          # Multi-tenant migration runner
-├── migration-v2.sql            # is_available, image_url, payment_status
-├── migration-v3.sql            # order_type, order_number, order_id
-├── migration-v4.sql            # Delivery support
-├── migration-v6.sql            # Drivers
-├── migration-v7.sql            # Telegram
-├── migration-v8.sql            # Cashiers
-├── migration-v9.sql            # Driver location
-├── migration-v10.sql           # Public order tracking
-├── migration-v11.sql           # Delivery men
-├── migration-v12.sql           # Restaurant staff
-├── migration-v13.sql           # Audit trail
-├── migration-v14.sql           # Rate limiting columns
-├── add-tenant.sql              # Tenant creation template
-├── subscription-tiers.sql      # Plan tier definitions
-└── migration-tenant.sql        # Combined tenant migration
+supabase/migrations/             # Versioned SQL migrations (consolidated)
+├── 00001_master_schema.sql      # Master project columns, cron support
+├── 00002_tenant_schema.sql      # Full tenant schema
+├── 00003_remove_exec_sql.sql    # Remove exec_sql backdoor
+└── 00004_tenant_scoped_rls.sql  # Authenticated-only RLS
+
+data/                           # Seed data & legacy tooling
+├── migration-apply.ts          # Multi-tenant migration runner (legacy)
+└── subscription-tiers.sql      # Plan tier definitions
 ```
 
 ---
