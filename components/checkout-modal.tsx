@@ -259,7 +259,7 @@ export function CheckoutModal({
               <p className="text-warning-foreground/70 text-xs">تم إزالة: {removedNames.join("، ")}</p>
             </div>
           )}
-          <button onClick={() => { if (orderId) onSuccess(orderId, slug, orderNumber) }}
+          <button onClick={() => { if (orderId) { try { sessionStorage.setItem(`order_phone_${orderId}`, form.phone) } catch {} onSuccess(orderId, slug, orderNumber) } }}
             className="w-full rounded-2xl bg-malachite text-evergreen py-3 font-black text-sm uppercase tracking-wider hover:brightness-110 transition-all shadow-lg shadow-malachite/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-malachite/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background">
             {t("menu.trackOrder")}
           </button>
