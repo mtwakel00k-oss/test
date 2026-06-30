@@ -62,7 +62,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
       // 1. Try standard lookup first (works if x-tenant-slug header is present)
       const sb = await supabaseForRequest(req)
-      const PUBLIC_ORDER_COLS = ["id", "status", "order_number", "order_type", "total", "created_at", "table_number", "customer_name", "customer_phone", "delivery_address", "delivery_lat", "delivery_lng", "driver_id"]
+      const PUBLIC_ORDER_COLS = ["id", "status", "order_number", "order_type", "total", "created_at", "table_number", "customer_name", "customer_phone", "delivery_address", "delivery_lat", "delivery_lng", "driver_id", "driver_lat", "driver_lng", "driver_location_updated_at"]
       let directOrder: Record<string, unknown> | null = null
       let directError: { message: string } | null = null
       for (let i = 0; i <= PUBLIC_ORDER_COLS.length; i++) {

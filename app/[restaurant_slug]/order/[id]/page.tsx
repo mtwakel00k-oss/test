@@ -76,7 +76,9 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
       logger.info(`[OrderTracking] Fetching order ${id} for slug "${slug}"`)
 
       try {
-        const res = await fetch(`/api/orders/${id}`, {
+        const phone = typeof window !== "undefined" ? sessionStorage.getItem(`order_phone_${id}`) : null
+        const publicUrl = `/api/orders/${id}?public=true${phone ? `&phone=${encodeURIComponent(phone)}` : ""}`
+        const res = await fetch(publicUrl, {
           headers: {
             "Content-Type": "application/json",
             "x-tenant-slug": slug,
@@ -183,11 +185,13 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
   }, [id, hasLiveTracking])
 
   useEffect(() => {
-    if (hasLiveTracking) return
+    const interval = hasLiveTracking ? 45000 : 60000
     if (refreshRef.current) clearInterval(refreshRef.current)
     refreshRef.current = setInterval(async () => {
       try {
-        const res = await fetch(`/api/orders/${id}?public=true`, {
+        const phone = typeof window !== "undefined" ? sessionStorage.getItem(`order_phone_${id}`) : null
+        const publicUrl = `/api/orders/${id}?public=true${phone ? `&phone=${encodeURIComponent(phone)}` : ""}`
+        const res = await fetch(publicUrl, {
           headers: { "x-tenant-slug": slug },
         })
         if (!res.ok) return
@@ -203,8 +207,8 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
           setDriverLat(Number(o.driver_lat))
           setDriverLng(Number(o.driver_lng))
         }
-      } catch (e) { logger.warn("Failed to poll order status for non-live tracking", e) }
-    }, 60000)
+      } catch (e) { logger.warn("Polling fallback failed for order tracking", e) }
+    }, interval)
     return () => { if (refreshRef.current) clearInterval(refreshRef.current) }
   }, [id, slug, hasLiveTracking])
 
