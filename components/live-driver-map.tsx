@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import type { Map as LeafMap, Marker, Polyline } from "leaflet"
 import { useTheme } from "@/lib/theme"
 
@@ -22,20 +22,14 @@ function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): nu
 }
 
 function EtaBanner({
-  driverLat,
-  driverLng,
-  customerLat,
-  customerLng,
+  etaLabel,
+  distanceKm,
   lastUpdated,
-}: LiveMapProps) {
-  let eta = ""
-  let km = 0
-  if (driverLat != null && driverLng != null && customerLat != null && customerLng != null) {
-    km = haversineKm(driverLat, driverLng, customerLat, customerLng)
-    const minutes = Math.round((km / 30) * 60)
-    eta = minutes <= 1 ? "أقل من دقيقة" : `~${minutes} دقيقة`
-  }
-
+}: {
+  etaLabel: string
+  distanceKm: string
+  lastUpdated?: string | null
+}) {
   return (
     <div className="flex items-center justify-between p-6 bg-emerald-500 text-white">
       <div className="flex items-center gap-4">
@@ -49,17 +43,20 @@ function EtaBanner({
         </div>
         <div>
           <p className="text-sm font-black uppercase tracking-widest leading-none mb-1">السائق في الطريق</p>
-          {eta && <p className="text-[10px] font-bold opacity-80 uppercase tracking-widest">يصل خلال {eta}</p>}
+          <p className="text-[10px] font-bold opacity-80 uppercase tracking-widest">يصل خلال {etaLabel}</p>
         </div>
       </div>
-      {lastUpdated && (
-        <div className="text-left">
-          <p className="text-[10px] font-black uppercase tracking-widest opacity-60 leading-none mb-1">آخر تحديث</p>
-          <p className="text-[10px] font-bold tabular-nums">
-            {new Date(lastUpdated).toLocaleTimeString("ar")}
-          </p>
-        </div>
-      )}
+      <div className="text-right">
+        {lastUpdated && (
+          <div className="mb-1">
+            <p className="text-[10px] font-black uppercase tracking-widest opacity-60 leading-none">آخر تحديث</p>
+            <p className="text-[10px] font-bold tabular-nums">
+              {new Date(lastUpdated).toLocaleTimeString("ar")}
+            </p>
+          </div>
+        )}
+        <p className="text-[9px] font-bold opacity-60 uppercase tracking-widest">{distanceKm}</p>
+      </div>
     </div>
   )
 }
@@ -87,6 +84,85 @@ export default function LiveDriverMap(props: LiveMapProps) {
   const customerMarkerRef = useRef<Marker | null>(null)
   const polylineRef = useRef<Polyline | null>(null)
   const leafletRef = useRef<typeof import("leaflet") | null>(null)
+
+  const [routeCoords, setRouteCoords] = useState<[number, number][] | null>(null)
+  const [etaSeconds, setEtaSeconds] = useState<number | null>(null)
+  const [routeDistMeters, setRouteDistMeters] = useState<number | null>(null)
+  const lastFetchedRef = useRef<{ lat: number; lng: number } | null>(null)
+  const orderIdRef = useRef("")
+
+  // Get order ID from URL (inside effect or called on demand, not during render)
+  function getOrderId(): string {
+    if (!orderIdRef.current && typeof window !== "undefined") {
+      orderIdRef.current = window.location.pathname.split("/").pop() || ""
+    }
+    return orderIdRef.current
+  }
+
+  // Fetch real route from OSRM proxy whenever driver/customer coords change
+  useEffect(() => {
+    // Need both driver and customer coords for routing
+    if (driverLat == null || driverLng == null || customerLat == null || customerLng == null) return
+
+    // Debounce: skip if driver moved less than ~50m and we already have a route
+    const last = lastFetchedRef.current
+    if (last && etaSeconds != null) {
+      const dist = haversineKm(last.lat, last.lng, driverLat, driverLng)
+      if (dist < 0.05) return
+    }
+
+    const orderId = getOrderId()
+    if (!orderId) return
+
+    const dLat = driverLat
+    const dLng = driverLng
+    const cLat = customerLat
+    const cLng = customerLng
+
+    async function fetchRoute() {
+      try {
+        const url = `/api/orders/${orderId}/route-eta?driverLat=${dLat}&driverLng=${dLng}&customerLat=${cLat}&customerLng=${cLng}`
+        const res = await fetch(url, { signal: AbortSignal.timeout(8_000) })
+        if (!res.ok) throw new Error(`route-eta proxy returned ${res.status}`)
+        const data = await res.json()
+        if (data.geometry && Array.isArray(data.geometry)) {
+          // OSRM returns [lng, lat] — swap to [lat, lng] for Leaflet
+          setRouteCoords(data.geometry.map((c: [number, number]) => [c[1], c[0]] as [number, number]))
+        }
+        if (data.duration != null) setEtaSeconds(data.duration)
+        if (data.distance != null) setRouteDistMeters(data.distance)
+        lastFetchedRef.current = { lat: dLat, lng: dLng }
+      } catch (e) {
+        // Fallback: clear route coords (draw straight line) and use haversine ETA
+        setRouteCoords(null)
+        setEtaSeconds(null)
+        setRouteDistMeters(null)
+        const msg = e instanceof Error ? e.message : String(e)
+        if (!msg.includes("abort") && !msg.includes("timeout")) {
+          console.warn("[LiveDriverMap] OSRM fallback to haversine:", msg)
+        }
+      }
+    }
+
+    fetchRoute()
+  }, [driverLat, driverLng, customerLat, customerLng, etaSeconds])
+
+  // Compute ETA label
+  let etaLabel = ""
+  let distanceKm = ""
+  if (driverLat != null && driverLng != null && customerLat != null && customerLng != null) {
+    if (etaSeconds != null) {
+      const minutes = Math.round(etaSeconds / 60)
+      etaLabel = minutes <= 1 ? "أقل من دقيقة" : `~${minutes} دقيقة`
+    } else {
+      // Fallback haversine
+      const km = haversineKm(driverLat, driverLng, customerLat, customerLng)
+      const minutes = Math.round((km / 30) * 60)
+      etaLabel = minutes <= 1 ? "أقل من دقيقة" : `~${minutes} دقيقة`
+    }
+    const km = routeDistMeters != null ? (routeDistMeters / 1000) : haversineKm(driverLat, driverLng, customerLat, customerLng)
+    distanceKm = `${km.toFixed(1)} كم`
+  }
 
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return
@@ -164,22 +240,12 @@ export default function LiveDriverMap(props: LiveMapProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Update markers and polyline when coordinates or route change
   useEffect(() => {
     if (!mapInstanceRef.current) return
     if (driverLat != null && driverLng != null) {
       if (driverMarkerRef.current) {
         driverMarkerRef.current.setLatLng([driverLat, driverLng])
-      } else {
-        const L = leafletRef.current
-        if (L && mapInstanceRef.current) {
-          const icon = L.divIcon({
-            html: `<div style="width:28px;height:28px;background:#22c55e;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:white;">D</div>`,
-            className: "",
-            iconSize: [28, 28],
-            iconAnchor: [14, 14],
-          })
-          driverMarkerRef.current = L.marker([driverLat, driverLng], { icon }).addTo(mapInstanceRef.current)
-        }
       }
     }
     if (customerLat != null && customerLng != null) {
@@ -187,10 +253,20 @@ export default function LiveDriverMap(props: LiveMapProps) {
         customerMarkerRef.current.setLatLng([customerLat, customerLng])
       }
     }
+
+    // Update polyline: use real route if available, else straight line
     if (polylineRef.current && driverLat != null && driverLng != null && customerLat != null && customerLng != null) {
-      polylineRef.current.setLatLngs([[driverLat, driverLng], [customerLat, customerLng]])
+      if (routeCoords && routeCoords.length > 1) {
+        // OSRM route — solid line
+        polylineRef.current.setLatLngs(routeCoords)
+        polylineRef.current.setStyle({ dashArray: undefined, opacity: 0.9 })
+      } else {
+        // Fallback straight line — dashed
+        polylineRef.current.setLatLngs([[driverLat, driverLng], [customerLat, customerLng]])
+        polylineRef.current.setStyle({ dashArray: "6 4", opacity: 0.7 })
+      }
     }
-  }, [driverLat, driverLng, customerLat, customerLng])
+  }, [driverLat, driverLng, customerLat, customerLng, routeCoords])
 
   if (driverLat == null && driverLng == null) {
     return <MapLoading />
@@ -198,7 +274,7 @@ export default function LiveDriverMap(props: LiveMapProps) {
 
   return (
     <div className="rounded-[2.5rem] overflow-hidden border border-border/50 shadow-2xl bg-card/50 backdrop-blur-3xl">
-      <EtaBanner driverLat={driverLat} driverLng={driverLng} customerLat={customerLat} customerLng={customerLng} lastUpdated={lastUpdated} />
+      <EtaBanner etaLabel={etaLabel} distanceKm={distanceKm} lastUpdated={lastUpdated} />
       <div ref={mapRef} className="w-full h-80" />
     </div>
   )

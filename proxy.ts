@@ -41,7 +41,7 @@ export async function proxy(request: NextRequest) {
         "default-src 'self'",
         `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""}`,
         "style-src 'self' 'unsafe-inline'",
-        "img-src 'self' blob: data: https://*.supabase.co",
+        "img-src 'self' blob: data: https://*.supabase.co https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://cdnjs.cloudflare.com",
         "font-src 'self'",
         "object-src 'none'",
         "base-uri 'self'",
