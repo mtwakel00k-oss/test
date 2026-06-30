@@ -26,6 +26,9 @@ const eslintConfig = defineConfig([
     "scripts/*.js",
     "scripts/*.mjs",
     "scripts/*.cjs",
+    // Generated Playwright output
+    "playwright-report/**",
+    "test-results/**",
   ]),
 ]);
 

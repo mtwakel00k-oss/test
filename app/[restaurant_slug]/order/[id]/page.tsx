@@ -114,10 +114,11 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
           return
         }
 
-        const o: Order = await res.json()
+        const data = await res.json()
+        const o: Order = data.order || data
 
         if (!o || !o.id) {
-          logger.warn(`[OrderTracking] Empty response body for order ${id}`)
+          logger.warn(`[OrderTracking] Empty response body for order ${id}`, { data: JSON.stringify(data) })
           setErrorMsg(t("order.notFound"))
           setErrorDetail("API returned 200 but response body was empty or missing id")
           setLoading(false)
