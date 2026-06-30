@@ -1,6 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest"
+import { describe, it, expect, vi } from "vitest"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
-import { NextResponse } from "next/server"
 
 vi.mock("@/lib/logger", () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },

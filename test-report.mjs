@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Generate TEST_REPORT.md from vitest + manual data
 import { execSync } from "child_process"
-import { existsSync, readFileSync, writeFileSync } from "fs"
+import { writeFileSync } from "fs"
 import { join } from "path"
 
 const CWD = process.cwd()
@@ -31,16 +31,6 @@ function runVitest() {
   }
 }
 
-function countTestsInDir(dir, pattern = /\.test\.[tj]sx?$/) {
-  const { execSync } = require("child_process")
-  try {
-    const out = execSync(`find ${dir} -name "*.test.*" -o -name "*.spec.*" 2>/dev/null || cmd /c "dir /s /b ${dir}\\*.test.* ${dir}\\*.spec.*"`, { encoding: "utf-8", cwd: CWD })
-    return out.split("\n").filter(Boolean).length
-  } catch {
-    return 0
-  }
-}
-
 function countE2eTests() {
   try {
     const out = execSync("cmd /c \"dir /s /b tests\\*.spec.ts 2>nul\"", { encoding: "utf-8", cwd: CWD })
@@ -53,7 +43,6 @@ const totalTests = vitestResult?.numTotalTests ?? 0
 const passedTests = vitestResult?.numPassedTests ?? 0
 const failedTests = vitestResult?.numFailedTests ?? 0
 
-const hasE2e = existsSync(join(CWD, "playwright.config.ts"))
 const e2eFiles = countE2eTests()
 
 const report = `# Test Report — ${new Date().toISOString().split("T")[0]}

@@ -77,7 +77,7 @@ export async function GET(req: NextRequest) {
       return []
     }
     async function fetchReadyAt(): Promise<{ id: string; ready_at: string | null }[]> {
-      const { data, error } = await sb.from("orders").select("id, ready_at").gte("created_at", since).limit(500)
+      const { data, error: _error } = await sb.from("orders").select("id, ready_at").gte("created_at", since).limit(500)
       if (data) return data
       return []
     }

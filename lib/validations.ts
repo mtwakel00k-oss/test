@@ -33,7 +33,7 @@ const orderItemSchema = z.object({
   product_name: z.string().min(1),
   quantity: z.number().int().positive(),
   unit_price: z.number().nonnegative(),
-  subtotal: z.number().nonnegative(),
+  subtotal: z.number().nonnegative().optional(),
   size: z.string().optional().nullable(),
   sauce: z.string().optional().nullable(),
 })

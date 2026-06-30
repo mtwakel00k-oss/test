@@ -20,7 +20,7 @@ describe("Database migrations", () => {
   })
 
   it("RLS policies SQL exists", () => {
-    const rlsPath = path.resolve("sql/rls-policies.sql")
+    const rlsPath = path.resolve("supabase/migrations/00004_tenant_scoped_rls.sql")
     if (fs.existsSync(rlsPath)) {
       const content = fs.readFileSync(rlsPath, "utf-8")
       expect(content).toContain("CREATE POLICY")
@@ -29,7 +29,7 @@ describe("Database migrations", () => {
   })
 
   it("tenant migration adds is_available column", () => {
-    const migPath = path.resolve("data/migration-v2.sql")
+    const migPath = path.resolve("supabase/migrations/00002_tenant_schema.sql")
     if (fs.existsSync(migPath)) {
       const content = fs.readFileSync(migPath, "utf-8")
       expect(content).toContain("is_available")
@@ -37,7 +37,7 @@ describe("Database migrations", () => {
   })
 
   it("migration adds order_type and order_number columns", () => {
-    const migPath = path.resolve("data/migration-v3.sql")
+    const migPath = path.resolve("supabase/migrations/00002_tenant_schema.sql")
     if (fs.existsSync(migPath)) {
       const content = fs.readFileSync(migPath, "utf-8")
       expect(content).toContain("order_type")

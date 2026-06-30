@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { describe, it, expect } from "vitest"
 import { render, screen } from "@testing-library/react"
 
@@ -59,7 +60,7 @@ describe("Accessibility", () => {
   it("focusable elements are in tab order", () => {
     render(
       <div>
-        <a href="/">Home</a>
+        <Link href="/">Home</Link>
         <button>Click</button>
         <input type="text" />
       </div>

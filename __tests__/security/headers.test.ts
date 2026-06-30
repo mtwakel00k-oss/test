@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest"
+import { describe, it, expect, vi } from "vitest"
 
 // Load proxy.ts to verify CSP headers are set
 vi.mock("@/lib/session-crypto", () => ({

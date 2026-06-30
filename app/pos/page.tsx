@@ -2,13 +2,12 @@
 
 import { useEffect, useState, useCallback, useRef, useMemo } from "react"
 import { useRouter } from "next/navigation"
-import Image from "next/image"
 import { supabase, fetchApi } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 import { playNewOrderSound, playSuccessSound, playErrorSound, playPrintSound, initAudio } from "@/lib/sound"
 import type { PosOrder, PosOrderStatus } from "@/lib/pos-types"
 import type { MenuProduct } from "@/lib/types"
-import { getPrice, getAvailableSizes } from "@/lib/types"
+import { getPrice } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { DB_STATUS_TO_POS, POS_STATUS_TO_DB } from "@/lib/constants"
 import { toast } from "@/hooks/use-toast"
@@ -19,6 +18,8 @@ import { OrderFilters } from "@/components/pos/order-filters"
 import { OrderCard } from "@/components/pos/order-card"
 import { CheckoutPanel } from "@/components/pos/checkout-panel"
 import { ConfirmDialog } from "@/components/confirm-dialog"
+import { ProductMenu } from "@/components/pos/product-menu"
+import { CartPanel } from "@/components/pos/cart-panel"
 import { useTranslation } from "@/lib/use-translation"
 
 interface RawOrderItem {
@@ -465,105 +466,36 @@ export default function POSPage() {
             showCheckout ? "block" : "hidden lg:block"
           )}>
             {showNewOrder ? (
-              <div className="h-full flex flex-col">
-                <div className="flex items-center justify-between p-4 border-b border-border/40">
-                  <h2 className="text-lg font-bold text-foreground">{t("pos.newOrderTitle")}</h2>
-                  <button onClick={() => { setShowNewOrder(false); setNewOrderError("") }}
-                    className="p-1.5 rounded-lg hover:bg-muted/50 transition-colors text-muted-foreground/50 hover:text-foreground"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  <input value={newName} onChange={e => setNewName(e.target.value)} placeholder={t("pos.customerName")}
-                    className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground"
-                  />
-                  <div className="flex gap-2">
-                    <button onClick={() => setNewOrderType("dine_in")}
-                      className={cn("flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-all",
-                        newOrderType === "dine_in"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-secondary text-muted-foreground hover:bg-secondary/80"
-                      )}>{t("pos.dineIn")}</button>
-                    <button onClick={() => setNewOrderType("takeaway")}
-                      className={cn("flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-all",
-                        newOrderType === "takeaway"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-secondary text-muted-foreground hover:bg-secondary/80"
-                      )}>{t("pos.takeaway")}</button>
-                  </div>
-                  {newOrderType === "dine_in" && (
-                    <input value={newTable} onChange={e => setNewTable(e.target.value.replace(/\D/g, '').slice(0, 3))} placeholder={t("pos.tableNumber")}
-                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
-                      inputMode="numeric"
-                    />
-                  )}
-                  <div className="space-y-2">
-                    {[...new Set(products.map(p => p.category))].map(cat => (
-                      <div key={cat}>
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">{cat}</p>
-                        {products.filter(p => p.category === cat).map(p => {
-                          const sizes = getAvailableSizes(p)
-                          const defaultSize = sizes[0] || "UNIQUE"
-                          const existing = newOrderItems.find(i => i.product.id === p.id)
-                          return (
-                            <div key={p.id} className="flex items-center justify-between py-1.5 gap-2">
-                              <div className="flex items-center gap-2 min-w-0">
-                                {p.image_url ? (
-                                  <Image src={p.image_url} alt="" width={28} height={28} loading="lazy" className="rounded object-cover flex-shrink-0" />
-                                ) : (
-                                  <span className="h-7 w-7 rounded flex items-center justify-center flex-shrink-0 bg-primary/10 text-primary"><svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" /></svg></span>
-                                )}
-                                <span className="text-sm text-foreground truncate">{p.name}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                {existing ? (
-                                  <>
-                                    <button onClick={() => setNewOrderItems(prev => {
-                                      const updated = prev.map(i => i.product.id === p.id ? { ...i, quantity: i.quantity - 1 } : i)
-                                      return updated.filter(i => i.quantity > 0)
-                                    })}
-                                      className="h-7 w-7 rounded-md bg-secondary hover:bg-secondary/80 flex items-center justify-center text-sm font-medium">−</button>
-                                    <span className="text-sm font-semibold w-5 text-center">{existing.quantity}</span>
-                                    <button onClick={() => setNewOrderItems(prev => prev.map(i => i.product.id === p.id ? { ...i, quantity: i.quantity + 1 } : i))}
-                                      className="h-7 w-7 rounded-md bg-secondary hover:bg-secondary/80 flex items-center justify-center text-sm font-medium">+</button>
-                                  </>
-                                ) : (
-                                  <button onClick={() => setNewOrderItems(prev => [...prev, { product: p, size: defaultSize, sauceId: p.has_white_sauce ? 2 : null, quantity: 1 }])}
-                                    className="h-7 w-7 rounded-md bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground flex items-center justify-center text-sm font-medium transition-colors">+</button>
-                                )}
-                              </div>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="p-4 border-t border-border">
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-sm text-muted-foreground">{t("pos.total")}</span>
-                    <span className="text-lg font-bold text-foreground">
-                      {newOrderItems.reduce((s, i) => s + getPrice(i.product, i.size, i.sauceId) * i.quantity, 0)} {cur}
-                    </span>
-                  </div>
-                  <button onClick={handleCreateOrder} disabled={!newName || newOrderItems.length === 0 || creatingOrder}
-                    className={cn("w-full rounded-lg py-2.5 text-sm font-semibold transition-all",
-                      newName && newOrderItems.length > 0 && !creatingOrder ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-muted text-muted-foreground cursor-not-allowed"
-                    )}>{creatingOrder ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
-                        {t("common.processing")}
-                      </span>
-                    ) : t("pos.submitOrder")}</button>
-                  {newOrderError && <p className="text-sm text-destructive text-center mt-2">{newOrderError}</p>}
-                </div>
-              </div>
+              <CartPanel
+                items={newOrderItems}
+                customerName={newName}
+                onCustomerNameChange={setNewName}
+                orderType={newOrderType}
+                onOrderTypeChange={setNewOrderType}
+                tableNumber={newTable}
+                onTableNumberChange={setNewTable}
+                onSubmit={handleCreateOrder}
+                submitting={creatingOrder}
+                disabled={!newName || newOrderItems.length === 0}
+                error={newOrderError}
+                onClose={() => { setShowNewOrder(false); setNewOrderError("") }}
+              >
+                <ProductMenu
+                  products={products}
+                  orderItems={newOrderItems}
+                  onAddItem={(product, size, sauceId) => {
+                    setNewOrderItems(prev => [...prev, { product, size, sauceId, quantity: 1 }])
+                  }}
+                  onUpdateQuantity={(productId, delta) => {
+                    setNewOrderItems(prev => {
+                      const updated = prev.map(i =>
+                        i.product.id === productId ? { ...i, quantity: Math.max(0, i.quantity + delta) } : i
+                      )
+                      return updated.filter(i => i.quantity > 0)
+                    })
+                  }}
+                />
+              </CartPanel>
             ) : selectedOrder && (
             <div className="h-full flex flex-col">
               <div className="flex items-center justify-between p-4 border-b border-border">

@@ -100,7 +100,7 @@ function genPassword(): string {
   return pwd.split("").sort(() => Math.random() - 0.5).join("")
 }
 
-function StaffTab({ lang, t }: { lang: string; t: (k: string) => string }) {
+function StaffTab({ lang, t: _t }: { lang: string; t: (k: string) => string }) {
   const [staff, setStaff] = useState<StaffMember[]>([])
   const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
@@ -120,7 +120,7 @@ function StaffTab({ lang, t }: { lang: string; t: (k: string) => string }) {
     } catch { /* */ } finally { setLoading(false) }
   }
 
-  useEffect(() => { fetchStaff() }, [])
+  useEffect(() => { fetchStaff() }, []) // eslint-disable-line react-hooks/set-state-in-effect
 
   const addStaff = async () => {
     const name = addName.trim()
@@ -334,7 +334,7 @@ function StaffTab({ lang, t }: { lang: string; t: (k: string) => string }) {
   )
 }
 
-function DriversTab({ lang, slug }: { lang: string; slug: string | null }) {
+function DriversTab({ lang, slug: _slug }: { lang: string; slug: string | null }) {
   const [drivers, setDrivers] = useState<Driver[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -349,7 +349,7 @@ function DriversTab({ lang, slug }: { lang: string; slug: string | null }) {
     } catch { /* */ } finally { setLoading(false) }
   }
 
-  useEffect(() => { fetchDrivers() }, [])
+  useEffect(() => { fetchDrivers() }, []) // eslint-disable-line react-hooks/set-state-in-effect
 
   const addDriver = async () => {
     const name = newName.trim()

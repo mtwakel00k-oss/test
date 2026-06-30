@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { describe, it, expect } from "vitest"
 import { render, screen } from "@testing-library/react"
 
@@ -7,7 +8,7 @@ describe("404 Page", () => {
       <div>
         <h1>404</h1>
         <p>الصفحة غير موجودة</p>
-        <a href="/">العودة للرئيسية</a>
+        <Link href="/">العودة للرئيسية</Link>
       </div>
     )
     expect(screen.getByText("404")).toBeDefined()

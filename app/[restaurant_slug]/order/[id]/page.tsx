@@ -212,7 +212,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
     if (!order || order.order_type !== "delivery") return
     if (!navigator.geolocation) return
 
-    let cancelled = false
+    const cancelled = false
     let serverSent = false
 
     const updateCoords = (lat: number, lng: number) => {
@@ -239,7 +239,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ restau
       },
       { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 },
     )
-  }, [order?.order_type, id])
+  }, [order, id])
 
   const getStage = (status: string, orderType: string): number => {
     if (orderType === "delivery") {

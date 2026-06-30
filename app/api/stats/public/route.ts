@@ -18,7 +18,7 @@ export async function GET() {
 
     const tenantCount = tenantsResult.status === "fulfilled" ? tenantsResult.value.count || 0 : 0
     const orderCount = ordersResult.status === "fulfilled" ? ordersResult.value.count || 0 : 0
-    const ratingCount = ratingsResult.status === "fulfilled" ? ratingsResult.value.count || 0 : 0
+    const _ratingCount = ratingsResult.status === "fulfilled" ? ratingsResult.value.count || 0 : 0
 
     return NextResponse.json({
       restaurants: Math.max(tenantCount, 200),

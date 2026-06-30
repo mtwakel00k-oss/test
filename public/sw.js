@@ -63,7 +63,7 @@ self.addEventListener("message", (e) => {
 })
 
 async function syncQueuedOrders() {
-  const keys = await caches.keys()
+  const _keys = await caches.keys()
   const apiCache = await caches.open(API_CACHE)
   const reqs = await apiCache.keys()
   for (const req of reqs) {

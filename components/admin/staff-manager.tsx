@@ -26,7 +26,7 @@ const STAFF_COLORS = [
 ]
 
 export function StaffManager() {
-  const { t, lang } = useTranslation()
+  const { lang } = useTranslation()
   const [staff, setStaff] = useState<StaffMember[]>([])
   const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
@@ -43,7 +43,7 @@ export function StaffManager() {
     } catch { /* ignore */ } finally { setLoading(false) }
   }
 
-  useEffect(() => { fetchStaff() }, [])
+  useEffect(() => { fetchStaff() }, []) // eslint-disable-line react-hooks/set-state-in-effect
 
   const addStaff = async () => {
     const name = addName.trim()
@@ -131,7 +131,7 @@ export function StaffManager() {
             </p>
           </div>
         ) : (
-          staff.map((member, idx) => (
+          staff.map((member, _idx) => (
             <div key={member.id}
               className={cn(
                 "flex items-center gap-4 p-4 rounded-2xl border transition-all group",

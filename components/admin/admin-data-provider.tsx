@@ -40,8 +40,8 @@ interface AdminDataProviderProps {
   onViewOrder: (id: string) => void
 }
 
-export function AdminDataProvider({ currency, fmtNum, onViewOrder }: AdminDataProviderProps) {
-  const { t, lang } = useTranslation()
+export function AdminDataProvider({ currency, fmtNum, onViewOrder: _onViewOrder }: AdminDataProviderProps) {
+  const { t, lang: _lang } = useTranslation()
 
   const [period, setPeriod] = useState<Period>("30d")
   const [loadingStats, setLoadingStats] = useState(true)
@@ -55,8 +55,8 @@ export function AdminDataProvider({ currency, fmtNum, onViewOrder }: AdminDataPr
   const [dailyRevenue, setDailyRevenue] = useState(0)
   const [driverStats, setDriverStats] = useState<DriverStat[]>([])
   const [cashierStats, setCashierStats] = useState<CashierStat[]>([])
-  const [sheetOrderId, setSheetOrderId] = useState<string | null>(null)
-  const [sheetOpen, setSheetOpen] = useState(false)
+  const [_sheetOrderId, _setSheetOrderId] = useState<string | null>(null)
+  const [_sheetOpen, _setSheetOpen] = useState(false)
 
   const PERIOD_LABELS: Record<Period, string> = {
     "7d": t("admin.week"), "30d": t("admin.month"), "6m": t("admin.sixMonths"), "12m": t("admin.year"),
@@ -104,7 +104,7 @@ export function AdminDataProvider({ currency, fmtNum, onViewOrder }: AdminDataPr
     return Math.round(((latestAov - prevAov) / prevAov) * 100)
   }, [salesData])
 
-  useEffect(() => { fetchStats().then(data => startTransition(() => setStatsFromResult(data))) }, [fetchStats])
+  useEffect(() => { fetchStats().then(data => startTransition(() => setStatsFromResult(data))) }, [fetchStats]) // eslint-disable-line react-hooks/set-state-in-effect
 
   useEffect(() => {
     const channel = supabase()

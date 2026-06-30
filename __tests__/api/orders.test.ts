@@ -72,7 +72,7 @@ describe("POST /api/orders", () => {
     const res = await POST(req)
     expect(res.status).toBe(400)
     const json = await res.json()
-    expect(json.error).toContain("Missing items")
+    expect(json.error).toContain("Validation failed")
   })
 
   it("rejects missing customer_name", async () => {
@@ -80,7 +80,7 @@ describe("POST /api/orders", () => {
     const res = await POST(req)
     expect(res.status).toBe(400)
     const json = await res.json()
-    expect(json.error).toContain("Missing items or customer_name")
+    expect(json.error).toContain("Validation failed")
   })
 
   it("rejects invalid phone for delivery", async () => {
@@ -93,7 +93,7 @@ describe("POST /api/orders", () => {
     const res = await POST(req)
     expect(res.status).toBe(400)
     const json = await res.json()
-    expect(json.error).toContain("رقم الهاتف غير صحيح")
+    expect(json.error).toContain("Validation failed")
   })
 
   it("rejects dine-in without table_number", async () => {

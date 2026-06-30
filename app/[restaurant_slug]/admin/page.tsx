@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, startTransition } from "react"
 import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
-import { DollarSign, TrendingUp, ShoppingBag, Star, CalendarClock, LogOut, ChartNoAxesColumn, Shield, DoorOpen, DoorClosed } from "lucide-react"
+import { LogOut, ChartNoAxesColumn, Shield, DoorOpen, DoorClosed } from "lucide-react"
 import { resetTenantClient, fetchApi } from "@/lib/fetch-api"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -56,13 +56,6 @@ const AdminDataProvider = dynamic(() => import("@/components/admin/admin-data-pr
   </div>,
 })
 
-interface ReviewItem {
-  id: string
-  rating: number
-  text: string | null
-  timestamp: Date | string
-}
-
 export default function AdminPage() {
   const { t, lang, dir } = useTranslation()
   const router = useRouter()
@@ -74,7 +67,7 @@ export default function AdminPage() {
   const [adminTab, setAdminTab] = useState<string>("overview")
   const [isOpen, setIsOpen] = useState(true)
   const [togglingOpen, setTogglingOpen] = useState(false)
-  const [planType, setPlanType] = useState<string | null>(null)
+  const [_planType, setPlanType] = useState<string | null>(null)
 
   useEffect(() => {
     fetchApi("/api/me").then(r => r.ok ? r.json() : null).then(data => {
@@ -99,7 +92,6 @@ export default function AdminPage() {
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const isBasic = planType === "starter"
   const toggleOpen = useCallback(async () => {
     const next = !isOpen
     setTogglingOpen(true)
