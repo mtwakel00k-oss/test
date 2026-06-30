@@ -243,6 +243,10 @@ export async function POST(req: NextRequest) {
     const STATUS_FALLBACKS = ["preparing"] // if status check constraint rejects "pending"
     const ORDER_TYPE_FALLBACKS: Record<string, string> = { delivery: "takeaway" } // if order_type check constraint rejects value
 
+    // TODO: Simplify to direct insert once all tenants have applied
+    // supabase/migrations/00002_tenant_schema.sql (adds payment_status,
+    // order_type, order_number columns). The retry/column-drop logic
+    // below exists only to paper over schema drift.
     async function tryInsert(row: Record<string, unknown>): Promise<Record<string, unknown> | null> {
       for (let attempt = 0; attempt <= OPTIONAL_COLS.length + STATUS_FALLBACKS.length + Object.keys(ORDER_TYPE_FALLBACKS).length; attempt++) {
         const { data, error } = await (sb.from("orders")).insert(row).select().maybeSingle()

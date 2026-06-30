@@ -1,9 +1,20 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient, type SupabaseClient } from "@supabase/supabase-js"
+import { createClient } from "@supabase/supabase-js"
 import { supabaseForRequest, parseSession, getTenantConfig } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
+import { logAudit } from "@/lib/audit"
 import { env } from "@/lib/env"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
+
+const CLEAR_CONFIRMATION = "محو جميع البيانات"
+const RLS_HELP =
+  "RLS blocks DELETE. Fix by running this SQL in Supabase Dashboard SQL Editor:\n\n" +
+  "DROP POLICY IF EXISTS \"orders_delete_authenticated\" ON orders;\n" +
+  "CREATE POLICY \"orders_delete_authenticated\" ON orders FOR DELETE USING (auth.role() = 'authenticated');\n\n" +
+  "DROP POLICY IF EXISTS \"order_items_delete_authenticated\" ON order_items;\n" +
+  "CREATE POLICY \"order_items_delete_authenticated\" ON order_items FOR DELETE USING (auth.role() = 'authenticated');\n\n" +
+  "DROP POLICY IF EXISTS \"ratings_delete_authenticated\" ON ratings;\n" +
+  "CREATE POLICY \"ratings_delete_authenticated\" ON ratings FOR DELETE USING (auth.role() = 'authenticated');"
 
 function getMasterServiceClient() {
   return createClient(
@@ -26,26 +37,6 @@ async function getTenantServiceClient(slug: string) {
   return isSameProject ? createClient(config.supabase_url, env.SUPABASE_SERVICE_ROLE_KEY!) : null
 }
 
-const RLS_HELP =
-  "RLS блокирует удаление. Чтобы исправить, запусти этот SQL в Supabase Dashboard SQL Editor:\n\n" +
-  "DROP POLICY IF EXISTS \"orders_delete_admin\" ON orders;\n" +
-  "CREATE POLICY \"orders_delete_admin\" ON orders FOR DELETE USING (true);\n\n" +
-  "DROP POLICY IF EXISTS \"order_items_delete_admin\" ON order_items;\n" +
-  "CREATE POLICY \"order_items_delete_admin\" ON order_items FOR DELETE USING (true);\n\n" +
-  "DROP POLICY IF EXISTS \"ratings_delete_admin\" ON ratings;\n" +
-  "CREATE POLICY \"ratings_delete_admin\" ON ratings FOR DELETE USING (true);"
-
-async function clearAll(sb: SupabaseClient) {
-  const { error: ie } = await sb.from("order_items").delete().not("order_id", "is", null)
-  if (ie) throw new Error(ie.message)
-
-  const { error: oe } = await sb.from("orders").delete().not("id", "is", null)
-  if (oe) throw new Error(oe.message)
-
-  const { error: re } = await sb.from("ratings").delete().not("id", "is", null)
-  if (re) throw new Error(re.message)
-}
-
 export async function POST(req: NextRequest) {
   try {
     const rl = await checkRateLimit(`admin:clear-data:${getClientIp(req)}`, { max: 5, windowMs: 300000 })
@@ -56,30 +47,54 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const body = await req.json()
+    if (body.confirmation !== CLEAR_CONFIRMATION) {
+      return NextResponse.json({ error: "يجب كتابة تأكيد مسح البيانات للمتابعة" }, { status: 400 })
+    }
+
+    const slug = session.slug || req.headers.get("x-tenant-slug") || ""
+
     // Try service client first (bypasses RLS)
-    const svcSlug = session.slug || req.headers.get("x-tenant-slug") || ""
-    if (svcSlug) {
-      const svc = await getTenantServiceClient(svcSlug)
+    if (slug) {
+      const svc = await getTenantServiceClient(slug)
       if (svc) {
-        await clearAll(svc)
-        logger.info("All data cleared via service client (slug=" + svcSlug + ")")
+        const { error: ie } = await svc.from("order_items").delete().not("order_id", "is", null)
+        if (ie) throw new Error(ie.message)
+
+        const { error: oe } = await svc.from("orders").delete().not("id", "is", null)
+        if (oe) throw new Error(oe.message)
+
+        const { error: re } = await svc.from("ratings").delete().not("id", "is", null)
+        if (re) throw new Error(re.message)
+
+        logger.info("All data cleared via service client (slug=" + slug + ")")
         return NextResponse.json({ success: true })
       }
     }
 
+    // Fallback: log audit before deleting via anon client
+
     // Fallback to anon client (may be blocked by RLS)
     const sb = await supabaseForRequest(req)
-    try {
-      await clearAll(sb)
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e)
-      if (msg.toLowerCase().includes("policy") || msg.includes("permission denied")) {
-        return NextResponse.json({ error: RLS_HELP }, { status: 403 })
+    const tables = ["order_items", "orders", "ratings"] as const
+    for (const table of tables) {
+      const { error } = table === "order_items"
+        ? await sb.from("order_items").delete().not("order_id", "is", null)
+        : table === "orders"
+          ? await sb.from("orders").delete().not("id", "is", null)
+          : await sb.from("ratings").delete().not("id", "is", null)
+      if (error) {
+        const msg = error.message.toLowerCase()
+        if (msg.includes("policy") || msg.includes("permission denied")) {
+          return NextResponse.json({ error: RLS_HELP }, { status: 403 })
+        }
+        throw new Error(error.message)
       }
-      throw e
     }
 
-    logger.info("All data cleared (role=" + session.role + ")")
+    logAudit(sb, req, { table_name: "orders", record_id: slug || "all", operation: "DELETE", new_data: { action: "clear_all_data" } })
+
+    logger.info("All data cleared via anon client (role=" + session.role + ")")
     return NextResponse.json({ success: true })
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)

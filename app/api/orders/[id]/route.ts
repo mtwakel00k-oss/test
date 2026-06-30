@@ -52,6 +52,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       const rl = await checkRateLimit(`order-tracking:${getClientIp(req)}`, { max: 30, windowMs: 60_000 })
       if (!rl.allowed) return rateLimitResponse(rl.resetAt)
 
+      // Verification is required on EVERY path — direct-by-slug AND cross-tenant scan
+      if (!verifyEmail && !verifyPhone) {
+        logger.warn(`[orders GET] Public: missing verification for order ${id}`)
+        return NextResponse.json({ error: "Verification required (email or phone)" }, { status: 400 })
+      }
+
       logger.info(`[orders GET] Public lookup for order ${id}`, { hasEmail: !!verifyEmail, hasPhone: !!verifyPhone })
 
       // 1. Try standard lookup first (works if x-tenant-slug header is present)
@@ -84,12 +90,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         logger.warn(`[orders GET] Public: direct lookup failed`, { error: directError.message })
       }
 
-      // 2. No slug known → scan all active tenants ONLY if email/phone provided
-      if (!verifyEmail && !verifyPhone) {
-        logger.warn(`[orders GET] Public: missing verification for cross-tenant lookup`)
-        return NextResponse.json({ error: "Verification required (email or phone)" }, { status: 400 })
-      }
-
+      // 2. No slug known → scan all active tenants
       logger.info(`[orders GET] Public: scanning all tenants for order ${id}`)
       const found = await findOrderAcrossTenants(id)
       if (found) {
@@ -211,6 +212,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return NextResponse.json({ error: "Invalid status" }, { status: 400 })
     }
 
+    // Role checks
+    if (payment_status !== undefined && role !== "admin" && role !== "owner" && role !== "cashier") {
+      return NextResponse.json({ error: "Only admin, owner, or cashier can change payment status" }, { status: 403 })
+    }
+    if (driver_id !== undefined && role !== "admin" && role !== "owner") {
+      return NextResponse.json({ error: "Only admin or owner can assign drivers" }, { status: 403 })
+    }
+
     // When assigning a driver, verify they are not already busy
     if (driver_id) {
       const { data: busyOrder } = await sb
@@ -236,6 +245,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (payment_status) updateData.payment_status = payment_status
     if (driver_id !== undefined) updateData.driver_id = driver_id
 
+    // TODO: Simplify to direct update once all tenants have applied
+    // supabase/migrations/00002_tenant_schema.sql. The retry/column-drop
+    // logic below exists only to paper over schema drift.
     async function tryUpdate(data: Record<string, unknown>): Promise<Record<string, unknown> | null> {
       for (let attempt = 0; attempt < 6; attempt++) {
         const { data: result, error } = await (sb.from("orders"))
