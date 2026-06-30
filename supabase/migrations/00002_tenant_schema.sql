@@ -1,18 +1,8 @@
-import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
-import { getTenantConfig, parseSession } from "@/lib/tenant"
-import { logger } from "@/lib/logger"
-import { env } from "@/lib/env"
-import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
-
-const TENANT_MIGRATION = `
 -- ============================================================
---  Tenant Migration V3 — Self-healing schema (idempotent)
---  Safe to re-run; all statements use IF NOT EXISTS / DROP IF
+--  Migration 00002: Tenant database schema
+--  Target: Each tenant's Supabase database
+--  Safe to re-run (all statements use IF NOT EXISTS / DROP IF EXISTS)
 -- ============================================================
-
--- 0) exec_sql helper — enables programmatic migration for future runs
-CREATE OR REPLACE FUNCTION exec_sql(query_text TEXT) RETURNS VOID AS $$ BEGIN EXECUTE query_text; END; $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 1) Missing columns on orders
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status TEXT NOT NULL DEFAULT 'unpaid';
@@ -93,13 +83,13 @@ DROP POLICY IF EXISTS "produits_public_select" ON produits; CREATE POLICY "produ
 DROP POLICY IF EXISTS "prix_admin_all" ON prix; CREATE POLICY "prix_admin_all" ON prix FOR ALL USING (true) WITH CHECK (true);
 DROP POLICY IF EXISTS "tailles_admin_all" ON tailles; CREATE POLICY "tailles_admin_all" ON tailles FOR ALL USING (true) WITH CHECK (true);
 
--- 9) V9: Driver live location tracking
+-- 9) Driver live location tracking
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS driver_lat DOUBLE PRECISION;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS driver_lng DOUBLE PRECISION;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS driver_location_updated_at TIMESTAMPTZ;
 CREATE INDEX IF NOT EXISTS idx_orders_driver_location ON orders(driver_id, status) WHERE status = 'out_for_delivery';
 
--- 10) V10: Public order tracking RLS
+-- 10) Public order tracking RLS
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "orders_select_public" ON orders;
@@ -107,7 +97,7 @@ CREATE POLICY "orders_select_public" ON orders FOR SELECT USING (true);
 DROP POLICY IF EXISTS "order_items_select_public" ON order_items;
 CREATE POLICY "order_items_select_public" ON order_items FOR SELECT USING (true);
 
--- 11) V11: Delivery men table
+-- 11) Delivery men table
 CREATE TABLE IF NOT EXISTS delivery_men (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_slug     TEXT NOT NULL,
@@ -198,187 +188,3 @@ DO $$ BEGIN
     ALTER PUBLICATION supabase_realtime ADD TABLE audit_log;
   END IF;
 END $$;
-`
-
-const MASTER_SQL = `
--- Master project migration — self-healing
-
--- 0) exec_sql helper — needed for programmatic migration
-CREATE OR REPLACE FUNCTION exec_sql(query_text TEXT) RETURNS VOID AS $$ BEGIN EXECUTE query_text; END; $$ LANGUAGE plpgsql SECURITY DEFINER;
-
-ALTER TABLE produits ADD COLUMN IF NOT EXISTS image_url TEXT;
-ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_type TEXT NOT NULL DEFAULT 'dine_in';
-ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_number INT;
-ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_status_check;
-ALTER TABLE orders ADD CONSTRAINT orders_status_check CHECK (status IN ('pending','preparing','ready','out_for_delivery','completed','cancelled'));
-ALTER TABLE ratings ADD COLUMN IF NOT EXISTS order_id UUID;
-ALTER TABLE categories ADD COLUMN IF NOT EXISTS description TEXT;
-DROP POLICY IF EXISTS "public_select_categories" ON categories;
-CREATE POLICY "public_select_categories" ON categories FOR SELECT USING (true);
-
--- V3: Cron job support (service key for external tenants)
-ALTER TABLE tenants ADD COLUMN IF NOT EXISTS supabase_service_key TEXT;
-ALTER TABLE tenants ADD COLUMN IF NOT EXISTS is_open BOOLEAN DEFAULT TRUE;
-ALTER TABLE tenants ADD COLUMN IF NOT EXISTS brand_color TEXT;
-ALTER TABLE tenants ADD COLUMN IF NOT EXISTS brand_text_color TEXT;
--- Run this to populate your own tenant's service key:
--- UPDATE tenants SET supabase_service_key = '<your_tenant_svc_key>' WHERE supabase_url = '<tenant_supabase_url>';
-`
-
-export async function GET(req: NextRequest) {
-  const url = new URL(req.url)
-  const secret = url.searchParams.get("secret")
-  const session = parseSession(req.headers.get("cookie") || "")
-  if (process.env.NODE_ENV === "production" && secret !== env.CRON_SECRET && session.role !== "owner" && session.role !== "admin") {
-    return NextResponse.json({ error: "Not available in production without valid secret" }, { status: 403 })
-  }
-
-  if (!secret && session.role !== "admin" && session.role !== "owner") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-
-  const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY
-  const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL
-  const results: { step: string; status: string; detail?: string }[] = []
-  const slug = url.searchParams.get("slug") || ""
-
-  if (slug) {
-    const tenant = await getTenantConfig(slug)
-    if (!tenant) {
-      return NextResponse.json({ error: "Tenant not found" }, { status: 404 })
-    }
-    results.push({
-      step: `Tenant "${slug}" migration`,
-      status: "manual",
-      detail: `Run this SQL in your tenant Supabase Dashboard (${tenant.supabase_url}):\n\n${TENANT_MIGRATION}`,
-    })
-    return NextResponse.json({ results })
-  }
-
-  // 1) Storage bucket
-  if (serviceKey && supabaseUrl) {
-    const h = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, "Content-Type": "application/json" }
-    try {
-      const r = await fetch(`${supabaseUrl}/storage/v1/bucket`, { method: "POST", headers: h, body: JSON.stringify({ id: "product-images", name: "product-images", public: true, file_size_limit: 5242880, allowed_mime_types: ["image/png","image/jpeg","image/webp","image/gif"] }) })
-      results.push({ step: "Storage bucket", status: r.ok || r.status === 409 ? "done" : "error", detail: r.ok || r.status === 409 ? undefined : await r.text() })
-    } catch (e) { results.push({ step: "Storage bucket", status: "error", detail: e instanceof Error ? e.message : String(e) }) }
-    // FIXED: tailles seeding removed — tenant table, already in TENANT_MIGRATION
-  }
-
-  results.push({
-    step: "Master SQL migration",
-    status: "manual",
-    detail: `Run this SQL in your master Supabase Dashboard:\n\n${MASTER_SQL}`,
-  })
-
-  // If slug is provided, also show tenant migration
-  results.push({
-    step: "Tenant migration (all tenants)",
-    status: "info",
-    detail: `To fix missing is_available on tenant databases, call GET /api/run-sql?slug=<tenant_slug>`,
-  })
-
-  return NextResponse.json({ results })
-}
-
-export async function POST(req: NextRequest) {
-  const url = new URL(req.url)
-  const secret = url.searchParams.get("secret")
-  const runSession = parseSession(req.headers.get("cookie") || "")
-  if (process.env.NODE_ENV === "production" && secret !== env.CRON_SECRET && runSession.role !== "owner" && runSession.role !== "admin") {
-    return NextResponse.json({ error: "Not available in production without valid secret" }, { status: 403 })
-  }
-
-  const rl = await checkRateLimit(`run-sql:${getClientIp(req)}`, { max: 10, windowMs: 60000 })
-  if (!rl.allowed) return rateLimitResponse(rl.resetAt)
-
-  if (!secret && (runSession.role !== "owner" || runSession.slug)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-  }
-  const body = await req.json().catch(() => ({}))
-  const { slug } = body
-
-  if (!slug) {
-    return NextResponse.json({ error: "Missing slug" }, { status: 400 })
-  }
-
-  // Special slug "__master__" runs MASTER_SQL on the master project
-  if (slug === "__master__") {
-    const masterUrl = env.NEXT_PUBLIC_SUPABASE_URL
-    const masterKey = env.SUPABASE_SERVICE_ROLE_KEY
-    if (!masterUrl || !masterKey) {
-      return NextResponse.json({ error: "Master DB not configured" }, { status: 500 })
-    }
-    try {
-      const masterSvc = createClient(masterUrl, masterKey)
-      const { error } = await masterSvc.rpc("exec_sql", { query_text: MASTER_SQL })
-      if (error) {
-        logger.error("Master migration exec_sql failed", error)
-        return NextResponse.json({
-          error: "exec_sql RPC not available on master",
-          detail: `Run manually in master Supabase Dashboard SQL editor:\n\n${MASTER_SQL}`,
-        }, { status: 400 })
-      }
-      return NextResponse.json({ success: true, slug: "__master__" })
-    } catch {
-      return NextResponse.json({
-        error: "Could not execute SQL on master",
-        detail: `Run manually in master Supabase Dashboard SQL editor:\n\n${MASTER_SQL}`,
-      }, { status: 500 })
-    }
-  }
-
-  const tenant = await getTenantConfig(slug)
-  if (!tenant) {
-    return NextResponse.json({ error: "Tenant not found" }, { status: 404 })
-  }
-
-  const masterUrl = env.NEXT_PUBLIC_SUPABASE_URL!
-  const masterKey = env.SUPABASE_SERVICE_ROLE_KEY
-
-  // Debug: try to extract what keys are available and what URL is being used
-  const debugInfo: Record<string, unknown> = {
-    tenantUrl: tenant.supabase_url,
-    masterUrl,
-    hasMasterKey: !!masterKey,
-  }
-
-  // First pass: try master service key directly (works for tenants sharing master project)
-  if (masterKey) {
-    const svc = createClient(tenant.supabase_url, masterKey)
-    const { error: e1 } = await svc.rpc("exec_sql", { query_text: "SELECT 1" })
-    debugInfo.pass1Error = e1?.message || null
-    debugInfo.pass1Hint = e1?.hint || null
-    if (!e1) {
-      // exec_sql works, now run the actual migration
-      const { error: eMigrate } = await svc.rpc("exec_sql", { query_text: TENANT_MIGRATION })
-      debugInfo.migrateHint = eMigrate?.message || null
-      if (!eMigrate) return NextResponse.json({ success: true, slug })
-    }
-  }
-
-  // Second pass: look up tenant's own service key (separate-project tenants)
-  const masterSb = createClient(masterUrl, masterKey || env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-  const { data: tenantRow } = await masterSb.from("tenants").select("supabase_service_key").eq("slug", slug).maybeSingle()
-  const tenantServiceKey = tenantRow?.supabase_service_key || masterKey
-  debugInfo.hasStoredKey = !!tenantRow?.supabase_service_key
-  debugInfo.hasTenantServiceKey = !!tenantServiceKey
-  if (tenantServiceKey) {
-    const svc = createClient(tenant.supabase_url, tenantServiceKey)
-    const { error: e2 } = await svc.rpc("exec_sql", { query_text: "SELECT 1" })
-    debugInfo.pass2Error = e2?.message || null
-    debugInfo.pass2Hint = e2?.hint || null
-    if (!e2) {
-      const { error: eMigrate } = await svc.rpc("exec_sql", { query_text: TENANT_MIGRATION })
-      debugInfo.migrateHint2 = eMigrate?.message || null
-      if (!eMigrate) return NextResponse.json({ success: true, slug })
-    }
-  }
-
-  // If both passes failed, return debug info + manual instructions
-  return NextResponse.json({
-    error: "exec_sql RPC not available on tenant",
-    debug: debugInfo,
-    detail: `Run manually in tenant Supabase Dashboard SQL editor:\n\n${TENANT_MIGRATION}`,
-  }, { status: 400 })
-}

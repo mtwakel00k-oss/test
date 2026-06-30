@@ -8,7 +8,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 The tenant Supabase DB (`zordvqqjnlmxgtbkrspp.supabase.co`) is **missing columns**: `is_available` on `produits`, `payment_status`/`order_type`/`order_number` on `orders`, `order_id` on `ratings`. The tenant migrations were never fully applied.
 - `GET /api/products` auto-detects missing `is_available` and defaults to `true` for all products.
 - Toggle availability, payment status, order type in admin UI will appear to work but won't persist until migration is run.
-- To apply: run the SQL from `GET /api/run-sql?slug=burger-house` in the tenant's Supabase Dashboard SQL editor.
+- To apply: use `supabase db push` from the project root, or run the SQL from `supabase/migrations/00002_tenant_schema.sql` in the tenant's Supabase Dashboard SQL editor.
 
 ## Session Security (Phase 3)
 Session cookie stores only `{email, role, slug}` — **no DB credentials**.
@@ -35,7 +35,7 @@ Dashboard fetched via `GET /api/admin/stats?period=7d|30d|6m|12m` or `?mode=root
 - `sql/rls-policies.sql`: RLS policies for all tenant tables (produits, categories, orders, order_items, ratings).
 - `data/migration-v2.sql`: tenant migration v2 (adds `is_available`, `image_url`, `payment_status`, recreates `v_products_flat` view, adds RLS policies).
 - `data/migration-v3.sql`: self-healing migration (also adds `order_type`, `order_number`, `order_id` on ratings, missing columns on categories).
-- To apply tenant migration: run SQL from `GET /api/run-sql?slug=burger-house` in the tenant Supabase Dashboard.
+- To apply tenant migration: run the SQL from `supabase/migrations/00002_tenant_schema.sql` in the tenant Supabase Dashboard.
 
 ## Root Admin
 - Created via `POST /api/auth/setup-root` (default: `root@root.app` / `RootAdmin@123`).
@@ -119,10 +119,10 @@ Eliminate invisible text in light/dark mode by replacing hardcoded `text-white`/
 ## Session Progress (Jun 19) — Code Audit Fixes
 
 ### Goal
-Address all issues from the code audit report (`75/100`): secure `/api/run-sql`, fix hydration error #418, update docs, clean test files, apply tenant migrations.
+Address all issues from the code audit report (`75/100`): remove `/api/run-sql` backdoor, fix hydration error #418, update docs, clean test files, apply tenant migrations.
 
 ### Done
-1. **`/api/run-sql` secured** — Now accepts `?secret=CRON_SECRET` in production. Falls back to admin/owner session check for dev. Rate-limited (10 req/min). Blocked entirely without valid secret in prod.
+1. **`/api/run-sql` removed** — The SQL-execution HTTP backdoor has been deleted. All migrations live in `supabase/migrations/` and must be applied via `supabase db push` or the Supabase Dashboard.
 2. **Hydration error #418 fixed** — `LangProvider` migrated to `useSyncExternalStore` from `useState`+`useEffect`. Server-rendered value matches initial render; client subscribes to cookie changes without hydration mismatch.
 3. **Test files cleaned** — 8 `test-*.js` files moved from project root to `scripts/`.
 4. **AGENTS.md rate-limit doc corrected** — Now accurately describes "Upstash Redis (primary) + Supabase `rate_limits` table (fallback)" instead of "in-memory sliding window".

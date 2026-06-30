@@ -57,7 +57,7 @@ app/
 │   ├── delivery/               # manage/[id], collect
 │   ├── upload/                 # Image upload
 │   ├── cron/cleanup/           # Daily cleanup job
-│   └── ...                     # me, contact, run-sql, receipt, etc.
+│   └── ...                     # me, contact, receipt, etc.
 ├── [restaurant_slug]/          # Tenant-scoped routes
 │   ├── login/                  # Tenant login
 │   ├── admin/                  # Tenant dashboard

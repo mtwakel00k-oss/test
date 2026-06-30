@@ -122,7 +122,7 @@ Copy `.env.local` and ensure it contains:
 
 ### 3. Database Setup
 1. Master project: run `data/migration-tenant.sql` to create `tenants` table
-2. For each tenant: run the SQL output from `GET /api/run-sql?slug=<tenant_slug>` in their Supabase Dashboard SQL editor
+2. For each tenant: run the SQL from `supabase/migrations/00002_tenant_schema.sql` in their Supabase Dashboard SQL editor
 3. Enable Realtime on `orders` table in each tenant's Supabase Dashboard → Database → Replication
 
 ### 4. Install & Run
@@ -169,7 +169,7 @@ Open `http://localhost:3000/login`, select your role tab, and enter credentials.
 │   ├── admin/                  # Root admin (cross-tenant)
 │   ├── delivery/manage/[id]/   # Driver delivery management
 │   ├── login/                  # Login page
-│   └── api/                    # API routes (auth, products, orders, categories, ratings, admin, tenant, qr, upload, cron, run-sql, driver)
+│   └── api/                    # API routes (auth, products, orders, categories, ratings, admin, tenant, qr, upload, cron, driver)
 ├── components/
 │   ├── pos/                    # POS components
 │   ├── admin/                  # Admin components
@@ -198,7 +198,7 @@ Open `http://localhost:3000/login`, select your role tab, and enter credentials.
 | `migration-v13-audit.sql` | audit_log table + RLS |
 | `migration-v14-rate-limit.sql` | rate_limits table |
 
-To apply: run the combined SQL from `GET /api/run-sql?slug=<tenant_slug>` in each tenant's Supabase Dashboard SQL editor.
+To apply: run the consolidated SQL from `supabase/migrations/00002_tenant_schema.sql` in each tenant's Supabase Dashboard SQL editor.
 
 ## Tests
 ```bash
