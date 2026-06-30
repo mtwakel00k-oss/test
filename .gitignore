@@ -66,7 +66,20 @@ debug-*.png
 *-final-prod.png
 *-final.png
 snapshot*.txt
+menu-snapshot*.txt
+menu-screenshot*.png
+task-manager*.png
 .env.production
 .env.preview
+env.vercel
 trace*.json*
 *.json.gz
+
+# Debug/generated artifacts
+gh_out.txt
+perf-report.json
+
+# Third-party tooling
+taste-skill/
+
+

@@ -1,0 +1,23 @@
+#!/bin/sh
+# Pre-commit hook: block commits containing potential secrets
+# Detects hardcoded API keys, tokens, and credential patterns
+
+SECRET_PATTERNS='AAEP|sk_live_|sk_test_|rk_live_|rk_test_|SUPABASE_SERVICE_ROLE_KEY=.+'${AWS_ACCESS_KEY_ID:-}'.+'
+
+# Scan staged files for secrets
+STAGED=$(git diff --cached --diff-filter=ACMRT --name-only | grep -E '\.(ts|tsx|js|jsx|json|yml|yaml|toml|env)$' || true)
+
+if [ -n "$STAGED" ]; then
+  # Check for Telegram bot tokens
+  if git diff --cached -- "$STAGED" | grep -qE '(const|let|var)\s+\w*(TOKEN|SECRET|KEY|PASSWORD)\s*=\s*["'\'']{1}(AAEP|sk_live|eyJhbGci|sb_secret|sb_publishable)'; then
+    echo "ERROR: Detected potential hardcoded credential in staged files."
+    echo "Move secrets to .env.local or environment variables instead."
+    exit 1
+  fi
+
+  # Check for long base64-looking strings that might be API keys
+  if git diff --cached -- "$STAGED" | grep -qE '["'\''](eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}|sb_secret_|sb_publishable_|AAEP[A-Za-z0-9_-]{20,})["'\'']'; then
+    echo "ERROR: Detected potential JWT or API key in staged files."
+    exit 1
+  fi
+fi
