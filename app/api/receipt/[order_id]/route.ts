@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabaseForRequest, getTenantConfig, parseSession } from "@/lib/tenant"
+import { supabaseForRequestAdmin, getTenantConfig, parseSession } from "@/lib/tenant"
 import { requireAdmin } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
 
@@ -88,7 +88,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ orde
     const paidParam = searchParams.get("paid")
     const changeParam = searchParams.get("change")
 
-    const sb = await supabaseForRequest(req)
+    const sb = await supabaseForRequestAdmin(req)
 
     const { data: order, error } = await sb
       .from("orders")

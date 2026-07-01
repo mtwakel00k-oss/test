@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabaseForRequest, parseSession } from "@/lib/tenant"
+import { supabaseForRequestAdmin, parseSession } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
@@ -20,7 +20,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return NextResponse.json({ error: "lat and lng must be numbers" }, { status: 400 })
     }
 
-    const sb = await supabaseForRequest(req)
+    const sb = await supabaseForRequestAdmin(req)
     const { error } = await sb.from("orders").update({ delivery_lat: lat, delivery_lng: lng }).eq("id", id)
 
     if (error) {

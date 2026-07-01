@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { supabaseForRequest, parseSession, getTenantConfig } from "@/lib/tenant"
+import { supabaseForRequestAdmin, parseSession, getTenantConfig } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 import { logAudit } from "@/lib/audit"
 import { env } from "@/lib/env"
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
     // Fallback: log audit before deleting via anon client
 
     // Fallback to anon client (may be blocked by RLS)
-    const sb = await supabaseForRequest(req)
+    const sb = await supabaseForRequestAdmin(req)
     const tables = ["order_items", "orders", "ratings"] as const
     for (const table of tables) {
       const { error } = table === "order_items"

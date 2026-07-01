@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabaseForRequest, isTenantMismatch, parseSession } from "@/lib/tenant"
+import { supabaseForRequestAdmin, isTenantMismatch, parseSession } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 import { getMemoryAuditLog } from "@/lib/audit"
 import { requirePremiumTier } from "@/lib/require-premium"
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
     const tierCheck = await requirePremiumTier(slug)
     if (tierCheck) return tierCheck
 
-    const sb = await supabaseForRequest(req)
+    const sb = await supabaseForRequestAdmin(req)
 
     let query = sb.from("audit_log")
       .select("*", { count: "exact" })

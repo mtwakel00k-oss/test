@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { supabaseForRequest, parseSession, isTenantMismatch } from "@/lib/tenant"
+import { supabaseForRequestAdmin, parseSession, isTenantMismatch } from "@/lib/tenant"
 import { requirePremiumTier } from "@/lib/require-premium"
 import { logger } from "@/lib/logger"
 import { env } from "@/lib/env"
@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
     const prevSince = new Date(Date.now() - days * 2 * 86400000).toISOString()
     const prevEnd = since
 
-    const sb = await supabaseForRequest(req)
+    const sb = await supabaseForRequestAdmin(req)
 
     // ═══ query orders ── with column-fallback if cashier_id doesn't exist ═══
     async function fetchOrders(): Promise<Record<string, unknown>[]> {

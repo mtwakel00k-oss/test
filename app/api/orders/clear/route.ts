@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabaseForRequest, isTenantMismatch, parseSession } from "@/lib/tenant"
+import { supabaseForRequestAdmin, isTenantMismatch, parseSession } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
@@ -12,7 +12,7 @@ export async function DELETE(req: NextRequest) {
     if (session.role !== "admin" && session.role !== "owner") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
     }
-    const sb = await supabaseForRequest(req)
+    const sb = await supabaseForRequestAdmin(req)
 
     const { error: ie } = await (sb.from("order_items")).delete().not("order_id", "is", null)
     if (ie) throw new Error(ie.message || JSON.stringify(ie))

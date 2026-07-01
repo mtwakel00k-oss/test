@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { supabaseForRequest, isTenantMismatch, parseSession, getTenantConfig } from "@/lib/tenant"
+import { supabaseForRequestAdmin, isTenantMismatch, parseSession, getTenantConfig } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 import { logAudit } from "@/lib/audit"
 import { env } from "@/lib/env"
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     const { product_ids, action } = parsed.data
     const tenantSlug = session.slug || ""
 
-    const sb = await supabaseForRequest(req)
+    const sb = await supabaseForRequestAdmin(req)
     const svc = (await getTenantServiceClient(tenantSlug)) || sb
     const errors: string[] = []
     let affected = 0

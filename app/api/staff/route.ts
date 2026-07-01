@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { supabaseForRequest, parseSession } from "@/lib/tenant"
+import { supabaseForRequestAdmin, parseSession } from "@/lib/tenant"
 import { requireAdmin, resolveTenantSlug, isErrorResponse } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
 import { env } from "@/lib/env"
@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
 
     // 1) Tenant DB's restaurant_staff
     try {
-      const sb = await supabaseForRequest(req)
+      const sb = await supabaseForRequestAdmin(req)
       const { data } = await sb.from("restaurant_staff").select("*").order("name")
       if (Array.isArray(data)) {
         for (const row of data as Record<string, unknown>[]) {
@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
 
     // 1) Write to tenant's restaurant_staff (primary — POS reads from here)
     try {
-      const sb = await supabaseForRequest(req)
+      const sb = await supabaseForRequestAdmin(req)
       const { data } = await sb.from("restaurant_staff").upsert({
         name: staffName,
         role: "cashier",
@@ -186,7 +186,7 @@ export async function PATCH(req: NextRequest) {
 
     // Update tenant's restaurant_staff
     try {
-      const sb = await supabaseForRequest(req)
+      const sb = await supabaseForRequestAdmin(req)
       await sb.from("restaurant_staff").update(updates).eq("id", id)
     } catch { /* tenant table not exist */ }
 
@@ -224,7 +224,7 @@ export async function DELETE(req: NextRequest) {
 
     // Delete from tenant's restaurant_staff
     try {
-      const sb = await supabaseForRequest(req)
+      const sb = await supabaseForRequestAdmin(req)
       await sb.from("restaurant_staff").delete().eq("id", id)
     } catch { /* tenant table not exist */ }
 

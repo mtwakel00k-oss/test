@@ -1,5 +1,17 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import { decryptSession } from "@/lib/session-crypto"
+
+// CSRF protection: The `session` cookie is set with `sameSite: "lax"`, which
+// prevents CSRF from external origins on state-changing POST requests (the
+// browser won't include the cookie in cross-origin POSTs that don't originate
+// from a top-level navigation). API routes also have rate limiting and session
+// auth as additional layers. No explicit CSRF middleware is needed because:
+//   - All state-changing endpoints are POST/PATCH/DELETE (no GET mutations)
+//   - Rate limiting prevents automated CSRF flooding
+//   - SameSite=Lax blocks cross-origin form submissions
+// If SameSite is ever relaxed (e.g. for cross-origin API access), add explicit
+// CSRF tokens via the double-submit cookie pattern.
 
 const PUBLIC_PREFIXES = ["/login", "/_next", "/favicon.ico", "/api/auth", "/order"]
 const PROTECTED_ROUTES = new Set(["/admin", "/pos", "/kitchen"])
@@ -13,10 +25,9 @@ const ROLE_REDIRECTS: Record<string, (slug?: string) => string> = {
 function tryParseRole(request: NextRequest): string | null {
   const cookie = request.cookies.get("session")?.value
   if (!cookie) return null
-  if (cookie.startsWith("{")) {
-    try { return (JSON.parse(cookie) as { role?: string }).role || null } catch { return null }
-  }
-  return null
+  const decrypted = decryptSession(cookie)
+  if (!decrypted) return null
+  return decrypted.role || null
 }
 
 export async function proxy(request: NextRequest) {

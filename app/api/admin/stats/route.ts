@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
-import { supabaseForRequest, parseSession, isTenantMismatch } from "@/lib/tenant"
+import { supabaseForRequestAdmin, parseSession, isTenantMismatch } from "@/lib/tenant"
 import { requireRootOwner, isErrorResponse } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
 import { env } from "@/lib/env"
@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url)
     const mode = searchParams.get("mode") || "tenant"
-    const sb = await supabaseForRequest(req)
+    const sb = await supabaseForRequestAdmin(req)
 
     if (mode === "root") {
       const denied = requireRootOwner(req)

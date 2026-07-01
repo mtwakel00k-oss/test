@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabaseForRequest, isTenantMismatch } from "@/lib/tenant"
+import { supabaseForRequestAdmin, isTenantMismatch } from "@/lib/tenant"
 import { requireStaff, isErrorResponse } from "@/lib/api-auth"
 import { logAudit } from "@/lib/audit"
 import { logger } from "@/lib/logger"
@@ -10,7 +10,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ orde
     if (isErrorResponse(session)) return session
 
     const { order_id } = await params
-    const sb = await supabaseForRequest(req)
+    const sb = await supabaseForRequestAdmin(req)
     const { data, error } = await sb.from("orders")
       .select(`
         *,
@@ -37,7 +37,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ or
 
     const { order_id } = await params
     const body = await req.json()
-    const sb = await supabaseForRequest(req)
+    const sb = await supabaseForRequestAdmin(req)
 
     const updates: Record<string, unknown> = {}
     if (body.driver_lat !== undefined) updates.driver_lat = body.driver_lat

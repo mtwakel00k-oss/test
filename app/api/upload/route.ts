@@ -69,9 +69,9 @@ export async function POST(req: NextRequest) {
     let ext: string
 
     if (file.type === "image/gif") {
-      compressed = raw
-      contentType = "image/gif"
-      ext = "gif"
+      // Reject GIF uploads: sharp cannot re-encode them safely, so we'd
+      // store raw bytes as-is, creating a vector for animated GIF exploits.
+      return NextResponse.json({ error: "GIF uploads are not supported. Convert to PNG or WebP first." }, { status: 400 })
     } else {
       const pipeline = img.resize(resizeW, undefined, { fit: "inside", withoutEnlargement: true })
       compressed = await pipeline.jpeg({ quality: q, progressive: true }).toBuffer()

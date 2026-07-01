@@ -209,6 +209,7 @@ export function CheckoutModal({
           setOrderId(data.id)
           setOrderNumber(data.orderNumber)
           setSubmitted(true)
+          try { sessionStorage.setItem(`order_phone_${data.id}`, form.phone) } catch {}
           setTimeout(() => { onSuccess(data.id, slug, data.orderNumber) }, 2500)
           return
         } catch (e) {

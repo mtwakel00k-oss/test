@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabaseForRequest, isTenantMismatch, parseSession } from "@/lib/tenant"
+import { supabaseForRequestAdmin, isTenantMismatch, parseSession } from "@/lib/tenant"
 import { createClientForRouteHandler } from "@/lib/supabase-server"
 import { findOrderAcrossTenants } from "@/lib/order-tracking"
 import { logger } from "@/lib/logger"
@@ -46,22 +46,16 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const verifyEmail = searchParams.get("email")?.toLowerCase().trim()
     const verifyPhone = searchParams.get("phone")?.trim()
 
-    // ── Public mode: customer tracking, requires email OR phone verification ─────────
+    // ── Public mode: customer tracking ─────────────────────────────────────────────
     if (isPublic) {
       // Rate limit: 30 req/min per IP for public tracking
       const rl = await checkRateLimit(`order-tracking:${getClientIp(req)}`, { max: 30, windowMs: 60_000 })
       if (!rl.allowed) return rateLimitResponse(rl.resetAt)
 
-      // Verification is required on EVERY path — direct-by-slug AND cross-tenant scan
-      if (!verifyEmail && !verifyPhone) {
-        logger.warn(`[orders GET] Public: missing verification for order ${id}`)
-        return NextResponse.json({ error: "Verification required (email or phone)" }, { status: 400 })
-      }
-
       logger.info(`[orders GET] Public lookup for order ${id}`, { hasEmail: !!verifyEmail, hasPhone: !!verifyPhone })
 
       // 1. Try standard lookup first (works if x-tenant-slug header is present)
-      const sb = await supabaseForRequest(req)
+      const sb = await supabaseForRequestAdmin(req)
       const PUBLIC_ORDER_COLS = ["id", "status", "order_number", "order_type", "total", "created_at", "table_number", "customer_name", "customer_phone", "delivery_address", "delivery_lat", "delivery_lng", "driver_id", "driver_lat", "driver_lng", "driver_location_updated_at"]
       let directOrder: Record<string, unknown> | null = null
       let directError: { message: string } | null = null
@@ -78,9 +72,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       }
 
       if (directOrder) {
-        if (verifyPhone && directOrder.customer_phone !== verifyPhone) {
-          logger.warn(`[orders GET] Public: phone mismatch for order ${id}`)
-          return NextResponse.json({ error: "Order not found" }, { status: 404 })
+        if (directOrder.customer_phone) {
+          if (!verifyPhone) {
+            logger.warn(`[orders GET] Public: phone required for order ${id}`)
+            return NextResponse.json({ error: "Phone verification required for this order" }, { status: 400 })
+          }
+          if (directOrder.customer_phone !== verifyPhone) {
+            logger.warn(`[orders GET] Public: phone mismatch for order ${id}`)
+            return NextResponse.json({ error: "Order not found" }, { status: 404 })
+          }
         }
         logger.info(`[orders GET] Public: found order ${id} via direct lookup`)
         if (directOrder.status) directOrder.status = DB_STATUS_TO_POS[directOrder.status as string] || directOrder.status
@@ -95,8 +95,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       const found = await findOrderAcrossTenants(id)
       if (found) {
         const orderData = found.order as Record<string, unknown> & { customer_phone?: string; status?: string }
-        if (verifyPhone && orderData.customer_phone !== verifyPhone) {
-          return NextResponse.json({ error: "Order not found" }, { status: 404 })
+        if (orderData.customer_phone) {
+          if (!verifyPhone) {
+            return NextResponse.json({ error: "Phone verification required for this order" }, { status: 400 })
+          }
+          if (orderData.customer_phone !== verifyPhone) {
+            return NextResponse.json({ error: "Order not found" }, { status: 404 })
+          }
         }
         if (orderData.status) orderData.status = DB_STATUS_TO_POS[orderData.status as string] || orderData.status
         return NextResponse.json({ order: sanitizePublicOrder(found.order), slug: found.slug })
@@ -111,7 +116,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     if (!role || !["admin", "owner", "cashier", "chef"].includes(role)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-    const sb = await supabaseForRequest(req)
+    const sb = await supabaseForRequestAdmin(req)
     const STAFF_ORDER_COLS = ["id", "status", "order_number", "order_type", "total", "created_at", "table_number", "customer_name", "customer_phone", "delivery_address", "delivery_lat", "delivery_lng", "driver_id", "processed_by_staff_id", "processed_by_staff_name", "payment_status", "cashier_id", "cashier_name"]
     let order: Record<string, unknown> | null = null
     for (let i = 0; i <= STAFF_ORDER_COLS.length; i++) {
@@ -158,7 +163,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const { id } = await params
     const body = await req.json()
 
-    const sb = await supabaseForRequest(req)
+    const sb = await supabaseForRequestAdmin(req)
 
     if (body.items) {
       if (role !== "admin" && role !== "owner") {
@@ -319,7 +324,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     }
 
     const { id } = await params
-    const sb = await supabaseForRequest(req)
+    const sb = await supabaseForRequestAdmin(req)
     const { error: ie } = await (sb.from("order_items")).delete().eq("order_id", id)
     if (ie) throw new Error(ie.message || JSON.stringify(ie))
     const { error: oe } = await (sb.from("orders")).delete().eq("id", id)

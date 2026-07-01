@@ -22,7 +22,7 @@ const UPSTASH_URL = env.UPSTASH_REDIS_REST_URL
 const UPSTASH_TOKEN = env.UPSTASH_REDIS_REST_TOKEN
 
 const SB_URL = env.NEXT_PUBLIC_SUPABASE_URL
-const SB_KEY = env.SUPABASE_SERVICE_ROLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const SB_KEY = env.SUPABASE_SERVICE_ROLE_KEY
 
 let _sbClient: ReturnType<typeof createClient> | null = null
 function getSbClient() {
@@ -126,6 +126,17 @@ async function checkRateLimitSupabase(
   }
 }
 
+/**
+ * Auth-sensitive rate limit keys that should fail CLOSED (reject) when both
+ * Upstash and Supabase backends are unreachable, rather than silently allowing
+ * unlimited requests.
+ */
+const AUTH_KEYS = new Set(["login", "setup-root", "auth:setup"])
+
+function isAuthKey(key: string): boolean {
+  return [...AUTH_KEYS].some(prefix => key.startsWith(prefix))
+}
+
 /** Distributed rate limit — uses Upstash Redis first, then Supabase table fallback. */
 export async function checkRateLimit(
   key: string,
@@ -135,6 +146,15 @@ export async function checkRateLimit(
   if (redis) return redis
   const supabase = await checkRateLimitSupabase(key, config)
   if (supabase) return supabase
+  if (isAuthKey(key)) {
+    // Fail closed for auth endpoints: if neither Redis nor Supabase is reachable,
+    // deny the request to prevent brute-force bypass.
+    return { allowed: false, remaining: 0, resetAt: Date.now() + config.windowMs }
+  }
+  // Fail open for non-auth endpoints (orders, ratings) to preserve availability
+  // when rate-limit infrastructure is temporarily unavailable.
+  // TRADEOFF: An attacker could flood these endpoints during an outage, but the
+  // cost of denying legitimate traffic during a transient backend failure is worse.
   return { allowed: true, remaining: config.max, resetAt: Date.now() + config.windowMs }
 }
 
@@ -152,6 +172,17 @@ export function rateLimitResponse(resetAt: number): NextResponse {
   )
 }
 
+/**
+ * Extracts the client IP from the request.
+ *
+ * ⚠ SECURITY: This trusts `x-forwarded-for` verbatim and is only safe
+ *    behind a trusted reverse proxy that strips/overwrites client-supplied
+ *    values. On Vercel (the current deployment target), the edge network
+ *    handles this correctly — the first value is always the true client IP.
+ *    If self-hosting is ever supported, this must validate against an
+ *    allowlist of trusted proxy hops (e.g. reject values not originating
+ *    from the proxy's IP range).
+ */
 export function getClientIp(req: Request): string {
   return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
     || req.headers.get("x-real-ip")

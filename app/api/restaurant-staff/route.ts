@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { supabaseForRequest, isTenantMismatch, parseSession } from "@/lib/tenant"
+import { supabaseForRequestAdmin, isTenantMismatch, parseSession } from "@/lib/tenant"
 import { requireStaff, requireAdmin, resolveTenantSlug, isErrorResponse } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
 import { env } from "@/lib/env"
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
     }
 
     // 1) Tenant DB's restaurant_staff table
-    const sb = await supabaseForRequest(req)
+    const sb = await supabaseForRequestAdmin(req)
     const { data: tenantData, error } = await sb.from("restaurant_staff").select("*").order("name")
     if (!error && Array.isArray(tenantData)) {
       for (const row of tenantData as Record<string, unknown>[]) {
@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
     const { name, role } = body
     if (!name) return NextResponse.json({ error: "name required" }, { status: 400 })
 
-    const sb = await supabaseForRequest(req)
+    const sb = await supabaseForRequestAdmin(req)
     const { data, error } = await sb.from("restaurant_staff").insert({
       name,
       role: role || "cashier",
@@ -171,7 +171,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "No fields to update" }, { status: 400 })
     }
 
-    const sb = await supabaseForRequest(req)
+    const sb = await supabaseForRequestAdmin(req)
     const { data, error } = await sb.from("restaurant_staff").update(updates).eq("id", id).select().single()
     if (error) throw new Error(error.message)
 
@@ -197,7 +197,7 @@ export async function DELETE(req: NextRequest) {
     const id = searchParams.get("id")
     if (!id) return NextResponse.json({ error: "id query param required" }, { status: 400 })
 
-    const sb = await supabaseForRequest(req)
+    const sb = await supabaseForRequestAdmin(req)
     const { error } = await sb.from("restaurant_staff").delete().eq("id", id)
     if (error) throw new Error(error.message)
 

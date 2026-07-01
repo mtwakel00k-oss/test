@@ -29,10 +29,7 @@ export interface SessionData {
 export function encryptSession(data: SessionData): string {
   const key = getKey()
   if (!key) {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error("SESSION_ENCRYPTION_KEY is required in production")
-    }
-    return JSON.stringify(data)
+    throw new Error("SESSION_ENCRYPTION_KEY is required — run `openssl rand -base64 32` and add to .env.local")
   }
   const iv = randomBytes(IV_LENGTH)
   const cipher = createCipheriv(ALGORITHM, key, iv)

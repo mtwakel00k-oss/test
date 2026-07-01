@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     const parsed = loginSchema.safeParse(body)
     if (!parsed.success) return validationError(parsed.error)
     const { username, password, slug } = parsed.data
-    logger.info("[login] POST received", { username, slug, hasPassword: !!password })
+    logger.debug("[login] POST received", { username: username.replace(/./g, "*"), slug, hasPassword: !!password })
 
     // Per-email rate-limit (5 attempts / 15 min per email)
     const emailRl = await checkRateLimit(`login:email:${username.toLowerCase().trim()}`, { max: 5, windowMs: 900_000 })
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
       res.cookies.set("session", encryptSession({ email, role: "owner", slug: "" }), {
         httpOnly: true, secure: SECURE, sameSite: "lax", maxAge: 60 * 60 * 24 * 7, path: "/",
       })
-      logger.info("[login] Owner login successful:", { email })
+      logger.debug("[login] Owner login successful")
       return res
     }
 
@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
 
     // ── Determine tenant ────────────────────────────────────────
     if (tenantSlug) {
-      logger.info("[login] Looking up tenant by slug:", tenantSlug)
+      logger.debug("[login] Looking up tenant by slug:", tenantSlug)
       const { data: tenant, error: tenantError } = await masterSb
         .from("tenants")
         .select("id, slug, name, supabase_url, supabase_anon_key")
@@ -92,11 +92,11 @@ export async function POST(req: NextRequest) {
         .single()
 
       if (tenantError || !tenant) {
-        logger.info("[login] Tenant not found by slug:", tenantSlug)
+        logger.debug("[login] Tenant not found by slug:", tenantSlug)
         return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
       }
       tenantId = tenant.id
-      logger.info("[login] Found tenant by slug:", { id: tenantId, slug: tenant.slug })
+      logger.debug("[login] Found tenant by slug:", { id: tenantId })
     } else {
       return NextResponse.json({ error: "Provide a restaurant slug" }, { status: 400 })
     }
@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
       ? username.toLowerCase().trim()
       : `${username}@${tenantSlug}.app`
 
-    logger.info("[login] Attempting signInWithPassword:", { email })
+    logger.debug("[login] Attempting signInWithPassword")
 
     // Use a fresh client (no SSR middleware) to avoid existing session cookie conflicts
     const rawSb = createClient(
@@ -115,17 +115,17 @@ export async function POST(req: NextRequest) {
     )
     const { data, error: authError } = await rawSb.auth.signInWithPassword({ email, password })
     if (authError) {
-      logger.info("[login] signInWithPassword failed:", authError.message)
+      logger.debug("[login] signInWithPassword failed")
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
 
     const userId = data.user?.id
     if (!userId) {
-      logger.info("[login] No user ID after successful signIn")
+      logger.debug("[login] No user ID after successful signIn")
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
 
-    logger.info("[login] signInWithPassword succeeded:", { userId, email: data.user?.email })
+    logger.debug("[login] signInWithPassword succeeded:", { userId })
 
     // Verify user is linked to this tenant
     const { data: membership } = await masterSb
@@ -136,11 +136,11 @@ export async function POST(req: NextRequest) {
       .maybeSingle()
 
     if (!membership || !VALID_ROLES.includes(membership.role)) {
-      logger.info("[login] Membership verification failed:", { userId, tenantId })
+      logger.debug("[login] Membership verification failed:", { userId, tenantId })
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
 
-    logger.info("[login] Membership verified:", { role: membership.role })
+    logger.debug("[login] Membership verified:", { role: membership.role })
 
     // ── Set session cookie (encrypted) ────────────────────────
     const res = NextResponse.json({ ok: true, slug: tenantSlug })
@@ -156,12 +156,12 @@ export async function POST(req: NextRequest) {
       path: "/",
     })
 
-    logger.info("[login] Login successful, cookies set")
+    logger.debug("[login] Login successful, cookies set")
     return res
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e)
     const name = e instanceof Error ? e.name : "Unknown"
-    logger.info("[login] Unexpected error:", { name, message })
+    logger.debug("[login] Unexpected error:", { name })
     logger.error("Login error", e)
     if (process.env.NODE_ENV === "development") {
       return NextResponse.json({ error: message, name }, { status: 500 })

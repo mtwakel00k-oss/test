@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { supabaseForRequest, isTenantMismatch, parseSession, getTenantConfig } from "@/lib/tenant"
+import { supabaseForRequest, supabaseForRequestAdmin, isTenantMismatch, parseSession, getTenantConfig } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 import { logAudit } from "@/lib/audit"
 import { getAllImageUrls, setImageUrl, deleteImageUrl } from "@/lib/image-store"
@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
       const { id, nom, categorie_id, description, image_url, sizes } = body
       if (!id) return NextResponse.json({ error: "Missing product id" }, { status: 400 })
 
-      const sb2 = await supabaseForRequest(req)
+      const sb2 = await supabaseForRequestAdmin(req)
       const updates: Record<string, unknown> = {}
       if (nom !== undefined) updates.nom = nom
       if (categorie_id !== undefined) updates.categorie_id = categorie_id || null
@@ -171,8 +171,8 @@ export async function POST(req: NextRequest) {
       const { nom, categorie_id, description, image_url, sizes } = body
       if (!nom) return NextResponse.json({ error: "Missing product name" }, { status: 400 })
 
-      const px = (await getTenantServiceClient(tenantSlug)) || await supabaseForRequest(req)
-      const sb3 = await supabaseForRequest(req)
+      const px = (await getTenantServiceClient(tenantSlug)) || await supabaseForRequestAdmin(req)
+      const sb3 = await supabaseForRequestAdmin(req)
       const insertData: Record<string, unknown> = { nom, categorie_id: categorie_id || null, description: description || null }
       if (image_url) insertData.image_url = image_url
 
@@ -244,7 +244,7 @@ export async function POST(req: NextRequest) {
     if (id == null) return NextResponse.json({ error: "Missing product id" }, { status: 400 })
 
     const next = !!is_available
-    const pxt = (await getTenantServiceClient(tenantSlug)) || await supabaseForRequest(req)
+    const pxt = (await getTenantServiceClient(tenantSlug)) || await supabaseForRequestAdmin(req)
     const { error } = await (pxt.from("produits"))
       .update({ is_available: next })
       .eq("id", id)
@@ -281,7 +281,7 @@ export async function DELETE(req: NextRequest) {
     if (!id) return NextResponse.json({ error: "Missing product id" }, { status: 400 })
 
     const sessionDel = parseSession(req.headers.get("cookie") || "")
-    const pxDel = (await getTenantServiceClient(sessionDel.slug || "")) || await supabaseForRequest(req)
+    const pxDel = (await getTenantServiceClient(sessionDel.slug || "")) || await supabaseForRequestAdmin(req)
     let imageUrl: string | null = null
     try {
       const { data: product } = await (pxDel.from("produits")).select("image_url").eq("id", id).single()

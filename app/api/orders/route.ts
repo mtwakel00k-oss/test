@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabaseForRequest, isTenantMismatch, parseSession, getIsOpen } from "@/lib/tenant"
+import { supabaseForRequestAdmin, isTenantMismatch, parseSession, getIsOpen } from "@/lib/tenant"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 import { logAudit } from "@/lib/audit"
@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
     const includeItems = searchParams.get("include_items") === "true"
     const statusIn = searchParams.get("status_in")
 
-    const sb = await supabaseForRequest(req)
+    const sb = await supabaseForRequestAdmin(req)
 
     const { data: rawOrders, availableCols } = await queryOrders(sb, statusIn, limit)
 
@@ -133,7 +133,7 @@ export async function POST(req: NextRequest) {
     const rl = await checkRateLimit(`orders:${getClientIp(req)}`, { max: 20, windowMs: 60_000 })
     if (!rl.allowed) return rateLimitResponse(rl.resetAt)
 
-    const sb = await supabaseForRequest(req)
+    const sb = await supabaseForRequestAdmin(req)
 
     // ── Check if restaurant is open ──────────────────────
     const session = parseSession(req.headers.get("cookie") || "")

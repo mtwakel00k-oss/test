@@ -1,5 +1,15 @@
 -- ============================================================
---  Migration 00004: Tenant-scoped RLS policies
+--  Migration 00004: Tenant-scoped RLS policies (DEPRECATED)
+--
+--  ⚠  SUPERSEDED BY 00005_lockdown_rls.sql
+--      This migration attempted to use auth.role() = 'authenticated'
+--      policies, but the app never attaches a Supabase Auth JWT,
+--      so every server query runs as `anon`. Applying 00004 would
+--      break orders for real staff.
+--
+--      DO NOT RUN THIS MIGRATION. Run 00005 instead.
+--
+--  Original description:
 --  Replaces permissive "USING (true)" policies with
 --  authenticated-only access. Each tenant has its own DB
 --  project/credentials, so no tenant_id column is needed

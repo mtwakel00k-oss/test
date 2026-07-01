@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabaseForRequest, isTenantMismatch, parseSession } from "@/lib/tenant"
+import { supabaseForRequestAdmin, isTenantMismatch, parseSession } from "@/lib/tenant"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 import { checkFeature } from "@/lib/check-feature"
 import { logger } from "@/lib/logger"
@@ -25,7 +25,7 @@ export async function DELETE(req: NextRequest) {
     if (!isAdmin(req)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
     }
-    const sb = await supabaseForRequest(req)
+    const sb = await supabaseForRequestAdmin(req)
     const { error } = await (sb.from("ratings")).delete().not("id", "is", null)
     if (error) throw error
     logger.info("All ratings deleted")
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     const rl = await checkRateLimit(`ratings:${getClientIp(req)}`, { max: 10, windowMs: 60_000 })
     if (!rl.allowed) return rateLimitResponse(rl.resetAt)
 
-    const sb2 = await supabaseForRequest(req)
+    const sb2 = await supabaseForRequestAdmin(req)
 
     // Validate product_id exists (FK safety)
     const { data: prod } = await (sb2.from("produits")).select("id").eq("id", product_id).maybeSingle()

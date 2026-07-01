@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabaseForRequest, isTenantMismatch, parseSession } from "@/lib/tenant"
+import { supabaseForRequest, supabaseForRequestAdmin, isTenantMismatch, parseSession } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 import { logAudit } from "@/lib/audit"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     const { nom, description } = await req.json()
     if (!nom?.trim()) return NextResponse.json({ error: "Missing category name" }, { status: 400 })
 
-    const sb2 = await supabaseForRequest(req)
+    const sb2 = await supabaseForRequestAdmin(req)
     const payload: Record<string, string> = { nom: nom.trim() }
     if (description?.trim()) payload.description = description.trim()
 
@@ -101,7 +101,7 @@ export async function DELETE(req: NextRequest) {
     const force = searchParams.get("force") === "1"
     if (!id) return NextResponse.json({ error: "Missing category id" }, { status: 400 })
 
-    const sb2 = await supabaseForRequest(req)
+    const sb2 = await supabaseForRequestAdmin(req)
 
     if (force) {
       await (sb2.from("produits")).update({ categorie_id: null }).eq("categorie_id", id)

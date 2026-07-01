@@ -408,18 +408,12 @@ export function parseSession(cookieHeader: string): SessionData {
   if (!match) return {}
   try {
     const raw = decodeURIComponent(match[1])
-    const hasKey = !!env.SESSION_ENCRYPTION_KEY
-
-    if (hasKey) {
-      const decrypted = cryptoDecrypt(raw)
-      if (!decrypted) {
-        logger.warn("Rejected session cookie: decryption failed")
-        return {}
-      }
-      return decrypted
+    const decrypted = cryptoDecrypt(raw)
+    if (!decrypted) {
+      logger.warn("Rejected session cookie: decryption failed or missing SESSION_ENCRYPTION_KEY")
+      return {}
     }
-
-    return JSON.parse(raw) as SessionData
+    return decrypted
   } catch (e) {
     logger.error("Failed to parse session from cookie header", e)
     return {}

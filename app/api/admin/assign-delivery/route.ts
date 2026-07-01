@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabaseForRequest, isTenantMismatch } from "@/lib/tenant"
+import { supabaseForRequestAdmin, isTenantMismatch } from "@/lib/tenant"
 import { requireStaff, resolveTenantSlug, isErrorResponse } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
 import { logAudit } from "@/lib/audit"
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Tenant mismatch" }, { status: 403 })
     }
 
-    const sb = await supabaseForRequest(req)
+    const sb = await supabaseForRequestAdmin(req)
 
     const { data: order, error: orderErr } = await sb.from("orders")
       .select("id, customer_name, customer_phone, order_number, status, total, delivery_lat, delivery_lng, delivery_address")

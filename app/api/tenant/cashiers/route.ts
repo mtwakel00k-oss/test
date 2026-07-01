@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { parseSession, supabaseForRequest } from "@/lib/tenant"
+import { parseSession, supabaseForRequestAdmin } from "@/lib/tenant"
 import { resolveTenantSlug } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
 import { env } from "@/lib/env"
@@ -148,7 +148,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const tenantSb = await supabaseForRequest(req)
+    const tenantSb = await supabaseForRequestAdmin(req)
     await tenantSb.from("restaurant_staff").upsert({
       name: staffName,
       role: "cashier",

@@ -188,11 +188,26 @@ Consolidated in `supabase/migrations/` (numbered, ordered):
 | File | Target | Purpose |
 |------|--------|---------|
 | `00001_master_schema.sql` | Master DB | Master project columns, cron support |
-| `00002_tenant_schema.sql` | Per tenant | Full tenant schema (orders, produits, ratings, categories, v_products_flat, storage, RLS, audit_log, delivery_men, daily_order_counters) |
+| `00002_tenant_schema.sql` | Per tenant | Full tenant schema (orders, produits, ratings, categories, v_products_flat, storage, audit_log, delivery_men, daily_order_counters) |
 | `00003_remove_exec_sql.sql` | Both | Remove `exec_sql` SECURITY DEFINER function |
-| `00004_tenant_scoped_rls.sql` | Per tenant | Replace permissive RLS with authenticated-only policies |
+| `00004_tenant_scoped_rls.sql` | Per tenant | ⚠ DO NOT RUN — superseded by 00005 (see file header) |
+| `00005_lockdown_rls.sql` | Per tenant | **Required.** Lockdown RLS: service_role-only writes; anon SELECT only on public menu tables; anon INSERT on ratings |
+
+**Apply order**: 00001 → 00002 → 00003 → 00005 (skip 00004).
+
+**Important**: Skipping 00005 leaves customer PII and pricing publicly writable via the Supabase REST API. Anyone with the anon key (visible in the browser) can read orders, audit_log, and delete data directly.
 
 **Apply via**: `supabase db push` (CLI) or paste into Supabase Dashboard SQL Editor. Never via HTTP.
+
+> **Why no authenticated policies?** The app never attaches a Supabase Auth JWT to server queries. Every `supabaseForRequest()` call uses the anon key, so `auth.role()` always returns `anon`. Authenticated-only policies (`auth.role() = 'authenticated'`) would never match and would break all server queries. Instead, all writes use the service_role key (`supabaseForRequestAdmin()`), which bypasses RLS entirely. Only public menu reads use the anon key.
+
+## Security
+
+### CSRF Protection
+CSRF protection relies on the `session` cookie's `sameSite: "lax"` attribute (set in login routes). The browser will not include the session cookie in cross-origin POST requests that don't originate from top-level navigation. All state-changing endpoints use POST/PATCH/DELETE (no GET mutations), and rate limiting further mitigates automated CSRF attempts. If SameSite is ever relaxed, add explicit CSRF tokens via the double-submit cookie pattern.
+
+### RLS (Row-Level Security)
+The app uses **service_role-only writes**: all API routes authenticated by session use `supabaseForRequestAdmin()` (service_role key, bypassing RLS). Only public menu reads (products, categories) use the anon key with permissive SELECT policies. No anon/authenticated policies exist on orders, order_items, audit_log, or other sensitive tables. See `supabase/migrations/00005_lockdown_rls.sql` for details.
 
 ## Tests
 ```bash

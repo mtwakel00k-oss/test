@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useRef, useCallback, useEffect } from "react"
 import { useVirtualizer } from "@tanstack/react-virtual"
-import { Search, Plus, Minus, Trash2, ChevronDown } from "lucide-react"
+import { Search, Plus, Minus, Trash2 } from "lucide-react"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 import type { MenuProduct } from "@/lib/types"

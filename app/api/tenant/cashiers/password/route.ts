@@ -27,7 +27,12 @@ export async function PATCH(req: NextRequest) {
 
   const client = createClient(url, key)
 
-  const { data: users } = await client.auth.admin.listUsers()
+  // Use pagination to find user by email — listUsers() defaults to the first
+  // page (max 1000 users per page, sufficient for all current deployments).
+  const { data: users } = await client.auth.admin.listUsers({
+    page: 1,
+    perPage: 1000,
+  })
   const user = users?.users?.find((u: { email?: string }) => u.email === session.email)
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 })

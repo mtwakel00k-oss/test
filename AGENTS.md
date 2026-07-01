@@ -34,10 +34,19 @@ Dashboard fetched via `GET /api/admin/stats?period=7d|30d|6m|12m` or `?mode=root
 ## RLS / Migration SQL
 All migrations consolidated under `supabase/migrations/` (numbered, run in order):
 - `00001_master_schema.sql` — Master project columns, cron support
-- `00002_tenant_schema.sql` — Full tenant schema (orders, produits, ratings, categories, v_products_flat, storage, RLS, audit_log, delivery_men, daily_order_counters)
+- `00002_tenant_schema.sql` — Full tenant schema (orders, produits, ratings, categories, v_products_flat, storage, audit_log, delivery_men, daily_order_counters)
 - `00003_remove_exec_sql.sql` — Removes `exec_sql` SECURITY DEFINER function
-- `00004_tenant_scoped_rls.sql` — Replaces permissive RLS with authenticated-only policies
+- `00004_tenant_scoped_rls.sql` — ⚠ DO NOT RUN — superseded by 00005 (see file header)
+- `00005_lockdown_rls.sql` — **Required.** Lockdown RLS: service_role-only writes; anon SELECT only on public menu tables; anon INSERT on ratings
 - To apply: use `supabase db push` from project root, or paste into the Supabase Dashboard SQL Editor. Never via HTTP.
+
+### RLS Design
+After 00005, the app uses **service_role-only writes**:
+- All API routes that are gated by session auth use `supabaseForRequestAdmin()` (service_role key, bypasses RLS).
+- Public menu reads (products GET, categories GET) use `supabaseForRequest()` (anon key, RLS allows SELECT).
+- Customer ratings POST uses `supabaseForRequestAdmin()` (server-side validation + rate limiting).
+- No anon/authenticated policies exist on orders, order_items, audit_log, delivery_men, restaurant_staff, or storage.
+- The app never attaches a Supabase Auth JWT, so authenticated-only policies would never match.
 
 ## Root Admin
 - Created via `POST /api/auth/setup-root` (default: `root@root.app` / `RootAdmin@123`).

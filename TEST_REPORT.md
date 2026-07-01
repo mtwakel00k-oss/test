@@ -25,6 +25,11 @@
 | Regression (@regression) | 8 | 8 | 0 | 0 | Chef access, text visibility, session encryption, column names, customer-location auth |
 | **Grand Total** | **500+** | **500+** | **0** | **0** | All 17 categories covered |
 
+> ⚠ **Infrastructure Caveat**: Tests are **mocked** — no real Supabase instance is used.
+> Database tests parse migration SQL files rather than executing against a live project.
+> Auth tests use mocked sessions. Playwright E2E tests provide the only real-infrastructure
+> verification, but depend on a local dev server. See "Warnings" below for details.
+
 ## Critical Issues (must fix before deploy)
 
 - **None.** All 266 vitest tests pass. Zero TypeScript errors. Zero lint errors.

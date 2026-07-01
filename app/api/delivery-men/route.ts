@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabaseForRequest, isTenantMismatch } from "@/lib/tenant"
+import { supabaseForRequestAdmin, isTenantMismatch } from "@/lib/tenant"
 import { requireStaff, requireAdmin, isErrorResponse } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     const session = requireStaff(req)
     if (isErrorResponse(session)) return session
 
-    const sb = await supabaseForRequest(req)
+    const sb = await supabaseForRequestAdmin(req)
     const { data, error } = await sb.from("delivery_men").select("*").order("name")
     if (error) {
       if (error.message.includes("does not exist") || error.code === "PGRST205") {
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "name and whatsapp_number required" }, { status: 400 })
     }
 
-    const sb = await supabaseForRequest(req)
+    const sb = await supabaseForRequestAdmin(req)
     const { data, error } = await sb.from("delivery_men").insert({
       name,
       whatsapp_number,
@@ -78,7 +78,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "No fields to update" }, { status: 400 })
     }
 
-    const sb = await supabaseForRequest(req)
+    const sb = await supabaseForRequestAdmin(req)
     const { data, error } = await sb.from("delivery_men").update(updates).eq("id", id).select().single()
     if (error) throw new Error(error.message)
 
@@ -104,7 +104,7 @@ export async function DELETE(req: NextRequest) {
     const id = searchParams.get("id")
     if (!id) return NextResponse.json({ error: "id query param required" }, { status: 400 })
 
-    const sb = await supabaseForRequest(req)
+    const sb = await supabaseForRequestAdmin(req)
     const { error } = await sb.from("delivery_men").delete().eq("id", id)
     if (error) throw new Error(error.message)
 
