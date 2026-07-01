@@ -91,8 +91,8 @@ export default function LiveDriverMap(props: LiveMapProps) {
   const leafletRef = useRef<typeof import("leaflet") | null>(null)
 
   const [routeCoords, setRouteCoords] = useState<[number, number][] | null>(null)
-  const [etaSeconds, setEtaSeconds] = useState<number | null>(null)
   const [routeDistMeters, setRouteDistMeters] = useState<number | null>(null)
+  const [correctionFactor, setCorrectionFactor] = useState<number>(1) // OSRM_duration / haversine_duration_at_fetch
   const lastFetchedRef = useRef<{ lat: number; lng: number } | null>(null)
   const orderIdRef = useRef("")
 
@@ -107,7 +107,7 @@ export default function LiveDriverMap(props: LiveMapProps) {
     if (driverLat == null || driverLng == null || customerLat == null || customerLng == null) return
 
     const last = lastFetchedRef.current
-    if (last && etaSeconds != null) {
+    if (last && correctionFactor !== 1) {
       const dist = haversineKm(last.lat, last.lng, driverLat, driverLng)
       if (dist < 0.05) return
     }
@@ -129,12 +129,15 @@ export default function LiveDriverMap(props: LiveMapProps) {
         if (data.geometry && Array.isArray(data.geometry)) {
           setRouteCoords(data.geometry.map((c: [number, number]) => [c[1], c[0]] as [number, number]))
         }
-        if (data.duration != null) setEtaSeconds(data.duration)
+        if (data.duration != null && data.duration > 0) {
+          // Compute route efficiency factor: OSRM real duration / haversine straight-line duration
+          const rawDurationH = (haversineKm(dLat, dLng, cLat, cLng) / 30) * 3600
+          setCorrectionFactor(rawDurationH > 0 ? data.duration / rawDurationH : 1)
+        }
         if (data.distance != null) setRouteDistMeters(data.distance)
         lastFetchedRef.current = { lat: dLat, lng: dLng }
       } catch (e) {
         setRouteCoords(null)
-        setEtaSeconds(null)
         setRouteDistMeters(null)
         const msg = e instanceof Error ? e.message : String(e)
         if (!msg.includes("abort") && !msg.includes("timeout")) {
@@ -144,21 +147,19 @@ export default function LiveDriverMap(props: LiveMapProps) {
     }
 
     fetchRoute()
-  }, [driverLat, driverLng, customerLat, customerLng, etaSeconds])
+  }, [driverLat, driverLng, customerLat, customerLng, correctionFactor])
 
   let etaLabel = ""
   let distanceKm = ""
   if (driverLat != null && driverLng != null && customerLat != null && customerLng != null) {
-    if (etaSeconds != null) {
-      const minutes = Math.round(etaSeconds / 60)
-      etaLabel = minutes <= 1 ? "أقل من دقيقة" : `~${minutes} دقيقة`
-    } else {
-      const km = haversineKm(driverLat, driverLng, customerLat, customerLng)
-      const minutes = Math.round((km / 30) * 60)
-      etaLabel = minutes <= 1 ? "أقل من دقيقة" : `~${minutes} دقيقة`
-    }
-    const km = routeDistMeters != null ? (routeDistMeters / 1000) : haversineKm(driverLat, driverLng, customerLat, customerLng)
-    distanceKm = `${km.toFixed(1)} كم`
+    const rawKm = haversineKm(driverLat, driverLng, customerLat, customerLng)
+    // Apply OSRM correction factor if available (road-aware), else raw haversine
+    const cf = correctionFactor
+    const adjustedKm = rawKm * cf
+    const minutes = Math.round((adjustedKm / 30) * 60)
+    etaLabel = minutes <= 1 ? "أقل من دقيقة" : `~${minutes} دقيقة`
+    const distKm = routeDistMeters != null ? (routeDistMeters / 1000) : rawKm
+    distanceKm = `${distKm.toFixed(1)} كم`
   }
 
   // Init map
@@ -195,7 +196,7 @@ export default function LiveDriverMap(props: LiveMapProps) {
 
       // Driver marker: green circle with pulse ring
       const driverIcon = L.divIcon({
-        html: `<div style="position:relative;width:32px;height:32px"><div style="position:absolute;inset:0;border-radius:50%;background:#22c55e;border:3px solid white;box-shadow:0 2px 12px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;z-index:2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l1.5 4H4L5 8z"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div></div>`,
+        html: `<div style="position:relative;width:32px;height:32px"><div style="position:absolute;inset:0;border-radius:50%;background:#22c55e;border:3px solid white;box-shadow:0 2px 12px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;z-index:2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3"/><circle cx="6" cy="16" r="2.5"/><circle cx="18" cy="16" r="2.5"/><path d="M8 7l1.5-3h5L16 7" /><path d="M7 13l1-6" /><path d="M17 13l-1-6" /></svg></div></div>`,
         className: "",
         iconSize: [32, 32],
         iconAnchor: [16, 16],
