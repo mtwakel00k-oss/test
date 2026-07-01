@@ -45,7 +45,7 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
       }
       localStorage.setItem("sessionExpiresAt", String(Date.now() + 7 * 24 * 60 * 60 * 1000))
       if (page === "owner") { window.location.href = "/admin"; return }
-      if (redirectProp) { window.location.href = redirectProp; return }
+      if (redirectProp && (redirectProp.startsWith("/") || redirectProp.startsWith(window.location.origin))) { window.location.href = redirectProp; return }
       const targetSlug = data.slug || selectedSlug || slugProp
       if (targetSlug) window.location.href = `/${targetSlug}/${ROLE_PAGE[page]}`
     } catch {

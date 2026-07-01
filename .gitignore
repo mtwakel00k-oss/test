@@ -71,7 +71,7 @@ menu-screenshot*.png
 task-manager*.png
 .env.production
 .env.preview
-env.vercel
+.env.vercel
 trace*.json*
 *.json.gz
 

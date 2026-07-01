@@ -12,7 +12,7 @@ export function resetTenantClient() {
 
 function readTenantConfigFromDOM(): { slug?: string } | null {
   try {
-    const el = document.getElementById("__TENANT_CONFIG__")
+    const el = document.getElementById("tenant-config")
     if (!el) return null
     return JSON.parse(el.textContent || "{}")
   } catch { return null }

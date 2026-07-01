@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabaseForRequest, getTenantConfig, parseSession } from "@/lib/tenant"
+import { requireAdmin } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
 
 function h(str: string): string {
@@ -79,6 +80,9 @@ window.onafterprint = function() { setTimeout(function() { window.close(); }, 50
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ order_id: string }> }) {
   try {
+    const auth = requireAdmin(req)
+    if (auth instanceof NextResponse) return auth
+
     const { order_id } = await params
     const { searchParams } = new URL(req.url)
     const paidParam = searchParams.get("paid")

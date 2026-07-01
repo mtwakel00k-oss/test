@@ -496,7 +496,8 @@ function QrTab({ lang, slug }: { lang: string; slug: string | null }) {
           <button onClick={() => {
             const w = window.open("", "_blank")
             if (!w) return
-            w.document.write(`<html><head><title>Table ${qrTable}</title><style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh}</style></head><body>${qrSvg}</body></html>`)
+            const title = String(qrTable).replace(/[<>&"]/g, "")
+            w.document.write(`<html><head><title>Table ${title}</title><style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh}</style></head><body>${qrSvg}</body></html>`)
             w.document.close()
             setTimeout(() => w.print(), 500)
           }}

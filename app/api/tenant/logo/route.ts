@@ -85,8 +85,8 @@ export async function PATCH(req: NextRequest) {
     const updates: Record<string, string | null | boolean> = {}
     if (typeof body.name === "string" && body.name.trim()) updates.name = body.name.trim()
     if (body.logo_url !== undefined) updates.logo_url = body.logo_url
-    if (typeof body.brand_color === "string") updates.brand_color = body.brand_color
-    if (typeof body.brand_text_color === "string") updates.brand_text_color = body.brand_text_color
+    if (typeof body.brand_color === "string" && /^(#[0-9a-fA-F]{3,8}|[a-zA-Z]+|[a-zA-Z]+\([^)]*\))$/.test(body.brand_color.trim())) updates.brand_color = body.brand_color.trim()
+    if (typeof body.brand_text_color === "string" && /^(#[0-9a-fA-F]{3,8}|[a-zA-Z]+|[a-zA-Z]+\([^)]*\))$/.test(body.brand_text_color.trim())) updates.brand_text_color = body.brand_text_color.trim()
     if (typeof body.is_open === "boolean") updates.is_open = body.is_open
     if (!Object.keys(updates).length) return NextResponse.json({ error: "No valid fields" }, { status: 400 })
     const supabase = getSupabase()

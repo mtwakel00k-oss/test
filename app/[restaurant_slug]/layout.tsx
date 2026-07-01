@@ -57,11 +57,11 @@ export default async function RestaurantLayout({
       {config && (
         <script id="tenant-config" type="application/json" dangerouslySetInnerHTML={{ __html: safeJsonForScript(config) }} />
       )}
-      {tenant.brand_color && (
+      {tenant.brand_color && /^(#[0-9a-fA-F]{3,8}|[a-zA-Z]+|[a-zA-Z]+\([^)]*\))$/.test(tenant.brand_color) && (
         <style>{`
           :root {
             --brand: ${tenant.brand_color};
-            --brand-text: ${tenant.brand_text_color ?? '#ffffff'};
+            --brand-text: ${typeof tenant.brand_text_color === "string" && /^(#[0-9a-fA-F]{3,8}|[a-zA-Z]+|[a-zA-Z]+\([^)]*\))$/.test(tenant.brand_text_color) ? tenant.brand_text_color : '#ffffff'};
           }
         `}</style>
       )}
