@@ -344,11 +344,11 @@ export function KdsDashboard() {
           isNew && "ring-1 ring-malachite/30",
         )}
       >
-        <div className="p-5 space-y-4">
-          <div className="flex items-start justify-between gap-4">
+        <div className="p-4 lg:p-5 space-y-3 lg:space-y-4">
+          <div className="flex items-start justify-between gap-3 lg:gap-4">
             <div>
-              <div className="flex items-center gap-3">
-                <span className="text-2xl font-black leading-none text-foreground tracking-tight">
+              <div className="flex items-center gap-2 lg:gap-3">
+                <span className="text-xl lg:text-2xl font-black leading-none text-foreground tracking-tight">
                   {t("kitchen.orderHash")}{order.orderNumber || ""}
                 </span>
                 <span className={cn(
@@ -367,7 +367,7 @@ export function KdsDashboard() {
               urgency === "warning" && "text-amber-500",
               urgency === "safe" && "text-malachite",
             )}>
-              <div className="text-lg font-bold tabular-nums leading-tight">
+              <div className="text-base lg:text-lg font-bold tabular-nums leading-tight">
                 {fmtTime(order.createdAt)}
               </div>
             </div>

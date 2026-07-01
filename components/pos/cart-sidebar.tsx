@@ -90,9 +90,9 @@ export function CartSidebar({
 
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 px-1">{t("pos.orderType")}</label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-1.5 md:gap-2">
                 <button data-testid="order-type-dine-in" onClick={() => onOrderTypeChange("dine_in")}
-                  className={cn("h-14 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border flex flex-col items-center justify-center gap-1.5",
+                  className={cn("h-12 md:h-14 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border flex flex-col items-center justify-center gap-1.5",
                     orderType === "dine_in"
                       ? "bg-primary text-primary-foreground border-primary shadow-xl shadow-primary/20 scale-[1.05]"
                       : "bg-muted/30 text-muted-foreground border-border/50 hover:border-primary/30 hover:text-foreground")}>
@@ -191,7 +191,7 @@ export function CartSidebar({
           </div>
         </ScrollArea>
 
-        <div className="p-8 border-t border-border/50 bg-background/50 backdrop-blur-xl space-y-6">
+        <div className="p-4 md:p-8 border-t border-border/50 bg-background/50 backdrop-blur-xl space-y-4 md:space-y-6">
           <div className="flex items-center justify-between px-2">
             <div className="flex flex-col">
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 leading-none mb-1">{t("pos.totalAmount")}</span>

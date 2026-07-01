@@ -43,13 +43,13 @@ export default function POSPage() {
   const handleOrderCreated = useCallback(() => { setPageTab("orders") }, [])
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <POSHeader
         totalOrders={0} activeOrders={0} todayRevenue={0}
         onNewOrder={() => setPageTab("new")}
         userName={cashier?.email?.split("@")[0]} userRole={cashier?.role}
       />
-      <PageTransition>
+      <PageTransition className="flex-1 flex flex-col min-h-0">
         {pageTab === "orders" ? (
           <OrdersPanel onNewOrder={() => setPageTab("new")} />
         ) : (

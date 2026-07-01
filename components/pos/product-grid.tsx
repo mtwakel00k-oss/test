@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useRef, useCallback, useEffect } from "react"
 import { useVirtualizer } from "@tanstack/react-virtual"
-import { Search, Plus, Minus, Trash2 } from "lucide-react"
+import { Search, Plus, Minus, Trash2, ChevronDown } from "lucide-react"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 import type { MenuProduct } from "@/lib/types"
@@ -190,6 +190,7 @@ export function ProductGrid({ products, orderItems, onAddItem, onUpdateQuantity 
 
   return (
     <div className="flex flex-1 min-h-0 bg-muted/5">
+      {/* Desktop sidebar — hidden on mobile */}
       <aside className="w-56 shrink-0 border-l border-border/50 bg-background/50 backdrop-blur-xl p-4 overflow-y-auto hidden lg:flex flex-col gap-2">
         <div className="relative mb-4">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -210,6 +211,26 @@ export function ProductGrid({ products, orderItems, onAddItem, onUpdateQuantity 
       </aside>
 
       <div ref={parentRef} className="flex-1 overflow-y-auto p-3" style={{ contain: "strict" }}>
+        {/* Mobile search + categories — visible below lg */}
+        <div className="lg:hidden space-y-2 mb-3">
+          <div className="relative">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <input value={search} onChange={(e) => setSearch(e.target.value)}
+              placeholder={t("pos.search")}
+              className="w-full h-10 bg-muted/50 border-border/50 rounded-xl pr-10 text-xs font-bold focus:ring-2 focus:ring-primary/20 transition-all" />
+          </div>
+          <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+            {categories.map((cat) => (
+              <button key={cat} onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
+                className={cn("whitespace-nowrap px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tight transition-all shrink-0",
+                  selectedCategory === cat
+                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                    : "bg-muted/40 text-muted-foreground border border-border/50 hover:text-foreground")}>
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
         <div style={{ height: `${virtualizer.getTotalSize()}px`, position: "relative" }}>
           {virtualizer.getVirtualItems().map((virtualRow) => {
             const rowIndex = virtualRow.index

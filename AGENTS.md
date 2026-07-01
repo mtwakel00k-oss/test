@@ -270,3 +270,33 @@ Phase 1: Zero JS chunks >200KB via code splitting. Phase 2: PWA/offline with ser
 - `components/admin/stat-card.tsx` (UPDATED) — added data-testid
 - `components/kitchen/kds-dashboard.tsx` (UPDATED) — added data-testid
 <!-- END:session-2025-06-28 -->
+
+<!-- BEGIN:session-2025-06-30 -->
+## Session Progress (Jun 30) — Responsive POS/KDS/Admin
+
+### Goal
+Make POS, KDS, Admin, and Login fully responsive for mobile/tablet without separate native apps.
+
+### Done
+1. **POS Product Grid** (`components/pos/product-grid.tsx`):
+   - Added mobile search bar + horizontally scrollable category chips visible below `lg`
+   - Desktop sidebar categories remain unchanged for `lg+`
+2. **POS Cart Sidebar** (`components/pos/cart-sidebar.tsx`):
+   - Footer padding: `p-8` → `p-4 md:p-8`
+   - Order type buttons: `h-14` → `h-12 md:h-14`, gaps tightened
+3. **POS Layout** (`app/[restaurant_slug]/pos/page.tsx`):
+   - Added `flex flex-col` so `flex-1` fills properly on mobile
+4. **KDS Dashboard** (`components/kitchen/kds-dashboard.tsx`):
+   - Order card padding: `p-5` → `p-4 lg:p-5`, spacing `space-y-4` → `space-y-3 lg:space-y-4`
+   - Order number: `text-2xl` → `text-xl lg:text-2xl`, time: `text-lg` → `text-base lg:text-lg`
+5. **Admin Page** (`app/[restaurant_slug]/admin/page.tsx`):
+   - Mobile sidebar overlay with backdrop blur + close button (hidden on `lg+`)
+   - All loading skeletons: `bg-white/*` → `bg-muted/*` (was invisible in light mode)
+6. **Login Form** (`app/login/login-form.tsx`):
+   - Footer: `fixed` → `absolute` to avoid overlap on short viewports
+
+### Result
+- TypeScript: zero errors
+- Build: passes (52 routes)
+- No layout shift on mobile; all components stack vertically on small screens
+<!-- END:session-2025-06-30 -->

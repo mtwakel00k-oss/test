@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, startTransition } from "react"
 import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
-import { LogOut, ChartNoAxesColumn, Shield, DoorOpen, DoorClosed } from "lucide-react"
+import { LogOut, ChartNoAxesColumn, Shield, DoorOpen, DoorClosed, Menu, X } from "lucide-react"
 import { resetTenantClient, fetchApi } from "@/lib/fetch-api"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -12,44 +12,44 @@ import { useTranslation } from "@/lib/use-translation"
 
 const TenantSidebar = dynamic(() => import("@/components/admin/tenant-sidebar").then(m => ({ default: m.TenantSidebar })), {
   ssr: false,
-  loading: () => <div className="w-56 shrink-0" />,
+  loading: () => <div className="w-56 shrink-0 hidden lg:block" />,
 })
 const ProductManager = dynamic(() => import("@/components/admin/product-manager").then(m => ({ default: m.ProductManager })), {
   ssr: false,
-  loading: () => <div className="h-96 rounded-2xl bg-white/5 " />,
+  loading: () => <div className="h-96 rounded-2xl bg-muted/10" />,
 })
 const OrdersList = dynamic(() => import("@/components/admin/orders-list").then(m => ({ default: m.OrdersList })), {
   ssr: false,
-  loading: () => <div className="h-96 rounded-2xl bg-white/5 " />,
+  loading: () => <div className="h-96 rounded-2xl bg-muted/10" />,
 })
 const OrderDetailSheet = dynamic(() => import("@/components/admin/order-detail-sheet").then(m => ({ default: m.OrderDetailSheet })))
 const ClearData = dynamic(() => import("@/components/admin/clear-data").then(m => ({ default: m.ClearData })))
 const PlanManager = dynamic(() => import("@/components/admin/plan-manager").then(m => ({ default: m.PlanManager })))
 const EarningsOverview = dynamic(() => import("@/components/admin/earnings-overview").then(m => ({ default: m.EarningsOverview })), {
-  loading: () => <div className="h-48 rounded-2xl bg-white/5 " />,
+  loading: () => <div className="h-48 rounded-2xl bg-muted/10" />,
 })
 const AuditLog = dynamic(() => import("@/components/admin/audit-log").then(m => ({ default: m.AuditLog })), {
-  loading: () => <div className="h-96 rounded-2xl bg-white/5 " />,
+  loading: () => <div className="h-96 rounded-2xl bg-muted/10" />,
 })
 const PremiumAnalytics = dynamic(() => import("@/components/admin/premium-analytics").then(m => ({ default: m.PremiumAnalytics })), {
-  loading: () => <div className="h-96 rounded-2xl bg-white/5 " />,
+  loading: () => <div className="h-96 rounded-2xl bg-muted/10" />,
 })
 const OperationsManager = dynamic(() => import("@/components/admin/operations-manager").then(m => ({ default: m.OperationsManager })), {
-  loading: () => <div className="h-96 rounded-2xl bg-white/5 " />,
+  loading: () => <div className="h-96 rounded-2xl bg-muted/10" />,
 })
 const AdminDataProvider = dynamic(() => import("@/components/admin/admin-data-provider").then(m => ({ default: m.AdminDataProvider })), {
   ssr: false,
   loading: () => <div className="space-y-6">
-    <div className="h-8 w-96 rounded-full bg-white/5 " />
+    <div className="h-8 w-96 rounded-full bg-muted/10" />
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
       {[...Array(5)].map((_, i) => (
-        <div key={i} className="bg-card/40 border border-white/5 rounded-2xl p-5 space-y-4 ">
+        <div key={i} className="bg-card/40 border border-border/20 rounded-2xl p-5 space-y-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary/10" />
-            <div className="h-3 w-24 rounded-full bg-white/5" />
+            <div className="h-3 w-24 rounded-full bg-muted/10" />
           </div>
-          <div className="h-7 w-32 rounded-full bg-white/8" />
-          <div className="h-3 w-20 rounded-full bg-white/5" />
+          <div className="h-7 w-32 rounded-full bg-muted/15" />
+          <div className="h-3 w-20 rounded-full bg-muted/10" />
         </div>
       ))}
     </div>
@@ -68,6 +68,7 @@ export default function AdminPage() {
   const [isOpen, setIsOpen] = useState(true)
   const [togglingOpen, setTogglingOpen] = useState(false)
   const [_planType, setPlanType] = useState<string | null>(null)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
 
   useEffect(() => {
     fetchApi("/api/me").then(r => r.ok ? r.json() : null).then(data => {
@@ -189,7 +190,11 @@ export default function AdminPage() {
               <p className="text-[10px] text-white/40">{slug}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <button onClick={() => setMobileSidebarOpen(true)}
+              className="lg:hidden h-8 w-8 flex items-center justify-center rounded-lg text-white/40 hover:text-white hover:bg-white/[0.06] transition-colors">
+              <Menu className="w-4 h-4" />
+            </button>
             <ClearData onCleared={() => {}} />
             <button
               onClick={toggleOpen}
@@ -219,19 +224,50 @@ export default function AdminPage() {
 
       <main className="relative max-w-7xl mx-auto p-4 lg:p-6">
         <div className="flex gap-6">
-          <TenantSidebar
-            currentTab={adminTab}
-            onTabChange={setAdminTab}
-            userRole={userRole}
-            labels={{
-              overview: t("admin.overview"),
-              products: t("admin.products"),
-              orders: t("admin.orders"),
-              audit: t("admin.audit"),
-              analytics: t("analytics.premiumAnalytics"),
-              staff: t("admin.staff"),
-            }}
-          />
+          {/* Mobile sidebar overlay */}
+          {mobileSidebarOpen && (
+            <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setMobileSidebarOpen(false)}>
+              <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+              <div className="absolute left-0 top-0 bottom-0 w-64 bg-background border-r border-border/50 p-4 pt-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between mb-6 px-2">
+                  <span className="text-xs font-bold text-muted-foreground/50 uppercase tracking-widest">{t("admin.dashboard")}</span>
+                  <button onClick={() => setMobileSidebarOpen(false)}
+                    className="h-8 w-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-colors">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <TenantSidebar
+                  currentTab={adminTab}
+                  onTabChange={(tab) => { setAdminTab(tab); setMobileSidebarOpen(false) }}
+                  userRole={userRole}
+                  labels={{
+                    overview: t("admin.overview"),
+                    products: t("admin.products"),
+                    orders: t("admin.orders"),
+                    audit: t("admin.audit"),
+                    analytics: t("analytics.premiumAnalytics"),
+                    staff: t("admin.staff"),
+                  }}
+                />
+              </div>
+            </div>
+          )}
+          {/* Desktop sidebar */}
+          <div className="hidden lg:block">
+            <TenantSidebar
+              currentTab={adminTab}
+              onTabChange={setAdminTab}
+              userRole={userRole}
+              labels={{
+                overview: t("admin.overview"),
+                products: t("admin.products"),
+                orders: t("admin.orders"),
+                audit: t("admin.audit"),
+                analytics: t("analytics.premiumAnalytics"),
+                staff: t("admin.staff"),
+              }}
+            />
+          </div>
           <div className="flex-1 min-w-0 space-y-6">
             {adminTab === "overview" ? (
               <AdminDataProvider

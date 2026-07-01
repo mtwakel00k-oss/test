@@ -54,7 +54,7 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
   }
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: "#022509" }}>
+    <div className="relative min-h-screen flex flex-col items-center justify-center p-4" style={{ backgroundColor: "#022509" }}>
       {/* Dot grid pattern */}
       <div
         className="pointer-events-none absolute inset-0"
@@ -228,7 +228,7 @@ export default function LoginForm({ redirect: redirectProp, slug: slugProp, tena
       </motion.div>
 
       {/* Footer */}
-      <p className="fixed bottom-6 text-[10px] font-medium tracking-wider" style={{ color: "rgba(255,255,255,0.1)" }}>
+      <p className="absolute bottom-6 text-[10px] font-medium tracking-wider" style={{ color: "rgba(255,255,255,0.1)" }}>
         RestoOS — Smart POS System
       </p>
     </div>
