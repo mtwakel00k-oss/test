@@ -16,6 +16,11 @@
     "test:e2e:edge": "playwright test --project=edge-cases",
     "db:migrate": "tsx data/migration-apply.ts"
   },
+  "overrides": {
+    "undici": ">=7.28.0 <8.0.0",
+    "js-yaml": ">=4.1.2 <5.0.0",
+    "postcss": ">=8.5.10"
+  },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
     "@radix-ui/react-accordion": "^1.2.12",
