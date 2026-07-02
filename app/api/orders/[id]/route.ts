@@ -3,7 +3,7 @@ import { supabaseForRequestAdmin, isTenantMismatch, parseSession } from "@/lib/t
 import { createClientForRouteHandler } from "@/lib/supabase-server"
 import { findOrderAcrossTenants } from "@/lib/order-tracking"
 import { logger } from "@/lib/logger"
-import { logAudit } from "@/lib/audit"
+import { recordAuditEvent, EVENT_TYPES } from "@/lib/audit-events"
 import { DB_STATUS_TO_POS } from "@/lib/constants"
 import { notifyDriverAssigned } from "@/lib/whatsapp"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
@@ -201,7 +201,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       const { error: updErr } = await sb.from("orders").update({ total }).eq("id", id)
       if (updErr) throw new Error(updErr.message || JSON.stringify(updErr))
       logger.info("Order items updated", { id, total })
-      logAudit(sb, req, { table_name: "order_items", record_id: id, operation: "UPDATE", new_data: { total, itemsCount: body.items?.length } })
+      recordAuditEvent(req, { event_type: EVENT_TYPES.ORDER_UPDATED, operation: "UPDATE", table_name: "order_items", record_id: id, new_data: { total, itemsCount: body.items?.length } }).catch(() => {})
       return NextResponse.json({ success: true })
     }
 
@@ -283,7 +283,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const result = await tryUpdate(updateData)
     if (!result) throw new Error("Failed to update order after exhausting retries")
     logger.info("Order updated", { id, status })
-    logAudit(sb, req, { table_name: "orders", record_id: id, operation: "UPDATE", new_data: updateData as Record<string, unknown> })
+    recordAuditEvent(req, { event_type: EVENT_TYPES.ORDER_UPDATED, operation: "UPDATE", table_name: "orders", record_id: id, new_data: updateData as Record<string, unknown> }).catch(() => {})
 
     if (driver_id) {
       const slug =
@@ -330,7 +330,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     const { error: oe } = await (sb.from("orders")).delete().eq("id", id)
     if (oe) throw new Error(oe.message || JSON.stringify(oe))
     logger.info("Order deleted", { id })
-    logAudit(sb, req, { table_name: "orders", record_id: id, operation: "DELETE" })
+    recordAuditEvent(req, { event_type: EVENT_TYPES.ORDER_DELETED, operation: "DELETE", table_name: "orders", record_id: id }).catch(() => {})
     return NextResponse.json({ success: true })
   } catch (e) {
     const mismatch = isTenantMismatch(e)

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { supabaseForRequestAdmin, isTenantMismatch, parseSession, getTenantConfig } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
-import { logAudit } from "@/lib/audit"
+import { recordAuditEvent, EVENT_TYPES } from "@/lib/audit-events"
 import { env } from "@/lib/env"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 import { bulkUpdateSchema, validationError } from "@/lib/validations"
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
       if (errors.length > 0 && errors.every(e => e.includes("does not exist") || e.includes("42703"))) {
         return NextResponse.json({ error: "Tenant DB missing 'is_available' column. Apply tenant migration SQL in Supabase Dashboard.", errors }, { status: 400 })
       }
-      logAudit(sb, req, { table_name: "produits", record_id: `bulk:${product_ids.join(",")}`, operation: "UPDATE", new_data: { action: "set_availability", is_available, count: product_ids.length } })
+      recordAuditEvent(req, { event_type: EVENT_TYPES.PRODUCT_UPDATED, operation: "UPDATE", table_name: "produits", record_id: `bulk:${product_ids.join(",")}`, new_data: { action: "set_availability", is_available, count: product_ids.length } }).catch(() => {})
     } else if (action === "set_price") {
       const { size_code, price, sauce_id } = body
       if (!size_code || price == null) {
@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
         if (insErr) errors.push(`Product ${id} insert price: ${insErr.message}`)
         else affected++
       }
-      logAudit(sb, req, { table_name: "prix", record_id: `bulk:${product_ids.join(",")}`, operation: "UPDATE", new_data: { action: "set_price", size_code, price, sauce_id, count: product_ids.length } })
+      recordAuditEvent(req, { event_type: EVENT_TYPES.PRODUCT_UPDATED, operation: "UPDATE", table_name: "prix", record_id: `bulk:${product_ids.join(",")}`, new_data: { action: "set_price", size_code, price, sauce_id, count: product_ids.length } }).catch(() => {})
     } else if (action === "set_category") {
       const { categorie_id } = body
       if (categorie_id == null) {
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
       const { error } = await svc.from("produits").update({ categorie_id: categorie_id || null }).in("id", product_ids)
       if (error) errors.push(error.message)
       else affected = product_ids.length
-      logAudit(sb, req, { table_name: "produits", record_id: `bulk:${product_ids.join(",")}`, operation: "UPDATE", new_data: { action: "set_category", categorie_id, count: product_ids.length } })
+      recordAuditEvent(req, { event_type: EVENT_TYPES.PRODUCT_UPDATED, operation: "UPDATE", table_name: "produits", record_id: `bulk:${product_ids.join(",")}`, new_data: { action: "set_category", categorie_id, count: product_ids.length } }).catch(() => {})
     } else {
       return NextResponse.json({ error: `Unknown action: ${action}` }, { status: 400 })
     }

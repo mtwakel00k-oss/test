@@ -131,16 +131,28 @@ DROP POLICY IF EXISTS "delivery_men_delete_admin" ON delivery_men;
 -- No policies. All access via service_role only.
 
 -- ── 12. restaurant_staff ─────────────────────────────────────
-DROP POLICY IF EXISTS "restaurant_staff_select_staff" ON restaurant_staff;
-DROP POLICY IF EXISTS "restaurant_staff_insert_admin" ON restaurant_staff;
-DROP POLICY IF EXISTS "restaurant_staff_update_admin" ON restaurant_staff;
-DROP POLICY IF EXISTS "restaurant_staff_delete_admin" ON restaurant_staff;
+DO $$
+BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'restaurant_staff') THEN
+    DROP POLICY IF EXISTS "restaurant_staff_select_staff" ON restaurant_staff;
+    DROP POLICY IF EXISTS "restaurant_staff_insert_admin" ON restaurant_staff;
+    DROP POLICY IF EXISTS "restaurant_staff_update_admin" ON restaurant_staff;
+    DROP POLICY IF EXISTS "restaurant_staff_delete_admin" ON restaurant_staff;
+  END IF;
+END;
+$$;
 
 -- No policies. All access via service_role only.
 
 -- ── 13. daily_order_counters ─────────────────────────────────
-DROP POLICY IF EXISTS "daily_order_counters_insert" ON daily_order_counters;
-DROP POLICY IF EXISTS "daily_order_counters_select" ON daily_order_counters;
+DO $$
+BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'daily_order_counters') THEN
+    DROP POLICY IF EXISTS "daily_order_counters_insert" ON daily_order_counters;
+    DROP POLICY IF EXISTS "daily_order_counters_select" ON daily_order_counters;
+  END IF;
+END;
+$$;
 
 -- No policies. All access via service_role only.
 
@@ -155,7 +167,7 @@ CREATE TABLE IF NOT EXISTS rate_limits (
 
 CREATE INDEX IF NOT EXISTS idx_rate_limits_window ON rate_limits (window_start);
 
-DROP POLICY IF EXISTS "rate_limits_service_role" ON rate_limits IF EXISTS;
+DROP POLICY IF EXISTS "rate_limits_service_role" ON rate_limits;
 
 -- Only service_role can read/write rate_limits.
 CREATE POLICY "rate_limits_service_role" ON rate_limits

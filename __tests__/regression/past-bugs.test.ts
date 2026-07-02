@@ -66,16 +66,12 @@ describe("@regression Session encryption", () => {
     expect(() => encryptSession({ role: "admin" })).toThrow("SESSION_ENCRYPTION_KEY is required")
   })
 
-  it("encryptSession works with valid key in dev mode (no encryption needed)", async () => {
-    // In dev mode without key, encryptSession returns JSON string
+  it("encryptSession throws without key in any mode", async () => {
     vi.stubEnv("NODE_ENV", "development")
     vi.stubEnv("SESSION_ENCRYPTION_KEY", "")
     vi.resetModules()
     const { encryptSession } = await import("@/lib/session-crypto")
-    const token = encryptSession({ role: "admin", slug: "burger-house" })
-    expect(typeof token).toBe("string")
-    const parsed = JSON.parse(token)
-    expect(parsed.role).toBe("admin")
+    expect(() => encryptSession({ role: "admin", slug: "burger-house" })).toThrow("SESSION_ENCRYPTION_KEY is required")
   })
 })
 

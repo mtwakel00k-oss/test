@@ -6,6 +6,7 @@ import { logger } from "@/lib/logger"
 import { env } from "@/lib/env"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 import { createStaffSchema, validationError } from "@/lib/validations"
+import { recordAuditEvent, EVENT_TYPES } from "@/lib/audit-events"
 
 function getSlug(req: NextRequest): string | null {
   const session = parseSession(req.headers.get("cookie") || "")
@@ -159,6 +160,7 @@ export async function POST(req: NextRequest) {
   }
 
   logger.info("Cashier created", { username, slug })
+  recordAuditEvent(req, { event_type: EVENT_TYPES.STAFF_CREATED, operation: "CREATE", table_name: "restaurant_staff", record_id: userId, new_data: { username, role: "cashier" } }).catch(() => {})
   return NextResponse.json({ id: userId, username, role: "cashier" })
 }
 
@@ -196,5 +198,6 @@ export async function DELETE(req: NextRequest) {
   }
 
   logger.info("Cashier removed", { userId, slug })
+    recordAuditEvent(req, { event_type: EVENT_TYPES.STAFF_DELETED, operation: "DELETE", table_name: "restaurant_staff", record_id: userId, new_data: { user_id: userId } }).catch(() => {})
   return NextResponse.json({ success: true })
 }

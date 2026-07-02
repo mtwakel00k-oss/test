@@ -4,6 +4,7 @@ import { parseSession } from "@/lib/tenant"
 import { createHash } from "crypto"
 import { env } from "@/lib/env"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
+import { recordAuditEvent, EVENT_TYPES } from "@/lib/audit-events"
 
 const USERS = [
   { username: "admin",   role: "admin" },
@@ -120,6 +121,8 @@ export async function POST(req: NextRequest) {
         return { username: u.username, email, password: u.username === "admin" ? password : undefined, status: existingId ? "updated" : "created" }
       }),
     )
+
+    recordAuditEvent(req, { event_type: EVENT_TYPES.AUTH_SETUP_STAFF, operation: "CREATE", outcome: "success", new_data: { slug, users: results.map((r: { username: string; status: string }) => ({ username: r.username, status: r.status })) } }).catch(() => {})
 
     return NextResponse.json({ slug, results })
   } catch (e) {

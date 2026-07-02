@@ -4,6 +4,7 @@ import { parseSession } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 import { env } from "@/lib/env"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
+import { recordAuditEvent, EVENT_TYPES } from "@/lib/audit-events"
 
 export async function GET(req: NextRequest) {
   try {
@@ -50,6 +51,8 @@ export async function PATCH(req: NextRequest) {
       logger.error("Settings PATCH failed", error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
+
+    recordAuditEvent(req, { event_type: EVENT_TYPES.SETTINGS_UPDATED, operation: "UPDATE", table_name: "app_config", new_data: body, old_data: undefined }).catch(() => {})
 
     return NextResponse.json({ success: true })
   } catch (e) {

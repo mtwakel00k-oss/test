@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { supabaseForRequestAdmin, isTenantMismatch } from "@/lib/tenant"
 import { requireStaff, resolveTenantSlug, isErrorResponse } from "@/lib/api-auth"
 import { logger } from "@/lib/logger"
-import { logAudit } from "@/lib/audit"
+import { recordAuditEvent, EVENT_TYPES } from "@/lib/audit-events"
 import { sendDriverWhatsApp } from "@/lib/whatsapp"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 import { assignDeliverySchema, validationError } from "@/lib/validations"
@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
     })
 
     logger.info("Delivery assigned", { order_id, delivery_man_id })
-    logAudit(sb, req, { table_name: "orders", record_id: order_id, operation: "UPDATE", new_data: { delivery_man_id, driver_id: delivery_man_id, status: "out_for_delivery", payment_status: "paid" } })
+    recordAuditEvent(req, { event_type: EVENT_TYPES.DELIVERY_ASSIGNED, operation: "UPDATE", table_name: "orders", record_id: order_id, new_data: { delivery_man_id, driver_id: delivery_man_id, status: "out_for_delivery", payment_status: "paid" } }).catch(() => {})
     return NextResponse.json({ success: true })
   } catch (e) {
     const mismatch = isTenantMismatch(e)

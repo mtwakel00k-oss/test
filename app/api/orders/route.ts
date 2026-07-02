@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { supabaseForRequestAdmin, isTenantMismatch, parseSession, getIsOpen } from "@/lib/tenant"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
-import { logAudit } from "@/lib/audit"
+import { recordAuditEvent, EVENT_TYPES } from "@/lib/audit-events"
 import { logger } from "@/lib/logger"
 import type { OrderType, MenuProduct } from "@/lib/types"
 import { getPrice } from "@/lib/types"
@@ -344,7 +344,7 @@ export async function POST(req: NextRequest) {
     }
 
     const finalTotal = total
-    logAudit(sb, req, { table_name: "orders", record_id: order.id as string, operation: "INSERT", new_data: { total: finalTotal, itemCount: orderItems.length, orderNumber, order_type: payload.order_type, customer_name: payload.customer_name, cashier_name: processed_by_staff_name || cashier_name || null } })
+    recordAuditEvent(req, { event_type: EVENT_TYPES.ORDER_CREATED, operation: "CREATE", table_name: "orders", record_id: order.id as string, new_data: { total: finalTotal, itemCount: orderItems.length, orderNumber, order_type: payload.order_type, customer_name: payload.customer_name, cashier_name: processed_by_staff_name || cashier_name || null } }).catch(() => {})
 
     const elapsed = Date.now() - startTime
     logger.info("Order created", { id: order.id, total: finalTotal, itemCount: orderItems.length, removedCount: removedProductIds.length, orderNumber, elapsedMs: elapsed })

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 
 vi.mock("@/lib/tenant", () => ({
   supabaseForRequest: vi.fn(),
+  supabaseForRequestAdmin: vi.fn(),
   isTenantMismatch: vi.fn(() => null),
   parseSession: vi.fn(() => ({ role: "admin", email: "admin@test.com", slug: "burger-house" })),
 }))
@@ -22,7 +23,7 @@ vi.mock("@/lib/audit", () => ({
 
 import { GET, POST, DELETE } from "@/app/api/categories/route"
 import { NextRequest } from "next/server"
-import { supabaseForRequest } from "@/lib/tenant"
+import { supabaseForRequest, supabaseForRequestAdmin } from "@/lib/tenant"
 
 function makeRequest(method: string, body?: unknown, searchParams?: string): NextRequest {
   const url = new URL(`http://localhost:3000/api/categories${searchParams ? `?${searchParams}` : ""}`)
@@ -101,7 +102,7 @@ describe("POST /api/categories", () => {
       select: vi.fn(),
       delete: vi.fn(),
     }))
-    vi.mocked(supabaseForRequest).mockResolvedValue({ from } as never)
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue({ from } as never)
 
     const req = makeRequest("POST", { nom: "Desserts" })
     const res = await POST(req)
@@ -130,7 +131,7 @@ describe("DELETE /api/categories", () => {
   beforeEach(() => { vi.clearAllMocks() })
 
   it("deletes a category", async () => {
-    vi.mocked(supabaseForRequest).mockResolvedValue({ from: mockFrom() } as never)
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue({ from: mockFrom() } as never)
 
     const req = makeRequest("DELETE", undefined, "id=5")
     const res = await DELETE(req)
@@ -160,7 +161,7 @@ describe("DELETE /api/categories", () => {
       update: vi.fn(() => ({ eq: vi.fn() })),
       select: vi.fn(),
     }))
-    vi.mocked(supabaseForRequest).mockResolvedValue({ from } as never)
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue({ from } as never)
 
     const req = makeRequest("DELETE", undefined, "id=5")
     const res = await DELETE(req)

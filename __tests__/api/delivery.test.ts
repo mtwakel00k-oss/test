@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 
 vi.mock("@/lib/tenant", () => ({
   supabaseForRequest: vi.fn(),
+  supabaseForRequestAdmin: vi.fn(),
   supabaseForSlug: vi.fn(),
   isTenantMismatch: vi.fn(() => null),
   parseSession: vi.fn(() => ({ role: "admin", email: "admin@test.com", slug: "burger-house" })),
@@ -22,7 +23,7 @@ vi.mock("@/lib/collect", () => ({
 }))
 
 import { NextRequest } from "next/server"
-import { supabaseForRequest, parseSession } from "@/lib/tenant"
+import { supabaseForRequestAdmin, parseSession } from "@/lib/tenant"
 import { markOrderAsCollected } from "@/lib/collect"
 import { GET as ManageGET, PATCH as ManagePATCH } from "@/app/api/delivery/manage/[order_id]/route"
 import { POST as CollectPOST } from "@/app/api/delivery/collect/route"
@@ -81,7 +82,7 @@ describe("GET /api/delivery/manage/[order_id]", () => {
         })),
       })),
     }))
-    vi.mocked(supabaseForRequest).mockResolvedValue({ from } as never)
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue({ from } as never)
 
     const req = makeRequest("GET", undefined, "/delivery/manage/1")
     const res = await ManageGET(req, { params: Promise.resolve({ order_id: "1" }) })
@@ -99,7 +100,7 @@ describe("GET /api/delivery/manage/[order_id]", () => {
         })),
       })),
     }))
-    vi.mocked(supabaseForRequest).mockResolvedValue({ from } as never)
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue({ from } as never)
 
     const req = makeRequest("GET", undefined, "/delivery/manage/999")
     const res = await ManageGET(req, { params: Promise.resolve({ order_id: "999" }) })
@@ -119,7 +120,7 @@ describe("PATCH /api/delivery/manage/[order_id]", () => {
       if (t === "delivery_men") return { update: vi.fn(() => ({ eq: vi.fn() })) }
       return { select: vi.fn(), update: vi.fn() }
     })
-    vi.mocked(supabaseForRequest).mockResolvedValue({ from } as never)
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue({ from } as never)
 
     const req = makeRequest("PATCH", { driver_lat: 36.7, driver_lng: 3.2 }, "/delivery/manage/1")
     const res = await ManagePATCH(req, { params: Promise.resolve({ order_id: "1" }) })
@@ -135,7 +136,7 @@ describe("PATCH /api/delivery/manage/[order_id]", () => {
       if (t === "delivery_men") return { update: vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) })) }
       return { select: vi.fn(), update: vi.fn() }
     })
-    vi.mocked(supabaseForRequest).mockResolvedValue({ from } as never)
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue({ from } as never)
 
     const req = makeRequest("PATCH", { status: "completed" }, "/delivery/manage/1")
     const res = await ManagePATCH(req, { params: Promise.resolve({ order_id: "1" }) })
@@ -143,7 +144,7 @@ describe("PATCH /api/delivery/manage/[order_id]", () => {
   })
 
   it("returns 400 when no fields to update", async () => {
-    vi.mocked(supabaseForRequest).mockResolvedValue({ from: vi.fn() } as never)
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue({ from: vi.fn() } as never)
 
     const req = makeRequest("PATCH", {}, "/delivery/manage/1")
     const res = await ManagePATCH(req, { params: Promise.resolve({ order_id: "1" }) })
@@ -161,7 +162,7 @@ describe("PATCH /api/delivery/manage/[order_id]", () => {
       }
       return { select: vi.fn(), update: vi.fn() }
     })
-    vi.mocked(supabaseForRequest).mockResolvedValue({ from } as never)
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue({ from } as never)
 
     const req = makeRequest("PATCH", { driver_lat: 36.7 }, "/delivery/manage/1")
     const res = await ManagePATCH(req, { params: Promise.resolve({ order_id: "1" }) })
@@ -176,7 +177,7 @@ describe("GET /api/delivery-men", () => {
     const from = vi.fn(() => ({
       select: vi.fn(() => ({ order: vi.fn().mockResolvedValue({ data: [{ id: 1, name: "Ali" }], error: null }) })),
     }))
-    vi.mocked(supabaseForRequest).mockResolvedValue({ from } as never)
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue({ from } as never)
 
     const res = await GET(makeRequest("GET"))
     expect(res.status).toBe(200)
@@ -189,7 +190,7 @@ describe("GET /api/delivery-men", () => {
     const from = vi.fn(() => ({
       select: vi.fn(() => ({ order: vi.fn().mockResolvedValue({ data: null, error: { message: "does not exist", code: "PGRST205" } }) })),
     }))
-    vi.mocked(supabaseForRequest).mockResolvedValue({ from } as never)
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue({ from } as never)
 
     const res = await GET(makeRequest("GET"))
     expect(res.status).toBe(200)
@@ -205,7 +206,7 @@ describe("POST /api/delivery-men", () => {
     const from = vi.fn(() => ({
       insert: vi.fn(() => ({ select: vi.fn(() => ({ single: vi.fn().mockResolvedValue({ data: { id: 1, name: "Ali", whatsapp_number: "0550000000" }, error: null }) })) })),
     }))
-    vi.mocked(supabaseForRequest).mockResolvedValue({ from } as never)
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue({ from } as never)
 
     const req = makeRequest("POST", { name: "Ali", whatsapp_number: "0550000000" })
     const res = await POST(req)
@@ -236,7 +237,7 @@ describe("PATCH /api/delivery-men", () => {
     const from = vi.fn(() => ({
       update: vi.fn(() => ({ eq: vi.fn(() => ({ select: vi.fn(() => ({ single: vi.fn().mockResolvedValue({ data: { id: 1, name: "Ali Updated" }, error: null }) })) })) })),
     }))
-    vi.mocked(supabaseForRequest).mockResolvedValue({ from } as never)
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue({ from } as never)
 
     const req = makeRequest("PATCH", { id: 1, name: "Ali Updated" })
     const res = await PATCH(req)
@@ -267,7 +268,7 @@ describe("DELETE /api/delivery-men", () => {
     const from = vi.fn(() => ({
       delete: vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) })),
     }))
-    vi.mocked(supabaseForRequest).mockResolvedValue({ from } as never)
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue({ from } as never)
 
     const req = makeRequest("DELETE", undefined, "/delivery-men?id=1")
     const res = await DELETE(req)

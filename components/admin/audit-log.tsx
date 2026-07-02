@@ -1,18 +1,26 @@
 "use client"
 
 import { useEffect, useState, useCallback, useMemo } from "react"
-import { History, ChevronLeft, ChevronRight, RefreshCw, Eye, X } from "lucide-react"
+import { History, ChevronLeft, ChevronRight, RefreshCw, Eye, X, Download, Search } from "lucide-react"
 import { fetchApi } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 import { useTranslation } from "@/lib/use-translation"
 import { motion, AnimatePresence } from "framer-motion"
-import type { AuditLogRow } from "@/app/api/admin/audit-log/route"
+import type { AuditEventRow } from "@/app/api/admin/audit-log/route"
+
+const OUTCOME_STYLES: Record<string, string> = {
+  success: "text-malachite bg-malachite/10 border-malachite/20",
+  failure: "text-destructive bg-destructive/10 border-destructive/20",
+}
 
 const OPERATION_STYLES: Record<string, string> = {
-  INSERT: "text-malachite bg-malachite/10 border-malachite/20",
-  UPDATE: "text-neutral-300 bg-neutral-500/10 border-neutral-500/20",
+  CREATE: "text-malachite bg-malachite/10 border-malachite/20",
+  UPDATE: "text-amber-400 bg-amber-500/10 border-amber-500/20",
   DELETE: "text-destructive bg-destructive/10 border-destructive/20",
-  TOGGLE_RESTAURANT_STATUS: "text-amber-400 bg-amber-500/10 border-amber-500/20",
+  ACCESS: "text-sky-400 bg-sky-500/10 border-sky-500/20",
+  LOGIN: "text-blue-400 bg-blue-500/10 border-blue-500/20",
+  LOGOUT: "text-neutral-400 bg-neutral-500/10 border-neutral-500/20",
+  DENIED: "text-rose-400 bg-rose-500/10 border-rose-500/20",
 }
 
 function formatDateTime(iso: string) {
@@ -20,13 +28,6 @@ function formatDateTime(iso: string) {
   return d.toLocaleDateString("en-US", {
     month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
   })
-}
-
-function getOperationKey(row: AuditLogRow): string {
-  if (row.operation === "UPDATE" && (row.new_data as Record<string, unknown>)?.action === "status_toggle") {
-    return "TOGGLE_RESTAURANT_STATUS"
-  }
-  return row.operation
 }
 
 function parseData(raw: unknown): Record<string, unknown> {
@@ -58,10 +59,13 @@ export function AuditLog() {
 
   const ACTION_LABELS: Record<string, string> = useMemo(() => ({
     all: t("audit.allActions"),
-    INSERT: t("audit.actionInsert"),
+    CREATE: "إنشاء",
     UPDATE: t("audit.actionUpdate"),
     DELETE: t("audit.actionDelete"),
-    TOGGLE_RESTAURANT_STATUS: t("audit.actionToggleStatus"),
+    ACCESS: "وصول",
+    LOGIN: "دخول",
+    LOGOUT: "خروج",
+    DENIED: "رفض",
   }), [t])
 
   const KEY_LABELS: Record<string, string> = useMemo(() => ({
@@ -93,8 +97,8 @@ export function AuditLog() {
     customer: { label: t("audit.roleCustomer"), icon: ROLE_ICONS.customer },
   }), [t])
 
-  const getActionLabel = useCallback((row: AuditLogRow): string => {
-    return ACTION_LABELS[getOperationKey(row)] || row.operation
+  const getActionLabel = useCallback((row: AuditEventRow): string => {
+    return ACTION_LABELS[row.operation] || row.operation
   }, [ACTION_LABELS])
 
   const renderValue = useCallback((key: string, val: unknown): { text: string; color: string } => {
@@ -173,11 +177,17 @@ export function AuditLog() {
     )
   }
 
-  const [raw, setRaw] = useState<AuditLogRow[]>([])
+  const [raw, setRaw] = useState<AuditEventRow[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(0)
   const [tableFilter, setTableFilter] = useState("all")
   const [operationFilter, setOperationFilter] = useState("all")
+  const [outcomeFilter, setOutcomeFilter] = useState("all")
+  const [eventTypeFilter] = useState("")
+  const [actorFilter] = useState("")
+  const [searchText, setSearchText] = useState("")
+  const [fromDate, setFromDate] = useState("")
+  const [toDate, setToDate] = useState("")
   const [expanded, setExpanded] = useState<string | null>(null)
   const perPage = 50
 
@@ -185,35 +195,62 @@ export function AuditLog() {
     queueMicrotask(() => setLoading(true))
     try {
       const params = new URLSearchParams({ limit: String(500), offset: "0" })
+      if (tableFilter !== "all") params.set("table", tableFilter)
+      if (operationFilter !== "all") params.set("operation", operationFilter)
+      if (outcomeFilter !== "all") params.set("outcome", outcomeFilter)
+      if (eventTypeFilter) params.set("event_type", eventTypeFilter)
+      if (actorFilter) params.set("actor", actorFilter)
+      if (searchText) params.set("search", searchText)
+      if (fromDate) params.set("from", fromDate)
+      if (toDate) params.set("to", toDate)
       const res = await fetchApi(`/api/admin/audit-log?${params}`)
       if (!res.ok) return
       const json = await res.json()
       setRaw(json.data || [])
     } catch (e) { logger.warn("Failed to fetch audit log", e) } finally { queueMicrotask(() => setLoading(false)) }
-  }, [])
+  }, [tableFilter, operationFilter, outcomeFilter, eventTypeFilter, actorFilter, searchText, fromDate, toDate])
 
   useEffect(() => { queueMicrotask(() => fetchLogs()) }, [fetchLogs])
 
   const filtered = useMemo(() => {
     let result = raw
     if (tableFilter !== "all") {
-      result = result.filter(r => r.table_name === tableFilter)
+      result = result.filter(r => (r.table_name || "") === tableFilter)
     }
     if (operationFilter !== "all") {
-      if (operationFilter === "TOGGLE_RESTAURANT_STATUS") {
-        result = result.filter(r => getOperationKey(r) === "TOGGLE_RESTAURANT_STATUS")
-      } else {
-        result = result.filter(r => r.operation === operationFilter)
-      }
+      result = result.filter(r => r.operation === operationFilter)
+    }
+    if (outcomeFilter !== "all") {
+      result = result.filter(r => r.outcome === outcomeFilter)
     }
     return result
-  }, [raw, tableFilter, operationFilter])
+  }, [raw, tableFilter, operationFilter, outcomeFilter])
 
   const paginated = useMemo(() => {
     return filtered.slice(page * perPage, (page + 1) * perPage)
   }, [filtered, page])
 
   const totalPages = Math.ceil(filtered.length / perPage)
+
+  const handleExportCSV = useCallback(async () => {
+    try {
+      const params = new URLSearchParams()
+      if (tableFilter !== "all") params.set("table", tableFilter)
+      if (operationFilter !== "all") params.set("operation", operationFilter)
+      if (outcomeFilter !== "all") params.set("outcome", outcomeFilter)
+      if (fromDate) params.set("from", fromDate)
+      if (toDate) params.set("to", toDate)
+      const res = await fetchApi(`/api/admin/audit-log/export?${params}`)
+      if (!res.ok) return
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `audit-events-${new Date().toISOString().slice(0, 10)}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (e) { logger.warn("CSV export failed", e) }
+  }, [tableFilter, operationFilter, outcomeFilter, fromDate, toDate])
 
   return (
     <div className="space-y-5">
@@ -226,17 +263,41 @@ export function AuditLog() {
           <h3 className="text-sm font-semibold text-foreground">{t("admin.auditLog")}</h3>
           <span className="text-[10px] text-muted-foreground bg-neutral-500/10 px-2 py-0.5 rounded-full">{filtered.length}</span>
         </div>
-        <button
-          onClick={fetchLogs}
-          className="grid size-11 place-items-center rounded-xl border border-white/10 bg-white/[0.06] text-neutral-400 hover:bg-white/[0.10] hover:text-neutral-300 transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500/40"
-          style={{ minHeight: 44, minWidth: 44 }}
-        >
-          <RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} strokeWidth={1.5} />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleExportCSV}
+            className="grid size-11 place-items-center rounded-xl border border-white/10 bg-white/[0.06] text-neutral-400 hover:bg-white/[0.10] hover:text-neutral-300 transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500/40"
+            style={{ minHeight: 44, minWidth: 44 }}
+            title="تصدير CSV"
+          >
+            <Download className="size-4" strokeWidth={1.5} />
+          </button>
+          <button
+            onClick={fetchLogs}
+            className="grid size-11 place-items-center rounded-xl border border-white/10 bg-white/[0.06] text-neutral-400 hover:bg-white/[0.10] hover:text-neutral-300 transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500/40"
+            style={{ minHeight: 44, minWidth: 44 }}
+          >
+            <RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} strokeWidth={1.5} />
+          </button>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-neutral-500" strokeWidth={1.5} />
+        <input
+          type="text"
+          value={searchText}
+          onChange={(e) => { setSearchText(e.target.value); setPage(0) }}
+          placeholder="بحث في سجل الأحداث..."
+          className="w-full h-11 pr-10 pl-4 rounded-xl border border-white/10 bg-white/[0.04] text-sm text-neutral-300 placeholder-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-500/40 transition-all"
+          style={{ minHeight: 44 }}
+        />
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-2.5 flex-wrap">
+      <div className="flex flex-wrap items-center gap-2.5">
+        {/* Table filter */}
         <div className="flex items-center gap-1 p-1 rounded-xl border border-white/10 bg-white/[0.04]">
           {(["all", "orders", "produits", "categories"] as const).map((tbl) => {
             const active = tableFilter === tbl
@@ -257,8 +318,9 @@ export function AuditLog() {
           })}
         </div>
 
+        {/* Operation filter */}
         <div className="flex items-center gap-1 p-1 rounded-xl border border-white/10 bg-white/[0.04]">
-          {(["all", "INSERT", "UPDATE", "DELETE", "TOGGLE_RESTAURANT_STATUS"] as const).map((op) => {
+          {(["all", "CREATE", "UPDATE", "DELETE", "ACCESS", "LOGIN", "LOGOUT", "DENIED"] as const).map((op) => {
             const active = operationFilter === op
             return (
               <button
@@ -275,6 +337,44 @@ export function AuditLog() {
               </button>
             )
           })}
+        </div>
+
+        {/* Outcome filter */}
+        <div className="flex items-center gap-1 p-1 rounded-xl border border-white/10 bg-white/[0.04]">
+          {(["all", "success", "failure"] as const).map((oc) => {
+            const active = outcomeFilter === oc
+            return (
+              <button
+                key={oc}
+                onClick={() => { setOutcomeFilter(oc); setPage(0) }}
+                className={`relative px-3 py-1.5 rounded-lg text-[11px] font-semibold tracking-wide transition-all duration-300 ${
+                  active
+                    ? "bg-neutral-800 text-white border border-neutral-700 shadow-sm"
+                    : "text-neutral-500 hover:text-neutral-300 hover:bg-white/[0.06] border border-transparent"
+                }`}
+                style={{ minHeight: 36 }}
+              >
+                {oc === "all" ? "الكل" : oc === "success" ? "نجاح" : "فشل"}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Date range */}
+        <div className="flex items-center gap-2">
+          <input
+            type="date"
+            value={fromDate}
+            onChange={(e) => { setFromDate(e.target.value); setPage(0) }}
+            className="h-9 px-3 rounded-lg border border-white/10 bg-white/[0.04] text-[11px] text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-500/40"
+          />
+          <span className="text-[11px] text-neutral-600">—</span>
+          <input
+            type="date"
+            value={toDate}
+            onChange={(e) => { setToDate(e.target.value); setPage(0) }}
+            className="h-9 px-3 rounded-lg border border-white/10 bg-white/[0.04] text-[11px] text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-500/40"
+          />
         </div>
       </div>
 
@@ -319,37 +419,45 @@ export function AuditLog() {
                 <thead>
                   <tr className="border-b border-white/[0.06]">
                     <th className="text-right px-4 py-3 text-neutral-500 font-medium text-[10px] uppercase tracking-wider">{t("admin.time")}</th>
-                    <th className="text-right px-4 py-3 text-neutral-500 font-medium text-[10px] uppercase tracking-wider">{t("admin.table")}</th>
+                    <th className="text-right px-4 py-3 text-neutral-500 font-medium text-[10px] uppercase tracking-wider">النوع</th>
                     <th className="text-center px-4 py-3 text-neutral-500 font-medium text-[10px] uppercase tracking-wider">{t("admin.operation")}</th>
+                    <th className="text-center px-4 py-3 text-neutral-500 font-medium text-[10px] uppercase tracking-wider">النتيجة</th>
                     <th className="text-right px-4 py-3 text-neutral-500 font-medium text-[10px] uppercase tracking-wider">{t("admin.user")}</th>
                     <th className="text-right px-4 py-3 text-neutral-500 font-medium text-[10px] uppercase tracking-wider">{t("admin.details")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {paginated.map((row) => {
-                    const opKey = getOperationKey(row)
-                    const opStyle = OPERATION_STYLES[opKey] || "text-neutral-400 bg-neutral-500/10 border-neutral-500/20"
+                    const opStyle = OPERATION_STYLES[row.operation] || "text-neutral-400 bg-neutral-500/10 border-neutral-500/20"
+                    const ocStyle = OUTCOME_STYLES[row.outcome] || "text-neutral-500 bg-neutral-500/10 border-neutral-500/20"
                     return (
                       <tr key={row.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
                         <td className="px-4 py-3 text-[11px] text-neutral-500 whitespace-nowrap">{formatDateTime(row.created_at)}</td>
                         <td className="px-4 py-3">
-                          <span className="text-xs font-medium text-neutral-300">{TABLE_LABELS[row.table_name] || row.table_name}</span>
+                          <span className="text-xs font-medium text-neutral-300">{row.event_type}</span>
                         </td>
                         <td className="px-4 py-3 text-center">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${opStyle}`}>
                             <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                              {opKey === "INSERT" ? <><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></> : null}
-                              {opKey === "UPDATE" ? <><path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34" /><polygon points="18 2 22 6 12 16 8 16 8 12 18 2" /></> : null}
-                              {opKey === "DELETE" ? <><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></> : null}
-                              {opKey === "TOGGLE_RESTAURANT_STATUS" ? <><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></> : null}
+                              {row.operation === "CREATE" ? <><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></> : null}
+                              {row.operation === "UPDATE" ? <><path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34" /><polygon points="18 2 22 6 12 16 8 16 8 12 18 2" /></> : null}
+                              {row.operation === "DELETE" ? <><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></> : null}
+                              {row.operation === "ACCESS" ? <><circle cx="12" cy="12" r="2" /><path d="M21 12c0 1.2-4.03 6-9 6s-9-4.8-9-6c0-1.2 4.03-6 9-6s9 4.8 9 6z" /></> : null}
+                              {row.operation === "LOGIN" || row.operation === "LOGOUT" ? <><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" /><polyline points="10 17 15 12 10 7" /><line x1="15" y1="12" x2="3" y2="12" /></> : null}
+                              {row.operation === "DENIED" ? <><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a8 8 0 0 1-3.33-1.33M8.5 11.5a8.03 8.03 0 0 1 2.72-1.87" /><path d="M12 2a10 10 0 0 1 10 10c0 1.87-.55 3.6-1.5 5.07" /></> : null}
                             </svg>
                             {getActionLabel(row)}
                           </span>
                         </td>
+                        <td className="px-4 py-3 text-center">
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${ocStyle}`}>
+                            {row.outcome === "success" ? "نجاح" : "فشل"}
+                          </span>
+                        </td>
                         <td className="px-4 py-3 max-w-[180px]">
                           <div className="flex flex-col gap-1.5">
-                            {row.changed_by_role && <RoleBadgeLocal role={row.changed_by_role} />}
-                            <span className="text-sm font-medium text-neutral-300 truncate">{row.changed_by || "—"}</span>
+                            {row.actor_role && <RoleBadgeLocal role={row.actor_role} />}
+                            <span className="text-sm font-medium text-neutral-300 truncate">{row.actor_email || "—"}</span>
                           </div>
                         </td>
                         <td className="px-4 py-3">
@@ -404,6 +512,7 @@ export function AuditLog() {
           if (!row) return null
           const newData = parseData(row.new_data)
           const oldData = parseData(row.old_data)
+          const metaData = parseData(row.metadata)
           return (
             <motion.div
               key="detail"
@@ -425,7 +534,11 @@ export function AuditLog() {
               </div>
 
               {/* Meta info row */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <span className="text-[10px] text-neutral-600 block mb-0.5">معرف الحدث</span>
+                  <span className="text-xs text-neutral-300 font-mono">{row.event_type}</span>
+                </div>
                 <div>
                   <span className="text-[10px] text-neutral-600 block mb-0.5">{t("audit.recordId")}</span>
                   <span className="text-xs text-neutral-300 font-mono">{row.record_id || "—"}</span>
@@ -440,10 +553,32 @@ export function AuditLog() {
               <div className="flex flex-col gap-1">
                 <span className="text-[10px] text-neutral-600 block">{t("admin.user")}</span>
                 <div className="flex items-center gap-2.5">
-                  {row.changed_by_role && <RoleBadgeLocal role={row.changed_by_role} />}
-                  <span className="text-sm text-neutral-300">{row.changed_by || "—"}</span>
+                  {row.actor_role && <RoleBadgeLocal role={row.actor_role} />}
+                  <span className="text-sm text-neutral-300">{row.actor_email || "—"}</span>
                 </div>
               </div>
+
+              {/* Hash chain info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-[10px] text-neutral-600 block mb-0.5">التسلسل</span>
+                  <span className="text-xs text-neutral-500 font-mono">#{row.seq}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-neutral-600 block mb-0.5">طلب</span>
+                  <span className="text-xs text-neutral-500 font-mono">{row.request_id ? row.request_id.slice(0, 8) + "…" : "—"}</span>
+                </div>
+              </div>
+
+              {/* Metadata */}
+              {Object.keys(metaData).length > 0 && (
+                <div>
+                  <span className="text-[10px] text-neutral-600 block mb-2">بيانات إضافية</span>
+                  <pre className="text-xs text-neutral-400 font-mono bg-white/[0.03] p-3 rounded-xl overflow-x-auto">
+                    {JSON.stringify(metaData, null, 2)}
+                  </pre>
+                </div>
+              )}
 
               {/* New values grid */}
               <DataGridLocal data={newData} label={t("audit.newValues")} kLabels={KEY_LABELS} />

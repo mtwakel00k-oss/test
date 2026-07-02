@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 
 vi.mock("@/lib/tenant", () => ({
   supabaseForRequest: vi.fn(),
+  supabaseForRequestAdmin: vi.fn(),
   isTenantMismatch: vi.fn(() => null),
   parseSession: vi.fn(() => ({ role: "admin", email: "admin@test.com", slug: "burger-house" })),
 }))
@@ -46,7 +47,7 @@ vi.mock("@supabase/supabase-js", () => ({
 
 import { GET } from "@/app/api/admin/stats/route"
 import { NextRequest } from "next/server"
-import { supabaseForRequest } from "@/lib/tenant"
+import { supabaseForRequestAdmin } from "@/lib/tenant"
 
 function makeRequest(searchParams?: string): NextRequest {
   const url = new URL(`http://localhost:3000/api/admin/stats${searchParams ? `?${searchParams}` : ""}`)
@@ -123,7 +124,7 @@ describe("GET /api/admin/stats", () => {
     const items = [{ product_name: "Pizza", quantity: 2 }]
     const ratings = [{ id: "r1", rating: 5, comment: "Good", created_at: now }]
 
-    vi.mocked(supabaseForRequest).mockResolvedValue(buildClient(orders, items, ratings))
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue(buildClient(orders, items, ratings))
 
     const res = await GET(makeRequest("period=30d"))
     expect(res.status).toBe(200)
@@ -136,7 +137,7 @@ describe("GET /api/admin/stats", () => {
   })
 
   it("returns empty stats for period with no data", async () => {
-    vi.mocked(supabaseForRequest).mockResolvedValue(buildClient([], [], []))
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue(buildClient([], [], []))
 
     const res = await GET(makeRequest("period=7d"))
     expect(res.status).toBe(200)
@@ -159,7 +160,7 @@ describe("GET /api/admin/stats", () => {
     const items = [{ product_name: "Burger", quantity: 1 }]
     const ratings = [{ id: "r1", rating: 4, comment: "OK", created_at: new Date().toISOString() }]
 
-    vi.mocked(supabaseForRequest).mockResolvedValue(buildClient(orders, items, ratings))
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue(buildClient(orders, items, ratings))
 
     const res = await GET(makeOwnerRequest("mode=root"))
     expect(res.status).toBe(200)

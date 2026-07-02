@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { invalidateTenantConfig, parseSession, getTenantConfig, readIsOpenFromStorage, writeIsOpenToStorage } from "@/lib/tenant"
-import { logAudit } from "@/lib/audit"
+import { invalidateTenantConfig, parseSession, readIsOpenFromStorage, writeIsOpenToStorage } from "@/lib/tenant"
+import { recordAuditEvent, EVENT_TYPES } from "@/lib/audit-events"
 import { logger } from "@/lib/logger"
 import { env } from "@/lib/env"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
@@ -116,15 +116,7 @@ export async function PATCH(req: NextRequest) {
 
   async function logStatusToggle(req: NextRequest, slug: string, isOpen: boolean): Promise<void> {
     try {
-      const cfg = await getTenantConfig(slug)
-      if (!cfg) return
-      const tenantSb = createClient(cfg.supabase_url, cfg.supabase_anon_key)
-      logAudit(tenantSb, req, {
-        table_name: "tenants",
-        record_id: slug,
-        operation: "UPDATE",
-        new_data: { is_open: isOpen, action: "status_toggle" },
-      })
+      recordAuditEvent(req, { event_type: EVENT_TYPES.LOGO_UPDATED, operation: "UPDATE", table_name: "logos", record_id: "tenant_logo", new_data: { is_open: isOpen, action: "status_toggle" } }).catch(() => {})
     } catch { /* fire-and-forget */ }
   }
 }

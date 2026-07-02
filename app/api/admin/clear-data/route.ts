@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { supabaseForRequestAdmin, parseSession, getTenantConfig } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
-import { logAudit } from "@/lib/audit"
+import { recordAuditEvent, EVENT_TYPES } from "@/lib/audit-events"
 import { env } from "@/lib/env"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    logAudit(sb, req, { table_name: "orders", record_id: slug || "all", operation: "DELETE", new_data: { action: "clear_all_data" } })
+    recordAuditEvent(req, { event_type: EVENT_TYPES.ORDERS_BULK_CLEARED, operation: "DELETE", table_name: "orders", record_id: slug || "all", new_data: { action: "clear_all_data" } }).catch(() => {})
 
     logger.info("All data cleared via anon client (role=" + session.role + ")")
     return NextResponse.json({ success: true })

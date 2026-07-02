@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import type { SessionData } from "@/lib/session-crypto"
 import { parseSession } from "@/lib/tenant"
+import { recordAuditEvent, EVENT_TYPES } from "@/lib/audit-events"
 
 export const STAFF_ROLES = ["admin", "owner", "cashier", "chef"] as const
 export const ADMIN_ROLES = ["admin", "owner"] as const
@@ -20,14 +21,20 @@ export function requireRoles(session: SessionData, roles: readonly string[]): Ne
 export function requireStaff(req: NextRequest): SessionData | NextResponse {
   const session = getSession(req)
   const denied = requireRoles(session, STAFF_ROLES)
-  if (denied) return denied
+  if (denied) {
+    recordAuditEvent(req, { event_type: EVENT_TYPES.ACCESS_DENIED, operation: "DENIED", outcome: "failure", metadata: { required_roles: STAFF_ROLES.join(","), actual_role: session.role || "none" } }).catch(() => {})
+    return denied
+  }
   return session
 }
 
 export function requireAdmin(req: NextRequest): SessionData | NextResponse {
   const session = getSession(req)
   const denied = requireRoles(session, ADMIN_ROLES)
-  if (denied) return denied
+  if (denied) {
+    recordAuditEvent(req, { event_type: EVENT_TYPES.ACCESS_DENIED, operation: "DENIED", outcome: "failure", metadata: { required_roles: ADMIN_ROLES.join(","), actual_role: session.role || "none" } }).catch(() => {})
+    return denied
+  }
   return session
 }
 

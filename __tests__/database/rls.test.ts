@@ -21,11 +21,23 @@ describe("RLS Policies — 00005_lockdown_rls.sql", () => {
   })
 
   it("orders and order_items have NO anon/authenticated policies (service_role only)", () => {
-    const sensitiveTables = ["orders", "order_items", "audit_log", "delivery_men", "restaurant_staff", "daily_order_counters"]
+    const migration06Path = path.resolve("supabase/migrations/00006_audit_log_v2.sql")
+    const content06 = fs.readFileSync(migration06Path, "utf-8")
+    const combined = content + "\n" + content06
+
+    const sensitiveTables = ["orders", "order_items", "audit_log", "audit_events", "audit_write_failures", "delivery_men", "restaurant_staff", "daily_order_counters"]
     for (const table of sensitiveTables) {
-      const dropLines = content.match(new RegExp(`DROP POLICY IF EXISTS "${table}_[^"]+" ON ${table}`, "g"))
-      expect(dropLines).not.toBeNull()
-      expect(dropLines!.length).toBeGreaterThan(0)
+      // audit_events and audit_write_failures are created in 00006 with no policies (RLS enabled, empty set)
+      if (table === "audit_events" || table === "audit_write_failures") {
+        // Verify RLS is enabled but no CREATE POLICY exists
+        expect(combined).toContain(`ALTER TABLE ${table} ENABLE ROW LEVEL SECURITY`)
+        const createPolicies = combined.match(new RegExp(`CREATE POLICY ".*" ON ${table}`, "g"))
+        expect(createPolicies).toBeNull()
+      } else {
+        const dropLines = content.match(new RegExp(`DROP POLICY IF EXISTS "${table}_[^"]+" ON ${table}`, "g"))
+        expect(dropLines).not.toBeNull()
+        expect(dropLines!.length).toBeGreaterThan(0)
+      }
     }
   })
 

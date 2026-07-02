@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 vi.mock("@/lib/tenant", () => {
   return {
     supabaseForRequest: vi.fn(),
+    supabaseForRequestAdmin: vi.fn(),
     isTenantMismatch: vi.fn(() => null),
     parseSession: vi.fn(() => ({ role: "admin", email: "admin@test.com", slug: "burger-house" })),
     getTenantConfig: vi.fn(() => Promise.resolve(null)),
@@ -50,7 +51,7 @@ vi.mock("@supabase/supabase-js", () => ({
 
 import { GET, POST, DELETE } from "@/app/api/products/route"
 import { NextRequest } from "next/server"
-import { supabaseForRequest, parseSession } from "@/lib/tenant"
+import { supabaseForRequest, supabaseForRequestAdmin, parseSession } from "@/lib/tenant"
 import { getAllImageUrls } from "@/lib/image-store"
 
 function makeRequest(method: string, body?: unknown, searchParams?: string): NextRequest {
@@ -131,7 +132,7 @@ describe("POST /api/products", () => {
       if (t === "prix") return { insert: mockPrixInsert, delete: vi.fn(() => ({ eq: vi.fn() })) }
       return { select: vi.fn(), insert: vi.fn(), delete: vi.fn(), update: vi.fn() }
     })
-    vi.mocked(supabaseForRequest).mockResolvedValue({ from } as never)
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue({ from } as never)
 
     const req = makeRequest("POST", {
       action: "create", nom: "New Pizza", categorie_id: 1, description: "Yummy",
@@ -151,7 +152,7 @@ describe("POST /api/products", () => {
       if (t === "produits") return { insert: mockInsert, select: mockSelect }
       return { select: vi.fn(), insert: vi.fn() }
     })
-    vi.mocked(supabaseForRequest).mockResolvedValue({ from } as never)
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue({ from } as never)
 
     const req = makeRequest("POST", { action: "create", nom: "Simple", categorie_id: 1 })
     const res = await POST(req)
@@ -169,7 +170,7 @@ describe("POST /api/products", () => {
       if (t === "prix") return { delete: mockPrixDelete, insert: mockPrixInsert }
       return { select: vi.fn(), insert: vi.fn(), delete: vi.fn(), update: vi.fn() }
     })
-    vi.mocked(supabaseForRequest).mockResolvedValue({ from } as never)
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue({ from } as never)
 
     const req = makeRequest("POST", {
       action: "update", id: 1, nom: "Updated Pizza", categorie_id: 1,
@@ -184,7 +185,7 @@ describe("POST /api/products", () => {
   it("toggles product availability", async () => {
     const mockUpdate = vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) }))
     const from = vi.fn(() => ({ update: mockUpdate, select: vi.fn() }))
-    vi.mocked(supabaseForRequest).mockResolvedValue({ from } as never)
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue({ from } as never)
 
     const req = makeRequest("POST", { id: 1, is_available: false })
     const res = await POST(req)
@@ -206,7 +207,7 @@ describe("DELETE /api/products", () => {
       select: vi.fn(() => ({ eq: vi.fn(() => ({ single: mockSelectSingle })) })),
       update: vi.fn(),
     })) as never
-    vi.mocked(supabaseForRequest).mockResolvedValue({
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue({
       from,
       storage: { from: vi.fn(() => ({ remove: vi.fn() })) },
     } as never)
@@ -242,7 +243,7 @@ describe("DELETE /api/products", () => {
       if (t === "prix") return { delete: vi.fn(() => ({ eq: mockDeletePrix })) }
       return { delete: vi.fn(), select: vi.fn(), update: vi.fn() }
     })
-    vi.mocked(supabaseForRequest).mockResolvedValue({
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue({
       from,
       storage: { from: vi.fn(() => ({ remove: vi.fn() })) },
     } as never)

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabaseForRequest, supabaseForRequestAdmin, isTenantMismatch, parseSession } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
-import { logAudit } from "@/lib/audit"
+import { recordAuditEvent, EVENT_TYPES } from "@/lib/audit-events"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
 export async function GET(req: NextRequest) {
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ id: -(Math.abs(nom.trim().length * 997) % 1000 + 100), nom: nom.trim(), description: description?.trim() || null })
     }
 
-    logAudit(sb2, req, { table_name: "categories", record_id: data?.id ?? 0, operation: "INSERT", new_data: payload })
+    recordAuditEvent(req, { event_type: EVENT_TYPES.CATEGORY_CREATED, operation: "CREATE", table_name: "categories", record_id: String(data?.id ?? 0), new_data: payload }).catch(() => {})
     return NextResponse.json(data)
   } catch (e) {
     const mismatch = isTenantMismatch(e)
@@ -118,7 +118,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    logAudit(sb2, req, { table_name: "categories", record_id: id, operation: "DELETE" })
+    recordAuditEvent(req, { event_type: EVENT_TYPES.CATEGORY_DELETED, operation: "DELETE", table_name: "categories", record_id: id }).catch(() => {})
     return NextResponse.json({ ok: true })
   } catch (e) {
     const mismatch = isTenantMismatch(e)

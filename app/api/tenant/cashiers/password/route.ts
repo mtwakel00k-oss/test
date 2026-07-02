@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js"
 import { parseSession } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 import { env } from "@/lib/env"
+import { recordAuditEvent, EVENT_TYPES } from "@/lib/audit-events"
 
 export async function PATCH(req: NextRequest) {
   const session = parseSession(req.headers.get("cookie") || "")
@@ -45,5 +46,6 @@ export async function PATCH(req: NextRequest) {
   }
 
   logger.info("Password changed", { email: session.email })
+  recordAuditEvent(req, { event_type: EVENT_TYPES.STAFF_PASSWORD_CHANGED, operation: "UPDATE", table_name: "restaurant_staff", metadata: { email: session.email } }).catch(() => {})
   return NextResponse.json({ success: true })
 }

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 
 vi.mock("@/lib/tenant", () => ({
-  supabaseForRequest: vi.fn(),
+  supabaseForRequestAdmin: vi.fn(),
   isTenantMismatch: vi.fn(() => null),
   parseSession: vi.fn(() => ({ role: "cashier", email: "test@test.com", slug: "burger-house" })),
 }))
@@ -22,7 +22,7 @@ vi.mock("@/lib/logger", () => ({
 
 import { POST, DELETE } from "@/app/api/ratings/route"
 import { NextRequest } from "next/server"
-import { supabaseForRequest } from "@/lib/tenant"
+import { supabaseForRequestAdmin } from "@/lib/tenant"
 import { checkFeature } from "@/lib/check-feature"
 
 function makeRequest(method: string, body: unknown): NextRequest {
@@ -48,7 +48,7 @@ describe("POST /api/ratings", () => {
       if (table === "ratings") return { insert: mockInsert }
       return { select: vi.fn(), insert: vi.fn() }
     })
-    vi.mocked(supabaseForRequest).mockResolvedValue({ from } as never)
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue({ from } as never)
 
     const req = makeRequest("POST", { product_id: 1, rating: 5, comment: "Great!" })
     const res = await POST(req)
@@ -79,7 +79,7 @@ describe("POST /api/ratings", () => {
       select: vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle: vi.fn().mockResolvedValue({ data: null }) })) })),
       insert: vi.fn(),
     }))
-    vi.mocked(supabaseForRequest).mockResolvedValue({ from } as never)
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue({ from } as never)
 
     const req = makeRequest("POST", { product_id: 999, rating: 5 })
     const res = await POST(req)
@@ -106,7 +106,7 @@ describe("POST /api/ratings", () => {
       if (table === "ratings") return { insert: mockInsert }
       return { select: vi.fn(), insert: vi.fn() }
     })
-    vi.mocked(supabaseForRequest).mockResolvedValue({ from } as never)
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue({ from } as never)
 
     const req = makeRequest("POST", { product_id: 1, rating: 4, order_id: "ord-1" })
     const res = await POST(req)
@@ -130,7 +130,7 @@ describe("DELETE /api/ratings", () => {
   it("clears all ratings (admin)", async () => {
     const mockDelete = vi.fn(() => ({ not: vi.fn().mockResolvedValue({ error: null }) }))
     const from = vi.fn(() => ({ delete: mockDelete, select: vi.fn() }))
-    vi.mocked(supabaseForRequest).mockResolvedValue({ from } as never)
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue({ from } as never)
 
     const { parseSession } = await import("@/lib/tenant")
     vi.mocked(parseSession).mockReturnValueOnce({ role: "admin", email: "a@t.com", slug: "bh" })

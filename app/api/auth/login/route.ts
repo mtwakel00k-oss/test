@@ -6,6 +6,7 @@ import { encryptSession } from "@/lib/session-crypto"
 import { loginSchema, validationError } from "@/lib/validations"
 import { parseSession } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
+import { recordAuditEvent, EVENT_TYPES } from "@/lib/audit-events"
 import { env } from "@/lib/env"
 
 const VALID_ROLES = ["cashier", "chef", "admin", "owner"]
@@ -63,19 +64,29 @@ export async function POST(req: NextRequest) {
         env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       )
       const { data, error: authError } = await rawSb.auth.signInWithPassword({ email, password })
-      if (authError) return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
+      if (authError) {
+        recordAuditEvent(req, { event_type: EVENT_TYPES.AUTH_LOGIN_FAILED, operation: "LOGIN", outcome: "failure", metadata: { username: username.replace(/./g, "*"), slug: "__root__" } }).catch(() => {})
+        return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
+      }
 
       const userId = data.user?.id
-      if (!userId) return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
+      if (!userId) {
+        recordAuditEvent(req, { event_type: EVENT_TYPES.AUTH_LOGIN_FAILED, operation: "LOGIN", outcome: "failure", metadata: { username: username.replace(/./g, "*"), slug: "__root__" } }).catch(() => {})
+        return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
+      }
 
       const role = data.user?.user_metadata?.role
-      if (role !== "owner") return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
+      if (role !== "owner") {
+        recordAuditEvent(req, { event_type: EVENT_TYPES.AUTH_LOGIN_FAILED, operation: "LOGIN", outcome: "failure", metadata: { username: username.replace(/./g, "*"), slug: "__root__" } }).catch(() => {})
+        return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
+      }
 
       const res = NextResponse.json({ ok: true, slug: "" })
       res.cookies.set("session", encryptSession({ email, role: "owner", slug: "" }), {
         httpOnly: true, secure: SECURE, sameSite: "lax", maxAge: 60 * 60 * 24 * 7, path: "/",
       })
       logger.debug("[login] Owner login successful")
+      recordAuditEvent(req, { event_type: EVENT_TYPES.AUTH_LOGIN_SUCCESS, operation: "LOGIN", outcome: "success", metadata: { slug: "__root__" } }).catch(() => {})
       return res
     }
 
@@ -93,6 +104,7 @@ export async function POST(req: NextRequest) {
 
       if (tenantError || !tenant) {
         logger.debug("[login] Tenant not found by slug:", tenantSlug)
+        recordAuditEvent(req, { event_type: EVENT_TYPES.AUTH_LOGIN_FAILED, operation: "LOGIN", outcome: "failure", metadata: { slug: tenantSlug, username: username.replace(/./g, "*") } }).catch(() => {})
         return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
       }
       tenantId = tenant.id
@@ -116,12 +128,14 @@ export async function POST(req: NextRequest) {
     const { data, error: authError } = await rawSb.auth.signInWithPassword({ email, password })
     if (authError) {
       logger.debug("[login] signInWithPassword failed")
+      recordAuditEvent(req, { event_type: EVENT_TYPES.AUTH_LOGIN_FAILED, operation: "LOGIN", outcome: "failure", metadata: { slug: tenantSlug, username: username.replace(/./g, "*") } }).catch(() => {})
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
 
     const userId = data.user?.id
     if (!userId) {
       logger.debug("[login] No user ID after successful signIn")
+      recordAuditEvent(req, { event_type: EVENT_TYPES.AUTH_LOGIN_FAILED, operation: "LOGIN", outcome: "failure", metadata: { slug: tenantSlug, username: username.replace(/./g, "*") } }).catch(() => {})
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
 
@@ -137,6 +151,7 @@ export async function POST(req: NextRequest) {
 
     if (!membership || !VALID_ROLES.includes(membership.role)) {
       logger.debug("[login] Membership verification failed:", { userId, tenantId })
+      recordAuditEvent(req, { event_type: EVENT_TYPES.AUTH_LOGIN_FAILED, operation: "LOGIN", outcome: "failure", metadata: { slug: tenantSlug, username: username.replace(/./g, "*") } }).catch(() => {})
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
 
@@ -157,6 +172,7 @@ export async function POST(req: NextRequest) {
     })
 
     logger.debug("[login] Login successful, cookies set")
+    recordAuditEvent(req, { event_type: EVENT_TYPES.AUTH_LOGIN_SUCCESS, operation: "LOGIN", outcome: "success" }).catch(() => {})
     return res
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e)

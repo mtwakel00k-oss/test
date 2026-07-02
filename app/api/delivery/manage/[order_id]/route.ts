@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabaseForRequestAdmin, isTenantMismatch } from "@/lib/tenant"
 import { requireStaff, isErrorResponse } from "@/lib/api-auth"
-import { logAudit } from "@/lib/audit"
+import { recordAuditEvent, EVENT_TYPES } from "@/lib/audit-events"
 import { logger } from "@/lib/logger"
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ order_id: string }> }) {
@@ -77,7 +77,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ or
 
     if (error) throw new Error(error.message)
 
-    logAudit(sb, req, { table_name: "orders", record_id: order_id, operation: "UPDATE", new_data: { ...updates, action: "driver_update" } })
+    recordAuditEvent(req, { event_type: EVENT_TYPES.DELIVERY_ASSIGNED, operation: "UPDATE", table_name: "orders", record_id: order_id, new_data: { ...updates, action: "driver_update" } }).catch(() => {})
 
     return NextResponse.json({ success: true })
   } catch (e) {

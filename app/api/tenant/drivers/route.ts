@@ -7,6 +7,7 @@ import { logger } from "@/lib/logger"
 import { env } from "@/lib/env"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 import { createDriverSchema, validationError } from "@/lib/validations"
+import { recordAuditEvent, EVENT_TYPES } from "@/lib/audit-events"
 
 export interface Driver {
   id: string
@@ -128,6 +129,7 @@ export async function POST(req: NextRequest) {
   if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 })
 
   logger.info("Driver created", { slug, driverId: newDriver.id })
+  recordAuditEvent(req, { event_type: EVENT_TYPES.DRIVER_CREATED, operation: "CREATE", table_name: "drivers", record_id: newDriver.id, new_data: { name: newDriver.name, phone: newDriver.phone } }).catch(() => {})
   return NextResponse.json(newDriver, { status: 201 })
 }
 
@@ -183,6 +185,11 @@ export async function PATCH(req: NextRequest) {
     .from("tenants").update({ drivers }).eq("slug", slug)
   if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 })
 
+  if (regenerate_token) {
+    recordAuditEvent(req, { event_type: EVENT_TYPES.DRIVER_TOKEN_REGENERATED, operation: "UPDATE", table_name: "drivers", record_id: updated.id }).catch(() => {})
+  } else {
+    recordAuditEvent(req, { event_type: EVENT_TYPES.DRIVER_UPDATED, operation: "UPDATE", table_name: "drivers", record_id: updated.id, new_data: { name: updated.name, is_active: updated.is_active } }).catch(() => {})
+  }
   return NextResponse.json(updated)
 }
 
@@ -218,5 +225,6 @@ export async function DELETE(req: NextRequest) {
     .from("tenants").update({ drivers: filtered }).eq("slug", slug)
   if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 })
 
+  recordAuditEvent(req, { event_type: EVENT_TYPES.DRIVER_DELETED, operation: "DELETE", table_name: "drivers", record_id: id }).catch(() => {})
   return NextResponse.json({ success: true })
 }

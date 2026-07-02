@@ -309,3 +309,116 @@ Make POS, KDS, Admin, and Login fully responsive for mobile/tablet without separ
 - Build: passes (52 routes)
 - No layout shift on mobile; all components stack vertically on small screens
 <!-- END:session-2025-06-30 -->
+
+<!-- BEGIN:session-2025-07-02 -->
+## Session Progress (Jul 02) — Enterprise Audit Trail Re-architecture
+
+### Goal
+Replace the old `audit_log` table and fire-and-forget `logAudit()` with an immutable, tamper-evident, comprehensively covered audit system matching enterprise standards (AWS CloudTrail / Stripe audit trail).
+
+### Done
+1. **Migration 00006 (`audit_events` + `audit_write_failures`)**:
+   - Hash-chain integrity: `prev_hash`/`row_hash` computed by `BEFORE INSERT` trigger (SHA-256, per `tenant_slug`)
+   - Append-only enforced by trigger (UPDATE/DELETE blocked for ALL roles, including service_role)
+   - Empty RLS policy set (RLS enabled, zero policies = DENY for anon/authenticated)
+   - Mandatory `tenant_slug TEXT NOT NULL` (shared-project mode is real — see Step 0 below)
+   - `BIGSERIAL seq` for gap-visible ordering
+   - Indexed on all common query patterns (tenant, event_type, actor, outcome, created_at, request_id)
+   - `audit_write_failures` dead-letter table (append-only, no policies)
+
+2. **`lib/audit-events.ts`** — Typed event taxonomy (26 event types) + `recordAuditEvent()`:
+   - Auto-resolves actor (email/role/id) from session, IP from `getClientIp()`, user-agent, request_id
+   - Redacts sensitive fields (password, token, api_key, secret, etc.) before storing old_data/new_data
+   - Dead-letter write on insert failure
+   - CRITICAL events (staff.*, auth.setup_*, settings.updated) log CRITICAL error on failure
+   - Non-critical events fail open (log + dead-letter, never block user)
+
+3. **`lib/api-auth.ts`** — `requireStaff()` and `requireAdmin()` now emit `access.denied` audit events
+
+4. **`proxy.ts`** — Added `x-request-id` header (UUID per request, forwarded to all downstream handlers)
+
+5. **Coverage gap closure** (all routes now log audit events):
+   - `auth/login/route.ts` — `auth.login.failed` on every 401 path, `auth.login.success` on success
+   - `auth/setup-root/route.ts` — `auth.setup_root`
+   - `auth/setup/route.ts` — `auth.setup_staff`
+   - `tenant/cashiers/route.ts` — `staff.created`, `staff.deleted`
+   - `tenant/cashiers/password/route.ts` — `staff.password_changed`
+   - `tenant/drivers/route.ts` — `driver.created`, `driver.updated`, `driver.token_regenerated`, `driver.deleted`
+   - `admin/settings/route.ts` — `settings.updated`
+   - `orders/clear/route.ts` — `orders.bulk_cleared`
+   - Plus all 10 pre-existing `logAudit()` call sites migrated to `recordAuditEvent()`
+
+6. **Meta-audit**: Every successful GET to `/api/admin/audit-log` emits `audit_log.viewed`
+
+7. **API improvements** — Filters: event_type, table, operation, outcome (success/failure), actor, date range (from/to), free-text search (ILIKE on actor_email/event_type/record_id). CSV/JSON export at `/api/admin/audit-log/export`
+
+8. **UI improvements** — Outcome badge (success=fail visually distinct), new filter bar (operation, outcome, date range, search), hash chain info in detail view, CSV download button
+
+9. **`scripts/verify-audit-chain.ts`** — Verifies hash chain integrity per tenant. Run with `npx tsx scripts/verify-audit-chain.ts <slug> [--fix]`
+
+10. **Retention policy** documented in README (12-month hot retention, TODO for archival cron job)
+
+11. **Tests**:
+    - `__tests__/security/audit-events.test.ts`: 5 unit tests — redaction (password, token), actor resolution, dead-letter on failure, IP/UA resolution
+    - `__tests__/api/audit-log.test.ts`: updated for audit_events schema, supabaseForRequestAdmin, new filters
+    - `__tests__/database/rls.test.ts`: updated to verify audit_events + audit_write_failures have zero policies
+    - Old `lib/audit.ts` deleted (dead code, all callers migrated)
+
+### Step 0 Result — Tenant Isolation Model
+`isSharedProjectTenant()` in `lib/tenant.ts:41` returns `true` when `supabase_url === MASTER_URL`. This is the default mode — two tenants with `supabase_url` pointing to the same project share ONE physical database. Their `audit_log` rows lived in the same table with NO `tenant_slug` column, meaning a query from tenant A could see tenant B's rows. The v2 `audit_events` table has `tenant_slug TEXT NOT NULL` with a compound index on `(tenant_slug, created_at DESC)`.
+
+### Key Files
+- `supabase/migrations/00006_audit_log_v2.sql` — New schema (audit_events + audit_write_failures)
+- `lib/audit-events.ts` — Event taxonomy + `recordAuditEvent()` writer (replaces `lib/audit.ts`)
+- `lib/api-auth.ts` — `requireAdmin`/`requireStaff` now emit `access.denied` events
+- `proxy.ts` — Added `x-request-id` header
+- `app/api/admin/audit-log/route.ts` — Rewritten for audit_events schema, meta-audit, filters
+- `app/api/admin/audit-log/export/route.ts` — CSV export
+- `components/admin/audit-log.tsx` — New filters (outcome, date range, search) + CSV + outcome badges
+- `scripts/verify-audit-chain.ts` — Hash chain verification script
+- `app/api/auth/login/route.ts` — Failed/success login audit events
+- `app/api/tenant/cashiers/route.ts` — Staff create/delete audit events
+- `app/api/tenant/drivers/route.ts` — Driver CRUD + token regen audit events
+- `app/api/auth/setup-root/route.ts`, `app/api/auth/setup/route.ts` — Setup audit events
+- `app/api/admin/settings/route.ts` — Settings update audit
+- `app/api/orders/clear/route.ts` — Bulk clear audit
+<!-- BEGIN:session-2025-07-02-p2 -->
+## Session Progress (Jul 02) — ESC/POS Thermal Printer System
+
+### Goal
+Build fully customizable ESC/POS thermal printer system (USB/Bluetooth/Network) with admin settings for text, color, language, and layout.
+
+### Done
+1. **ESC/POS command library** (`lib/escpos/commands.ts`): Full command builder with init, justify, font, charSize, bold, underline, cut, cash drawer, barcode128, QR code, text writing, horizontal rules, feed
+2. **ESC/POS receipt builder** (`lib/escpos/receipt.ts`): `buildReceipt()` for customer receipts (restaurant name, header/footer, order info, items table, totals, QR tracking, auto-cut), `buildKitchenTicket()` for kitchen tickets (big table number, itemized with notes, order type highlight)
+3. **Network printer sender** (`lib/escpos/network.ts`): TCP socket to printer on port 9100 with timeout handling and error recovery
+4. **WebUSB handler** (`lib/escpos/webusb.ts`): Browser-side USB printing via `navigator.usb` API for Epson/Star/Bixolon/Citizen/generic thermal printers
+5. **Types** (`lib/escpos/types.ts`): `PrinterConfig`, `PrinterConfigInput`, `OrderData`, `OrderItem` shared interfaces
+6. **Migration 00007** (`supabase/migrations/00007_printer_config.sql`): `printer_config` table with connection_type, ip/port, paper_width, lang, header/footer text, colors, print toggles, copies, auto_cut
+7. **API routes**:
+   - `GET/POST /api/admin/printer` — list/create printer configs (service_role, session auth)
+   - `PATCH/DELETE /api/admin/printer/[id]` — update/delete with is_default auto-unset
+   - `POST /api/admin/printer/test` — send test page to printer (network = direct TCP, browser = return raw bytes)
+   - `GET /api/receipt/[order_id]/escpos` — print order receipt to default enabled printer
+
+### Result
+- TypeScript: zero errors
+- Tests: 288/288 passing
+- 5 new API routes, 8 new library files
+- ESC/POS supports: 80mm/58mm paper, Arabic/English receipts, custom header/footer templates (`{{restaurant_name}}`, `{{order_number}}`, etc.), QR code with tracking URL, kitchen tickets with bold table numbers, auto-cut
+
+### Key Files
+- `lib/escpos/commands.ts` — ESC/POS command constants + `EscPosBuilder` class
+- `lib/escpos/receipt.ts` — `buildReceipt()`, `buildKitchenTicket()`
+- `lib/escpos/network.ts` — `sendToNetworkPrinter()` TCP socket
+- `lib/escpos/webusb.ts` — `requestUsbPrinter()`, `connectUsbPrinter()`, `sendToUsbPrinter()`
+- `lib/escpos/types.ts` — Shared type definitions
+- `lib/escpos/index.ts` — Barrel exports
+- `supabase/migrations/00007_printer_config.sql` — Printer config table
+- `app/api/admin/printer/route.ts` — List/create printer configs
+- `app/api/admin/printer/[id]/route.ts` — Update/delete printer configs
+- `app/api/admin/printer/test/route.ts` — Test page print
+- `app/api/receipt/[order_id]/escpos/route.ts` — ESC/POS receipt print
+<!-- END:session-2025-07-02-p2 -->
+
+<!-- END:session-2025-07-02 -->

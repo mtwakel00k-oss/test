@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 import { env } from "@/lib/env"
+import { recordAuditEvent, EVENT_TYPES } from "@/lib/audit-events"
 
 const DEV_ROOT_PASSWORD = env.DEV_ROOT_PASSWORD
 
@@ -80,6 +81,8 @@ export async function POST(req: NextRequest) {
 
     // Upsert profile
     await supabaseAdmin.from("profiles").upsert({ id: userId, username, role: "owner" })
+
+    recordAuditEvent(req, { event_type: EVENT_TYPES.AUTH_SETUP_ROOT, operation: "CREATE", outcome: "success", new_data: { email, role: "owner" }, metadata: { status: existing ? "updated" : "created" } }).catch(() => {})
 
     return NextResponse.json({
       success: true,

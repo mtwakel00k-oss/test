@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { supabaseForRequestAdmin, isTenantMismatch, parseSession } from "@/lib/tenant"
 import { logger } from "@/lib/logger"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
+import { recordAuditEvent, EVENT_TYPES } from "@/lib/audit-events"
 
 export async function DELETE(req: NextRequest) {
   try {
@@ -21,6 +22,7 @@ export async function DELETE(req: NextRequest) {
     if (oe) throw new Error(oe.message || JSON.stringify(oe))
 
     logger.info("All orders cleared")
+    recordAuditEvent(req, { event_type: EVENT_TYPES.ORDERS_BULK_CLEARED, operation: "DELETE", table_name: "orders", metadata: { slug: session.slug || "unknown" } }).catch(() => {})
     return NextResponse.json({ success: true, message: "تم حذف جميع الطلبات التجريبية" })
   } catch (e) {
     const mismatch = isTenantMismatch(e)

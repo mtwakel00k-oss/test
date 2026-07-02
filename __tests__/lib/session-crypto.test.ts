@@ -10,10 +10,9 @@ describe("session-crypto", () => {
       vi.stubEnv("SESSION_ENCRYPTION_KEY", "")
     })
 
-    it("encryptSession returns JSON string when no key", async () => {
+    it("encryptSession throws when no key", async () => {
       const { encryptSession } = await import("@/lib/session-crypto")
-      const result = encryptSession({ email: "test@test.com", role: "admin" })
-      expect(result).toBe('{"email":"test@test.com","role":"admin"}')
+      expect(() => encryptSession({ email: "test@test.com", role: "admin" })).toThrow("SESSION_ENCRYPTION_KEY is required")
     })
 
     it("decryptSession returns null when no key", async () => {

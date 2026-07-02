@@ -21,7 +21,7 @@ Built as a **multi-tenant SaaS**: each restaurant gets its own Supabase project 
 
 ### Multi-Tenant
 - **Master DB** — `tenants` table: slug, supabase_url, supabase_anon_key, drivers, plan_type, etc.
-- **Per-tenant DB** — Each tenant has its own Supabase project (or schema-isolated tables in a shared project). All business tables: `produits`, `categories`, `orders`, `order_items`, `ratings`, `delivery_men`, `audit_log`.
+- **Per-tenant DB** — Each tenant has its own Supabase project (or schema-isolated tables in a shared project). Business tables: `produits`, `categories`, `orders`, `order_items`, `ratings`, `delivery_men`. Audit trail: `audit_events` (immutable, tamper-evident, v2).
 - **Session** — Cookie stores `{email, role, slug}` only (no DB credentials). Server-side lookup resolves tenant config.
 - **Routing** — `[restaurant_slug]` param drives all tenant-scoped pages and API routes.
 
@@ -208,6 +208,24 @@ CSRF protection relies on the `session` cookie's `sameSite: "lax"` attribute (se
 
 ### RLS (Row-Level Security)
 The app uses **service_role-only writes**: all API routes authenticated by session use `supabaseForRequestAdmin()` (service_role key, bypassing RLS). Only public menu reads (products, categories) use the anon key with permissive SELECT policies. No anon/authenticated policies exist on orders, order_items, audit_log, or other sensitive tables. See `supabase/migrations/00005_lockdown_rls.sql` for details.
+
+### Audit Trail (`audit_events`)
+The `audit_events` table (migration 00006) provides an enterprise-grade, tamper-evident audit trail:
+- **Hash chain**: each row stores `prev_hash` and `row_hash` (SHA-256), computed by a `BEFORE INSERT` trigger. Any historical tampering breaks the chain and is detectable by `scripts/verify-audit-chain.ts`.
+- **Append-only**: UPDATE/DELETE triggers block all mutations, even for service_role.
+- **Tenant isolation**: `tenant_slug TEXT NOT NULL` column separates events from different tenants sharing the same physical database.
+- **Dead-letter**: `audit_write_failures` table records any failed audit writes for replay/alerting.
+- **Access control**: empty RLS policy set (RLS enabled, no policies = default DENY for anon/authenticated).
+- **Meta-audit**: every successful GET to `/api/admin/audit-log` emits an `audit_log.viewed` event.
+
+### Retention Policy
+Audit events are retained **hot for 12 months** in `audit_events`. Older rows must be archived to cold storage (Supabase Storage or external bucket) via a scheduled job.
+
+TODO: Implement an archival job (`app/api/cron/audit-archive`) that:
+1. Copies rows older than 12 months to an archive table or JSON export in Supabase Storage.
+2. Deletes archived rows from `audit_events` (using service_role, which bypasses RLS but NOT the append-only trigger — deletion requires a direct `TRUNCATE` or a dedicated SECURITY DEFINER function).
+3. Is triggered via `GET /api/cron/audit-archive?secret=<CRON_SECRET>`.
+4. Logs its own archive operation as an audit event before truncation.
 
 ## Tests
 ```bash

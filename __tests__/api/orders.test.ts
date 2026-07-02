@@ -27,6 +27,7 @@ vi.mock("@/lib/tenant", () => {
 
   return {
     supabaseForRequest: vi.fn(() => Promise.resolve(mockSupabase)),
+    supabaseForRequestAdmin: vi.fn(() => Promise.resolve(mockSupabase)),
     isTenantMismatch: vi.fn(() => null),
     parseSession: vi.fn(() => ({ role: "cashier", email: "test@test.com", slug: "burger-house" })),
     getTenantConfig: vi.fn(() => Promise.resolve({ is_open: true })),
@@ -120,7 +121,7 @@ describe("POST /api/orders", () => {
   })
 
   it("accepts valid takeaway order", async () => {
-    const { supabaseForRequest } = await import("@/lib/tenant")
+    const { supabaseForRequestAdmin } = await import("@/lib/tenant")
 
     // Mock RPC response
     const mockRpc = vi.fn().mockResolvedValue({ data: 42, error: null })
@@ -166,7 +167,7 @@ describe("POST /api/orders", () => {
       rpc: mockRpc,
     }
 
-    vi.mocked(supabaseForRequest).mockResolvedValue(mockSb as never)
+    vi.mocked(supabaseForRequestAdmin).mockResolvedValue(mockSb as never)
 
     const req = makeRequest({
       items: [{ product_id: 1, product_name: "Pizza", size: "M", sauce: null, quantity: 2, unit_price: 500 }],

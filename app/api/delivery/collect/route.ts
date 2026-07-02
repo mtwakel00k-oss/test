@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { markOrderAsCollected } from "@/lib/collect"
 import { requireStaff, resolveTenantSlug, isErrorResponse } from "@/lib/api-auth"
-import { supabaseForRequestAdmin } from "@/lib/tenant"
-import { logAudit } from "@/lib/audit"
+import { recordAuditEvent, EVENT_TYPES } from "@/lib/audit-events"
 import { logger } from "@/lib/logger"
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit"
 
@@ -29,8 +28,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: result.error || "Failed" }, { status: 500 })
     }
 
-    const sb = await supabaseForRequestAdmin(req)
-    logAudit(sb, req, { table_name: "orders", record_id: order_id, operation: "UPDATE", new_data: { status: "completed", action: "driver_collected" } })
+    recordAuditEvent(req, { event_type: EVENT_TYPES.DELIVERY_COLLECTED, operation: "UPDATE", table_name: "orders", record_id: order_id, new_data: { status: "completed", action: "driver_collected" } }).catch(() => {})
 
     return NextResponse.json({ success: true })
   } catch (e) {

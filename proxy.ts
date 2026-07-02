@@ -42,9 +42,12 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  // Generate a unique request ID for correlating log/audit events per-request
+  const requestId = crypto.randomUUID()
+
   // Generate nonce for page routes
   const isPage = !pathname.startsWith("/api/") && !pathname.startsWith("/_next/static")
-  const nonce = isPage ? Buffer.from(crypto.randomUUID()).toString("base64") : ""
+  const nonce = isPage ? Buffer.from(requestId).toString("base64") : ""
 
   function addSecurityHeaders(res: NextResponse) {
     if (isPage && nonce) {
@@ -74,6 +77,7 @@ export async function proxy(request: NextRequest) {
   function buildResponse(): NextResponse {
     const requestHeaders = new Headers(request.headers)
     if (nonce) requestHeaders.set("x-nonce", nonce)
+    requestHeaders.set("x-request-id", requestId)
     requestHeaders.set("x-pathname", pathname)
     const res = NextResponse.next({ request: { headers: requestHeaders } })
     addSecurityHeaders(res)
