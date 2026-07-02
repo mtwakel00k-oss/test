@@ -61,6 +61,10 @@ export interface Order {
   driver_id?: string | null
   restaurant_id?: string | null
   items?: OrderItem[]
+  discount_amount?: number
+  discount_type?: string
+  discount_label?: string
+  promotion_id?: number
 }
 
 export interface OrderItem {
@@ -91,4 +95,8 @@ export interface CreateOrderPayload {
     quantity: number
     unit_price: number
   }[]
+  discount_amount?: number
+  discount_type?: string
+  discount_label?: string
+  promotion_id?: number
 }

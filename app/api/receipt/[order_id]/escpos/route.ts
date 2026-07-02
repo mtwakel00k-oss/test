@@ -47,6 +47,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ orde
         table_number: order.table_number,
         order_type: order.order_type,
         total: order.total,
+        discount_amount: order.discount_amount || 0,
+        discount_label: order.discount_label || "",
         paid: order.paid,
         change: order.change,
         created_at: order.created_at,

@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const parsed = createOrderSchema.safeParse(body)
     if (!parsed.success) return validationError(parsed.error)
-    const { customer_name, customer_phone, table_number, items, processed_by_staff_name, processed_by_staff_id, cashier_name, cashier_id, delivery_address, delivery_lat, delivery_lng, idempotency_key } = parsed.data
+    const { customer_name, customer_phone, table_number, items, processed_by_staff_name, processed_by_staff_id, cashier_name, cashier_id, delivery_address, delivery_lat, delivery_lng, idempotency_key, discount_amount, discount_type, discount_label, promotion_id } = parsed.data
     const order_type = (parsed.data.order_type || "takeaway") as OrderType
     const { google_maps_link } = body
 
@@ -214,7 +214,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const total = validItems.reduce((s, i) => s + i.unit_price * i.quantity, 0)
+    const subtotal = validItems.reduce((s, i) => s + i.unit_price * i.quantity, 0)
+    const total = Math.max(0, subtotal - (discount_amount || 0))
 
     // ── Payload ─────────────────────────────────────────
     const payload: Record<string, unknown> = {
@@ -237,9 +238,13 @@ export async function POST(req: NextRequest) {
     if (cashier_name) payload.cashier_name = cashier_name
     if (processed_by_staff_id) payload.processed_by_staff_id = processed_by_staff_id
     if (processed_by_staff_name) payload.processed_by_staff_name = processed_by_staff_name
+    if (discount_amount !== undefined) payload.discount_amount = discount_amount
+    if (discount_type) payload.discount_type = discount_type
+    if (discount_label) payload.discount_label = discount_label
+    if (promotion_id) payload.promotion_id = promotion_id
 
     // ── Column-aware insert ─────────────────────────────
-    const OPTIONAL_COLS = ["payment_status", "order_type", "order_number", "idempotency_key", "delivery_address", "delivery_lat", "delivery_lng", "google_maps_link", "cashier_id", "cashier_name", "processed_by_staff_id", "processed_by_staff_name"]
+    const OPTIONAL_COLS = ["payment_status", "order_type", "order_number", "idempotency_key", "delivery_address", "delivery_lat", "delivery_lng", "google_maps_link", "cashier_id", "cashier_name", "processed_by_staff_id", "processed_by_staff_name", "discount_amount", "discount_type", "discount_label", "promotion_id"]
     const STATUS_FALLBACKS = ["preparing"] // if status check constraint rejects "pending"
     const ORDER_TYPE_FALLBACKS: Record<string, string> = { delivery: "takeaway" } // if order_type check constraint rejects value
 
@@ -341,6 +346,11 @@ export async function POST(req: NextRequest) {
     if (itemsErr) {
       await sb.from("orders").delete().eq("id", order.id)
       throw new Error(`Failed to insert order items: ${itemsErr.message}`)
+    }
+
+    // Increment promotion usage
+    if (promotion_id) {
+      sb.rpc("increment_promotion_usage", { promo_id: promotion_id }).then(() => {}, () => {})
     }
 
     const finalTotal = total

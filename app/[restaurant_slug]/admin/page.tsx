@@ -37,6 +37,9 @@ const PremiumAnalytics = dynamic(() => import("@/components/admin/premium-analyt
 const OperationsManager = dynamic(() => import("@/components/admin/operations-manager").then(m => ({ default: m.OperationsManager })), {
   loading: () => <div className="h-96 rounded-2xl bg-muted/10" />,
 })
+const PromotionManager = dynamic(() => import("@/components/admin/promotion-manager").then(m => ({ default: m.PromotionManager })), {
+  loading: () => <div className="h-96 rounded-2xl bg-muted/10" />,
+})
 const AdminDataProvider = dynamic(() => import("@/components/admin/admin-data-provider").then(m => ({ default: m.AdminDataProvider })), {
   ssr: false,
   loading: () => <div className="space-y-6">
@@ -265,6 +268,7 @@ export default function AdminPage() {
                 audit: t("admin.audit"),
                 analytics: t("analytics.premiumAnalytics"),
                 staff: t("admin.staff"),
+                promotions: t("admin.promotions") || "Promotions",
               }}
             />
           </div>
@@ -283,6 +287,8 @@ export default function AdminPage() {
               <PremiumAnalytics />
             ) : adminTab === "staff" ? (
               <OperationsManager />
+            ) : adminTab === "promotions" ? (
+              <PromotionManager />
             ) : (
               <AuditLog />
             )}

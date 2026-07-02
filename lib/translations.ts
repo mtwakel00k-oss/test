@@ -435,6 +435,7 @@ export const T: Dict = {
   "admin.generalSettings": { ar: "الإعدادات العامة", en: "General Settings", fr: "Paramètres généraux" },
   "admin.open": { ar: "مفتوح", en: "Open", fr: "Ouvert" },
   "admin.closed": { ar: "مغلق", en: "Closed", fr: "Fermé" },
+  "admin.promotions": { ar: "الخصومات والعروض", en: "Promotions", fr: "Promotions" },
 
   // ── Order Tracking Map ──────────────────────────────
   "track.mapTitle": { ar: "تتبع الطلب", en: "Order Tracking", fr: "Suivi de commande" },
@@ -577,6 +578,10 @@ export const T: Dict = {
   "receipt.qty": { ar: "الكمية", en: "Qty", fr: "Qté" },
   "receipt.item": { ar: "الصنف", en: "Item", fr: "Article" },
   "receipt.price": { ar: "السعر", en: "Price", fr: "Prix" },
+  "pos.discount": { ar: "خصم", en: "Discount", fr: "Remise" },
+  "pos.totalAfterDiscount": { ar: "الإجمالي بعد الخصم", en: "Total after discount", fr: "Total après remise" },
+  "pos.couponCode": { ar: "كود خصم", en: "Coupon code", fr: "Code promo" },
+  "pos.apply": { ar: "تطبيق", en: "Apply", fr: "Appliquer" },
 }
 
 export function t(key: string, lang: Lang): string {

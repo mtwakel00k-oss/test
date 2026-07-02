@@ -27,6 +27,7 @@ function buildReceiptHtml(opts: {
   total: string
   paidHtml: string
   customerPhone: string | null
+  discountHtml: string
 }): string {
   const phoneHtml = opts.customerPhone
     ? `<p style="text-align:center;margin-top:4px;font-size:14px;font-weight:bold">${h(opts.customerPhone)}</p>`
@@ -66,6 +67,7 @@ function buildReceiptHtml(opts: {
 <tbody>${opts.itemsHtml}</tbody></table>
 <div class="divider-dense"></div>
 <table>
+  ${opts.discountHtml}
   <tr class="total"><td style="text-align:left">TOTAL</td><td style="text-align:right">${opts.total}</td></tr>
   ${opts.paidHtml}
 </table>
@@ -129,6 +131,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ orde
         ? `<tr><td style="text-align:left;padding:2px 0">Cash</td><td style="text-align:right;padding:2px 0">${paid.toFixed(2)} DA</td></tr><tr><td style="text-align:left;padding:2px 0">Change</td><td style="text-align:right;padding:2px 0">${change.toFixed(2)} DA</td></tr>`
         : ""
 
+    const discountAmount = Number(order.discount_amount || 0)
+    const discountHtml = discountAmount > 0
+      ? `<tr><td style="text-align:left;padding:2px 0;color:#059669">Discount</td><td style="text-align:right;padding:2px 0;color:#059669">-${discountAmount.toFixed(2)} DA</td></tr>`
+      : ""
+
     const html = buildReceiptHtml({
       restaurantName,
       orderNumber: order.order_number,
@@ -138,6 +145,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ orde
       total: `${Number(order.total).toFixed(2)} DA`,
       paidHtml,
       customerPhone: order.customer_phone,
+      discountHtml,
     })
 
     return new NextResponse(html, {

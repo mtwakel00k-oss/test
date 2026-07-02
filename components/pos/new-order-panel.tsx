@@ -35,6 +35,12 @@ export function NewOrderPanel({ products, onOrderCreated, onCancel, hasDelivery 
   const [newOrderType, setNewOrderType] = useState<OrderType>("dine_in")
   const [creatingOrder, setCreatingOrder] = useState(false)
   const [cashier, setCashier] = useState<{ email: string; role: string; name?: string } | null>(null)
+  const [couponCode, setCouponCode] = useState("")
+  const [discountAmount, setDiscountAmount] = useState(0)
+  const [discountLabel, setDiscountLabel] = useState("")
+  const [promotionId, setPromotionId] = useState<number | undefined>()
+  const [discountType, setDiscountType] = useState<string | undefined>()
+  const [couponError, setCouponError] = useState("")
 
   useEffect(() => {
     fetchApi("/api/me")
@@ -44,6 +50,36 @@ export function NewOrderPanel({ products, onOrderCreated, onCancel, hasDelivery 
       })
       .catch(() => {})
   }, [])
+
+  const handleApplyCoupon = useCallback(async () => {
+    setCouponError("")
+    const cfg = (window as unknown as Record<string, unknown>).__TENANT_CONFIG__ as { slug?: string } | undefined
+    const slug = cfg?.slug
+    if (!slug || !couponCode) return
+    const cartTotal = newOrderItems.reduce((s, i) => s + getPrice(i.product, i.size, i.sauceId) * i.quantity, 0)
+    try {
+      const res = await fetchApi("/api/orders/validate-coupon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: couponCode, slug, cart_total: cartTotal }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setCouponError(data.error || "Invalid coupon")
+        setDiscountAmount(0)
+        setDiscountLabel("")
+        setPromotionId(undefined)
+        setDiscountType(undefined)
+        return
+      }
+      setDiscountAmount(data.promotion.discount_amount)
+      setDiscountLabel(data.promotion.label)
+      setPromotionId(data.promotion.id)
+      setDiscountType(data.promotion.type)
+    } catch {
+      setCouponError("Failed to validate coupon")
+    }
+  }, [couponCode, newOrderItems])
 
   const handleCreateOrder = useCallback(async () => {
     if (!newName || newOrderItems.length === 0) return
@@ -78,6 +114,10 @@ export function NewOrderPanel({ products, onOrderCreated, onCancel, hasDelivery 
           quantity: i.quantity,
           unit_price: getPrice(i.product, i.size, i.sauceId),
         })),
+        discount_amount: discountAmount || undefined,
+        discount_type: discountType,
+        discount_label: discountLabel || undefined,
+        promotion_id: promotionId,
       }
       const res = await fetchApi("/api/orders", {
         method: "POST",
@@ -99,12 +139,18 @@ export function NewOrderPanel({ products, onOrderCreated, onCancel, hasDelivery 
       setNewPhone("")
       setNewOrderItems([])
       setNewOrderType("dine_in")
+      setCouponCode("")
+      setDiscountAmount(0)
+      setDiscountLabel("")
+      setPromotionId(undefined)
+      setDiscountType(undefined)
+      setCouponError("")
     } catch {
       setNewOrderError(t("pos.orderError"))
     } finally {
       setCreatingOrder(false)
     }
-  }, [newName, newTable, newPhone, newOrderItems, newOrderType, t, cashier, activeStaff, onOrderCreated])
+  }, [newName, newTable, newPhone, newOrderItems, newOrderType, t, cashier, activeStaff, onOrderCreated, discountAmount, discountType, discountLabel, promotionId])
 
   return (
     <div className="flex flex-1 flex-col md:flex-row min-h-0">
@@ -148,6 +194,12 @@ export function NewOrderPanel({ products, onOrderCreated, onCancel, hasDelivery 
         onTableNumberChange={setNewTable}
         hasDelivery={hasDelivery}
         onCancel={onCancel}
+        couponCode={couponCode}
+        onCouponCodeChange={setCouponCode}
+        onApplyCoupon={handleApplyCoupon}
+        couponError={couponError}
+        discountAmount={discountAmount}
+        discountLabel={discountLabel}
       />
     </div>
   )

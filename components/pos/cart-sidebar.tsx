@@ -39,11 +39,18 @@ interface CartSidebarProps {
   onTableNumberChange: (table: string) => void
   onCancel?: () => void
   hasDelivery?: boolean
+  couponCode?: string
+  onCouponCodeChange?: (code: string) => void
+  onApplyCoupon?: () => void
+  couponError?: string
+  discountAmount?: number
+  discountLabel?: string
 }
 
 export function CartSidebar({
   orderItems, customerName, onCustomerNameChange, customerPhone, onCustomerPhoneChange, onUpdateQuantity, onSubmit,
   submitting, disabled, error, orderType, onOrderTypeChange, tableNumber, onTableNumberChange, onCancel, hasDelivery = true,
+  couponCode, onCouponCodeChange, onApplyCoupon, couponError, discountAmount, discountLabel,
 }: CartSidebarProps) {
   const { t, lang } = useTranslation()
   const cur = lang === "ar" ? "د.ج" : "DA"
@@ -199,6 +206,29 @@ export function CartSidebar({
             </div>
             <span className="text-3xl font-black text-foreground tabular-nums tracking-tighter">{total.toLocaleString()} <span className="text-xs opacity-40">{cur}</span></span>
           </div>
+          {discountAmount ? (
+            <>
+              <div className="flex items-center justify-between px-2 pt-1 border-t border-border/30">
+                <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">{discountLabel || t("pos.discount")}</span>
+                <span className="text-lg font-black text-emerald-500 tabular-nums">-{discountAmount.toLocaleString()} <span className="text-xs opacity-40">{cur}</span></span>
+              </div>
+              <div className="flex items-center justify-between px-2">
+                <span className="text-[10px] font-black text-foreground/70 uppercase tracking-widest">{t("pos.totalAfterDiscount")}</span>
+                <span className="text-2xl font-black text-foreground tabular-nums tracking-tighter">{(Math.max(0, total - discountAmount)).toLocaleString()} <span className="text-xs opacity-40">{cur}</span></span>
+              </div>
+            </>
+          ) : null}
+          <div className="flex gap-2 items-center">
+            <input value={couponCode || ""} onChange={e => onCouponCodeChange?.(e.target.value)}
+              placeholder={t("pos.couponCode")}
+              className="flex-1 h-10 rounded-xl border border-border/50 bg-muted/30 px-3 text-xs font-bold text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all uppercase"
+              maxLength={20} />
+            <button onClick={onApplyCoupon} disabled={!couponCode}
+              className="h-10 px-4 rounded-xl bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-primary-foreground transition-all disabled:opacity-30">
+              {t("pos.apply")}
+            </button>
+          </div>
+          {couponError && <p className="text-[11px] text-destructive text-center font-medium">{couponError}</p>}
           <div className="flex gap-3">
             {onCancel && (
               <Button variant="outline" onClick={onCancel} className="h-14 px-6 rounded-2xl border-border/50 text-xs font-black uppercase tracking-widest hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 transition-all">

@@ -54,6 +54,10 @@ export const createOrderSchema = z.object({
   delivery_lat: z.number().optional().nullable(),
   delivery_lng: z.number().optional().nullable(),
   idempotency_key: z.string().optional(),
+  discount_amount: z.number().nonnegative().optional(),
+  discount_type: z.enum(["percentage", "fixed", "bogo"]).optional(),
+  discount_label: z.string().optional(),
+  promotion_id: z.number().optional(),
 })
 
 export const updateOrderSchema = z.object({

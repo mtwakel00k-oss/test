@@ -67,4 +67,6 @@ export interface OrderData {
   created_at: string
   items?: OrderItem[]
   tracking_url?: string
+  discount_amount?: number
+  discount_label?: string
 }

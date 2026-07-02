@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { ChartNoAxesColumn, ShoppingBag, ClipboardList, Shield, BarChart3, Users } from "lucide-react"
+import { ChartNoAxesColumn, ShoppingBag, ClipboardList, Shield, BarChart3, Users, Percent } from "lucide-react"
 import type { ReactNode } from "react"
 
 interface SidebarItem {
@@ -28,6 +28,7 @@ export function TenantSidebar({ currentTab, onTabChange, userRole, labels }: Ten
     { id: "audit", label: labels.audit, icon: <Shield className="size-4" strokeWidth={1.5} />, adminOnly: true },
     { id: "analytics", label: labels.analytics, icon: <BarChart3 className="size-4" strokeWidth={1.5} />, adminOnly: true },
     { id: "staff", label: labels.staff, icon: <Users className="size-4" strokeWidth={1.5} />, adminOnly: true },
+    { id: "promotions", label: labels.promotions || "Promotions", icon: <Percent className="size-4" strokeWidth={1.5} />, adminOnly: true },
   ]
 
   const visible = items.filter(item => !item.adminOnly || isAdmin)

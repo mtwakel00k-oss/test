@@ -69,6 +69,12 @@ export function buildReceipt(
   }
   p.hr("-", w)
 
+  // Discount line
+  if (order.discount_amount !== undefined && order.discount_amount > 0) {
+    p.justify(Justification.LEFT)
+    p.writeline(`${isAr ? "خصم:" : "Discount:"} -${formatPrice(order.discount_amount, isAr)}`)
+  }
+
   // Totals
   p.justify(Justification.RIGHT)
   p.bold(true)
