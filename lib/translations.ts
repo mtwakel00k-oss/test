@@ -436,6 +436,15 @@ export const T: Dict = {
   "admin.open": { ar: "مفتوح", en: "Open", fr: "Ouvert" },
   "admin.closed": { ar: "مغلق", en: "Closed", fr: "Fermé" },
   "admin.promotions": { ar: "الخصومات والعروض", en: "Promotions", fr: "Promotions" },
+  "admin.reports": { ar: "التقارير", en: "Reports", fr: "Rapports" },
+  "reports.title": { ar: "التقارير القابلة للتصدير", en: "Exportable Reports", fr: "Rapports exportables" },
+  "reports.daily": { ar: "التقرير اليومي", en: "Daily Report", fr: "Rapport quotidien" },
+  "reports.monthly": { ar: "التقرير الشهري", en: "Monthly Report", fr: "Rapport mensuel" },
+  "reports.chooseDate": { ar: "اختر التاريخ", en: "Choose Date", fr: "Choisir la date" },
+  "reports.chooseMonth": { ar: "اختر الشهر والسنة", en: "Choose Month & Year", fr: "Choisir le mois et l'année" },
+  "reports.download": { ar: "تحميل PDF", en: "Download PDF", fr: "Télécharger PDF" },
+  "reports.dailyDesc": { ar: "إيرادات وطلبات وأفضل المنتجات ليوم محدد", en: "Revenue, orders & top products for a specific day", fr: "Revenus, commandes et meilleurs produits pour un jour spécifique" },
+  "reports.monthlyDesc": { ar: "ملخص شهري مع تفصيل يومي وتحليل حسب النوع", en: "Monthly summary with daily breakdown & type analysis", fr: "Résumé mensuel avec ventilation quotidienne et analyse par type" },
 
   // ── Order Tracking Map ──────────────────────────────
   "track.mapTitle": { ar: "تتبع الطلب", en: "Order Tracking", fr: "Suivi de commande" },

@@ -40,6 +40,9 @@ const OperationsManager = dynamic(() => import("@/components/admin/operations-ma
 const PromotionManager = dynamic(() => import("@/components/admin/promotion-manager").then(m => ({ default: m.PromotionManager })), {
   loading: () => <div className="h-96 rounded-2xl bg-muted/10" />,
 })
+const ReportsManager = dynamic(() => import("@/components/admin/reports-manager").then(m => ({ default: m.ReportsManager })), {
+  loading: () => <div className="h-96 rounded-2xl bg-muted/10" />,
+})
 const AdminDataProvider = dynamic(() => import("@/components/admin/admin-data-provider").then(m => ({ default: m.AdminDataProvider })), {
   ssr: false,
   loading: () => <div className="space-y-6">
@@ -243,34 +246,37 @@ export default function AdminPage() {
                   currentTab={adminTab}
                   onTabChange={(tab) => { setAdminTab(tab); setMobileSidebarOpen(false) }}
                   userRole={userRole}
-                  labels={{
-                    overview: t("admin.overview"),
-                    products: t("admin.products"),
-                    orders: t("admin.orders"),
-                    audit: t("admin.audit"),
-                    analytics: t("analytics.premiumAnalytics"),
-                    staff: t("admin.staff"),
-                  }}
-                />
+                    labels={{
+                      overview: t("admin.overview"),
+                      products: t("admin.products"),
+                      orders: t("admin.orders"),
+                      audit: t("admin.audit"),
+                      analytics: t("analytics.premiumAnalytics"),
+                      staff: t("admin.staff"),
+                      promotions: t("admin.promotions"),
+                      reports: t("admin.reports"),
+                    }}
+                  />
+                </div>
               </div>
-            </div>
-          )}
-          {/* Desktop sidebar */}
-          <div className="hidden lg:block">
-            <TenantSidebar
-              currentTab={adminTab}
-              onTabChange={setAdminTab}
-              userRole={userRole}
-              labels={{
-                overview: t("admin.overview"),
-                products: t("admin.products"),
-                orders: t("admin.orders"),
-                audit: t("admin.audit"),
-                analytics: t("analytics.premiumAnalytics"),
-                staff: t("admin.staff"),
-                promotions: t("admin.promotions") || "Promotions",
-              }}
-            />
+            )}
+            {/* Desktop sidebar */}
+            <div className="hidden lg:block">
+              <TenantSidebar
+                currentTab={adminTab}
+                onTabChange={setAdminTab}
+                userRole={userRole}
+                labels={{
+                  overview: t("admin.overview"),
+                  products: t("admin.products"),
+                  orders: t("admin.orders"),
+                  audit: t("admin.audit"),
+                  analytics: t("analytics.premiumAnalytics"),
+                  staff: t("admin.staff"),
+                  promotions: t("admin.promotions") || "Promotions",
+                  reports: t("admin.reports"),
+                }}
+              />
           </div>
           <div className="flex-1 min-w-0 space-y-6">
             {adminTab === "overview" ? (
@@ -289,6 +295,8 @@ export default function AdminPage() {
               <OperationsManager />
             ) : adminTab === "promotions" ? (
               <PromotionManager />
+            ) : adminTab === "reports" ? (
+              <ReportsManager />
             ) : (
               <AuditLog />
             )}
