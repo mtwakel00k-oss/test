@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
     const supabase = getSupabase()
     if (!supabase) return NextResponse.json({ name: "", logo_url: null })
 
-    const { data: tenantRow, error: tenantErr } = await supabase.from("tenants").select("name, logo_url, brand_color, brand_text_color, is_open").eq("slug", slug).maybeSingle<{ name: string; logo_url: string | null; brand_color: string | null; brand_text_color: string | null; is_open: boolean | null }>()
+    const { data: tenantRow, error: tenantErr } = await supabase.from("tenants").select("name, logo_url, brand_color, brand_text_color, is_open, contact_whatsapp").eq("slug", slug).maybeSingle<{ name: string; logo_url: string | null; brand_color: string | null; brand_text_color: string | null; is_open: boolean | null; contact_whatsapp: string | null }>()
     if (tenantRow || tenantErr?.message?.includes("does not exist")) {
       let isOpen = true
       if (tenantRow && typeof tenantRow.is_open === "boolean") {
@@ -50,7 +50,8 @@ export async function GET(req: NextRequest) {
       const logoUrl = tenantRow?.logo_url || null
       const brandColor = tenantRow?.brand_color || null
       const brandTextColor = tenantRow?.brand_text_color || null
-      return NextResponse.json({ name, logo_url: logoUrl, slug, brand_color: brandColor, brand_text_color: brandTextColor, is_open: isOpen })
+      const contactWhatsapp = tenantRow?.contact_whatsapp || ""
+      return NextResponse.json({ name, logo_url: logoUrl, slug, brand_color: brandColor, brand_text_color: brandTextColor, is_open: isOpen, contact_whatsapp: contactWhatsapp })
     }
 
     // Fallback: try storage bucket
@@ -88,6 +89,7 @@ export async function PATCH(req: NextRequest) {
     if (typeof body.brand_color === "string" && /^(#[0-9a-fA-F]{3,8}|[a-zA-Z]+|[a-zA-Z]+\([^)]*\))$/.test(body.brand_color.trim())) updates.brand_color = body.brand_color.trim()
     if (typeof body.brand_text_color === "string" && /^(#[0-9a-fA-F]{3,8}|[a-zA-Z]+|[a-zA-Z]+\([^)]*\))$/.test(body.brand_text_color.trim())) updates.brand_text_color = body.brand_text_color.trim()
     if (typeof body.is_open === "boolean") updates.is_open = body.is_open
+    if (typeof body.contact_whatsapp === "string") updates.contact_whatsapp = body.contact_whatsapp
     if (!Object.keys(updates).length) return NextResponse.json({ error: "No valid fields" }, { status: 400 })
     const supabase = getSupabase()
     if (!supabase) return NextResponse.json({ error: "Server config error" }, { status: 500 })

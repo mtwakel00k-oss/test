@@ -44,6 +44,11 @@ export function RestaurantSettings() {
   const fileRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
 
+  const [contactWhatsapp, setContactWhatsapp] = useState("")
+  const [editingWhatsapp, setEditingWhatsapp] = useState(false)
+  const [savingWhatsapp, setSavingWhatsapp] = useState(false)
+  const [whatsappInput, setWhatsappInput] = useState("")
+
   const [drivers, setDrivers] = useState<Driver[]>([])
   const [loadingDrivers, setLoadingDrivers] = useState(true)
   const [savingDriver, setSavingDriver] = useState(false)
@@ -58,9 +63,10 @@ export function RestaurantSettings() {
   useEffect(() => {
     fetchApi("/api/tenant/logo")
       .then((r) => r.json())
-      .then((data: { name?: string; logo_url?: string | null }) => {
+      .then((data: { name?: string; logo_url?: string | null; contact_whatsapp?: string | null }) => {
         if (data.name) { setName(data.name); setOriginalName(data.name) }
         if (data.logo_url) setLogoUrl(data.logo_url);
+        if (data.contact_whatsapp !== undefined && data.contact_whatsapp !== null) { setContactWhatsapp(data.contact_whatsapp); setWhatsappInput(data.contact_whatsapp) }
       })
       .catch(() => {})
       .finally(() => setIsLoading(false));
@@ -363,6 +369,75 @@ export function RestaurantSettings() {
             }}
               className="h-9 px-4 rounded-xl bg-foreground text-background text-xs font-bold hover:scale-[1.02] active:scale-95 transition-all">
               {T(lang, "طباعة", "Print", "Imprimer")}
+            </button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+
+    <Card className="border-border/50" dir={dir}>
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.5 2.5a8.5 8.5 0 0 1 4 16A8.5 8.5 0 0 1 9 17.5L2 22l4.5-7A8.5 8.5 0 0 1 17.5 2.5Z"/></svg>
+          {T(lang, "إشعارات واتساب", "WhatsApp Notifications", "Notifications WhatsApp")}
+        </CardTitle>
+        <p className="text-sm text-muted-foreground mt-1">
+          {T(lang,
+            "رقم واتساب الذي تستقبل عليه طلبات التواصل من الزبائن",
+            "The WhatsApp number where you receive contact inquiries from customers",
+            "Le numéro WhatsApp sur lequel vous recevez les demandes de contact des clients"
+          )}
+        </p>
+      </CardHeader>
+      <CardContent>
+        {editingWhatsapp ? (
+          <div className="flex items-center gap-3">
+            <Input value={whatsappInput}
+              onChange={e => setWhatsappInput(e.target.value)}
+              placeholder="213xxxxxxxxx"
+              className="flex-1 h-12 px-4 rounded-xl border-border/50 bg-muted/30 text-sm font-bold focus:ring-2 focus:ring-primary/20" dir="ltr" type="tel" />
+            <Button onClick={async () => {
+              const val = whatsappInput.trim().replace(/\D/g, "")
+              if (!val) { toast({ title: T(lang, "يرجى إدخال رقم صحيح", "Please enter a valid number", "Veuillez entrer un numéro valide"), variant: "destructive" }); return }
+              setSavingWhatsapp(true)
+              try {
+                const res = await fetchApi("/api/tenant/logo", {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ contact_whatsapp: val }),
+                })
+                if (!res.ok) throw new Error("فشل الحفظ")
+                setContactWhatsapp(val)
+                setEditingWhatsapp(false)
+                toast({ title: T(lang, "تم حفظ الرقم", "Number saved", "Numéro enregistré") })
+              } catch {
+                toast({ title: T(lang, "فشل الحفظ", "Failed to save", "Échec de l'enregistrement"), variant: "destructive" })
+              } finally { setSavingWhatsapp(false) }
+            }} disabled={savingWhatsapp} className="h-12 px-5 rounded-xl shrink-0 shadow-xl shadow-primary/20">
+              {savingWhatsapp ? <span className="size-5 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <Check className="size-5" />}
+            </Button>
+            <Button variant="outline" onClick={() => { setEditingWhatsapp(false); setWhatsappInput(contactWhatsapp) }} className="h-12 px-5 rounded-xl shrink-0 border-border/50">
+              <X className="size-5" />
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border border-border/50">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#25D366]/10 flex items-center justify-center">
+                <svg className="size-5 text-[#25D366]" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 2.5a8.5 8.5 0 0 1 4 16A8.5 8.5 0 0 1 9 17.5L2 22l4.5-7A8.5 8.5 0 0 1 17.5 2.5Z"/></svg>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-foreground">
+                  {contactWhatsapp
+                    ? `+${contactWhatsapp}`
+                    : T(lang, "لم يتم تعيين رقم", "No number set", "Aucun numéro défini")}
+                </p>
+                <p className="text-[10px] text-muted-foreground/60">{T(lang, "رقم واتساب الإشعارات", "WhatsApp notification number", "Numéro de notification WhatsApp")}</p>
+              </div>
+            </div>
+            <button onClick={() => setEditingWhatsapp(true)}
+              className="size-10 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 flex items-center justify-center transition-all">
+              <Pencil className="size-4" />
             </button>
           </div>
         )}

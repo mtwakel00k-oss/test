@@ -20,6 +20,7 @@ export interface TenantConfig {
   plan_type?: string | null
   brand_color?: string
   brand_text_color?: string
+  contact_whatsapp?: string | null
 }
 
 export class TenantMismatchError extends Error {
